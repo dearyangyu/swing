@@ -7,9 +7,10 @@
 #
 # WARNING! All changes made in this file will be lost!
 
-from PySide2 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 class Ui_WcaMayaDialog(object):
+    
     def setupUi(self, WcaMayaDialog):
         WcaMayaDialog.setObjectName("WcaMayaDialog")
         WcaMayaDialog.resize(400, 300)
