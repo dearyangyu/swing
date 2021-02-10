@@ -7,7 +7,13 @@
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+try:
+    from PySide2 import QtGui
+    from PySide2 import QtCore
+    from PySide2 import QtWidgets
+    qtMode = 0
+except ImportError:
+    from PyQt5 import QtGui, QtCore, QtWidgets
 
 class Ui_WcaMayaDialog(object):
     

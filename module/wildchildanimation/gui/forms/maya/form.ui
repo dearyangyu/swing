@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Treehouse</string>
+   <string>treehouse: Swing</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_4">
    <item>
@@ -29,7 +29,7 @@
         <bool>false</bool>
        </property>
        <property name="styleSheet">
-        <string notr="true">background: rgb(0, 255, 0)</string>
+        <string notr="true">color: rgb(0, 255, 122)</string>
        </property>
        <property name="text">
         <string>Connect</string>
@@ -410,18 +410,8 @@
      <item>
       <widget class="QTabWidget" name="tabWidget">
        <property name="currentIndex">
-        <number>1</number>
+        <number>0</number>
        </property>
-       <widget class="QWidget" name="tabTasks">
-        <attribute name="title">
-         <string>Tasks</string>
-        </attribute>
-        <layout class="QVBoxLayout" name="verticalLayout_5">
-         <item>
-          <widget class="QListWidget" name="listWidgetTasks"/>
-         </item>
-        </layout>
-       </widget>
        <widget class="QWidget" name="tabFiles">
         <attribute name="title">
          <string>Files</string>
@@ -429,15 +419,81 @@
         <layout class="QHBoxLayout" name="horizontalLayout">
          <item>
           <widget class="QTreeWidget" name="treeWidgetFiles">
-           <property name="headerHidden">
+           <property name="autoFillBackground">
             <bool>true</bool>
            </property>
+           <property name="headerHidden">
+            <bool>false</bool>
+           </property>
+           <property name="columnCount">
+            <number>4</number>
+           </property>
+           <attribute name="headerVisible">
+            <bool>true</bool>
+           </attribute>
+           <attribute name="headerCascadingSectionResizes">
+            <bool>true</bool>
+           </attribute>
+           <attribute name="headerMinimumSectionSize">
+            <number>50</number>
+           </attribute>
+           <attribute name="headerDefaultSectionSize">
+            <number>200</number>
+           </attribute>
+           <attribute name="headerHighlightSections">
+            <bool>true</bool>
+           </attribute>
+           <attribute name="headerShowSortIndicator" stdset="0">
+            <bool>true</bool>
+           </attribute>
+           <attribute name="headerStretchLastSection">
+            <bool>true</bool>
+           </attribute>
            <column>
             <property name="text">
-             <string notr="true">1</string>
+             <string notr="true">name</string>
+            </property>
+            <property name="font">
+             <font>
+              <weight>50</weight>
+              <bold>false</bold>
+             </font>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>version</string>
+            </property>
+            <property name="textAlignment">
+             <set>AlignCenter</set>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>updated</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>comments</string>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>8</pointsize>
+             </font>
             </property>
            </column>
           </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="tabTasks">
+        <attribute name="title">
+         <string>Tasks</string>
+        </attribute>
+        <layout class="QVBoxLayout" name="verticalLayout_5">
+         <item>
+          <widget class="QListWidget" name="listWidgetTasks"/>
          </item>
         </layout>
        </widget>

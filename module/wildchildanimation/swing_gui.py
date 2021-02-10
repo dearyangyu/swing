@@ -22,26 +22,30 @@ import keyring
 import gazu
 import traceback
 import os.path
+from datetime import datetime
 
 import requests
-import background_workers as bg
+import wildchildanimation.background_workers as bg
 
-from gui.main_form import Ui_WcaMayaDialog
-from gui.connection_dialog import Ui_ConnectionDialog
-from gui.publish_dialog import Ui_PublishDialog
-from gui.download_dialog import Ui_DownloadDialog
-
-# DOWNLOAD_SERVER = "http://production.wildchildanimation.com/edit"
-DOWNLOAD_SERVER = "http://10.147.19.55:8202/edit"
+from wildchildanimation.gui.main_form import Ui_WcaMayaDialog
+from wildchildanimation.gui.connection_dialog import Ui_ConnectionDialog
+from wildchildanimation.gui.publish_dialog import Ui_PublishDialog
+from wildchildanimation.gui.download_dialog import Ui_DownloadDialog
 
 def resource_path(resource):
     base_path = os.path.dirname(os.path.realpath(__file__))
     #uic.loadUi(os.path.join(root, resource_file), self)
     #base_path = os.path.abspath(".")
     return os.path.join(base_path, resource)
+### 
 
+def my_date_format(date):
+    if len(date) == 19: # YYYY-MM-DDTHH:MM:SS
+        dt = datetime.strptime(date, "%Y-%m-%dT%H:%M:%S")
+        return dt.strftime("%Y-%m-%d %H:%M:%S")
+    return date.strftime("%Y-%m-%d %H:%M:%S")
 
-class TreehouseGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
+class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
     user_email = None
     tasks = []
 
@@ -56,7 +60,7 @@ class TreehouseGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
     connected = False
 
     def __init__(self, parent = None):
-        super(TreehouseGUI, self).__init__(parent) # Call the inherited classes __init__ method
+        super(SwingGUI, self).__init__(parent) # Call the inherited classes __init__ method
         self.setupUi(self)
 
         self.comboBoxProject.currentIndexChanged.connect(self.project_changed)
@@ -76,7 +80,7 @@ class TreehouseGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
         if self.connect_to_server():
             self.refresh_data()
 
-
+    
     def open_connection_settings(self):
         dialog = ConnectionDialogGUI(self)
 
@@ -93,7 +97,7 @@ class TreehouseGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
             self.gazu_client = None
             self.connected = False
 
-        server = load_settings('studiocontrol', 'server', 'https://production.wildchildanimation.com')
+        server = load_settings('studiocontrol', 'api', 'https://production.wildchildanimation.com')
         email = load_settings('studiocontrol', 'user', 'user@example.com')
         password = load_settings('studiocontrol', 'password', 'Not A Password')
 
@@ -163,7 +167,6 @@ class TreehouseGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
         task_loader = bg.TaskLoaderThread(self, self.currentProject, self.user_email)
         task_loader.loaded.connect(self.tasks_loaded)
         task_loader.start()
-
 
     def episode_loaded(self, data): 
         print("[episode_loaded]")
@@ -255,7 +258,6 @@ class TreehouseGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
         print("[shot_loaded]")
 
         self.shots = data
-
         self.clear_combo(self.comboBoxShot)
 
         last = self.comboBoxShot.currentIndex()
@@ -306,20 +308,38 @@ class TreehouseGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
         root = QtWidgets.QTreeWidgetItem(["Files"])
         if output_files:
             for item in output_files:
-                ti = QtWidgets.QTreeWidgetItem(['{}'.format(item["name"])])
-                ti.setCheckState(0, QtCore.Qt.Checked)
-                ti.setData(0, QtCore.Qt.UserRole, { "file": item } )
-                root.addChild(ti)
-            
+                root.addChild(self.load_file_node(item))
+
         if working_files:
             for item in working_files:
-                ti = QtWidgets.QTreeWidgetItem(['{}'.format(item["name"])])
-                ti.setCheckState(0, QtCore.Qt.Checked)                
-                ti.setData(0, QtCore.Qt.UserRole, { "file": item } )
-                root.addChild(ti)      
+                root.addChild(self.load_file_node(item))
 
-        self.treeWidgetFiles.addTopLevelItem(root)   
-        self.treeWidgetFiles.expandAll()       
+        self.treeWidgetFiles.addTopLevelItem(root)  
+        self.treeWidgetFiles.setColumnWidth(0, 400)
+        self.treeWidgetFiles.setColumnWidth(1, 75)
+        self.treeWidgetFiles.setColumnWidth(2, 200)
+        self.treeWidgetFiles.expandAll()   
+
+    def load_file_node(self, item):
+        name = item["name"]
+
+        if 'revision' in item:
+            revision = "{}".format(item["revision"])
+        else:
+            revision = ""
+
+        if 'comment' in item:
+            comment = item['comment'].strip()
+        else:
+            comment = ''
+
+        updated = my_date_format(item["updated_at"])
+
+        node = QtWidgets.QTreeWidgetItem([name, revision, updated, comment])
+        node.setCheckState(0, QtCore.Qt.Checked)                
+        node.setData(0, QtCore.Qt.UserRole, { "file": item } )
+
+        return node
 
     def load_task_list_widget(self, tasks = None):
         self.listWidgetTasks.clear()
@@ -368,7 +388,8 @@ class ConnectionDialogGUI(QtWidgets.QDialog, Ui_ConnectionDialog):
     def save_settings(self):
         self.buttonBox.accepted.disconnect()
 
-        keyring.set_password('studiocontrol', 'server', self.lineEditServer.text())
+        keyring.set_password('studiocontrol', 'api', "{}/api".format(self.lineEditServer.text()))
+        keyring.set_password('studiocontrol', 'edit', "{}/edit".format(self.lineEditServer.text()))
         keyring.set_password('studiocontrol', 'user', self.lineEditEmail.text())
         keyring.set_password('studiocontrol', 'password', self.lineEditPassword.text())
 
@@ -464,12 +485,17 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
         self.pushButtonSelectWorkingDir.clicked.connect(self.select_wcd)
         self.pushButtonDownload.clicked.connect(self.download_files)
         self.pushButtonCancel.clicked.connect(self.close_dialog)
+        
+        self.working_dir = load_settings('studiocontrol', 'wcd', '')   
+        self.lineEditWorkingDirectory.setText(self.working_dir)
+
 
     def close_dialog(self):
+        keyring.set_password('studiocontrol', 'wcd', self.working_dir)        
         self.close()
 
     def select_wcd(self):
-        self.working_dir  = QtWidgets.QFileDialog.getExistingDirectory(self, 'Select working directory')
+        self.working_dir = QtWidgets.QFileDialog.getExistingDirectory(self, 'Select working directory')
         self.lineEditWorkingDirectory.setText(self.working_dir)
 
     def load_files(self, files):
@@ -484,7 +510,7 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
         for item in self.files:
             self.tableWidget.setItem(row, 0, QtWidgets.QTableWidgetItem(item["file"]["name"])) 
             self.tableWidget.setItem(row, 1, QtWidgets.QTableWidgetItem(item["file"]["revision"])) 
-            self.tableWidget.setItem(row, 2, QtWidgets.QTableWidgetItem(item["file"]["updated_at"])) 
+            self.tableWidget.setItem(row, 2, QtWidgets.QTableWidgetItem(my_date_format(item["file"]["updated_at"])))
             self.tableWidget.setItem(row, 3, QtWidgets.QTableWidgetItem("0") )
             row = row + 1
 
@@ -502,6 +528,7 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
 
         email = load_settings('studiocontrol', 'user', 'user@example.com')
         password = load_settings('studiocontrol', 'password', 'Not A Password')
+        edit_api = load_settings('studiocontrol', 'edit', 'https://production.wildchildanimation.com/edit')
 
         row = 0
         for file_item in self.files:
@@ -518,7 +545,7 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
                 #source = os.path.join(output_file["path"], output_file["name"])
                 target = os.path.join(self.working_dir, item["name"])
 
-                url = "{}/api/working_file/{}".format(DOWNLOAD_SERVER, item["id"])
+                url = "{}/api/working_file/{}".format(edit_api, item["id"])
                 #wget.download(url, target,  self.tableWidget.getItem(row, 3))
                 rq = requests.get(url, auth=(email, password))
                 if rq.status_code == 200:
@@ -533,7 +560,7 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
                 #source = os.path.join(output_file["path"], output_file["name"])
                 target = os.path.join(self.working_dir, item["name"])
 
-                url = "{}/api/output_file/{}".format(DOWNLOAD_SERVER, item["id"])
+                url = "{}/api/output_file/{}".format(edit_api, item["id"])
                 params = { 
                     "username": email,
                     "password": password
