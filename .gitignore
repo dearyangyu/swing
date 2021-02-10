@@ -132,3 +132,19 @@ ref/
 tmp/
 
 *.pyc
+
+*.virtualenv
+
+# Ignore everything already in Maya2020's lib path
+module/maya
+module/pymel
+module/PyQt5
+module/PySide2
+module/pyside2uic
+module/shiboken2
+module/shiboken2_generator
+module/ufe
+module/alembic.pyd
+module/iex.pyd
+module/imath.pyd
+module/*.dist-info
