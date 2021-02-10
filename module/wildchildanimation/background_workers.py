@@ -1,6 +1,7 @@
 import traceback
 import gazu
 import sys
+import requests
 
 # ==== auto Qt load ====
 try:
@@ -141,3 +142,42 @@ class TaskLoaderThread(QtCore.QThread):
             if item["project_id"] == self.project["id"]:
                 results.append(item)
         self.loaded.emit(results)
+
+class FileDownloader(QtCore.QThread):
+    loaded = pyqtSignal(object)
+
+    def __init__(self, parent, url, target, email, password):
+        QtCore.QThread.__init__(self, parent)
+        self.parent = parent
+        self.url = url
+        self.target = target
+        self.email = email
+        self.password = password
+    
+    def __del__(self):
+        try:
+            if self:
+                self.wait()
+        except:
+            print("FileDownloader", "interrupted")
+
+    def run(self):
+        write_log("Downloading {} to {}".format(self.url, self.target))
+
+        params = { 
+            "username": email,
+            "password": password
+        }        
+
+        rq = requests.post(self.url, data = params)
+        if rq.status_code == 200:
+            with open(target, 'wb') as out:
+                for bits in rq.iter_content():
+                    out.write(bits)        
+
+        results = {
+            "status": rq.status_code,
+            "file": target
+        }
+        self.loaded.emit(results)        
+        write_log("Downloaded {} to {}".format(self.url, self.target))

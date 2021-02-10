@@ -525,6 +525,8 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
 
     def download_files(self):
         self.pushButtonDownload.blockSignals(True)
+        self.threadpool = QtCore.QThreadPool()
+        print("Multithreading with maximum %d threads" % self.threadpool.maxThreadCount())
 
         email = load_settings('studiocontrol', 'user', 'user@example.com')
         password = load_settings('studiocontrol', 'password', 'Not A Password')
@@ -537,49 +539,26 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
             #self.tableWidget.setItem(row, 1, QtWidgets.QTableWidgetItem(item["file"]["revision"])) 
             #self.tableWidget.setItem(row, 2, QtWidgets.QTableWidgetItem(item["file"]["updated_at"])) 
             print("Downloading {} to {}".format(item["name"], self.working_dir))
-
             if "working_file" in item["type"]:
-                #working_file = gazu.files.get_working_file(item["id"])
-                #gazu.files.download_working_file(item['id'], self.working_dir)
-
-                #source = os.path.join(output_file["path"], output_file["name"])
                 target = os.path.join(self.working_dir, item["name"])
-
                 url = "{}/api/working_file/{}".format(edit_api, item["id"])
-                #wget.download(url, target,  self.tableWidget.getItem(row, 3))
-                rq = requests.get(url, auth=(email, password))
-                if rq.status_code == 200:
-                    with open(target, 'wb') as out:
-                        for bits in rq.iter_content():
-                            out.write(bits)
 
-                self.tableWidget.setItem(row, 3, QtWidgets.QTableWidgetItem("Done") )
+                worker = bg.FileDownloader(self, url, target, email, password)
+                self.threadpool.start(worker)
+                self.tableWidget.setItem(row, 3, QtWidgets.QTableWidgetItem("Busy") )
             else:
-                # output_file = gazu.files.get_output_file(item["id"])
-
-                #source = os.path.join(output_file["path"], output_file["name"])
                 target = os.path.join(self.working_dir, item["name"])
-
                 url = "{}/api/output_file/{}".format(edit_api, item["id"])
-                params = { 
-                    "username": email,
-                    "password": password
-                }
-                #wget.download(url, target)
 
-                rq = requests.post(url, data = params)
-                if rq.status_code == 200:
-                    with open(target, 'wb') as out:
-                        for bits in rq.iter_content():
-                            out.write(bits)
-
-                self.tableWidget.setItem(row, 3, QtWidgets.QTableWidgetItem("Done") )
+                worker = bg.FileDownloader(self, url, target, email, password)
+                self.threadpool.start(worker)
+                self.tableWidget.setItem(row, 3, QtWidgets.QTableWidgetItem("Busy") )
 
             row = row + 1        
 
         self.pushButtonDownload.blockSignals(False)
 
-     
+    
 
 def load_settings(key, val, default):
     result = keyring.get_password(key, val)
