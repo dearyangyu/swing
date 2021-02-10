@@ -143,7 +143,7 @@ class TaskLoaderThread(QtCore.QThread):
                 results.append(item)
         self.loaded.emit(results)
 
-class FileDownloader(QtCore.QThread):
+class FileDownloader(QtCore.QRunnable):
     loaded = pyqtSignal(object)
 
     def __init__(self, parent, url, target, email, password):
