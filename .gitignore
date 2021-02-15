@@ -148,3 +148,4 @@ module/alembic.pyd
 module/iex.pyd
 module/imath.pyd
 module/*.dist-info
+

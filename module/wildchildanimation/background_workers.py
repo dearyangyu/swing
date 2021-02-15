@@ -1,6 +1,7 @@
 import traceback
 import gazu
 import sys
+import os
 import requests
 
 # ==== auto Qt load ====
@@ -35,30 +36,123 @@ class ProjectLoaderThread(QtCore.QThread):
 
     def run(self):
         write_log("ProjectLoaderThread", "start")
-        productions = []
+        results = {}
         try:
             try:
                 write_log("ProjectLoaderThread", "load")
-                productions = gazu.project.all_open_projects()
+                projects = gazu.project.all_open_projects()
+                task_types = gazu.task.all_task_types()
+
+                results["projects"] = projects
+                results["task_types"] = task_types
+
             except:
                 traceback.print_exc(file=sys.stdout)
             # done
         finally:
             write_log("ProjectLoaderThread", "done")
-            self.loaded.emit(productions)
+            self.loaded.emit(results)
 
-class EpisodeLoaderThread(QtCore.QThread):
+class ProjectHierarchyLoaderThread(QtCore.QThread):
     loaded = pyqtSignal(object)
 
     def __init__(self, parent, project):
         QtCore.QThread.__init__(self, parent)
         self.project = project
 
+    def __del__(self):
+        try:
+            if self:
+                self.wait()
+        except:
+            write_log("ProjectHierarchyLoaderThread", "interrupted")
+
     def run(self):
-        results = gazu.shot.all_episodes_for_project(self.project)
+        write_log("ProjectHierarchyLoaderThread", "start")
+        try:
+            try:
+                episodes = gazu.shot.all_episodes_for_project(self.project)
+                if len(episodes) == 0:
+                    episode = {
+                        "name": "All",
+                        "id": 0,
+                        "sequences": gazu.shot.all_sequences_for_project(self.project)
+                    }
+                    episodes = [ episode ]
+                else:
+                    for ep in episodes:
+                        ep["sequences"] = gazu.shot.all_sequences_for_episode(ep)
 
-        self.loaded.emit(results)
+                for ep in episodes:
+                    for seq in ep["sequences"]:
+                        seq["shots"] = gazu.shot.all_shots_for_sequence(seq)
 
+                results = {
+                    "results": episodes
+                }                        
+            except:
+                traceback.print_exc(file=sys.stdout)
+            # done
+        finally:
+            write_log("ProjectHierarchyLoaderThread", "done")
+            self.loaded.emit(episodes)
+
+class EntityFileLoader(QtCore.QThread):
+    loaded = pyqtSignal(object)
+
+    def __init__(self, parent, entity):
+        QtCore.QThread.__init__(self, parent)
+        self.entity = entity
+
+    def __del__(self):
+        try:
+            if self:
+                self.wait()
+        except:
+            write_log("EntityFileLoader", "interrupted")
+
+    def run(self):
+        write_log("EntityFileLoader", "start")
+        try:
+            results = {
+                "output_files": [],
+                "working_files": []
+            }                        
+
+            try:
+                if self.entity["type"] == "Shot":
+                    casting = gazu.casting.get_shot_casting(self.entity)
+                else:
+                    casting = gazu.casting.get_asset_casting(self.entity)
+                    
+                #for item in casting:
+                #    file_list += reportdata.load_working_files(item["asset_id"])            
+
+                output_files = gazu.files.all_output_files_for_entity(self.entity)
+                working_files = gazu.files.get_all_working_files_for_entity(self.entity)
+
+                # load casted files
+                for item in casting:
+
+                    for file_item in gazu.files.all_output_files_for_entity(item["asset_id"]):
+                        if file_item not in output_files:
+                            output_files.append(file_item)
+
+                    for file_item in gazu.files.get_all_working_files_for_entity(item["asset_id"]):
+                        if file_item not in working_files:
+                            working_files.append(file_item)
+
+                results = {
+                    "output_files": output_files,
+                    "working_files": working_files
+                }                        
+            except:
+                traceback.print_exc(file=sys.stdout)
+            # done
+        finally:
+            write_log("EntityFileLoader", "done")
+            self.loaded.emit(results)                        
+              
 class AssetTypeLoaderThread(QtCore.QThread):
     loaded = pyqtSignal(object)
 
@@ -70,35 +164,6 @@ class AssetTypeLoaderThread(QtCore.QThread):
         results = gazu.asset.all_asset_types_for_project(self.project)
 
         self.loaded.emit(results)        
-
-class SequenceLoaderThread(QtCore.QThread):
-    loaded = pyqtSignal(object)
-
-    def __init__(self, parent, project, episode):
-        QtCore.QThread.__init__(self, parent)
-        self.project = project
-        self.episode = episode
-
-    def run(self):
-        if (self.episode):
-            results = gazu.shot.all_sequences_for_episode(self.episode)
-        else:
-            results = gazu.shot.all_sequences_for_project(self.project)
-
-        self.loaded.emit(results)
-
-class ShotLoaderThread(QtCore.QThread):
-    loaded = pyqtSignal(object)
-
-    def __init__(self, parent, project, sequence):
-        QtCore.QThread.__init__(self, parent)
-        self.project = project
-        self.sequence = sequence
-
-    def run(self):
-        results = gazu.shot.all_shots_for_sequence(self.sequence)
-
-        self.loaded.emit(results)            
 
 class AssetLoaderThread(QtCore.QThread):
     loaded = pyqtSignal(object)
@@ -143,16 +208,23 @@ class TaskLoaderThread(QtCore.QThread):
                 results.append(item)
         self.loaded.emit(results)
 
-class FileDownloader(QtCore.QRunnable):
-    loaded = pyqtSignal(object)
+class DownloadSignal(QtCore.QObject):
 
-    def __init__(self, parent, url, target, email, password):
-        QtCore.QThread.__init__(self, parent)
+    # setting up custom signal
+    done = QtCore.Signal(object)        
+    progress = QtCore.Signal(object)
+
+class FileDownloader(QtCore.QRunnable):
+
+    def __init__(self, parent, index, url, target, email, password, skip_existing = True, extract_zips = False):
+        QtCore.QRunnable.__init__(self, parent)
         self.parent = parent
+        self.index = index
         self.url = url
         self.target = target
         self.email = email
         self.password = password
+        self.callback = DownloadSignal()
     
     def __del__(self):
         try:
@@ -161,23 +233,46 @@ class FileDownloader(QtCore.QRunnable):
         except:
             print("FileDownloader", "interrupted")
 
+    def progress(self, index, count):
+        results = {
+            "status": "downloading",
+            "index": index,
+            "count": count
+        }
+        self.callback.progress.emit(results)
+
     def run(self):
         write_log("Downloading {} to {}".format(self.url, self.target))
 
         params = { 
-            "username": email,
-            "password": password
+            "username": self.email,
+            "password": self.password
         }        
 
-        rq = requests.post(self.url, data = params)
-        if rq.status_code == 200:
-            with open(target, 'wb') as out:
-                for bits in rq.iter_content():
-                    out.write(bits)        
+        if os.path.exists(self.target):
+            status = "skipped"
+        else:
+            it = 0
+            count = 0
+            rq = requests.post(self.url, data = params)
+            if rq.status_code == 200:
+                with open(self.target, 'wb') as out:
+                    for bits in rq.iter_content():
+                        out.write(bits)        
+                        count += len(bits)
+
+                        #if it % 1024 == 0:
+                        #    self.progress(self.index, count)
+                        it += 1
+            status = "Downloaded"
+
+        size = os.path.getsize(self.target)
 
         results = {
-            "status": rq.status_code,
-            "file": target
+            "status": status,
+            "size": size,
+            "index": self.index,
+            "file": self.target
         }
-        self.loaded.emit(results)        
+        self.callback.done.emit(results)        
         write_log("Downloaded {} to {}".format(self.url, self.target))

@@ -17,9 +17,9 @@ class Ui_WcaMayaDialog(object):
     def setupUi(self, WcaMayaDialog):
         if not WcaMayaDialog.objectName():
             WcaMayaDialog.setObjectName(u"WcaMayaDialog")
-        WcaMayaDialog.resize(579, 470)
-        self.verticalLayout_4 = QVBoxLayout(WcaMayaDialog)
-        self.verticalLayout_4.setObjectName(u"verticalLayout_4")
+        WcaMayaDialog.resize(650, 491)
+        self.verticalLayout = QVBoxLayout(WcaMayaDialog)
+        self.verticalLayout.setObjectName(u"verticalLayout")
         self.connectionLayout = QHBoxLayout()
         self.connectionLayout.setObjectName(u"connectionLayout")
         self.pushButtonSettings = QPushButton(WcaMayaDialog)
@@ -39,14 +39,14 @@ class Ui_WcaMayaDialog(object):
         self.connectionLayout.addItem(self.horizontalSpacer)
 
 
-        self.verticalLayout_4.addLayout(self.connectionLayout)
+        self.verticalLayout.addLayout(self.connectionLayout)
 
         self.horizontalLayoutProject = QHBoxLayout()
         self.horizontalLayoutProject.setObjectName(u"horizontalLayoutProject")
-        self.verticalLayout_3 = QVBoxLayout()
-        self.verticalLayout_3.setObjectName(u"verticalLayout_3")
-        self.horizontalLayout_8 = QHBoxLayout()
-        self.horizontalLayout_8.setObjectName(u"horizontalLayout_8")
+        self.verticalLayoutProject = QVBoxLayout()
+        self.verticalLayoutProject.setObjectName(u"verticalLayoutProject")
+        self.horizontalLayoutProjectTitle = QHBoxLayout()
+        self.horizontalLayoutProjectTitle.setObjectName(u"horizontalLayoutProjectTitle")
         self.labelProject = QLabel(WcaMayaDialog)
         self.labelProject.setObjectName(u"labelProject")
         self.labelProject.setMinimumSize(QSize(100, 0))
@@ -56,7 +56,7 @@ class Ui_WcaMayaDialog(object):
         self.labelProject.setFont(font)
         self.labelProject.setAlignment(Qt.AlignCenter)
 
-        self.horizontalLayout_8.addWidget(self.labelProject)
+        self.horizontalLayoutProjectTitle.addWidget(self.labelProject)
 
         self.comboBoxProject = QComboBox(WcaMayaDialog)
         self.comboBoxProject.setObjectName(u"comboBoxProject")
@@ -66,13 +66,13 @@ class Ui_WcaMayaDialog(object):
         sizePolicy.setHeightForWidth(self.comboBoxProject.sizePolicy().hasHeightForWidth())
         self.comboBoxProject.setSizePolicy(sizePolicy)
 
-        self.horizontalLayout_8.addWidget(self.comboBoxProject)
+        self.horizontalLayoutProjectTitle.addWidget(self.comboBoxProject)
 
 
-        self.verticalLayout_3.addLayout(self.horizontalLayout_8)
+        self.verticalLayoutProject.addLayout(self.horizontalLayoutProjectTitle)
 
-        self.horizontalLayout_9 = QHBoxLayout()
-        self.horizontalLayout_9.setObjectName(u"horizontalLayout_9")
+        self.horizontalLayoutEpisodeSequence = QHBoxLayout()
+        self.horizontalLayoutEpisodeSequence.setObjectName(u"horizontalLayoutEpisodeSequence")
         self.labelShotEpisode = QLabel(WcaMayaDialog)
         self.labelShotEpisode.setObjectName(u"labelShotEpisode")
         sizePolicy1 = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
@@ -85,10 +85,11 @@ class Ui_WcaMayaDialog(object):
         self.labelShotEpisode.setFont(font)
         self.labelShotEpisode.setAlignment(Qt.AlignCenter)
 
-        self.horizontalLayout_9.addWidget(self.labelShotEpisode)
+        self.horizontalLayoutEpisodeSequence.addWidget(self.labelShotEpisode)
 
         self.comboBoxEpisode = QComboBox(WcaMayaDialog)
         self.comboBoxEpisode.setObjectName(u"comboBoxEpisode")
+        self.comboBoxEpisode.setEnabled(False)
         sizePolicy2 = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         sizePolicy2.setHorizontalStretch(0)
         sizePolicy2.setVerticalStretch(0)
@@ -97,13 +98,8 @@ class Ui_WcaMayaDialog(object):
         self.comboBoxEpisode.setMinimumSize(QSize(200, 0))
         self.comboBoxEpisode.setMaximumSize(QSize(16777215, 25))
 
-        self.horizontalLayout_9.addWidget(self.comboBoxEpisode)
+        self.horizontalLayoutEpisodeSequence.addWidget(self.comboBoxEpisode)
 
-
-        self.verticalLayout_3.addLayout(self.horizontalLayout_9)
-
-        self.horizontalLayout_10 = QHBoxLayout()
-        self.horizontalLayout_10.setObjectName(u"horizontalLayout_10")
         self.labelShotSequence = QLabel(WcaMayaDialog)
         self.labelShotSequence.setObjectName(u"labelShotSequence")
         sizePolicy1.setHeightForWidth(self.labelShotSequence.sizePolicy().hasHeightForWidth())
@@ -111,121 +107,101 @@ class Ui_WcaMayaDialog(object):
         self.labelShotSequence.setMinimumSize(QSize(100, 0))
         self.labelShotSequence.setMaximumSize(QSize(60, 16777215))
         self.labelShotSequence.setFont(font)
-        self.labelShotSequence.setAlignment(Qt.AlignCenter)
+        self.labelShotSequence.setAlignment(Qt.AlignLeading|Qt.AlignLeft|Qt.AlignVCenter)
 
-        self.horizontalLayout_10.addWidget(self.labelShotSequence)
+        self.horizontalLayoutEpisodeSequence.addWidget(self.labelShotSequence)
 
         self.comboBoxSequence = QComboBox(WcaMayaDialog)
         self.comboBoxSequence.setObjectName(u"comboBoxSequence")
+        self.comboBoxSequence.setEnabled(False)
         sizePolicy2.setHeightForWidth(self.comboBoxSequence.sizePolicy().hasHeightForWidth())
         self.comboBoxSequence.setSizePolicy(sizePolicy2)
         self.comboBoxSequence.setMinimumSize(QSize(200, 0))
         self.comboBoxSequence.setMaximumSize(QSize(16777215, 25))
 
-        self.horizontalLayout_10.addWidget(self.comboBoxSequence)
+        self.horizontalLayoutEpisodeSequence.addWidget(self.comboBoxSequence)
 
 
-        self.verticalLayout_3.addLayout(self.horizontalLayout_10)
+        self.verticalLayoutProject.addLayout(self.horizontalLayoutEpisodeSequence)
 
 
-        self.horizontalLayoutProject.addLayout(self.verticalLayout_3)
+        self.horizontalLayoutProject.addLayout(self.verticalLayoutProject)
 
 
-        self.verticalLayout_4.addLayout(self.horizontalLayoutProject)
+        self.verticalLayout.addLayout(self.horizontalLayoutProject)
 
-        self.shotLayout = QVBoxLayout()
-        self.shotLayout.setObjectName(u"shotLayout")
-        self.verticalLayout_2 = QVBoxLayout()
-        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
-        self.horizontalLayout_7 = QHBoxLayout()
-        self.horizontalLayout_7.setObjectName(u"horizontalLayout_7")
-        self.labelShotName = QLabel(WcaMayaDialog)
-        self.labelShotName.setObjectName(u"labelShotName")
-        sizePolicy1.setHeightForWidth(self.labelShotName.sizePolicy().hasHeightForWidth())
-        self.labelShotName.setSizePolicy(sizePolicy1)
-        self.labelShotName.setMinimumSize(QSize(100, 0))
-        self.labelShotName.setMaximumSize(QSize(60, 16777215))
-        self.labelShotName.setFont(font)
-        self.labelShotName.setAlignment(Qt.AlignCenter)
+        self.line = QFrame(WcaMayaDialog)
+        self.line.setObjectName(u"line")
+        self.line.setFrameShape(QFrame.HLine)
+        self.line.setFrameShadow(QFrame.Sunken)
 
-        self.horizontalLayout_7.addWidget(self.labelShotName)
+        self.verticalLayout.addWidget(self.line)
+
+        self.horizontalLayoutAsset = QHBoxLayout()
+        self.horizontalLayoutAsset.setObjectName(u"horizontalLayoutAsset")
+        self.horizontalSpacerAsset = QSpacerItem(10, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
+
+        self.horizontalLayoutAsset.addItem(self.horizontalSpacerAsset)
+
+        self.radioButtonAsset = QRadioButton(WcaMayaDialog)
+        self.radioButtonAsset.setObjectName(u"radioButtonAsset")
+        self.radioButtonAsset.setMinimumSize(QSize(100, 0))
+        self.radioButtonAsset.setFont(font)
+        self.radioButtonAsset.setChecked(True)
+
+        self.horizontalLayoutAsset.addWidget(self.radioButtonAsset)
+
+        self.comboBoxAssetType = QComboBox(WcaMayaDialog)
+        self.comboBoxAssetType.setObjectName(u"comboBoxAssetType")
+        self.comboBoxAssetType.setEnabled(False)
+        sizePolicy3 = QSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
+        sizePolicy3.setHorizontalStretch(0)
+        sizePolicy3.setVerticalStretch(0)
+        sizePolicy3.setHeightForWidth(self.comboBoxAssetType.sizePolicy().hasHeightForWidth())
+        self.comboBoxAssetType.setSizePolicy(sizePolicy3)
+        self.comboBoxAssetType.setMinimumSize(QSize(200, 0))
+        self.comboBoxAssetType.setMaximumSize(QSize(16777215, 25))
+
+        self.horizontalLayoutAsset.addWidget(self.comboBoxAssetType)
+
+        self.comboBoxAsset = QComboBox(WcaMayaDialog)
+        self.comboBoxAsset.setObjectName(u"comboBoxAsset")
+        self.comboBoxAsset.setEnabled(False)
+        sizePolicy.setHeightForWidth(self.comboBoxAsset.sizePolicy().hasHeightForWidth())
+        self.comboBoxAsset.setSizePolicy(sizePolicy)
+        self.comboBoxAsset.setMinimumSize(QSize(200, 0))
+
+        self.horizontalLayoutAsset.addWidget(self.comboBoxAsset)
+
+
+        self.verticalLayout.addLayout(self.horizontalLayoutAsset)
+
+        self.horizontalLayoutShot = QHBoxLayout()
+        self.horizontalLayoutShot.setObjectName(u"horizontalLayoutShot")
+        self.horizontalSpacerShot = QSpacerItem(10, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
+
+        self.horizontalLayoutShot.addItem(self.horizontalSpacerShot)
+
+        self.radioButtonShot = QRadioButton(WcaMayaDialog)
+        self.radioButtonShot.setObjectName(u"radioButtonShot")
+        self.radioButtonShot.setMinimumSize(QSize(100, 0))
+        self.radioButtonShot.setFont(font)
+        self.radioButtonShot.setChecked(False)
+
+        self.horizontalLayoutShot.addWidget(self.radioButtonShot)
 
         self.comboBoxShot = QComboBox(WcaMayaDialog)
         self.comboBoxShot.setObjectName(u"comboBoxShot")
+        self.comboBoxShot.setEnabled(False)
         sizePolicy2.setHeightForWidth(self.comboBoxShot.sizePolicy().hasHeightForWidth())
         self.comboBoxShot.setSizePolicy(sizePolicy2)
         self.comboBoxShot.setMinimumSize(QSize(200, 0))
         self.comboBoxShot.setMaximumSize(QSize(16777215, 25))
 
-        self.horizontalLayout_7.addWidget(self.comboBoxShot)
+        self.horizontalLayoutShot.addWidget(self.comboBoxShot)
 
 
-        self.verticalLayout_2.addLayout(self.horizontalLayout_7)
-
-
-        self.shotLayout.addLayout(self.verticalLayout_2)
-
-
-        self.verticalLayout_4.addLayout(self.shotLayout)
-
-        self.assetLayout = QVBoxLayout()
-        self.assetLayout.setObjectName(u"assetLayout")
-        self.verticalLayout = QVBoxLayout()
-        self.verticalLayout.setObjectName(u"verticalLayout")
-        self.horizontalLayout_5 = QHBoxLayout()
-        self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
-        self.labelAssetType = QLabel(WcaMayaDialog)
-        self.labelAssetType.setObjectName(u"labelAssetType")
-        sizePolicy1.setHeightForWidth(self.labelAssetType.sizePolicy().hasHeightForWidth())
-        self.labelAssetType.setSizePolicy(sizePolicy1)
-        self.labelAssetType.setMinimumSize(QSize(100, 0))
-        self.labelAssetType.setMaximumSize(QSize(60, 16777215))
-        self.labelAssetType.setFont(font)
-        self.labelAssetType.setAlignment(Qt.AlignCenter)
-
-        self.horizontalLayout_5.addWidget(self.labelAssetType)
-
-        self.comboBoxAssetType = QComboBox(WcaMayaDialog)
-        self.comboBoxAssetType.setObjectName(u"comboBoxAssetType")
-        sizePolicy2.setHeightForWidth(self.comboBoxAssetType.sizePolicy().hasHeightForWidth())
-        self.comboBoxAssetType.setSizePolicy(sizePolicy2)
-        self.comboBoxAssetType.setMinimumSize(QSize(200, 0))
-        self.comboBoxAssetType.setMaximumSize(QSize(16777215, 25))
-
-        self.horizontalLayout_5.addWidget(self.comboBoxAssetType)
-
-
-        self.verticalLayout.addLayout(self.horizontalLayout_5)
-
-        self.horizontalLayout_4 = QHBoxLayout()
-        self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
-        self.labelAsset = QLabel(WcaMayaDialog)
-        self.labelAsset.setObjectName(u"labelAsset")
-        sizePolicy1.setHeightForWidth(self.labelAsset.sizePolicy().hasHeightForWidth())
-        self.labelAsset.setSizePolicy(sizePolicy1)
-        self.labelAsset.setMinimumSize(QSize(100, 0))
-        self.labelAsset.setMaximumSize(QSize(60, 16777215))
-        self.labelAsset.setFont(font)
-        self.labelAsset.setAlignment(Qt.AlignCenter)
-
-        self.horizontalLayout_4.addWidget(self.labelAsset)
-
-        self.comboBoxAsset = QComboBox(WcaMayaDialog)
-        self.comboBoxAsset.setObjectName(u"comboBoxAsset")
-        sizePolicy2.setHeightForWidth(self.comboBoxAsset.sizePolicy().hasHeightForWidth())
-        self.comboBoxAsset.setSizePolicy(sizePolicy2)
-        self.comboBoxAsset.setMinimumSize(QSize(200, 0))
-
-        self.horizontalLayout_4.addWidget(self.comboBoxAsset)
-
-
-        self.verticalLayout.addLayout(self.horizontalLayout_4)
-
-
-        self.assetLayout.addLayout(self.verticalLayout)
-
-
-        self.verticalLayout_4.addLayout(self.assetLayout)
+        self.verticalLayout.addLayout(self.horizontalLayoutShot)
 
         self.horizontalLayoutFiles = QHBoxLayout()
         self.horizontalLayoutFiles.setObjectName(u"horizontalLayoutFiles")
@@ -235,51 +211,40 @@ class Ui_WcaMayaDialog(object):
         self.tabFiles.setObjectName(u"tabFiles")
         self.horizontalLayout = QHBoxLayout(self.tabFiles)
         self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.treeWidgetFiles = QTreeWidget(self.tabFiles)
-        font1 = QFont()
-        font1.setBold(False)
-        font1.setWeight(50)
-        font2 = QFont()
-        font2.setPointSize(8)
-        __qtreewidgetitem = QTreeWidgetItem()
-        __qtreewidgetitem.setFont(3, font2);
-        __qtreewidgetitem.setTextAlignment(1, Qt.AlignCenter);
-        __qtreewidgetitem.setText(0, u"name");
-        __qtreewidgetitem.setFont(0, font1);
-        self.treeWidgetFiles.setHeaderItem(__qtreewidgetitem)
-        self.treeWidgetFiles.setObjectName(u"treeWidgetFiles")
-        self.treeWidgetFiles.setAutoFillBackground(True)
-        self.treeWidgetFiles.setHeaderHidden(False)
-        self.treeWidgetFiles.setColumnCount(4)
-        self.treeWidgetFiles.header().setVisible(True)
-        self.treeWidgetFiles.header().setCascadingSectionResizes(True)
-        self.treeWidgetFiles.header().setMinimumSectionSize(50)
-        self.treeWidgetFiles.header().setDefaultSectionSize(200)
-        self.treeWidgetFiles.header().setHighlightSections(True)
-        self.treeWidgetFiles.header().setProperty("showSortIndicator", True)
-        self.treeWidgetFiles.header().setStretchLastSection(True)
+        self.tableViewFiles = QTableView(self.tabFiles)
+        self.tableViewFiles.setObjectName(u"tableViewFiles")
 
-        self.horizontalLayout.addWidget(self.treeWidgetFiles)
+        self.horizontalLayout.addWidget(self.tableViewFiles)
 
         self.tabWidget.addTab(self.tabFiles, "")
         self.tabTasks = QWidget()
         self.tabTasks.setObjectName(u"tabTasks")
         self.verticalLayout_5 = QVBoxLayout(self.tabTasks)
         self.verticalLayout_5.setObjectName(u"verticalLayout_5")
-        self.listWidgetTasks = QListWidget(self.tabTasks)
-        self.listWidgetTasks.setObjectName(u"listWidgetTasks")
+        self.tableViewTasks = QTableView(self.tabTasks)
+        self.tableViewTasks.setObjectName(u"tableViewTasks")
 
-        self.verticalLayout_5.addWidget(self.listWidgetTasks)
+        self.verticalLayout_5.addWidget(self.tableViewTasks)
 
         self.tabWidget.addTab(self.tabTasks, "")
 
         self.horizontalLayoutFiles.addWidget(self.tabWidget)
 
 
-        self.verticalLayout_4.addLayout(self.horizontalLayoutFiles)
+        self.verticalLayout.addLayout(self.horizontalLayoutFiles)
 
         self.horizontalLayoutButtons = QHBoxLayout()
         self.horizontalLayoutButtons.setObjectName(u"horizontalLayoutButtons")
+        self.pushButtonLoad = QPushButton(WcaMayaDialog)
+        self.pushButtonLoad.setObjectName(u"pushButtonLoad")
+
+        self.horizontalLayoutButtons.addWidget(self.pushButtonLoad)
+
+        self.pushButtonImport = QPushButton(WcaMayaDialog)
+        self.pushButtonImport.setObjectName(u"pushButtonImport")
+
+        self.horizontalLayoutButtons.addWidget(self.pushButtonImport)
+
         self.pushButtonDownload = QPushButton(WcaMayaDialog)
         self.pushButtonDownload.setObjectName(u"pushButtonDownload")
 
@@ -296,7 +261,53 @@ class Ui_WcaMayaDialog(object):
         self.horizontalLayoutButtons.addItem(self.horizontalSpacerButton)
 
 
-        self.verticalLayout_4.addLayout(self.horizontalLayoutButtons)
+        self.verticalLayout.addLayout(self.horizontalLayoutButtons)
+
+        self.horizontalLayoutStatus = QHBoxLayout()
+        self.horizontalLayoutStatus.setObjectName(u"horizontalLayoutStatus")
+        self.labelConnection = QLabel(WcaMayaDialog)
+        self.labelConnection.setObjectName(u"labelConnection")
+        sizePolicy4 = QSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
+        sizePolicy4.setHorizontalStretch(0)
+        sizePolicy4.setVerticalStretch(0)
+        sizePolicy4.setHeightForWidth(self.labelConnection.sizePolicy().hasHeightForWidth())
+        self.labelConnection.setSizePolicy(sizePolicy4)
+        font1 = QFont()
+        font1.setPointSize(7)
+        self.labelConnection.setFont(font1)
+        self.labelConnection.setFrameShape(QFrame.NoFrame)
+        self.labelConnection.setLineWidth(0)
+        self.labelConnection.setAlignment(Qt.AlignLeading|Qt.AlignLeft|Qt.AlignVCenter)
+        self.labelConnection.setIndent(5)
+
+        self.horizontalLayoutStatus.addWidget(self.labelConnection)
+
+        self.line_2 = QFrame(WcaMayaDialog)
+        self.line_2.setObjectName(u"line_2")
+        self.line_2.setFrameShape(QFrame.VLine)
+        self.line_2.setFrameShadow(QFrame.Sunken)
+
+        self.horizontalLayoutStatus.addWidget(self.line_2)
+
+        self.horizontalSpacerStatus = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.horizontalLayoutStatus.addItem(self.horizontalSpacerStatus)
+
+        self.labelMessage = QLabel(WcaMayaDialog)
+        self.labelMessage.setObjectName(u"labelMessage")
+        sizePolicy4.setHeightForWidth(self.labelMessage.sizePolicy().hasHeightForWidth())
+        self.labelMessage.setSizePolicy(sizePolicy4)
+        self.labelMessage.setFont(font1)
+        self.labelMessage.setFrameShape(QFrame.NoFrame)
+        self.labelMessage.setLineWidth(0)
+        self.labelMessage.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+        self.labelMessage.setMargin(1)
+        self.labelMessage.setIndent(5)
+
+        self.horizontalLayoutStatus.addWidget(self.labelMessage)
+
+
+        self.verticalLayout.addLayout(self.horizontalLayoutStatus)
 
 
         self.retranslateUi(WcaMayaDialog)
@@ -308,22 +319,39 @@ class Ui_WcaMayaDialog(object):
     # setupUi
 
     def retranslateUi(self, WcaMayaDialog):
-        WcaMayaDialog.setWindowTitle(QCoreApplication.translate("WcaMayaDialog", u"treehouse: Swing", None))
+        WcaMayaDialog.setWindowTitle(QCoreApplication.translate("WcaMayaDialog", u"swing", None))
         self.pushButtonSettings.setText(QCoreApplication.translate("WcaMayaDialog", u"Settings", None))
         self.pushButtonConnect.setText(QCoreApplication.translate("WcaMayaDialog", u"Connect", None))
         self.labelProject.setText(QCoreApplication.translate("WcaMayaDialog", u"Project", None))
         self.labelShotEpisode.setText(QCoreApplication.translate("WcaMayaDialog", u"Episode", None))
-        self.labelShotSequence.setText(QCoreApplication.translate("WcaMayaDialog", u"Seq", None))
-        self.labelShotName.setText(QCoreApplication.translate("WcaMayaDialog", u"Shot", None))
-        self.labelAssetType.setText(QCoreApplication.translate("WcaMayaDialog", u"Asset Type", None))
-        self.labelAsset.setText(QCoreApplication.translate("WcaMayaDialog", u"Asset", None))
-        ___qtreewidgetitem = self.treeWidgetFiles.headerItem()
-        ___qtreewidgetitem.setText(3, QCoreApplication.translate("WcaMayaDialog", u"comments", None));
-        ___qtreewidgetitem.setText(2, QCoreApplication.translate("WcaMayaDialog", u"updated", None));
-        ___qtreewidgetitem.setText(1, QCoreApplication.translate("WcaMayaDialog", u"version", None));
+        self.labelShotSequence.setText(QCoreApplication.translate("WcaMayaDialog", u"Sequence", None))
+        self.radioButtonAsset.setText(QCoreApplication.translate("WcaMayaDialog", u"Asset", None))
+#if QT_CONFIG(shortcut)
+        self.radioButtonAsset.setShortcut(QCoreApplication.translate("WcaMayaDialog", u"Alt+A", None))
+#endif // QT_CONFIG(shortcut)
+        self.radioButtonShot.setText(QCoreApplication.translate("WcaMayaDialog", u"Shot", None))
+#if QT_CONFIG(shortcut)
+        self.radioButtonShot.setShortcut(QCoreApplication.translate("WcaMayaDialog", u"Alt+S", None))
+#endif // QT_CONFIG(shortcut)
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabFiles), QCoreApplication.translate("WcaMayaDialog", u"Files", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabTasks), QCoreApplication.translate("WcaMayaDialog", u"Tasks", None))
+        self.pushButtonLoad.setText(QCoreApplication.translate("WcaMayaDialog", u"Load", None))
+#if QT_CONFIG(shortcut)
+        self.pushButtonLoad.setShortcut(QCoreApplication.translate("WcaMayaDialog", u"Alt+L", None))
+#endif // QT_CONFIG(shortcut)
+        self.pushButtonImport.setText(QCoreApplication.translate("WcaMayaDialog", u"Import", None))
+#if QT_CONFIG(shortcut)
+        self.pushButtonImport.setShortcut(QCoreApplication.translate("WcaMayaDialog", u"Alt+I", None))
+#endif // QT_CONFIG(shortcut)
         self.pushButtonDownload.setText(QCoreApplication.translate("WcaMayaDialog", u"Download", None))
+#if QT_CONFIG(shortcut)
+        self.pushButtonDownload.setShortcut(QCoreApplication.translate("WcaMayaDialog", u"Alt+D", None))
+#endif // QT_CONFIG(shortcut)
         self.pushButtonPublish.setText(QCoreApplication.translate("WcaMayaDialog", u"Publish", None))
+#if QT_CONFIG(shortcut)
+        self.pushButtonPublish.setShortcut(QCoreApplication.translate("WcaMayaDialog", u"Alt+P", None))
+#endif // QT_CONFIG(shortcut)
+        self.labelConnection.setText(QCoreApplication.translate("WcaMayaDialog", u"Offline", None))
+        self.labelMessage.setText(QCoreApplication.translate("WcaMayaDialog", u"OK", None))
     # retranslateUi
 
