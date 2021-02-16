@@ -3,6 +3,7 @@ import gazu
 import sys
 import os
 import requests
+import shutil
 
 # ==== auto Qt load ====
 try:
@@ -178,6 +179,30 @@ class AssetLoaderThread(QtCore.QThread):
 
         self.loaded.emit(results)          
 
+class EntityLoaderThread(QtCore.QThread):
+    loaded = pyqtSignal(object)
+
+    def __init__(self, parent, entity_type, entity_id):
+        QtCore.QThread.__init__(self, parent)
+        self.entity_type = entity_type
+        self.entity_id = entity_id
+
+    def run(self):
+        results = {}
+
+        if self.entity_type == "Shot":
+            results["item"] = gazu.shot.get_shot(self.entity_id)
+            results["project"] = gazu.project.get_project(results["item"]["project_id"])
+            results["url"] = gazu.shot.get_shot_url(results["item"])
+            results["casting"] = gazu.casting.get_shot_casting(results["item"])
+        else:
+            results["item"] = gazu.asset.get_asset(self.entity_id)
+            results["project"] = gazu.project.get_project(results["item"]["project_id"])
+            results["url"] = gazu.asset.get_asset_url(results["item"])
+            results["casting"] = gazu.casting.get_asset_casting(results["item"])
+
+        self.loaded.emit(results)      
+
 class TaskLoaderThread(QtCore.QThread):
     loaded = pyqtSignal(object)
 
@@ -216,14 +241,17 @@ class DownloadSignal(QtCore.QObject):
 
 class FileDownloader(QtCore.QRunnable):
 
-    def __init__(self, parent, index, url, target, email, password, skip_existing = True, extract_zips = False):
-        QtCore.QRunnable.__init__(self, parent)
+    def __init__(self, parent, working_dir, file_id, url, target, email, password, skip_existing = True, extract_zips = False):
+        super(FileDownloader, self).__init__(self, parent)
         self.parent = parent
-        self.index = index
+        self.working_dir = working_dir
+        self.file_id = file_id
         self.url = url
         self.target = target
         self.email = email
         self.password = password
+        self.skip_existing = skip_existing
+        self.extract_zips = extract_zips
         self.callback = DownloadSignal()
     
     def __del__(self):
@@ -233,46 +261,117 @@ class FileDownloader(QtCore.QRunnable):
         except:
             print("FileDownloader", "interrupted")
 
-    def progress(self, index, count):
+    def progress(self, count):
         results = {
-            "status": "downloading",
-            "index": index,
-            "count": count
+            "message": "downloading",
+            "file_id": self.file_id,
+            "target": self.target,
+            "working_dir": self.working_dir,
+            "size": count
         }
         self.callback.progress.emit(results)
 
     def run(self):
         write_log("Downloading {} to {}".format(self.url, self.target))
+        filename, file_extension = os.path.splitext(self.target)
+
+        ###
+        if self.skip_existing:
+            # check if the target 
+            if os.path.exists(self.target):
+                write_log("Target exists {}".format(self.target))
+
+                size = os.path.getsize(self.target)                
+                status = {
+                    "message": "Skipped existing file",
+                    "file_id": self.file_id,
+                    "target": self.target,
+                    "working_dir": self.working_dir,
+                    "size": size
+                }
+                self.callback.done.emit(status)
+                return
+
+            if os.path.exists(os.path.join(self.working_dir, filename)):
+                write_log("Target exists {}".format(os.path.join(self.working_dir, filename)))
+
+                size = os.path.getsize(self.target)                
+                status = {
+                    "message": "Skipped existing file",
+                    "file_id": self.file_id,
+                    "target": self.target,
+                    "working_dir": self.working_dir,
+                    "size": size
+                }
+                self.callback.done.emit(status)
+                return                
 
         params = { 
             "username": self.email,
             "password": self.password
-        }        
+        } 
 
-        if os.path.exists(self.target):
-            status = "skipped"
+        target_dir = os.path.dirname(self.target)
+        if not os.path.exists(target_dir):
+            os.makedirs(target_dir)        
+
+        count = 0
+        rq = requests.post(self.url, data = params, stream = True)
+        if rq.status_code == 200:
+            with open(self.target, 'wb') as out:
+                for bits in rq.iter_content(1024 * 1024):
+                    out.write(bits)        
+                    count += len(bits)
+                    self.progress(count)
         else:
-            it = 0
-            count = 0
-            rq = requests.post(self.url, data = params)
-            if rq.status_code == 200:
-                with open(self.target, 'wb') as out:
-                    for bits in rq.iter_content():
-                        out.write(bits)        
-                        count += len(bits)
-
-                        #if it % 1024 == 0:
-                        #    self.progress(self.index, count)
-                        it += 1
-            status = "Downloaded"
+            status = {
+                "message": "Error downloading file",
+                "file_id": self.file_id,
+                "target": zip_root,
+                "working_dir": self.working_dir,
+                "size": 0
+            }   
+            self.callback.done.emit(status)            
+            return False        
+                    
+        try:
+            os.sync()
+        except:
+            pass
 
         size = os.path.getsize(self.target)
+        ###
+        if self.extract_zips and file_extension in [ ".zip" ]:
+            zip_root = os.path.normpath(os.path.join(self.working_dir, filename))
 
-        results = {
-            "status": status,
-            "size": size,
-            "index": self.index,
-            "file": self.target
+            status = {
+                "message": "Extracting archive",
+                "file_id": self.file_id,
+                "target": zip_root,
+                "working_dir": self.working_dir,
+                "size": size
+            }   
+            self.callback.progress.emit(status)
+
+            os.makedirs(zip_root, exist_ok=True)
+            self.extract_zip(self.target, zip_root)
+
+        status = {
+            "message": "Download complete",
+            "file_id": self.file_id,
+            "target": self.target,
+            "working_dir": self.working_dir,
+            "size": size            
         }
-        self.callback.done.emit(results)        
+
+        self.callback.done.emit(status)        
         write_log("Downloaded {} to {}".format(self.url, self.target))
+
+    def extract_zip(self, archive, directory):
+        try:
+            os.chdir(directory)
+            shutil.unpack_archive(archive)        
+        except:
+            traceback.print_exc(file=sys.stdout)
+            # extract all items in 64bit
+        # open zip file in read binary

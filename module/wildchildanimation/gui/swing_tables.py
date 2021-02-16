@@ -30,6 +30,29 @@ def my_date_format(date):
 
     return date.strftime("%Y-%m-%d %H:%M:%S")    
 
+def human_size(bytes):
+    if bytes < 1024:
+        return "{} bytes".format(bytes)
+    
+    bytes /= 1024
+    if bytes < 1024:
+        return "{:.2f} Kb".format(bytes)
+    
+    bytes /= 1024
+    if bytes < 1024:
+        return "{:.2f} Mb".format(bytes)
+    
+    bytes /= 1024
+    if bytes < 1024:
+        return "{:.2f} Gb".format(bytes)
+    
+    bytes /= 1024
+    if bytes < 1024:
+        return "{:.2f} Tb".format(bytes)
+
+    # really ?     
+    return "{:.2f}".format(bytes)    
+
 class FileTableModel(QtCore.QAbstractTableModel):    
 
     columns = [
@@ -73,7 +96,11 @@ class FileTableModel(QtCore.QAbstractTableModel):
             if col == 0:
                 return item["name"]
             elif col == 1:
-                return item["size"]
+                if item["size"]:
+                    size = int(item["size"])
+                    if (size):
+                        return human_size(size)
+                #return item["size"]
             elif col == 2:
                 return item["revision"]
             elif col == 3:
@@ -114,10 +141,11 @@ class TaskTableModel(QtCore.QAbstractTableModel):
     ]
     tasks = []
 
-    def __init__(self, parent = None, tasks = []):
-        QtCore.QAbstractTableModel.__init__(self, parent, entity = None) 
+    def __init__(self, parent = None, tasks = [], entity = None):
+        QtCore.QAbstractTableModel.__init__(self, parent) 
         self.tasks = tasks
         self.entity = entity
+
 
     def rowCount(self, parent = QtCore.QModelIndex()):
         return len(self.tasks)
@@ -158,3 +186,97 @@ class TaskTableModel(QtCore.QAbstractTableModel):
 
         return None
 ###########################################################################
+
+class CastingTableModel(QtCore.QAbstractTableModel):    
+
+    columns = [
+        "Name", "Type"
+    ]
+    items = []
+
+    def __init__(self, parent = None, items = [], entity = None):
+        QtCore.QAbstractTableModel.__init__(self, parent) 
+        self.items = items
+        self.entity = entity
+
+        for item in self.items:
+            item["selected"] = True
+
+    def rowCount(self, parent = QtCore.QModelIndex()):
+        return len(self.items)
+
+    def columnCount(self, parent = QtCore.QModelIndex()):
+        return len(self.columns)
+
+    def headerData(self, section, orientation, role):
+        if role == QtCore.Qt.DisplayRole:
+            if orientation == QtCore.Qt.Horizontal:
+                return str(self.columns[section])
+
+    def data(self, index, role):
+        if not index.isValid():
+            return None
+
+        if role == QtCore.Qt.DisplayRole:
+            col = index.column()
+            row = index.row()
+            item = self.items[row]
+
+            if col == 0:
+                return item["asset_type_name"]
+            elif col == 1:
+                return item["asset_name"]
+
+        return None
+###########################################################################
+
+def load_file_table_widget(tableWidget, model):
+    #headers = [ "File Name", "Size", "Revision", "Task", "Updated", "Status" ]
+    #tableWidget.setColumnCount(len(headers))
+    tableWidget.setRowCount(len(model))
+
+    row = 0
+    for item in model:
+        cell = QtWidgets.QTableWidgetItem(item["name"])
+        cell.setData(QtCore.Qt.UserRole, item)
+
+        cell.setFlags(QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
+        cell.setCheckState(QtCore.Qt.Checked)  
+        tableWidget.setItem(row, 0, cell)
+
+        if item["size"]:
+            size = int(item["size"])
+            if (size):
+                cell = QtWidgets.QTableWidgetItem(human_size(size))
+            else:
+                cell = QtWidgets.QTableWidgetItem("")
+        cell.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
+        tableWidget.setItem(row, 1, cell)
+
+        cell = QtWidgets.QTableWidgetItem(item["revision"])
+        cell.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
+        tableWidget.setItem(row, 2, cell)
+
+        if "task_type" in item and item["task_type"]:
+            cell = QtWidgets.QTableWidgetItem(item["task_type"]["name"])
+        else:
+            cell = QtWidgets.QTableWidgetItem("")
+        cell.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
+        tableWidget.setItem(row, 3, cell)
+
+        cell = QtWidgets.QTableWidgetItem(my_date_format(item["updated_at"]))
+        cell.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
+        tableWidget.setItem(row, 4, cell)                                        
+
+        cell = QtWidgets.QTableWidgetItem(str("-"))
+        cell.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
+        tableWidget.setItem(row, 5, cell)
+        row += 1
+
+    tableWidget.setColumnWidth(0, 400)
+    tableWidget.setColumnWidth(1, 100)
+    tableWidget.setColumnWidth(2, 150)        
+    tableWidget.setColumnWidth(3, 150)        
+
+    return tableWidget
+

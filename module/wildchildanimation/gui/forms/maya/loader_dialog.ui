@@ -2,12 +2,15 @@
 <ui version="4.0">
  <class>LoaderDialog</class>
  <widget class="QDialog" name="LoaderDialog">
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>670</width>
-    <height>572</height>
+    <width>874</width>
+    <height>443</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,17 +20,47 @@
    <item>
     <layout class="QVBoxLayout" name="verticalLayoutEntity">
      <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <item>
+        <widget class="QLabel" name="labelEntity">
+         <property name="minimumSize">
+          <size>
+           <width>100</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Entity</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="lineEditEntity"/>
+       </item>
+       <item>
+        <widget class="QToolButton" name="toolButtonWeb">
+         <property name="toolTip">
+          <string>Opens link in Kitsu</string>
+         </property>
+         <property name="text">
+          <string>Web</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
       <layout class="QHBoxLayout" name="horizontalLayoutWorkingFile">
        <item>
         <widget class="QLabel" name="labelWorkingFile">
          <property name="minimumSize">
           <size>
-           <width>75</width>
+           <width>100</width>
            <height>0</height>
           </size>
          </property>
          <property name="text">
-          <string>Working File</string>
+          <string>Project File</string>
          </property>
         </widget>
        </item>
@@ -46,57 +79,109 @@
      <item>
       <layout class="QVBoxLayout" name="verticalLayoutEntityInfo">
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayoutEntityDescription">
-         <item>
-          <widget class="QLabel" name="labelEntity">
-           <property name="minimumSize">
-            <size>
-             <width>75</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>Asset / Shot</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="lineEditAsset"/>
-         </item>
-        </layout>
-       </item>
-       <item>
         <layout class="QHBoxLayout" name="horizontalLayoutFrameDetails">
          <item>
-          <widget class="QLabel" name="labelFrameIn">
+          <widget class="QLabel" name="labelFrames">
            <property name="minimumSize">
             <size>
-             <width>75</width>
+             <width>100</width>
              <height>0</height>
             </size>
            </property>
            <property name="text">
-            <string>Frame In</string>
+            <string>Frame</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="lineEditFrameIn"/>
+          <layout class="QHBoxLayout" name="horizontalLayout_3">
+           <item>
+            <widget class="QLabel" name="labelFrameIn">
+             <property name="minimumSize">
+              <size>
+               <width>50</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>In</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="lineEditFrameIn"/>
+           </item>
+           <item>
+            <widget class="QLabel" name="labelFrameOut">
+             <property name="minimumSize">
+              <size>
+               <width>50</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>Out</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="lineEditFrameOut"/>
+           </item>
+           <item>
+            <widget class="QLabel" name="labelFrameCount">
+             <property name="minimumSize">
+              <size>
+               <width>50</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>Count</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="lineEditFrameCount"/>
+           </item>
+          </layout>
          </item>
          <item>
-          <widget class="QLabel" name="labelFrameOut">
-           <property name="text">
-            <string>Frame Out</string>
+          <spacer name="horizontalSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
            </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="lineEditFrameOut"/>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
          </item>
         </layout>
        </item>
        <item>
-        <widget class="QTextEdit" name="textEditShotInfo"/>
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>Notes and Comments</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QTextEdit" name="textEditShotInfo">
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
        </item>
       </layout>
      </item>
@@ -106,12 +191,12 @@
         <widget class="QLabel" name="labelWorkingDir">
          <property name="minimumSize">
           <size>
-           <width>75</width>
+           <width>100</width>
            <height>0</height>
           </size>
          </property>
          <property name="text">
-          <string>Project Folder</string>
+          <string>Work Folder</string>
          </property>
         </widget>
        </item>
@@ -130,50 +215,15 @@
     </layout>
    </item>
    <item>
-    <layout class="QVBoxLayout" name="verticalLayoutLinkedAssets">
-     <item>
-      <widget class="QTextEdit" name="textEditNotes">
-       <property name="autoFillBackground">
-        <bool>true</bool>
-       </property>
-       <property name="verticalScrollBarPolicy">
-        <enum>Qt::ScrollBarAlwaysOff</enum>
-       </property>
-       <property name="horizontalScrollBarPolicy">
-        <enum>Qt::ScrollBarAlwaysOff</enum>
-       </property>
-       <property name="readOnly">
-        <bool>true</bool>
-       </property>
-       <property name="html">
-        <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;- Select the root project folder and working file&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;- This will create a new scene in Maya, open the working file and scan for relatives &lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QCheckBox" name="checkBoxLinkedAssets">
-       <property name="text">
-        <string>Import linked assets</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QTreeView" name="treeViewLinkedAssets"/>
-     </item>
-    </layout>
-   </item>
-   <item>
     <layout class="QVBoxLayout" name="verticalLayoutOptions">
      <item>
       <widget class="QCheckBox" name="checkBoxSkipExisting">
+       <property name="minimumSize">
+        <size>
+         <width>100</width>
+         <height>0</height>
+        </size>
+       </property>
        <property name="styleSheet">
         <string notr="true"/>
        </property>
@@ -187,6 +237,12 @@ p, li { white-space: pre-wrap; }
      </item>
      <item>
       <widget class="QCheckBox" name="checkBoxExtractZips">
+       <property name="minimumSize">
+        <size>
+         <width>100</width>
+         <height>0</height>
+        </size>
+       </property>
        <property name="text">
         <string>Extract zip files automatically</string>
        </property>
@@ -202,60 +258,58 @@ p, li { white-space: pre-wrap; }
      <item>
       <widget class="QLabel" name="labelFiles">
        <property name="text">
-        <string>Files</string>
+        <string>Status</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QTableView" name="tableViewFiles"/>
+      <widget class="QTextEdit" name="textEditStatus">
+       <property name="font">
+        <font>
+         <family>MS Sans Serif</family>
+        </font>
+       </property>
+       <property name="html">
+        <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Sans Serif'; font-size:8pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
    <item>
-    <widget class="QDialogButtonBox" name="buttonBox">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
-     </property>
-    </widget>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QProgressBar" name="progressBar">
+       <property name="value">
+        <number>0</number>
+       </property>
+       <property name="textVisible">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButtonImport">
+       <property name="text">
+        <string>Go</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButtonCancel">
+       <property name="text">
+        <string>Close</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>
  <resources/>
- <connections>
-  <connection>
-   <sender>buttonBox</sender>
-   <signal>accepted()</signal>
-   <receiver>LoaderDialog</receiver>
-   <slot>accept()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>248</x>
-     <y>254</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>157</x>
-     <y>274</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>buttonBox</sender>
-   <signal>rejected()</signal>
-   <receiver>LoaderDialog</receiver>
-   <slot>reject()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>316</x>
-     <y>260</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>286</x>
-     <y>274</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>

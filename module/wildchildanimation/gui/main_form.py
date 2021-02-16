@@ -319,7 +319,7 @@ class Ui_WcaMayaDialog(object):
     # setupUi
 
     def retranslateUi(self, WcaMayaDialog):
-        WcaMayaDialog.setWindowTitle(QCoreApplication.translate("WcaMayaDialog", u"swing", None))
+        WcaMayaDialog.setWindowTitle(QCoreApplication.translate("WcaMayaDialog", u"treehouse: swing", None))
         self.pushButtonSettings.setText(QCoreApplication.translate("WcaMayaDialog", u"Settings", None))
         self.pushButtonConnect.setText(QCoreApplication.translate("WcaMayaDialog", u"Connect", None))
         self.labelProject.setText(QCoreApplication.translate("WcaMayaDialog", u"Project", None))

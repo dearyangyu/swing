@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>459</width>
-    <height>130</height>
+    <width>766</width>
+    <height>264</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,7 +20,7 @@
       <widget class="QLabel" name="labelServer">
        <property name="minimumSize">
         <size>
-         <width>50</width>
+         <width>120</width>
          <height>0</height>
         </size>
        </property>
@@ -30,7 +30,11 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineEditServer"/>
+      <widget class="QLineEdit" name="lineEditServer">
+       <property name="toolTip">
+        <string>Server URL - https://production.wildchildanimation.com</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
@@ -40,7 +44,7 @@
       <widget class="QLabel" name="labelEmail">
        <property name="minimumSize">
         <size>
-         <width>50</width>
+         <width>120</width>
          <height>0</height>
         </size>
        </property>
@@ -50,7 +54,11 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineEditEmail"/>
+      <widget class="QLineEdit" name="lineEditEmail">
+       <property name="toolTip">
+        <string>Logon email address</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
@@ -60,7 +68,7 @@
       <widget class="QLabel" name="label_3">
        <property name="minimumSize">
         <size>
-         <width>50</width>
+         <width>120</width>
          <height>0</height>
         </size>
        </property>
@@ -71,12 +79,103 @@
      </item>
      <item>
       <widget class="QLineEdit" name="lineEditPassword">
+       <property name="toolTip">
+        <string>Logon password</string>
+       </property>
        <property name="echoMode">
         <enum>QLineEdit::Password</enum>
        </property>
       </widget>
      </item>
     </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_4">
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="minimumSize">
+        <size>
+         <width>120</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Projects Folder</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="lineEditProjectsFolder">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Root directory for projects&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;Shots will be downloaded to:&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;root/project/assets&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;Assets will be downloaded to: &lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;root/project/assets&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="toolButtonProjectsFolder">
+       <property name="text">
+        <string>...</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>19</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_5">
+     <item>
+      <widget class="QLabel" name="label_2">
+       <property name="minimumSize">
+        <size>
+         <width>120</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Ffmpeg binary</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="lineEditFfmpegBin">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Location of ffmpeg executable, usually something like &lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;C:\ffmpeg\ffmpeg-20200831-4a11a6f-win64-static\bin\ffmpeg.exe&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="toolButtonFfmpegBin">
+       <property name="text">
+        <string>...</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <spacer name="verticalSpacer_2">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
    </item>
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">
