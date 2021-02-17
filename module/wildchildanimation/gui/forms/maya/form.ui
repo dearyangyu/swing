@@ -418,6 +418,9 @@
     <layout class="QHBoxLayout" name="horizontalLayoutButtons">
      <item>
       <widget class="QPushButton" name="pushButtonLoad">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="text">
         <string>Load</string>
        </property>
@@ -428,6 +431,9 @@
      </item>
      <item>
       <widget class="QPushButton" name="pushButtonImport">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="text">
         <string>Import</string>
        </property>
@@ -438,6 +444,9 @@
      </item>
      <item>
       <widget class="QPushButton" name="pushButtonDownload">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="text">
         <string>Download</string>
        </property>
@@ -472,6 +481,13 @@
        </property>
       </spacer>
      </item>
+     <item>
+      <widget class="QPushButton" name="pushButtonClose">
+       <property name="text">
+        <string>Close</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item>
@@ -487,6 +503,8 @@
        <property name="font">
         <font>
          <pointsize>7</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
         </font>
        </property>
        <property name="frameShape">
@@ -537,6 +555,8 @@
        <property name="font">
         <font>
          <pointsize>7</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
         </font>
        </property>
        <property name="frameShape">

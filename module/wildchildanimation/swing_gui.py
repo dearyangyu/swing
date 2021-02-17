@@ -88,6 +88,8 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
         self.pushButtonDownload.clicked.connect(self.download_files)
         self.pushButtonPublish.clicked.connect(self.publish_scene)
 
+        self.pushButtonClose.clicked.connect(self.close_dialog)
+
         self.comboBoxProject.currentIndexChanged.connect(self.project_changed)
         self.comboBoxEpisode.currentIndexChanged.connect(self.episode_changed)
         self.comboBoxSequence.currentIndexChanged.connect(self.sequence_changed)
@@ -95,8 +97,9 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
 
         self.radioButtonShot.toggled.connect(self.set_to_shot)
         self.radioButtonAsset.toggled.connect(self.set_to_asset)
-        #self.treeWidgetFiles.doubleClicked.connect(self.open_file_item)
 
+        #self.treeWidgetFiles.doubleClicked.connect(self.open_file_item)
+        self.tableViewFiles.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.tableViewFiles.doubleClicked.connect(self.file_table_double_click)
 
         self.readSettings()
@@ -137,21 +140,20 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
         self.comboBoxSequence.setEnabled(not is_loading)
         self.comboBoxShot.setEnabled(not is_loading)
         self.comboBoxAssetType.setEnabled(not is_loading)
-
         self.radioButtonAsset.setEnabled(not is_loading)
         self.radioButtonShot.setEnabled(not is_loading)
         self.tabWidget.setEnabled(not is_loading)
 
-        self.pushButtonLoad.setEnabled(not is_loading)
-        self.pushButtonImport.setEnabled(not is_loading)
-        self.pushButtonDownload.setEnabled(not is_loading)
-        self.pushButtonPublish.setEnabled(not is_loading)
+        #self.pushButtonLoad.setEnabled(not is_loading)
+        #self.pushButtonImport.setEnabled(not is_loading)
+        #self.pushButtonDownload.setEnabled(not is_loading)
+        #self.pushButtonPublish.setEnabled(not is_loading)
 
     def set_to_shot(self):
         self.comboBoxShot.setEnabled(self.radioButtonShot.isChecked())
         self.radioButtonAsset.setChecked(False)
 
-        if self.radioButtonShot.isChecked() and len(self.currentSequences[self.currentSequencesIndex]["shots"]):
+        if self.radioButtonShot.isChecked() and (self.currentSequencesIndex is not None) and len(self.currentSequences[self.currentSequencesIndex]["shots"]) > 0:
             self.load_shot_files(0)
 
     def set_to_asset(self):
@@ -189,7 +191,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
         if self.currentProject:
             self.settings.setValue("last_project", self.currentProject["id"])
 
-        if self.currentSequences[self.currentSequencesIndex]:
+        if self.currentSequencesIndex and len(self.currentSequences) > 0 and self.currentSequences[self.currentSequencesIndex]:
             self.settings.setValue("last_sequences", self.currentSequences[self.currentSequencesIndex]["id"])
 
         if self.currentShot:
@@ -252,8 +254,11 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
 
         return True
 
+    def close_dialog(self):
+        self.close()
+
     def closeEvent(self, event):
-        reply = QtWidgets.QMessageBox.question(self, 'Close Application', 'Are you sure you want to close the window?', QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
+        reply = QtWidgets.QMessageBox.question(self, 'Exit Application', 'Are you sure ?', QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
 
         if reply == QtWidgets.QMessageBox.Yes:
             self.writeSettings()
@@ -445,8 +450,8 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
             if self.currentEpisode:
                 name = "{} {}".format(name, self.currentEpisode["name"])
 
-            if self.currentSequences and len(self.currentSequences) > 0:
-                name = "{} {}".format(name, self.currentSequences["name"])
+            if self.currentSequences and self.currentSequencesIndex and len(self.currentSequences) > 0:
+                name = "{} {}".format(name, self.currentSequences[self.currentSequencesIndex]["name"])
 
             name = "{} {}".format(name, p["name"]).strip()
             self.comboBoxAsset.addItem(name)     
@@ -483,6 +488,11 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
         self.tableViewFiles.setColumnWidth(4, 350)
         self.tableViewFiles.setColumnWidth(6, 200)
 
+        selectionModel = self.tableViewFiles.selectionModel()
+        selectionModel.selectionChanged.connect(self.file_table_selection_changed)       
+
+        self.pushButtonDownload.setEnabled(len(self.files) > 0)    
+
     def file_table_double_click(self, index):
         row_index = index.row()
         self.selected_file = self.tableViewFiles.model().files[row_index]
@@ -502,6 +512,9 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
             row_index = index.row()
             try:
                 self.selected_file = self.tableViewFiles.model().files[row_index]
+                self.pushButtonLoad.setEnabled(self.selected_file is not None)
+                self.pushButtonImport.setEnabled(self.selected_file is not None)
+
             except:
                 pass
 

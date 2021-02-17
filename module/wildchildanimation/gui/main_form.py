@@ -237,16 +237,19 @@ class Ui_WcaMayaDialog(object):
         self.horizontalLayoutButtons.setObjectName(u"horizontalLayoutButtons")
         self.pushButtonLoad = QPushButton(WcaMayaDialog)
         self.pushButtonLoad.setObjectName(u"pushButtonLoad")
+        self.pushButtonLoad.setEnabled(False)
 
         self.horizontalLayoutButtons.addWidget(self.pushButtonLoad)
 
         self.pushButtonImport = QPushButton(WcaMayaDialog)
         self.pushButtonImport.setObjectName(u"pushButtonImport")
+        self.pushButtonImport.setEnabled(False)
 
         self.horizontalLayoutButtons.addWidget(self.pushButtonImport)
 
         self.pushButtonDownload = QPushButton(WcaMayaDialog)
         self.pushButtonDownload.setObjectName(u"pushButtonDownload")
+        self.pushButtonDownload.setEnabled(False)
 
         self.horizontalLayoutButtons.addWidget(self.pushButtonDownload)
 
@@ -259,6 +262,11 @@ class Ui_WcaMayaDialog(object):
         self.horizontalSpacerButton = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
         self.horizontalLayoutButtons.addItem(self.horizontalSpacerButton)
+
+        self.pushButtonClose = QPushButton(WcaMayaDialog)
+        self.pushButtonClose.setObjectName(u"pushButtonClose")
+
+        self.horizontalLayoutButtons.addWidget(self.pushButtonClose)
 
 
         self.verticalLayout.addLayout(self.horizontalLayoutButtons)
@@ -274,6 +282,8 @@ class Ui_WcaMayaDialog(object):
         self.labelConnection.setSizePolicy(sizePolicy4)
         font1 = QFont()
         font1.setPointSize(7)
+        font1.setBold(True)
+        font1.setWeight(75)
         self.labelConnection.setFont(font1)
         self.labelConnection.setFrameShape(QFrame.NoFrame)
         self.labelConnection.setLineWidth(0)
@@ -351,6 +361,7 @@ class Ui_WcaMayaDialog(object):
 #if QT_CONFIG(shortcut)
         self.pushButtonPublish.setShortcut(QCoreApplication.translate("WcaMayaDialog", u"Alt+P", None))
 #endif // QT_CONFIG(shortcut)
+        self.pushButtonClose.setText(QCoreApplication.translate("WcaMayaDialog", u"Close", None))
         self.labelConnection.setText(QCoreApplication.translate("WcaMayaDialog", u"Offline", None))
         self.labelMessage.setText(QCoreApplication.translate("WcaMayaDialog", u"OK", None))
     # retranslateUi
