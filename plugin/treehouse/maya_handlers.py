@@ -15,7 +15,7 @@ import traceback
 from datetime import datetime
 
 def write_log(*args):
-    log = "{}: SWING".format(datetime.now().strftime("%d/%m%Y %H:%M:%S.%f"))
+    log = "# {} : swing".format(datetime.now().strftime("%d/%m%Y %H:%M:%S.%f"))
     for log_data in args:
         log += " {}".format(log_data)
     print(log)
@@ -56,11 +56,11 @@ class StudioHandler():
 
     # tries to import the file specified in source into the currently open scene
     def on_import(self, **kwargs):
-        write_log("on_import")
-
         source = kwargs["source"]
         working_dir = kwargs["working_dir"]
 
+        write_log("on_import start", source, working_dir)
+        
         filename, file_extension = os.path.splitext(source)
         
         if file_extension in [ ".ma", ".mb", ".fbx", ".obj" ]:
@@ -78,15 +78,33 @@ class StudioHandler():
         if not os.path.exists(directory):
             os.makedirs(directory)
 
-    # tries to import the file specified in source into the currently open scene
+    # create a new maya project file
     def on_create(self, **kwargs):
-        # file -f -new;
-        write_log("on_create")
-
         source = kwargs["source"]
         working_dir = kwargs["working_dir"]
+        target = os.path.join(working_dir, source)
+        target = os.path.normpath(target)
 
-        pm.system.newFile()
+        write_log("on_create start", source, working_dir, target)
+        try:
+            # check if there are unsaved changes
+            fileCheckState = cmds.file(q=True, modified=True)
+
+            # if there are, save them first ... then we can proceed 
+            if fileCheckState:
+                write_log("on_create", "saving scene")
+                # This is maya's native call to save, with dialogs, etc.
+                # No need to write your own.
+                cmds.SaveScene()  
+            self.create_folder(working_dir)          
+            cmds.file(new=True, force=True) 
+            cmds.file(rename=target)
+            cmds.file(save=True)      
+        except:
+            traceback.print_exc(file=sys.stdout)
+            write_log("Error creating file {}".format(source))              
+
+    write_log("on_create complete")
 
 
     def on_playblast(self, **kwargs):
