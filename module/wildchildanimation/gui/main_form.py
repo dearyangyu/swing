@@ -30,9 +30,14 @@ class Ui_WcaMayaDialog(object):
         self.pushButtonConnect = QPushButton(WcaMayaDialog)
         self.pushButtonConnect.setObjectName(u"pushButtonConnect")
         self.pushButtonConnect.setAutoFillBackground(False)
-        self.pushButtonConnect.setStyleSheet(u"color: rgb(0, 255, 122)")
+        self.pushButtonConnect.setStyleSheet(u"")
 
         self.connectionLayout.addWidget(self.pushButtonConnect)
+
+        self.pushButtonRefresh = QPushButton(WcaMayaDialog)
+        self.pushButtonRefresh.setObjectName(u"pushButtonRefresh")
+
+        self.connectionLayout.addWidget(self.pushButtonRefresh)
 
         self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
@@ -207,26 +212,83 @@ class Ui_WcaMayaDialog(object):
         self.horizontalLayoutFiles.setObjectName(u"horizontalLayoutFiles")
         self.tabWidget = QTabWidget(WcaMayaDialog)
         self.tabWidget.setObjectName(u"tabWidget")
-        self.tabFiles = QWidget()
-        self.tabFiles.setObjectName(u"tabFiles")
-        self.horizontalLayout = QHBoxLayout(self.tabFiles)
-        self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.tableViewFiles = QTableView(self.tabFiles)
-        self.tableViewFiles.setObjectName(u"tableViewFiles")
-
-        self.horizontalLayout.addWidget(self.tableViewFiles)
-
-        self.tabWidget.addTab(self.tabFiles, "")
         self.tabTasks = QWidget()
         self.tabTasks.setObjectName(u"tabTasks")
         self.verticalLayout_5 = QVBoxLayout(self.tabTasks)
         self.verticalLayout_5.setObjectName(u"verticalLayout_5")
+        self.verticalLayout_3 = QVBoxLayout()
+        self.verticalLayout_3.setObjectName(u"verticalLayout_3")
         self.tableViewTasks = QTableView(self.tabTasks)
         self.tableViewTasks.setObjectName(u"tableViewTasks")
 
-        self.verticalLayout_5.addWidget(self.tableViewTasks)
+        self.verticalLayout_3.addWidget(self.tableViewTasks)
+
+        self.horizontalLayout_4 = QHBoxLayout()
+        self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
+        self.pushButtonNew = QPushButton(self.tabTasks)
+        self.pushButtonNew.setObjectName(u"pushButtonNew")
+
+        self.horizontalLayout_4.addWidget(self.pushButtonNew)
+
+        self.pushButtonPublish = QPushButton(self.tabTasks)
+        self.pushButtonPublish.setObjectName(u"pushButtonPublish")
+        self.pushButtonPublish.setEnabled(False)
+
+        self.horizontalLayout_4.addWidget(self.pushButtonPublish)
+
+        self.horizontalSpacer_2 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.horizontalLayout_4.addItem(self.horizontalSpacer_2)
+
+
+        self.verticalLayout_3.addLayout(self.horizontalLayout_4)
+
+
+        self.verticalLayout_5.addLayout(self.verticalLayout_3)
 
         self.tabWidget.addTab(self.tabTasks, "")
+        self.tabFiles = QWidget()
+        self.tabFiles.setObjectName(u"tabFiles")
+        self.horizontalLayout = QHBoxLayout(self.tabFiles)
+        self.horizontalLayout.setObjectName(u"horizontalLayout")
+        self.verticalLayout_2 = QVBoxLayout()
+        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
+        self.tableViewFiles = QTableView(self.tabFiles)
+        self.tableViewFiles.setObjectName(u"tableViewFiles")
+
+        self.verticalLayout_2.addWidget(self.tableViewFiles)
+
+        self.horizontalLayout_5 = QHBoxLayout()
+        self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
+        self.pushButtonImport = QPushButton(self.tabFiles)
+        self.pushButtonImport.setObjectName(u"pushButtonImport")
+        self.pushButtonImport.setEnabled(False)
+
+        self.horizontalLayout_5.addWidget(self.pushButtonImport)
+
+        self.pushButtonLoad = QPushButton(self.tabFiles)
+        self.pushButtonLoad.setObjectName(u"pushButtonLoad")
+        self.pushButtonLoad.setEnabled(False)
+
+        self.horizontalLayout_5.addWidget(self.pushButtonLoad)
+
+        self.pushButtonDownload = QPushButton(self.tabFiles)
+        self.pushButtonDownload.setObjectName(u"pushButtonDownload")
+        self.pushButtonDownload.setEnabled(False)
+
+        self.horizontalLayout_5.addWidget(self.pushButtonDownload)
+
+        self.horizontalSpacer_3 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.horizontalLayout_5.addItem(self.horizontalSpacer_3)
+
+
+        self.verticalLayout_2.addLayout(self.horizontalLayout_5)
+
+
+        self.horizontalLayout.addLayout(self.verticalLayout_2)
+
+        self.tabWidget.addTab(self.tabFiles, "")
 
         self.horizontalLayoutFiles.addWidget(self.tabWidget)
 
@@ -235,30 +297,6 @@ class Ui_WcaMayaDialog(object):
 
         self.horizontalLayoutButtons = QHBoxLayout()
         self.horizontalLayoutButtons.setObjectName(u"horizontalLayoutButtons")
-        self.pushButtonLoad = QPushButton(WcaMayaDialog)
-        self.pushButtonLoad.setObjectName(u"pushButtonLoad")
-        self.pushButtonLoad.setEnabled(False)
-
-        self.horizontalLayoutButtons.addWidget(self.pushButtonLoad)
-
-        self.pushButtonImport = QPushButton(WcaMayaDialog)
-        self.pushButtonImport.setObjectName(u"pushButtonImport")
-        self.pushButtonImport.setEnabled(False)
-
-        self.horizontalLayoutButtons.addWidget(self.pushButtonImport)
-
-        self.pushButtonDownload = QPushButton(WcaMayaDialog)
-        self.pushButtonDownload.setObjectName(u"pushButtonDownload")
-        self.pushButtonDownload.setEnabled(False)
-
-        self.horizontalLayoutButtons.addWidget(self.pushButtonDownload)
-
-        self.pushButtonPublish = QPushButton(WcaMayaDialog)
-        self.pushButtonPublish.setObjectName(u"pushButtonPublish")
-        self.pushButtonPublish.setEnabled(False)
-
-        self.horizontalLayoutButtons.addWidget(self.pushButtonPublish)
-
         self.horizontalSpacerButton = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
         self.horizontalLayoutButtons.addItem(self.horizontalSpacerButton)
@@ -332,6 +370,10 @@ class Ui_WcaMayaDialog(object):
         WcaMayaDialog.setWindowTitle(QCoreApplication.translate("WcaMayaDialog", u"treehouse: swing", None))
         self.pushButtonSettings.setText(QCoreApplication.translate("WcaMayaDialog", u"Settings", None))
         self.pushButtonConnect.setText(QCoreApplication.translate("WcaMayaDialog", u"Connect", None))
+        self.pushButtonRefresh.setText(QCoreApplication.translate("WcaMayaDialog", u"Refresh", None))
+#if QT_CONFIG(shortcut)
+        self.pushButtonRefresh.setShortcut(QCoreApplication.translate("WcaMayaDialog", u"F5", None))
+#endif // QT_CONFIG(shortcut)
         self.labelProject.setText(QCoreApplication.translate("WcaMayaDialog", u"Project", None))
         self.labelShotEpisode.setText(QCoreApplication.translate("WcaMayaDialog", u"Episode", None))
         self.labelShotSequence.setText(QCoreApplication.translate("WcaMayaDialog", u"Sequence", None))
@@ -343,24 +385,25 @@ class Ui_WcaMayaDialog(object):
 #if QT_CONFIG(shortcut)
         self.radioButtonShot.setShortcut(QCoreApplication.translate("WcaMayaDialog", u"Alt+S", None))
 #endif // QT_CONFIG(shortcut)
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabFiles), QCoreApplication.translate("WcaMayaDialog", u"Files", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabTasks), QCoreApplication.translate("WcaMayaDialog", u"Tasks", None))
-        self.pushButtonLoad.setText(QCoreApplication.translate("WcaMayaDialog", u"Load", None))
+        self.pushButtonNew.setText(QCoreApplication.translate("WcaMayaDialog", u"New", None))
+        self.pushButtonPublish.setText(QCoreApplication.translate("WcaMayaDialog", u"Publish", None))
 #if QT_CONFIG(shortcut)
-        self.pushButtonLoad.setShortcut(QCoreApplication.translate("WcaMayaDialog", u"Alt+L", None))
+        self.pushButtonPublish.setShortcut(QCoreApplication.translate("WcaMayaDialog", u"Alt+P", None))
 #endif // QT_CONFIG(shortcut)
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabTasks), QCoreApplication.translate("WcaMayaDialog", u"Tasks", None))
         self.pushButtonImport.setText(QCoreApplication.translate("WcaMayaDialog", u"Import", None))
 #if QT_CONFIG(shortcut)
         self.pushButtonImport.setShortcut(QCoreApplication.translate("WcaMayaDialog", u"Alt+I", None))
+#endif // QT_CONFIG(shortcut)
+        self.pushButtonLoad.setText(QCoreApplication.translate("WcaMayaDialog", u"Load", None))
+#if QT_CONFIG(shortcut)
+        self.pushButtonLoad.setShortcut(QCoreApplication.translate("WcaMayaDialog", u"Alt+L", None))
 #endif // QT_CONFIG(shortcut)
         self.pushButtonDownload.setText(QCoreApplication.translate("WcaMayaDialog", u"Download", None))
 #if QT_CONFIG(shortcut)
         self.pushButtonDownload.setShortcut(QCoreApplication.translate("WcaMayaDialog", u"Alt+D", None))
 #endif // QT_CONFIG(shortcut)
-        self.pushButtonPublish.setText(QCoreApplication.translate("WcaMayaDialog", u"Publish", None))
-#if QT_CONFIG(shortcut)
-        self.pushButtonPublish.setShortcut(QCoreApplication.translate("WcaMayaDialog", u"Alt+P", None))
-#endif // QT_CONFIG(shortcut)
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabFiles), QCoreApplication.translate("WcaMayaDialog", u"Files", None))
         self.pushButtonClose.setText(QCoreApplication.translate("WcaMayaDialog", u"Close", None))
         self.labelConnection.setText(QCoreApplication.translate("WcaMayaDialog", u"Offline", None))
         self.labelMessage.setText(QCoreApplication.translate("WcaMayaDialog", u"OK", None))

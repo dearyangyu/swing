@@ -226,6 +226,6 @@ class Ui_PublishDialog(object):
         self.referencesRemovePushButton.setText(QCoreApplication.translate("PublishDialog", u"&Remove", None))
         self.commentLabel.setText(QCoreApplication.translate("PublishDialog", u"Comments", None))
         self.pushButtonOK.setText(QCoreApplication.translate("PublishDialog", u"OK", None))
-        self.pushButtonCancel.setText(QCoreApplication.translate("PublishDialog", u"Cancel", None))
+        self.pushButtonCancel.setText(QCoreApplication.translate("PublishDialog", u"Close", None))
     # retranslateUi
 

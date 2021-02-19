@@ -4,17 +4,13 @@ import PySide2.QtWidgets
 import PySide2.QtGui
 from PySide2.QtWidgets import QApplication, QWidget
 
-sys.path.append("C:\\DEV\\Github\\wca-maya\\module")
 from wildchildanimation.swing_gui import SwingGUI
+from wildchildanimation.maya_handlers import StudioHandler
 
-# studio specific import callbacks 
-#from maya_handlers import StudioHandler
-# handler = StudioHandler()    
-handler = None
+handler = StudioHandler()    
 
 if __name__ == '__main__':
-    app = QApplication(sys.argv)
-
+#    app = QApplication(sys.argv)
     ex = SwingGUI(handler)
     ex.show()
     sys.exit(app.exec_())

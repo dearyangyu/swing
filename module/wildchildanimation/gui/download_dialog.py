@@ -91,7 +91,7 @@ class Ui_DownloadDialog(object):
 
         self.checkBoxExtractZips = QCheckBox(DownloadDialog)
         self.checkBoxExtractZips.setObjectName(u"checkBoxExtractZips")
-        self.checkBoxExtractZips.setChecked(False)
+        self.checkBoxExtractZips.setChecked(True)
 
         self.horizontalLayout_3.addWidget(self.checkBoxExtractZips)
 
@@ -178,6 +178,6 @@ class Ui_DownloadDialog(object):
         ___qtablewidgetitem5 = self.tableWidget.horizontalHeaderItem(5)
         ___qtablewidgetitem5.setText(QCoreApplication.translate("DownloadDialog", u"Status", None));
         self.pushButtonDownload.setText(QCoreApplication.translate("DownloadDialog", u"Download", None))
-        self.pushButtonCancel.setText(QCoreApplication.translate("DownloadDialog", u"Cancel", None))
+        self.pushButtonCancel.setText(QCoreApplication.translate("DownloadDialog", u"Close", None))
     # retranslateUi
 

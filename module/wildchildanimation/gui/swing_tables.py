@@ -137,7 +137,7 @@ class FileTableModel(QtCore.QAbstractTableModel):
 class TaskTableModel(QtCore.QAbstractTableModel):    
 
     columns = [
-        "Project", "Type", "Entity", "Status"
+        "Project", "Type", "Entity", "Due", "Status", "Description"
     ]
     tasks = []
 
@@ -166,23 +166,49 @@ class TaskTableModel(QtCore.QAbstractTableModel):
         #        return QtCore.Qt.AlignLeft | QtCore.AlignTop
         #    else:
         #        return QtCore.Qt.AlignRight | QtCore.AlignBottom
+        if not index.isValid():
+            return
+
+        col = index.column()
+        row = index.row()
+        item = self.tasks[row]
+
+        ### -----------------------------------------------------------------------------------
+        if role == QtCore.Qt.ForegroundRole:
+            if col == 3:
+                if item["due_date"]:
+                    text = item["due_date"]
+                    if text and len(text) == 19:
+                        my_date = datetime.strptime(text, "%Y-%m-%dT%H:%M:%S")
+                        if my_date < datetime.now():
+                            return QtGui.QColor('red')        
 
         if role == QtCore.Qt.DisplayRole:
             # See below for the nested-list data structure.
             # .row() indexes into the outer list,
             # .column() indexes into the sub-list
-            col = index.column()
-            row = index.row()
-            item = self.tasks[row]
 
             if col == 0:
-                return item["project_name"]
+                return item["project_name"].strip()
             elif col == 1:
-                return item["entity_type_name"]
+                return item["task_type_name"].strip()
             elif col == 2:
-                return my_date_format(item["entity_name"])
+                text = "{} / {}".format(item["entity_description"], item["entity_name"])
+                return text.strip()
             elif col == 3:
-                return item["task_type_name"]
+                if item["due_date"]:
+                    text = item["due_date"]
+                    if text and len(text) == 19:
+                        my_date = datetime.strptime(text, "%Y-%m-%dT%H:%M:%S")
+                        return my_date.strftime("%Y-%m-%d")
+                return None
+            elif col == 4:
+                return item["task_status_name"].strip()
+            elif col == 5:
+                if item["description"]:
+                    return item["description"].strip()
+                if item["last_comment"]:
+                    return item["last_comment"]["text"].strip()
 
         return None
 ###########################################################################
@@ -279,4 +305,4 @@ def load_file_table_widget(tableWidget, model):
     tableWidget.setColumnWidth(3, 150)        
 
     return tableWidget
-
+###########################################################################    

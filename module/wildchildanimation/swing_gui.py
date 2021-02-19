@@ -1,7 +1,16 @@
 # -*- coding: utf-8 -*-
+# PyQt Gui plugin for Treehouse
+#
+# version: 1.000
+# date: 18 Feb 2021
+#
+#############################
+_PLUGIN_VERSION = "1.00"
+
 import traceback
 import sys
 import os
+import re
 
 # ==== auto Qt load ====
 try:
@@ -31,6 +40,7 @@ from wildchildanimation.gui.connection_dialog import Ui_ConnectionDialog
 from wildchildanimation.gui.publish_dialog import Ui_PublishDialog
 from wildchildanimation.gui.download_dialog import Ui_DownloadDialog
 from wildchildanimation.gui.loader_dialog import Ui_LoaderDialog
+from wildchildanimation.gui.create_dialog import Ui_CreateDialog
 
 from wildchildanimation.gui.swing_tables import FileTableModel, TaskTableModel, CastingTableModel, load_file_table_widget, human_size
 
@@ -38,8 +48,7 @@ import pymel
 
 def resource_path(resource):
     base_path = os.path.dirname(os.path.realpath(__file__))
-    #uic.loadUi(os.path.join(root, resource_file), self)
-    #base_path = os.path.abspath(".")
+
     return os.path.join(base_path, resource)
 ### 
 
@@ -55,6 +64,8 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
     tasks = []
     task_types = []
 
+    first_load = True
+
     currentProject = None
     currentEpisode = None
     currentSequences = None
@@ -69,6 +80,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
     currentWorkingDir = None
 
     selected_file = None
+    selected_task = None
 
     def __init__(self, studio_handler = None):
         super(SwingGUI, self).__init__(None) # Call the inherited classes __init__ method
@@ -84,9 +96,11 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
 
         self.pushButtonSettings.clicked.connect(self.open_connection_settings)
         self.pushButtonConnect.clicked.connect(self.connect_to_server)
+        self.pushButtonRefresh.clicked.connect(self.refresh_data)
         self.pushButtonLoad.clicked.connect(self.load_asset)
         self.pushButtonDownload.clicked.connect(self.download_files)
         self.pushButtonPublish.clicked.connect(self.publish_scene)
+        self.pushButtonNew.clicked.connect(self.new_scene)
 
         self.pushButtonClose.clicked.connect(self.close_dialog)
 
@@ -117,7 +131,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
 
         file_name = item.data(index.row(), 0)
         
-        working_dir = load_settings("working_dir", os.path.expanduser("~"))
+        working_dir = load_settings("projects_root", os.path.expanduser("~"))
         file_item = os.path.join(os.path.join(file_name, working_dir))
 
         file_list = self.get_file_selection_list()
@@ -135,7 +149,6 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
         else:
             self.labelMessage.setText("OK")
 
-        #self.comboBoxProject.setEnabled(not is_loading)
         self.comboBoxEpisode.setEnabled(not is_loading)
         self.comboBoxSequence.setEnabled(not is_loading)
         self.comboBoxShot.setEnabled(not is_loading)
@@ -144,10 +157,6 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
         self.radioButtonShot.setEnabled(not is_loading)
         self.tabWidget.setEnabled(not is_loading)
 
-        #self.pushButtonLoad.setEnabled(not is_loading)
-        #self.pushButtonImport.setEnabled(not is_loading)
-        #self.pushButtonDownload.setEnabled(not is_loading)
-        #self.pushButtonPublish.setEnabled(not is_loading)
 
     def set_to_shot(self):
         self.comboBoxShot.setEnabled(self.radioButtonShot.isChecked())
@@ -228,7 +237,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
         dialog.lineEditPassword.setText(load_keyring('swing', 'password', 'Not A Password'))
 
         dialog.exec_()
-        print("loading settings")
+        write_log("loading settings")
 
     def connect_to_server(self): 
         if self.connected and self.gazu_client:
@@ -267,7 +276,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
             event.ignore()        
 
     def refresh_data(self):
-        print("[refresh_data]")
+        write_log("[refresh_data]")
 
         if not self.loading:
             self.comboBoxProject.blockSignals(True)
@@ -278,10 +287,10 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
             self.set_loading(True)
             loader.start()
         else:
-            print("Loading in progress")
+            write_log("Loading in progress")
 
     def projects_loaded(self, results): 
-        print("[projects_loaded]")
+        write_log("[projects_loaded]")
         #self.comboBoxProject.setEnabled(True)
 
         self.labelMessage.setText("OK")
@@ -303,10 +312,14 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
 
         if self.currentProjectIndex:
             self.comboBoxProject.setCurrentIndex(self.currentProjectIndex)
-            #self.project_changed(self.currentProjectIndex)     
+            #self.project_changed(self.currentProjectIndex)   
+            # 
+        if self.first_load:
+            self.first_load = False
+            self.project_changed(self.currentProjectIndex)   
 
     def project_changed(self, index):
-        print("[project_changed]")
+        write_log("[project_changed]")
 
         self.currentProject = self.projects[index]
         self.currentProjectIndex = index
@@ -334,7 +347,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
 
 
     def hierarchy_loaded(self, data): 
-        print("[hierarchy_loaded]")
+        write_log("[hierarchy_loaded]")
         self.labelMessage.setText("OK")
         self.episodes = data
 
@@ -351,9 +364,10 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
             self.asset_type_changed(0)
 
         self.set_loading(False)
+
         
     def episode_changed(self, index):
-        print("[episode_changed]")
+        write_log("[episode_changed]")
         self.currentEpisode = self.episodes[index]
         self.currentEpisodeIndex = index
 
@@ -371,7 +385,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
         self.labelMessage.setText("OK")
 
     def asset_types_loaded(self, data): 
-        print("[asset_types_loaded]")
+        write_log("[asset_types_loaded]")
         self.asset_types = data
 
         self.comboBoxAssetType.blockSignals(True)
@@ -386,13 +400,13 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
             self.asset_type_changed(0)
 
     def tasks_loaded(self, data):
-        print("[tasks_loaded]")
+        write_log("[tasks_loaded]")
 
         self.tasks = data
         self.load_tasks(self.tasks)
 
     def sequence_changed(self, index):
-        print("[sequence_changed]")
+        write_log("[sequence_changed]")
 
         self.currentSequencesIndex = self.comboBoxSequence.currentIndex()
         self.currentSequences = self.currentEpisode["sequences"]
@@ -412,7 +426,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
                 self.load_shot_files(0)
 
     def asset_type_changed(self, index):
-        print("[asset_type_changed]")
+        write_log("[asset_type_changed]")
         self.currentAssetType = self.asset_types[index]
 
         loader = bg.AssetLoaderThread(self, self.currentProject, self.currentAssetType)
@@ -421,7 +435,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
 
     def load_shot_files(self, index):
         self.currentShot = self.currentSequences[self.currentSequencesIndex]["shots"][index]
-        print("load shot files {}".format(index))
+        write_log("load shot files {}".format(index))
 
         loader = bg.EntityFileLoader(self, self.currentShot)
         loader.loaded.connect(self.files_loaded)
@@ -432,10 +446,10 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
         working_files = data["working_files"]
 
         self.load_files(output_files, working_files)        
-        print("Loaded {} output files, {} working files".format(len(output_files), len(working_files)))
+        write_log("Loaded {} output files, {} working files".format(len(output_files), len(working_files)))
 
     def asset_loaded(self, data): 
-        print("[asset_loaded]")
+        write_log("[asset_loaded]")
 
         self.assets = data
         self.comboBoxAsset.clear()
@@ -460,7 +474,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
     def load_asset_files(self, index):
         self.currentAsset = self.assets[index]
 
-        print("load asset files {}".format(index))
+        write_log("load asset files {}".format(index))
         loader = bg.EntityFileLoader(self, self.currentAsset)
         loader.loaded.connect(self.files_loaded)
         loader.start()        
@@ -528,18 +542,41 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
         return None
 
     def load_tasks(self, tasks = None):
-        self.tableViewTasks.setModel(TaskTableModel(self, tasks))
+        model = TaskTableModel(self, tasks)
+
+        self.tableViewTasks.setModel(model)
         self.tableViewTasks.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
 
-        self.tableViewTasks.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
-        self.tableViewTasks.setColumnWidth(0, 400)
-        self.tableViewTasks.setColumnWidth(1, 100)
-        self.tableViewTasks.setColumnWidth(2, 75)
+        self.tableViewTasks.setColumnWidth(0, 250)
+        self.tableViewTasks.setColumnWidth(1, 200)
+        self.tableViewTasks.setColumnWidth(2, 350)
+        self.tableViewTasks.setColumnWidth(3, 150)
+        self.tableViewTasks.setColumnWidth(4, 100)
 
-        self.pushButtonPublish.setEnabled(len(tasks) > 0)
+        selectionModel = self.tableViewTasks.selectionModel()
+        selectionModel.selectionChanged.connect(self.task_table_selection_changed)          
+
+        # self.pushButtonPublish.setEnabled(len(tasks) > 0)
+
+    def task_table_selection_changed(self):
+        if not (self.tableViewTasks.selectedIndexes()):
+            return False
+
+        idx = self.tableViewTasks.selectedIndexes()
+        for index in idx:
+            row_index = index.row()
+            try:
+                self.selected_task = self.tableViewTasks.model().tasks[row_index]
+
+                self.pushButtonNew.setEnabled(self.selected_task is not None)
+                self.pushButtonPublish.setEnabled(self.selected_task is not None)
+            except:
+                pass
+
+        return True        
 
     def download_files(self):
-        dialog = DownloadDialogGUI(self, self.get_current_selection())
+        dialog = DownloadDialogGUI(None, self.get_current_selection())
         dialog.load_files(self.tableViewFiles.model().files)
         dialog.set_selected(self.selected_file)
         dialog.resize(self.size())
@@ -554,6 +591,11 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
         dialog = PublishDialogGUI(self, self.listWidgetTasks.currentItem().data(QtCore.Qt.UserRole))
         dialog.resize(self.size())
         dialog.exec_()
+
+    def new_scene(self):
+        if self.selected_task:
+            dialog = CreateDialogGUI(self, self.handler, self.selected_task)
+            dialog.exec_() 
 
 class ConnectionDialogGUI(QtWidgets.QDialog, Ui_ConnectionDialog):
 
@@ -595,6 +637,222 @@ class ConnectionDialogGUI(QtWidgets.QDialog, Ui_ConnectionDialog):
 
         self.buttonBox.accepted.connect(self.save_settings)
         return True
+
+class CreateDialogGUI(QtWidgets.QDialog, Ui_CreateDialog):
+
+    def __init__(self, parent = None, handler = None, task = None):
+        super(CreateDialogGUI, self).__init__(parent) # Call the inherited classes __init__ method
+        self.setupUi(self)
+
+        self.handler = handler
+
+        self.shot = None
+        self.asset = None
+        self.url = None
+        self.task = task
+
+        loader = bg.EntityLoaderThread(self, self.task["entity_id"])
+        loader.loaded.connect(self.entity_loaded)
+        loader.start()
+
+        loader = bg.TaskFileInfoThread(self, self.task, load_settings("projects_root", os.path.expanduser("~")))
+        loader.loaded.connect(self.task_loaded)
+        loader.start()
+
+        loader = bg.SoftwareLoader(self)            
+        loader.loaded.connect(self.software_loaded)
+        loader.start()
+
+        self.toolButtonWeb.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_DirOpenIcon))
+        self.toolButtonWeb.clicked.connect(self.open_url)
+        self.toolButtonWeb.setEnabled(False)
+
+        self.toolButtonWorkingDir.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_DirOpenIcon))
+        self.toolButtonWorkingDir.clicked.connect(self.select_wcd)
+
+        self.pushButtonCancel.clicked.connect(self.close_dialog)
+        self.pushButtonImport.clicked.connect(self.process)
+
+
+    def open_url(self, url):
+        link = QtCore.QUrl(self.url)
+        if not QtGui.QDesktopServices.openUrl(link):
+            QtGui.QMessageBox.warning(self, 'Open Url', 'Could not open url')        
+
+    def software_loaded(self, results):
+        self.software = results["software"]
+
+        index = 0
+        selected = 0
+        for item in self.software:
+            if "maya" in item["name"].lower():
+                selected = index
+            self.comboBoxSoftware.addItem(item["name"])
+            index += 1
+        self.comboBoxSoftware.setCurrentIndex(selected)
+
+    def entity_loaded(self, data):
+        self.entity = data["entity"]
+        self.type = self.entity["type"]
+        self.shot = None
+        self.asset = None
+        self.project = data["project"]
+
+        self.project_name = self.project["name"]
+        self.episode_name = None
+        self.sequence_name = None
+        self.shot_name = None
+        self.asset_name = None
+        self.task_type_name = None
+        self.asset_type_name = None
+
+        sections = []
+        if self.type == "Shot":
+            self.setWindowTitle("swing: create new shot")
+            self.shot = data["item"]
+            self.url = data["url"]
+
+            if "code" in self.project:
+                self.project_name = self.project["code"]
+            else:
+                self.project_name = self.project["name"]
+            sections.append(self.project_name)
+                
+            if "episode_name" in self.shot:
+                self.episode_name = self.shot["episode_name"]
+                sections.append(self.episode_name)
+
+            if "sequence_name" in self.shot:
+                self.sequence_name = self.shot["sequence_name"]
+                sections.append(self.sequence_name)
+
+            self.shot_name = self.shot["name"] 
+            sections.append(self.shot_name)
+
+            if "task_type" in self.task:
+                self.task_type_name = self.task["task_type"]["name"]
+                sections.append(self.task_type_name)
+
+            self.lineEditEntity.setText(friendly_string("_".join(sections).lower()))
+            self.textEditShotInfo.setText(self.shot["description"])
+            self.lineEditFrameIn.setText(self.shot["frame_in"])
+            self.lineEditFrameIn.setEnabled(False)
+            self.lineEditFrameOut.setText(self.shot["frame_out"])
+            self.lineEditFrameOut.setEnabled(False)            
+
+            if self.shot["nb_frames"] and len(self.shot["nb_frames"] > 0):
+                self.lineEditFrameCount.setText()
+            else:
+                text = ""
+
+            self.lineEditFrameCount.setText(text)                
+            self.lineEditFrameCount.setEnabled(False)                          
+        else:
+            self.setWindowTitle("swing: create new asset")
+            self.asset = data["item"]
+            self.url = data["url"]
+
+            if "code" in self.project:
+                self.project_name = self.project["code"]
+            else:
+                self.project_name = self.project["name"]
+            sections.append(self.project_name)  
+
+            if "asset_type_name" in self.asset:
+                self.asset_type_name = self.asset["asset_type_name"].strip()
+                sections.append(self.asset_type_name)                 
+
+            self.asset_name = self.entity["name"].strip() 
+            sections.append(self.asset_name)
+
+            if "task_type" in self.task:
+                self.task_type_name = self.task["task_type"]["name"]
+                sections.append(self.task_type_name)          
+
+            self.lineEditEntity.setText(friendly_string("_".join(sections).lower()))
+            self.textEditShotInfo.setText(self.asset["description"].strip())
+            self.lineEditFrameIn.setText("")
+            self.lineEditFrameIn.setEnabled(False)
+            self.lineEditFrameOut.setText("")
+            self.lineEditFrameOut.setEnabled(False)
+            self.lineEditFrameCount.setText("")
+            self.lineEditFrameCount.setEnabled(False)         
+
+        self.toolButtonWeb.setEnabled(self.url is not None)
+        self.setEnabled(True)
+
+    def task_loaded(self, results):
+        self.task = results["task"]
+
+        self.setWorkingDir(os.path.normpath( results["working_dir"]))           
+
+    def set_selected(self, file_item):
+        index = 0
+        while index < len(self.files):
+            if file_item["id"] == self.files[index]["id"]:
+                self.comboBoxWorkingFile.setCurrentIndex(index)
+                break
+            index += 1
+
+    def setWorkingDir(self, working_dir):
+        self.working_dir = working_dir
+        self.lineEditWorkingDir.setText(self.working_dir)
+
+    def close_dialog(self):
+        self.close()
+
+    def select_wcd(self):
+        self.working_dir = QtWidgets.QFileDialog.getExistingDirectory(self, 'Select working directory')
+
+        self.lineEditWorkingDir.setText(self.working_dir)
+
+    def append_status(self, status_message, error = None):
+        cursor = QtGui.QTextCursor(self.textEditStatus.document()) 
+
+        if error:       
+            text = "<span style=' font-weight:100; color:#ff0000;'>{}</span><br/><br/>".format(status_message.strip())
+        else:
+            text = "<span style=' font-weight:100; '>{}</span><br/><bt/>".format(status_message.strip())
+
+        cursor.insertHtml(text)
+
+    def set_ui_enabled(self, status):
+        self.lineEditEntity.setEnabled(status)
+        self.lineEditFrameIn.setEnabled(status)
+        self.lineEditFrameOut.setEnabled(status)
+        self.lineEditWorkingDir.setEnabled(status)
+        self.toolButtonWorkingDir.setEnabled(status)
+
+        self.pushButtonImport.setEnabled(status)
+        self.pushButtonCancel.setEnabled(status)
+
+    def process(self):
+        self.append_status("Creating new scene")
+
+        mode = "working"
+        software = self.software[self.comboBoxSoftware.currentIndex()]
+        name = "{}{}".format(self.lineEditEntity.text().strip(), software["file_extension"])
+        workingDir = self.lineEditWorkingDir.text().strip()
+
+        working_file = gazu.files.new_working_file(self.task, name = name, mode = mode, software = software)
+
+        # call maya handler
+        if self.handler:
+            try:
+                if self.type == "Shot":
+                    self.handler.on_globals(project = self.project_name, episode = self.episode_name, sequence = self.sequence_name, task = self.task_type_name, shot = self.shot_name, frame_in = self.lineEditFrameIn.text(), frame_out = self.lineEditFrameOut.text(), frame_count = self.lineEditFrameCount.text())
+                else:
+                    self.handler.on_globals(project = self.project_name, asset_type = self.asset_type_name, task = self.task_type_name, asset = self.asset_name)
+
+                self.append_status("New Scene: {} {} {} {}".format(name, working_file, workingDir, software['name']))
+                self.handler.on_create(source = name, working_file = working_file, working_dir = workingDir, software = software)
+                self.append_status("Handlers done")
+            except:
+                traceback.print_exc(file=sys.stdout)          
+
+     
+    # process
+
 
 class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
 
@@ -684,10 +942,9 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
         self.asset = None
         self.url = None
 
-        if self.entity:
-            loader = bg.EntityLoaderThread(self, self.entity["type"], self.entity["id"])
-            loader.loaded.connect(self.entity_loaded)
-            loader.start()
+        loader = bg.EntityLoaderThread(self, self.entity["id"])
+        loader.loaded.connect(self.entity_loaded)
+        loader.start()
 
         self.toolButtonWeb.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_DirOpenIcon))
         self.toolButtonWeb.clicked.connect(self.open_url)
@@ -699,7 +956,7 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
         self.pushButtonCancel.clicked.connect(self.close_dialog)
         self.pushButtonImport.clicked.connect(self.process)
 
-        self.setWorkingDir(load_settings("working_dir", os.path.expanduser("~")))
+        self.setWorkingDir(load_settings("projects_root", os.path.expanduser("~")))
 
     def open_url(self, url):
         link = QtCore.QUrl(self.url)
@@ -707,29 +964,47 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
             QtGui.QMessageBox.warning(self, 'Open Url', 'Could not open url')        
 
     def entity_loaded(self, data):
-        self.shot = None
-        self.asset = None
+        self.type = data["type"]
         self.project = data["project"]
 
+        self.shot = None
+        self.asset = None
+
+        self.project_name = None
+        self.episode_name = None
+        self.sequence_name = None
+        self.shot_name = None
+        self.asset_name = None
+        self.task_type_name = None
+        self.asset_type_name = None
+
         sections = []
-        if self.entity["type"] == "Shot":
+        if self.type == "Shot":
+            self.setWindowTitle("swing: import shot")
             self.shot = data["item"]
             self.url = data["url"]
-            self.labelEntity.setText("Shot")
 
             if "code" in self.project:
-                sections.append(self.project["code"])
+                self.project_name = self.project["code"]
             else:
-                sections.append(self.project["name"])
-            sections.append("shots")
-
+                self.project_name = self.project["name"]
+            sections.append(self.project_name)
+                
             if "episode_name" in self.shot:
-                sections.append(self.shot["episode_name"])
+                self.episode_name = self.shot["episode_name"]
+                sections.append(self.episode_name)
 
             if "sequence_name" in self.shot:
-                sections.append(self.shot["sequence_name"])
+                self.sequence_name = self.shot["sequence_name"]
+                sections.append(self.sequence_name)
 
-            sections.append(self.shot["name"])
+            self.shot_name = self.shot["name"] 
+            sections.append(self.shot_name)
+
+            #if "task_type" in self.task:
+            #    self.task_type_name = self.task["task_type"]["name"]
+            #    sections.append(self.task_type_name)
+
             self.lineEditEntity.setText(" / ".join(sections))
 
             self.textEditShotInfo.setText(self.shot["description"])
@@ -740,29 +1015,40 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
             self.lineEditFrameOut.setText(self.shot["frame_out"])
             self.lineEditFrameOut.setEnabled(False)            
 
-            self.lineEditFrameCount.setText(self.shot["nb_frames"])
+            if self.shot["nb_frames"] and len(self.shot["nb_frames"] > 0):
+                self.lineEditFrameCount.setText()
+            else:
+                text = ""
+            self.lineEditFrameCount.setText(text)                
             self.lineEditFrameCount.setEnabled(False)                          
 
             working_dir = "{}{}{}".format(self.working_dir, os.path.sep, "/".join(sections))
             self.setWorkingDir(os.path.normpath(working_dir))
         else:
+            self.setWindowTitle("swing: import asset")
             self.asset = data["item"]
             self.url = data["url"]
-            self.labelEntity.setText("Asset")
 
             if "code" in self.project:
-                sections.append(self.project["code"])
+                self.project_name = self.project["code"]
             else:
-                sections.append(self.project["name"])            
-            sections.append("assets")
+                self.project_name = self.project["name"]
+            sections.append(self.project_name)  
 
             if "asset_type_name" in self.asset:
-                sections.append(self.asset["asset_type_name"].strip())                 
+                self.asset_type_name = self.asset["asset_type_name"].strip()
+                sections.append(self.asset_type_name)                 
+
+            self.asset_name = self.entity["name"].strip() 
+            sections.append(self.asset_name)
+
+            #if "task_type" in self.task:
+            #    self.task_type_name = self.task["task_type"]["name"]
+            #    sections.append(self.task_type_name)               
 
             sections.append(self.entity["name"].strip())
 
             self.lineEditEntity.setText(" / ".join(sections))
-
             self.textEditShotInfo.setText(self.asset["description"].strip())
 
             self.lineEditFrameIn.setText("")
@@ -814,7 +1100,6 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
         self.working_dir = QtWidgets.QFileDialog.getExistingDirectory(self, 'Select working directory')
 
         self.lineEditWorkingDir.setText(self.working_dir)
-        save_settings("working_dir", self.working_dir)
 
     def append_status(self, status_message, error = None):
         cursor = QtGui.QTextCursor(self.textEditStatus.document()) 
@@ -833,10 +1118,11 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
         file_name = results["target"]
         working_dir = results["working_dir"]
 
+        # call maya handler: import into existing workspace
         if self.handler:
             self.append_status("Running handlers")
             try:
-                self.handler.on_import_file(file_name, working_dir)
+                self.handler.on_import(source = file_name, working_dir = working_dir)
                 self.append_status("Handlers done")
             except:
                 traceback.print_exc(file=sys.stdout)          
@@ -872,7 +1158,7 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
         self.threadpool = QtCore.QThreadPool.globalInstance()
 
         self.set_ui_enabled(False)
-        print("Multithreading with maximum %d threads" % self.threadpool.maxThreadCount())
+        write_log("Multithreading with maximum %d threads" % self.threadpool.maxThreadCount())
 
         email = load_settings('user', 'user@example.com')
         password = load_keyring('swing', 'password', 'Not A Password')
@@ -882,7 +1168,7 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
         # download the currently selected file
         item = self.files[self.comboBoxWorkingFile.currentIndex()]
         row = 0
-        print("Downloading {} to {}".format(item["name"], self.working_dir))
+        write_log("Downloading {} to {}".format(item["name"], self.working_dir))
         if "working_file" in item["type"]:
             target = os.path.normpath(os.path.join(self.working_dir, item["name"]))
             url = "{}/api/working_file/{}".format(edit_api, item["id"])
@@ -914,12 +1200,12 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
     working_dir = None
     
     def __init__(self, parent = None, entity = None):
-        super(DownloadDialogGUI, self).__init__(parent) # Call the inherited classes __init__ method
+        super(DownloadDialogGUI, self).__init__(None) # Call the inherited classes __init__ method
         self.setupUi(self)
         self.entity = entity 
 
         if self.entity:
-            loader = bg.EntityLoaderThread(self, self.entity["type"], self.entity["id"])
+            loader = bg.EntityLoaderThread(self, self.entity["id"])
             loader.loaded.connect(self.entity_loaded)
             loader.start()     
 
@@ -933,7 +1219,7 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
         self.pushButtonDownload.clicked.connect(self.download_files)
         self.pushButtonCancel.clicked.connect(self.close_dialog)
 
-        self.setWorkingDir(load_settings("working_dir", os.path.expanduser("~")))
+        self.setWorkingDir(load_settings("projects_root", os.path.expanduser("~")))
 
     def open_url(self, url):
         link = QtCore.QUrl(self.url)
@@ -941,12 +1227,13 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
             QtGui.QMessageBox.warning(self, 'Open Url', 'Could not open url')              
 
     def entity_loaded(self, data):
+        self.type = data["type"]
         self.shot = None
         self.asset = None
         self.project = data["project"]
 
         sections = []
-        if self.entity["type"] == "Shot":
+        if self.type == "Shot":
             self.shot = data["item"]
             self.url = data["url"]
             self.labelEntity.setText("Shot")
@@ -1068,8 +1355,8 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
 
             index += 1
 
-        print("Downloading {} files".format(len(file_list)))
-        print("Multithreading with maximum %d threads" % self.threadpool.maxThreadCount())
+        write_log("Downloading {} files".format(len(file_list)))
+        write_log("Multithreading with maximum %d threads" % self.threadpool.maxThreadCount())
 
         email = load_settings('user', 'user@example.com')
         password = load_keyring('swing', 'password', 'Not A Password')
@@ -1078,7 +1365,7 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
 
         row = 0
         for item in file_list:
-            print("Downloading {} to {}".format(item["name"], self.working_dir))
+            write_log("Downloading {} to {}".format(item["name"], self.working_dir))
             if "working_file" in item["type"]:
                 target = os.path.normpath(os.path.join(self.working_dir, item["name"]))
                 url = "{}/api/preview_file/{}".format(edit_api, item["id"])
@@ -1120,3 +1407,12 @@ def load_keyring(key, val, default):
         keyring.set_password(key, val, default)
         result = keyring.get_password(key, val)
     return result
+
+def write_log(*args):
+    log = "{}: SWING".format(datetime.now().strftime("%d/%m%Y %H:%M:%S.%f"))
+    for log_data in args:
+        log += " {}".format(log_data)
+    print(log)
+
+def friendly_string(string):
+    return re.sub('\W+','_', str(string).strip())

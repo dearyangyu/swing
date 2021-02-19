@@ -17,7 +17,7 @@ except ImportError:
 from datetime import datetime
 
 def write_log(*args):
-    log = "{}: StudioAPI".format(datetime.now().strftime("%d/%m%Y %H:%M:%S.%f"))
+    log = "{}: SWING".format(datetime.now().strftime("%d/%m%Y %H:%M:%S.%f"))
     for log_data in args:
         log += " {}".format(log_data)
     print(log)
@@ -182,15 +182,18 @@ class AssetLoaderThread(QtCore.QThread):
 class EntityLoaderThread(QtCore.QThread):
     loaded = pyqtSignal(object)
 
-    def __init__(self, parent, entity_type, entity_id):
+    def __init__(self, parent, entity_id):
         QtCore.QThread.__init__(self, parent)
-        self.entity_type = entity_type
         self.entity_id = entity_id
 
     def run(self):
         results = {}
 
-        if self.entity_type == "Shot":
+        entity = gazu.entity.get_entity(self.entity_id)
+        results["entity"] = entity
+        results["type"] = entity["type"]
+
+        if entity["type"] == "Shot":
             results["item"] = gazu.shot.get_shot(self.entity_id)
             results["project"] = gazu.project.get_project(results["item"]["project_id"])
             results["url"] = gazu.shot.get_shot_url(results["item"])
@@ -202,6 +205,42 @@ class EntityLoaderThread(QtCore.QThread):
             results["casting"] = gazu.casting.get_asset_casting(results["item"])
 
         self.loaded.emit(results)      
+
+class TaskFileInfoThread(QtCore.QThread):
+    loaded = pyqtSignal(object)
+
+    def __init__(self, parent, task, project_root):
+        QtCore.QThread.__init__(self, parent)
+        self.parent = parent
+        self.task = task
+        self.project_root = project_root
+    
+    def __del__(self):
+        try:
+            if self:
+                self.wait()
+        except:
+            write_log("TaskLoaderThread", "interrupted")
+
+    def run(self):
+        task = gazu.task.get_task(self.task)
+        project = gazu.project.get_project(self.task["project_id"])
+        working_dir = gazu.files.build_working_file_path(task)
+
+        if project["file_tree"]:
+            file_tree = project["file_tree"]
+            if "working" in file_tree and file_tree["working"]["mountpoint"]:
+                mount_point = file_tree["working"]["mountpoint"]
+                working_dir = os.path.normpath(working_dir.replace(mount_point, self.project_root))
+
+
+        results = {
+            "task": task,
+            "working_dir": working_dir,
+            "project": project
+        }
+
+        self.loaded.emit(results)        
 
 class TaskLoaderThread(QtCore.QThread):
     loaded = pyqtSignal(object)
@@ -217,7 +256,7 @@ class TaskLoaderThread(QtCore.QThread):
             if self:
                 self.wait()
         except:
-            print("TaskLoaderThread", "interrupted")
+            write_log("TaskLoaderThread", "interrupted")
 
     #def due_date(self, elem):
     #    if "due_date" in elem and elem["due_date"]:
@@ -232,6 +271,28 @@ class TaskLoaderThread(QtCore.QThread):
             if item["project_id"] == self.project["id"]:
                 results.append(item)
         self.loaded.emit(results)
+
+class SoftwareLoader(QtCore.QThread):
+    loaded = pyqtSignal(object)
+
+    def __init__(self, parent):
+        QtCore.QThread.__init__(self, parent)
+        self.parent = parent
+    
+    def __del__(self):
+        try:
+            if self:
+                self.wait()
+        except:
+            write_log("SoftwareLoader", "interrupted")
+
+    def run(self):
+        software = gazu.files.all_softwares()
+
+        results = {
+            "software": software
+        }
+        self.loaded.emit(results)        
 
 class DownloadSignal(QtCore.QObject):
 
@@ -259,7 +320,7 @@ class FileDownloader(QtCore.QRunnable):
             if self:
                 self.wait()
         except:
-            print("FileDownloader", "interrupted")
+            write_log("FileDownloader", "interrupted")
 
     def progress(self, count):
         results = {
@@ -327,7 +388,7 @@ class FileDownloader(QtCore.QRunnable):
             status = {
                 "message": "Error downloading file",
                 "file_id": self.file_id,
-                "target": zip_root,
+                "target": target_dir,
                 "working_dir": self.working_dir,
                 "size": 0
             }   
