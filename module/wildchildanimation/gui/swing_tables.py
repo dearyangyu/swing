@@ -137,7 +137,7 @@ class FileTableModel(QtCore.QAbstractTableModel):
 class TaskTableModel(QtCore.QAbstractTableModel):    
 
     columns = [
-        "Project", "Type", "Entity", "Due", "Status", "Description"
+        "Project", "Type", "For", "Entity", "Due", "Status", "Description"
     ]
     tasks = []
 
@@ -175,7 +175,7 @@ class TaskTableModel(QtCore.QAbstractTableModel):
 
         ### -----------------------------------------------------------------------------------
         if role == QtCore.Qt.ForegroundRole:
-            if col == 3:
+            if col == 4:
                 if item["due_date"]:
                     text = item["due_date"]
                     if text and len(text) == 19:
@@ -193,18 +193,27 @@ class TaskTableModel(QtCore.QAbstractTableModel):
             elif col == 1:
                 return item["task_type_name"].strip()
             elif col == 2:
-                text = "{} / {}".format(item["entity_description"], item["entity_name"])
+                text = ""
+                if "episode_name" in item and item["episode_name"]:
+                    text = item["episode_name"]
+
+                if "sequence_name" in item and item["sequence_name"]:
+                    text = "{} {}".format(text, item["sequence_name"])
+
                 return text.strip()
             elif col == 3:
+                text = "{} / {}".format(item["entity_description"], item["entity_name"])
+                return text.strip()
+            elif col == 4:
                 if item["due_date"]:
                     text = item["due_date"]
                     if text and len(text) == 19:
                         my_date = datetime.strptime(text, "%Y-%m-%dT%H:%M:%S")
                         return my_date.strftime("%Y-%m-%d")
                 return None
-            elif col == 4:
-                return item["task_status_name"].strip()
             elif col == 5:
+                return item["task_status_name"].strip()
+            elif col == 6:
                 if item["description"]:
                     return item["description"].strip()
                 if item["last_comment"]:
@@ -279,7 +288,7 @@ def load_file_table_widget(tableWidget, model):
         cell.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
         tableWidget.setItem(row, 1, cell)
 
-        cell = QtWidgets.QTableWidgetItem(item["revision"])
+        cell = QtWidgets.QTableWidgetItem("{}".format(item["revision"]))
         cell.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
         tableWidget.setItem(row, 2, cell)
 
@@ -287,6 +296,7 @@ def load_file_table_widget(tableWidget, model):
             cell = QtWidgets.QTableWidgetItem(item["task_type"]["name"])
         else:
             cell = QtWidgets.QTableWidgetItem("")
+
         cell.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
         tableWidget.setItem(row, 3, cell)
 
@@ -299,10 +309,11 @@ def load_file_table_widget(tableWidget, model):
         tableWidget.setItem(row, 5, cell)
         row += 1
 
-    tableWidget.setColumnWidth(0, 400)
+    tableWidget.setColumnWidth(0, 350)
     tableWidget.setColumnWidth(1, 100)
-    tableWidget.setColumnWidth(2, 150)        
+    tableWidget.setColumnWidth(2, 50)        
     tableWidget.setColumnWidth(3, 150)        
+    tableWidget.setColumnWidth(4, 150)       
 
     return tableWidget
 ###########################################################################    

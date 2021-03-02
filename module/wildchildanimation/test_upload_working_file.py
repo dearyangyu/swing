@@ -6,14 +6,6 @@ import os
 import requests
 import shutil
 
-from requests_toolbelt.streaming_iterator import StreamingIterator
-from requests_toolbelt import (
-    MultipartEncoder,
-    MultipartEncoderMonitor
-)
-
-import hashlib
-
 # ==== auto Qt load ====
 try:
     from PySide2 import QtCore
@@ -41,9 +33,11 @@ class ProjectLoaderThread(QtCore.QRunnable):
         self.callback = LoadedSignal()
 
     def run(self):
+        write_log("ProjectLoaderThread", "start")
         results = {}
         try:
             try:
+                write_log("ProjectLoaderThread", "load")
                 projects = gazu.project.all_open_projects()
                 task_types = gazu.task.all_task_types()
 
@@ -54,6 +48,7 @@ class ProjectLoaderThread(QtCore.QRunnable):
                 traceback.print_exc(file=sys.stdout)
             # done
         finally:
+            write_log("ProjectLoaderThread", "done")
             self.callback.loaded.emit(results)
 
 class ProjectHierarchyLoaderThread(QtCore.QRunnable):
@@ -64,6 +59,7 @@ class ProjectHierarchyLoaderThread(QtCore.QRunnable):
         self.callback = LoadedSignal()        
 
     def run(self):
+        write_log("ProjectHierarchyLoaderThread", "start")
         try:
             try:
                 episodes = gazu.shot.all_episodes_for_project(self.project)
@@ -89,6 +85,7 @@ class ProjectHierarchyLoaderThread(QtCore.QRunnable):
                 traceback.print_exc(file=sys.stdout)
             # done
         finally:
+            write_log("ProjectHierarchyLoaderThread", "done")
             self.callback.loaded.emit(episodes)
 
 class EntityFileLoader(QtCore.QRunnable):
@@ -99,6 +96,7 @@ class EntityFileLoader(QtCore.QRunnable):
         self.callback = LoadedSignal()        
 
     def run(self):
+        write_log("EntityFileLoader", "start")
         try:
             results = {
                 "output_files": [],
@@ -136,6 +134,7 @@ class EntityFileLoader(QtCore.QRunnable):
                 traceback.print_exc(file=sys.stdout)
             # done
         finally:
+            write_log("EntityFileLoader", "done")
             self.callback.loaded.emit(results)                        
               
 class AssetTypeLoaderThread(QtCore.QRunnable):
@@ -289,6 +288,7 @@ class FileDownloader(QtCore.QRunnable):
         self.callback.progress.emit(results)
 
     def run(self):
+        write_log("Downloading {} to {}".format(self.url, self.target))
         filename, file_extension = os.path.splitext(self.target)
 
         ###
@@ -384,6 +384,7 @@ class FileDownloader(QtCore.QRunnable):
         }
 
         self.callback.done.emit(status)        
+        write_log("Downloaded {} to {}".format(self.url, self.target))
 
     def extract_zip(self, archive, directory):
         try:
@@ -406,35 +407,12 @@ class UploadSignal(QtCore.QObject):
     progress = QtCore.Signal(object)
 
 
-
-##############################################################################################################################################################################################
-# https://github.com/vsoch/django-nginx-upload/blob/master/push.py
-#
-_READ_SIZE = 1024 * 1024.0
-
-def create_callback(encoder, upload_signal, source):
-    encoder_len = int(encoder.len / _READ_SIZE)
-    
-    upload_signal.progress.emit({
-        "message": "[0 of %s MB]" % (encoder_len),
-        "source": source
-    })
-
-    def callback(monitor):
-        bytes_read = int(monitor.bytes_read / _READ_SIZE)
-        upload_signal.progress.emit({
-            "message": "[%s of %s MB]" % (bytes_read, encoder_len),
-            "source": source
-        })
-    return callback
-
 class WorkingFileUploader(QtCore.QRunnable):
 
-    def __init__(self, parent, edit_api, task, source, file_name, software_name, comment, email, password, mode = "working"):
+    def __init__(self, parent, edit_api, task, source, file_name, software_name, comment, email, password):
         super(WorkingFileUploader, self).__init__(self, parent)
         self.parent = parent
         self.url = edit_api
-        self.mode = mode
         self.source = source
         self.file_name = file_name
         self.task = task
@@ -445,53 +423,141 @@ class WorkingFileUploader(QtCore.QRunnable):
         self.callback = UploadSignal()
 
     def run(self):
+        write_log("Uploading {} to {}".format(self.source, self.task))
+
         source_name, source_ext = os.path.splitext(self.source)
 
+        params = { 
+            "username": self.email,
+            "password": self.password
+        } 
+
         # /edit/logon 
-        logon_url = "{}/login/".format(self.url)
+        logon_url = "{}/logon".format(self.url)
         client = requests.session()
 
         # Retrieve the CSRF token first
-        res = client.get(logon_url).cookies
-        csrf = client.get(logon_url).cookies['csrftoken']
-
-        # http://10.147.19.55:8202/edit/login/   
+        csrf = client.get(url).cookies['csrftoken']
+        
         login_data = dict(username=self.email, password=self.password, csrfmiddlewaretoken=csrf, next='/')
-        r = client.post(logon_url, data=login_data, headers=dict(Referer=logon_url))
+        r = client.post(URL, data=login_data, headers=dict(Referer=url))
 
-        upload_to = os.path.basename(self.source)
+        upload_url = "{}/my_tasks/{}".format(self.url, self.task["id"])
+        post_data = dict(csrfmiddlewaretoken = csrf, task_id = self.task['id'], user_id = self.email, )
+        
+        # Check if it worked?
+        # print r.status_code        
 
-        encoder = MultipartEncoder(fields = { 
-            "task_id": self.task["id"],
-            "user_id": self.email,
-            "software": self.software_name,
-            "mode": self.mode,
-            "file_name": upload_to,
-            "comment": self.comment,
-            "csrfmiddlewaretoken": csrf,
-            'input_file': (upload_to, open(self.source, 'rb'), 'rb')
-        })
+        software = gazu.files.get_software_by_name(self.software_name)
+        person = gazu.person.get_person_by_email(self.email)
 
-        encoder._read = encoder.read
-        encoder.read = lambda size: encoder._read(int(_READ_SIZE))
-
-        progress_callback = create_callback(encoder, self.callback, self.source)
-        monitor = MultipartEncoderMonitor(encoder, progress_callback)
-        headers = {'Content-Type': monitor.content_type }
-
-        upload_url = "{}/api/upload/".format(self.url)
+        working_file = None
+        working_file = gazu.files.new_working_file(self.task, name = self.file_name, mode = "working", software = software, comment = self.comment, person = person)
         try:
-            r = client.post(upload_url, data=monitor, headers=headers, auth=(self.email, self.password))
-            self.callback.done.emit({
-                "source": self.source,
-                "message": "upload complete"
-            })
-            message = r.json()['message']
-            # print('\n[Return status {0} {1}]'.format(r.status_code, message))
-        except KeyboardInterrupt:
-            print('\nUpload cancelled.')
-        except Exception as e:
-            print(e)
+            wf = gazu.files.upload_working_file(working_file, self.source)
+            write_log("Loaded", wf)
+        except:
+            traceback.print_exc(file=sys.stdout)
+            # extract all items in 64bit
+        # open zip file in read binary
 
+        status = {
+            "message": "OK"
+        }   
+        self.callback.done.emit(status)            
+                    
+        try:
+            os.sync()
+        except:
+            pass
+
+        write_log("Uploaded {} to {}".format(self.source, self.task))        
         return True        
+
+
+##############################################################################################################################################################################################
+# https://github.com/vsoch/django-nginx-upload/blob/master/push.py
+#
+
+from requests_toolbelt.streaming_iterator import StreamingIterator
+from requests_toolbelt import (
+    MultipartEncoder,
+    MultipartEncoderMonitor
+)
+
+import requests
+import argparse
+import hashlib
+import sys
+import os
+
+def create_callback(encoder):
+    encoder_len = int(encoder.len / (1024*1024.0))
+    sys.stdout.write("[0 of %s MB]" % (encoder_len))
+    sys.stdout.flush()
+    def callback(monitor):
+        sys.stdout.write('\r')
+        bytes_read = int(monitor.bytes_read / (1024*1024.0))
+        sys.stdout.write("[%s of %s MB]" % (bytes_read, encoder_len))
+        sys.stdout.flush()
+    return callback
+
+if __name__ == '__main__':
+    email = "paul@wildchildanimation.com"
+    password = "Monday@01"
+    url = "http://10.147.19.55:8202/edit"
+    task_id = "d0f8489b-7907-4377-83df-4fd20e05aaca"
+    mode = "working"
+    source_file = "E://Work/WCA/content/KONGOS.mp4"
+    source_file = "E://Work/WCA/content/TEST.png"
+    # /my_tasks/"
+
+    params = { 
+        "username": email,
+        "password": password
+    } 
+
+    # /edit/logon 
+    logon_url = "{}/login/".format(url)
+    client = requests.session()
+
+    # Retrieve the CSRF token first
+    res = client.get(logon_url).cookies
+    csrf = client.get(logon_url).cookies['csrftoken']
+
+    # http://10.147.19.55:8202/edit/login/   
+    login_data = dict(username=email, password=password, csrfmiddlewaretoken=csrf, next='/')
+    r = client.post(logon_url, data=login_data, headers=dict(Referer=logon_url))
+
+    upload_to = os.path.basename(source_file)
+    comments = "Test Upload"
+    software = "Maya 2020"
+
+    encoder = MultipartEncoder(fields = { 
+        "task_id": task_id,
+        "user_id": email,
+        "software": software,
+        "mode": mode,
+        "file_name": upload_to,
+        "comment": comments,
+        "csrfmiddlewaretoken": csrf,
+        'input_file': (upload_to, open(source_file, 'rb'), 'rb')
+    })
+
+    progress_callback = create_callback(encoder)
+    monitor = MultipartEncoderMonitor(encoder, progress_callback)
+    headers = {'Content-Type': monitor.content_type }
+
+    upload_url = "{}/api/upload/".format(url)
+    try:
+        r = client.post(upload_url, data=monitor, headers=headers, auth=(email, password))
+        print(r.json())
+        message = r.json()['message']
+        print('\n[Return status {0} {1}]'.format(r.status_code, message))
+    except KeyboardInterrupt:
+        print('\nUpload cancelled.')
+    except Exception as e:
+        print(e)
+
+
 

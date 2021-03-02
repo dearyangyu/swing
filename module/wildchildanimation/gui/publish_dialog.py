@@ -17,7 +17,7 @@ class Ui_PublishDialog(object):
     def setupUi(self, PublishDialog):
         if not PublishDialog.objectName():
             PublishDialog.setObjectName(u"PublishDialog")
-        PublishDialog.resize(371, 420)
+        PublishDialog.resize(500, 420)
         self.verticalLayout = QVBoxLayout(PublishDialog)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.horizontalLayout_2 = QHBoxLayout()
@@ -37,6 +37,11 @@ class Ui_PublishDialog(object):
         self.lineEditTask.setReadOnly(True)
 
         self.horizontalLayout_2.addWidget(self.lineEditTask)
+
+        self.toolButtonWeb = QToolButton(PublishDialog)
+        self.toolButtonWeb.setObjectName(u"toolButtonWeb")
+
+        self.horizontalLayout_2.addWidget(self.toolButtonWeb)
 
 
         self.verticalLayout.addLayout(self.horizontalLayout_2)
@@ -136,20 +141,22 @@ class Ui_PublishDialog(object):
 
         self.verticalLayoutReferences.addWidget(self.referencesLabel)
 
-        self.referencesTableWidget = QTableWidget(PublishDialog)
-        self.referencesTableWidget.setObjectName(u"referencesTableWidget")
+        self.referencesListView = QListView(PublishDialog)
+        self.referencesListView.setObjectName(u"referencesListView")
 
-        self.verticalLayoutReferences.addWidget(self.referencesTableWidget)
+        self.verticalLayoutReferences.addWidget(self.referencesListView)
 
         self.horizontalLayoutC4DReferences = QHBoxLayout()
         self.horizontalLayoutC4DReferences.setObjectName(u"horizontalLayoutC4DReferences")
         self.referencesAddPushButton = QPushButton(PublishDialog)
         self.referencesAddPushButton.setObjectName(u"referencesAddPushButton")
+        self.referencesAddPushButton.setEnabled(True)
 
         self.horizontalLayoutC4DReferences.addWidget(self.referencesAddPushButton)
 
         self.referencesRemovePushButton = QPushButton(PublishDialog)
         self.referencesRemovePushButton.setObjectName(u"referencesRemovePushButton")
+        self.referencesRemovePushButton.setEnabled(True)
 
         self.horizontalLayoutC4DReferences.addWidget(self.referencesRemovePushButton)
 
@@ -214,6 +221,7 @@ class Ui_PublishDialog(object):
     def retranslateUi(self, PublishDialog):
         PublishDialog.setWindowTitle(QCoreApplication.translate("PublishDialog", u"Publish Asset for Task", None))
         self.label_2.setText(QCoreApplication.translate("PublishDialog", u"Task", None))
+        self.toolButtonWeb.setText(QCoreApplication.translate("PublishDialog", u"...", None))
         self.projectFileLabel.setText(QCoreApplication.translate("PublishDialog", u"Project File", None))
         self.projectFileToolButton.setText(QCoreApplication.translate("PublishDialog", u"...", None))
         self.fbxFileLabel.setText(QCoreApplication.translate("PublishDialog", u"FBX File", None))
@@ -221,7 +229,7 @@ class Ui_PublishDialog(object):
         self.reviewFile.setText(QCoreApplication.translate("PublishDialog", u"Preview File", None))
         self.reviewFileToolButton.setText(QCoreApplication.translate("PublishDialog", u"...", None))
         self.label.setText(QCoreApplication.translate("PublishDialog", u"Preview Title", None))
-        self.referencesLabel.setText(QCoreApplication.translate("PublishDialog", u"References", None))
+        self.referencesLabel.setText(QCoreApplication.translate("PublishDialog", u"Secondary Assets", None))
         self.referencesAddPushButton.setText(QCoreApplication.translate("PublishDialog", u"&Add", None))
         self.referencesRemovePushButton.setText(QCoreApplication.translate("PublishDialog", u"&Remove", None))
         self.commentLabel.setText(QCoreApplication.translate("PublishDialog", u"Comments", None))

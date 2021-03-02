@@ -149,3 +149,4 @@ module/iex.pyd
 module/imath.pyd
 module/*.dist-info
 
+contrib/*

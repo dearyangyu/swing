@@ -5,7 +5,7 @@
 # date: 18 Feb 2021
 #
 #############################
-_PLUGIN_VERSION = "1.00"
+_PLUGIN_VERSION = "1.01"
 
 import traceback
 import sys
@@ -41,10 +41,10 @@ from wildchildanimation.gui.publish_dialog import Ui_PublishDialog
 from wildchildanimation.gui.download_dialog import Ui_DownloadDialog
 from wildchildanimation.gui.loader_dialog import Ui_LoaderDialog
 from wildchildanimation.gui.create_dialog import Ui_CreateDialog
+from wildchildanimation.gui.upload_monitor_dialog import Ui_UploadMonitorDialog
 
 from wildchildanimation.gui.swing_tables import FileTableModel, TaskTableModel, CastingTableModel, load_file_table_widget, human_size
 
-import pymel
 
 def resource_path(resource):
     base_path = os.path.dirname(os.path.realpath(__file__))
@@ -86,6 +86,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
         super(SwingGUI, self).__init__(None) # Call the inherited classes __init__ method
         self.setupUi(self)
         self.handler = studio_handler
+        self.connect(self, QtCore.SIGNAL("finished(int)"), self.finished)
 
         QtCore.QCoreApplication.setOrganizationName("Wild Child Animation")
         QtCore.QCoreApplication.setOrganizationDomain("wildchildanimation.com")
@@ -97,9 +98,11 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
         self.pushButtonSettings.clicked.connect(self.open_connection_settings)
         self.pushButtonConnect.clicked.connect(self.connect_to_server)
         self.pushButtonRefresh.clicked.connect(self.refresh_data)
-        self.pushButtonLoad.clicked.connect(self.load_asset)
+
+        self.pushButtonImport.clicked.connect(self.load_asset)
         self.pushButtonDownload.clicked.connect(self.download_files)
         self.pushButtonPublish.clicked.connect(self.publish_scene)
+        # self.pushButtonPlayblast.clicked.connect(self.playblast_scene)
         self.pushButtonNew.clicked.connect(self.new_scene)
 
         self.pushButtonClose.clicked.connect(self.close_dialog)
@@ -117,10 +120,14 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
         self.tableViewFiles.doubleClicked.connect(self.file_table_double_click)
 
         self.readSettings()
+        self.threadpool = QtCore.QThreadPool.globalInstance()
 
         if self.connect_to_server():
             self.labelConnection.setText("Connected")
             self.refresh_data()
+
+    def finished(self, code):
+        write_log('we are finished %s\n' % str(code))            
 
 
     def open_file_item(self, index):
@@ -139,7 +146,8 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
         dialog = LoaderDialogGUI(self)
         dialog.load_files(file_list)
         dialog.set_file_name(file_name)
-        dialog.exec_()        
+        dialog.show()        
+        
 
     def set_loading(self, is_loading):
         self.loading = is_loading
@@ -178,8 +186,8 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
                     self.asset_type_changed(self.comboBoxAssetType.currentIndex())
                 else:
                     asset_loader = bg.AssetTypeLoaderThread(self, self.currentProject)
-                    asset_loader.loaded.connect(self.asset_types_loaded)
-                    asset_loader.start()
+                    asset_loader.callback.loaded.connect(self.asset_types_loaded)
+                    self.threadpool.start(asset_loader)
 
     def get_current_selection(self):
         if self.radioButtonAsset.isChecked():
@@ -281,11 +289,12 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
         if not self.loading:
             self.comboBoxProject.blockSignals(True)
             loader = bg.ProjectLoaderThread(self)
-            loader.loaded.connect(self.projects_loaded)
+            loader.callback.loaded.connect(self.projects_loaded)
 
             self.labelMessage.setText("Loading ...")
             self.set_loading(True)
-            loader.start()
+
+            self.threadpool.start(loader)
         else:
             write_log("Loading in progress")
 
@@ -334,16 +343,16 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
             self.set_loading(True)                
 
             loader = bg.ProjectHierarchyLoaderThread(self, self.currentProject)
-            loader.loaded.connect(self.hierarchy_loaded)
-            loader.start()
+            loader.callback.loaded.connect(self.hierarchy_loaded)
+            self.threadpool.start(loader)
 
             asset_loader = bg.AssetTypeLoaderThread(self, self.currentProject)
-            asset_loader.loaded.connect(self.asset_types_loaded)
-            asset_loader.start()
+            asset_loader.callback.loaded.connect(self.asset_types_loaded)
+            self.threadpool.start(asset_loader)
 
             task_loader = bg.TaskLoaderThread(self, self.currentProject, self.user_email)
-            task_loader.loaded.connect(self.tasks_loaded)
-            task_loader.start()            
+            task_loader.callback.loaded.connect(self.tasks_loaded)
+            self.threadpool.start(task_loader)
 
 
     def hierarchy_loaded(self, data): 
@@ -407,7 +416,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
 
     def sequence_changed(self, index):
         write_log("[sequence_changed]")
-
+        
         self.currentSequencesIndex = self.comboBoxSequence.currentIndex()
         self.currentSequences = self.currentEpisode["sequences"]
         self.currentEpisode["sequences"][self.currentSequencesIndex]
@@ -430,16 +439,16 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
         self.currentAssetType = self.asset_types[index]
 
         loader = bg.AssetLoaderThread(self, self.currentProject, self.currentAssetType)
-        loader.loaded.connect(self.asset_loaded)
-        loader.start()
+        loader.callback.loaded.connect(self.asset_loaded)
+        self.threadpool.start(loader)
 
     def load_shot_files(self, index):
         self.currentShot = self.currentSequences[self.currentSequencesIndex]["shots"][index]
         write_log("load shot files {}".format(index))
 
         loader = bg.EntityFileLoader(self, self.currentShot)
-        loader.loaded.connect(self.files_loaded)
-        loader.start()
+        loader.callback.loaded.connect(self.files_loaded)
+        self.threadpool.start(loader)
 
     def files_loaded(self, data):
         output_files = data["output_files"]
@@ -476,8 +485,8 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
 
         write_log("load asset files {}".format(index))
         loader = bg.EntityFileLoader(self, self.currentAsset)
-        loader.loaded.connect(self.files_loaded)
-        loader.start()        
+        loader.callback.loaded.connect(self.files_loaded)
+        self.threadpool.start(loader)       
 
     def load_files(self, output_files = None, working_files = None):
         self.files = []
@@ -506,15 +515,18 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
         selectionModel.selectionChanged.connect(self.file_table_selection_changed)       
 
         self.pushButtonDownload.setEnabled(len(self.files) > 0)    
+        self.pushButtonImport.setEnabled(len(self.files) > 0)
 
     def file_table_double_click(self, index):
         row_index = index.row()
         self.selected_file = self.tableViewFiles.model().files[row_index]
         if self.selected_file:
+
             dialog = LoaderDialogGUI(self, self.handler, self.get_current_selection())
             dialog.load_files(self.tableViewFiles.model().files)
             dialog.set_selected(self.selected_file)
-            dialog.exec_()
+            #dialog.exec_()
+            dialog.show()
 
 
     def file_table_selection_changed(self):
@@ -549,9 +561,9 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
 
         self.tableViewTasks.setColumnWidth(0, 250)
         self.tableViewTasks.setColumnWidth(1, 200)
-        self.tableViewTasks.setColumnWidth(2, 350)
-        self.tableViewTasks.setColumnWidth(3, 150)
-        self.tableViewTasks.setColumnWidth(4, 100)
+        self.tableViewTasks.setColumnWidth(2, 250)
+        self.tableViewTasks.setColumnWidth(3, 350)
+        self.tableViewTasks.setColumnWidth(4, 120)
 
         selectionModel = self.tableViewTasks.selectionModel()
         selectionModel.selectionChanged.connect(self.task_table_selection_changed)          
@@ -570,32 +582,56 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
 
                 self.pushButtonNew.setEnabled(self.selected_task is not None)
                 self.pushButtonPublish.setEnabled(self.selected_task is not None)
+                self.pushButtonPlayblast.setEnabled(self.selected_task is not None)
             except:
                 pass
 
         return True        
 
     def download_files(self):
-        dialog = DownloadDialogGUI(None, self.get_current_selection())
-        dialog.load_files(self.tableViewFiles.model().files)
-        dialog.set_selected(self.selected_file)
+        dialog = DownloadDialogGUI(self, self.get_current_selection(), self.task_types)
+        #dialog.load_files(self.tableViewFiles.model().files)
+        # dialog.set_selected(self.selected_file)
         dialog.resize(self.size())
         dialog.exec_()
 
     def load_asset(self):
-        dialog = LoaderDialogGUI(self)
+        dialog = LoaderDialogGUI(self, self.handler, self.get_current_selection())
+
+        dialog.load_files(self.tableViewFiles.model().files)
+        dialog.set_selected(self.selected_file)
+
         #dialog.resize(self.size())
-        dialog.exec_()
+        dialog.show()
 
     def publish_scene(self):
-        dialog = PublishDialogGUI(self, self.listWidgetTasks.currentItem().data(QtCore.Qt.UserRole))
-        dialog.resize(self.size())
-        dialog.exec_()
+        if self.selected_task:        
+            dialog = PublishDialogGUI(self, self.handler, self.selected_task)
+            dialog.resize(self.size())
+            dialog.show()
+
+    def playblast_scene(self):
+        # call maya handler: import into existing workspace
+        if self.handler:
+            self.append_status("Running handlers")
+            try:
+                if (self.handler.on_playblast(source = file_name, working_dir = working_dir)):
+                    self.append_status("Playblast done")
+                else:
+                    self.append_status("Playblast error", True)
+            except:
+                traceback.print_exc(file=sys.stdout)          
+        else:
+            self.append_status("Maya handler not loaded")
+
+
+        self.append_status("{}".format(message))        
+
 
     def new_scene(self):
         if self.selected_task:
             dialog = CreateDialogGUI(self, self.handler, self.selected_task)
-            dialog.exec_() 
+            dialog.show() 
 
 class ConnectionDialogGUI(QtWidgets.QDialog, Ui_ConnectionDialog):
 
@@ -650,20 +686,21 @@ class CreateDialogGUI(QtWidgets.QDialog, Ui_CreateDialog):
         self.asset = None
         self.url = None
         self.task = task
+        self.threadpool = QtCore.QThreadPool.globalInstance()
 
         loader = bg.EntityLoaderThread(self, self.task["entity_id"])
-        loader.loaded.connect(self.entity_loaded)
-        loader.start()
+        loader.callback.loaded.connect(self.entity_loaded)
+        self.threadpool.start(loader)
 
         loader = bg.TaskFileInfoThread(self, self.task, load_settings("projects_root", os.path.expanduser("~")))
-        loader.loaded.connect(self.task_loaded)
-        loader.start()
+        loader.callback.loaded.connect(self.task_loaded)
+        self.threadpool.start(loader)
 
         loader = bg.SoftwareLoader(self)            
-        loader.loaded.connect(self.software_loaded)
-        loader.start()
+        loader.callback.loaded.connect(self.software_loaded)
+        self.threadpool.start(loader)
 
-        self.toolButtonWeb.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_DirOpenIcon))
+        self.toolButtonWeb.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_CommandLink))
         self.toolButtonWeb.clicked.connect(self.open_url)
         self.toolButtonWeb.setEnabled(False)
 
@@ -740,8 +777,8 @@ class CreateDialogGUI(QtWidgets.QDialog, Ui_CreateDialog):
             self.lineEditFrameOut.setText(self.shot["frame_out"])
             self.lineEditFrameOut.setEnabled(False)            
 
-            if self.shot["nb_frames"] and len(self.shot["nb_frames"] > 0):
-                self.lineEditFrameCount.setText()
+            if self.shot["nb_frames"] and self.shot["nb_frames"] > 0:
+                text = "{}".format(self.shot["nb_frames"])
             else:
                 text = ""
 
@@ -833,38 +870,98 @@ class CreateDialogGUI(QtWidgets.QDialog, Ui_CreateDialog):
         software = self.software[self.comboBoxSoftware.currentIndex()]
         name = "{}{}".format(self.lineEditEntity.text().strip(), software["file_extension"])
         workingDir = self.lineEditWorkingDir.text().strip()
+        workingDir = workingDir.replace("\\", "/")
 
-        working_file = gazu.files.new_working_file(self.task, name = name, mode = mode, software = software)
+        # only create working files on uploads
+        # working_file = gazu.files.new_working_file(self.task, name = name, mode = mode, software = software)
 
         # call maya handler
         if self.handler:
             try:
-                if self.type == "Shot":
-                    self.handler.on_globals(project = self.project_name, episode = self.episode_name, sequence = self.sequence_name, task = self.task_type_name, shot = self.shot_name, frame_in = self.lineEditFrameIn.text(), frame_out = self.lineEditFrameOut.text(), frame_count = self.lineEditFrameCount.text())
-                else:
-                    self.handler.on_globals(project = self.project_name, asset_type = self.asset_type_name, task = self.task_type_name, asset = self.asset_name)
+                self.append_status("Create new project: {} {} {}".format(name, workingDir, software['name']))
 
-                self.append_status("New Scene: {} {} {} {}".format(name, working_file, workingDir, software['name']))
-                self.handler.on_create(source = name, working_file = working_file, working_dir = workingDir, software = software)
-                self.append_status("Handlers done")
+                if (self.handler.on_create(source = name, working_dir = workingDir, software = software)):
+                    self.append_status("created scene")
+                else:
+                    self.append_status("Error creating scene", True)
+
+                if self.type == "Shot":
+                    self.handler.set_globals(project = self.project_name, episode = self.episode_name, sequence = self.sequence_name, task = self.task_type_name, shot = self.shot_name, frame_in = self.lineEditFrameIn.text(), frame_out = self.lineEditFrameOut.text(), frame_count = self.lineEditFrameCount.text())
+                else:
+                    self.handler.set_globals(project = self.project_name, asset_type = self.asset_type_name, task = self.task_type_name, asset = self.asset_name)
+
+                self.append_status("Set globals")
             except:
                 traceback.print_exc(file=sys.stdout)          
+        else:
+            self.append_status("Maya handler not loaded")
 
      
     # process
 
+class UploadListModel(QtCore.QAbstractListModel):
+
+    def __init__(self, parent, files = None):
+        super(UploadListModel, self).__init__(parent)
+        self.files = files or []
+        self.status = {}
+
+    def data(self, index, role):
+        if role == QtCore.Qt.DisplayRole:
+            # See below for the data structure.
+            item = self.files[index.row()]
+            text = self.status[item]
+
+            # Return the todo text only.
+            return "{} {}".format(item, text)
+
+    def rowCount(self, index):
+        return len(self.files)   
+
+    def add_item(self, item, text):
+        self.files.append(item)
+        self.status[item] = text
+        self.layoutChanged.emit()
+
+    def set_item_text(self, item, text):
+        self.status[item] = text
+        self.layoutChanged.emit()
+
+class UploadMonitorDialog(QtWidgets.QDialog, Ui_UploadMonitorDialog):
+
+    def __init__(self, parent = None, handler = None, task = None):
+        super(UploadMonitorDialog, self).__init__(parent) # Call the inherited classes __init__ method    
+        self.setupUi(self)
+        self.model = UploadListModel(self.listView)
+        self.listView.setModel(self.model)
+        self.pushButtonCancel.clicked.connect(self.close_dialog)
+
+    def close_dialog(self):
+        self.hide()
+
+    def file_loading(self, status):
+        message = status["message"]
+        source = status["source"]     
+
+        self.model.set_item_text(source, message)
+
+    def file_loaded(self, status):
+        message = status["message"]
+        source = status["source"]     
+
+        self.model.set_item_text(source, message)        
 
 class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
 
-    def __init__(self, parent = None, item = None):
-        super(PublishDialogGUI, self).__init__() # Call the inherited classes __init__ method
+    def __init__(self, parent = None, handler = None, task = None):
+        super(PublishDialogGUI, self).__init__(parent) # Call the inherited classes __init__ method    
+
         self.setupUi(self)
-
-        self.task = item["task"]
+        self.handler = handler
+        self.task = task
         self.last_dir = None
-
-        #resource_file = "gui/forms/maya/publish_dialog.ui"
-        #uic.loadUi(resource_path(resource_file), self)
+        self.threadpool = QtCore.QThreadPool.globalInstance()
+        self.references = []
 
         name = '{}'.format(self.task["project_name"])
         name = '{} {}'.format(name, self.task["entity_type_name"])
@@ -876,15 +973,130 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         self.projectFileToolButton.clicked.connect(self.select_project_file)
         self.fbxFileToolButton.clicked.connect(self.select_fbx_file)
         self.reviewFileToolButton.clicked.connect(self.select_review_file)
+        self.referencesAddPushButton.clicked.connect(self.select_references)
 
-        self.pushButtonOK.clicked.connect(self.accept)
-        self.pushButtonCancel.clicked.connect(self.close_dialog)        
+        model = QtGui.QStandardItemModel(self.referencesListView)
+        self.referencesListView.setModel(model)        
+
+        #self.toolButtonWeb.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_CommandLink))
+        #self.toolButtonWeb.clicked.connect(self.open_url)
+        #self.toolButtonWeb.setEnabled(False)
+
+        self.pushButtonOK.clicked.connect(self.process)
+        self.pushButtonCancel.clicked.connect(self.close_dialog)
+
+        if self.handler:
+            self.request = self.handler.on_save() 
+            self.projectFileEdit.setText(self.request["file_path"])
 
     def close_dialog(self):
         self.close()
 
+    def file_loaded(self, status):
+        self.pushButtonCancel.setEnabled(True)
+
+    def process(self):
+        self.pushButtonCancel.setEnabled(False)
+
+        email = load_settings('user', 'user@example.com')
+        password = load_keyring('swing', 'password', 'Not A Password')        
+
+        server = load_settings('server', 'https://production.wildchildanimation.com')
+        edit_api = "{}/edit".format(server)        
+
+        #self, parent, task, source, software_name, comment, email, password
+        dialog = UploadMonitorDialog(self)
+        dialog.show()
+
+        # project file
+        if len(self.projectFileEdit.text()) > 0:
+            source = self.projectFileEdit.text()
+
+            if os.path.exists(source):
+                file_base = os.path.basename(source)
+                file_path = os.path.dirname(source)
+                file_name, file_ext = os.path.splitext(file_base)                
+
+                worker = bg.WorkingFileUploader(self, edit_api, self.task, source, file_name, "Maya 2020", self.commentEdit.toPlainText().strip(), email, password)
+                worker.callback.progress.connect(dialog.file_loading)
+                worker.callback.done.connect(dialog.file_loaded)
+                dialog.model.add_item(source, "Pending")
+                self.threadpool.start(worker)
+
+        if len(self.fbxFileEdit.text()) > 0:
+            source = self.fbxFileEdit.text()
+            if os.path.exists(source):
+                file_base = os.path.basename(source)
+                file_path = os.path.dirname(source)
+                file_name, file_ext = os.path.splitext(file_base)
+
+                worker = bg.WorkingFileUploader(self, edit_api, self.task, source, file_name, "fbx", self.commentEdit.toPlainText().strip(), email, password)
+                worker.callback.progress.connect(dialog.file_loading)
+                worker.callback.done.connect(dialog.file_loaded)
+                dialog.model.add_item(source, "Pending")    
+                self.threadpool.start(worker)            
+
+        if len(self.reviewFileEdit.text()) > 0:
+            source = self.reviewFileEdit.text()
+            if os.path.exists(source):
+                file_base = os.path.basename(source)
+                file_path = os.path.dirname(source)
+                file_name, file_ext = os.path.splitext(file_base)
+
+                worker = bg.WorkingFileUploader(self, edit_api, self.task, source, file_name, "wip", self.commentEdit.toPlainText().strip(), email, password, mode = "preview")
+                worker.callback.progress.connect(dialog.file_loading)
+                worker.callback.done.connect(dialog.file_loaded)
+                dialog.model.add_item(source, "Pending")    
+                self.threadpool.start(worker)   
+
+        row = 0
+        model = self.referencesListView.model()
+        while row < model.rowCount():
+            item = model.item(row)
+            if item.checkState() == QtCore.Qt.CheckState.Checked:
+                source = model.data(item.index())
+
+                if os.path.exists(source):
+                    file_base = os.path.basename(source)
+                    file_path = os.path.dirname(source)
+                    file_name, file_ext = os.path.splitext(file_base)
+
+                    worker = bg.WorkingFileUploader(self, edit_api, self.task, source, file_name, "working", self.commentEdit.toPlainText().strip(), email, password)
+                    worker.callback.progress.connect(dialog.file_loading)
+                    worker.callback.done.connect(dialog.file_loaded)
+                    dialog.model.add_item(source, "Pending")    
+                    self.threadpool.start(worker)                  
+            row += 1
+
+        #worker.callback.done.connect(self.file_loaded)
+        # dialog.show()
+        #self.threadpool.start(worker)
+
     def get_references(self):
-        return []
+        return self.references
+
+    def select_references(self):
+        """
+        Open a File dialog when the button is pressed
+        :return:
+        """
+        if not self.last_dir:
+            self.last_dir = "."
+        
+        #Get the file location
+        q = QtWidgets.QFileDialog.getOpenFileNames(self, "Add secondary assets", self.last_dir, "All Files (*.*)")
+        if (q):
+            for name in q[0]:
+                self.references.append(name)
+
+        model = QtGui.QStandardItemModel(self.referencesListView)
+        for item in self.references:
+            list_item = QtGui.QStandardItem(item)
+            list_item.setCheckable(True)
+            list_item.setCheckState(QtCore.Qt.CheckState.Checked)
+            model.appendRow(list_item)
+
+        self.referencesListView.setModel(model)
 
     def select_project_file(self):
         """
@@ -895,10 +1107,10 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
             self.last_dir = "."
         
         #Get the file location
-        file = QtWidgets.QFileDialog.getOpenFileName(self, "Open Project File", self.last_dir, "C4d (*.c4d), All Files (*.*)")
-        if (file):
-            self.projectFileEdit.setText(file[0])
-            self.last_dir = file[0]
+        q = QtWidgets.QFileDialog.getOpenFileName(self, "Open Project File", self.last_dir, "Maya Ascii (*.ma), Maya Binary (*.mb), All Files (*.*)")
+        if (q and q[0] != ''):        
+            self.projectFileEdit.setText(q[0])
+            self.last_dir = q[0]
 
     def select_fbx_file(self):
         """
@@ -910,10 +1122,10 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
 
         
         #Get the file location
-        file = QtWidgets.QFileDialog.getOpenFileName(self, "Open Output File", self.last_dir, "FBX (*.fbx), All Files (*.*)")
-        if (file):
-            self.fbxFileEdit.setText(file[0])
-            self.last_dir = file[0]
+        q = QtWidgets.QFileDialog.getOpenFileName(self, "Open Output File", self.last_dir, "FBX (*.fbx), All Files (*.*)")
+        if (q and q[0] != ''):     
+            self.fbxFileEdit.setText(q[0])
+            self.last_dir = q[0]
 
     def select_review_file(self):
         """
@@ -925,11 +1137,18 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
 
         
         #Get the file location
-        file = QtWidgets.QFileDialog.getOpenFileName(self, "Open Review File", self.last_dir, "Images (*.bmp, *.jpg, *.png), Videos (*.mp4), All Files (*.*)")
-        if (file):
-            self.reviewFileEdit.setText(file[0])
-            self.reviewTitleLineEdit.setText(file[0])
-            self.last_dir = file[0]
+        q = QtWidgets.QFileDialog.getOpenFileName(self, "Open Review File", self.last_dir, "Images (*.bmp, *.jpg, *.png), Videos (*.mp4), All Files (*.*)")
+        if (q and q[0] != ''):     
+            self.reviewFileEdit.setText(q[0])
+
+            source = self.reviewFileEdit.text()
+            if os.path.exists(source):
+                file_base = os.path.basename(source)
+                file_path = os.path.dirname(source)
+                file_name, file_ext = os.path.splitext(file_base)
+
+                self.reviewTitleLineEdit.setText(file_name)
+                self.last_dir = q[0]
 
 class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
 
@@ -941,12 +1160,13 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
         self.shot = None
         self.asset = None
         self.url = None
+        self.threadpool = QtCore.QThreadPool.globalInstance()
 
         loader = bg.EntityLoaderThread(self, self.entity["id"])
-        loader.loaded.connect(self.entity_loaded)
-        loader.start()
+        loader.callback.loaded.connect(self.entity_loaded)
+        self.threadpool.start(loader)
 
-        self.toolButtonWeb.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_DirOpenIcon))
+        self.toolButtonWeb.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_CommandLink))
         self.toolButtonWeb.clicked.connect(self.open_url)
         self.toolButtonWeb.setEnabled(False)
 
@@ -1120,12 +1340,16 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
 
         # call maya handler: import into existing workspace
         if self.handler:
-            self.append_status("Running handlers")
+            self.append_status("Importing reference")
             try:
-                self.handler.on_import(source = file_name, working_dir = working_dir)
-                self.append_status("Handlers done")
+                if (self.handler.on_import(source = file_name, working_dir = working_dir)):
+                    self.append_status("Import done")
+                else:
+                    self.append_status("Import error", True)
             except:
                 traceback.print_exc(file=sys.stdout)          
+        else:
+            self.append_status("Maya handler not loaded")
 
         self.append_status("{}".format(message))
         self.set_ui_enabled(True)
@@ -1169,7 +1393,7 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
         item = self.files[self.comboBoxWorkingFile.currentIndex()]
         row = 0
         write_log("Downloading {} to {}".format(item["name"], self.working_dir))
-        if "working_file" in item["type"]:
+        if "WorkingFile" in item["type"]:
             target = os.path.normpath(os.path.join(self.working_dir, item["name"]))
             url = "{}/api/working_file/{}".format(edit_api, item["id"])
 
@@ -1199,17 +1423,20 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
 
     working_dir = None
     
-    def __init__(self, parent = None, entity = None):
+    def __init__(self, parent = None, entity = None, task_types = None):
         super(DownloadDialogGUI, self).__init__(None) # Call the inherited classes __init__ method
         self.setupUi(self)
         self.entity = entity 
+        self.threadpool = QtCore.QThreadPool.globalInstance()
+        # self.connect(self, QtCore.SIGNAL("finished(int)"), self.finished)
+        self.task_types = task_types
 
         if self.entity:
             loader = bg.EntityLoaderThread(self, self.entity["id"])
-            loader.loaded.connect(self.entity_loaded)
-            loader.start()     
+            loader.callback.loaded.connect(self.entity_loaded)
+            self.threadpool.start(loader)
 
-        self.toolButtonWeb.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_DirOpenIcon))
+        self.toolButtonWeb.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_CommandLink))
         self.toolButtonWeb.clicked.connect(self.open_url)
         self.toolButtonWeb.setEnabled(False)
 
@@ -1219,7 +1446,27 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
         self.pushButtonDownload.clicked.connect(self.download_files)
         self.pushButtonCancel.clicked.connect(self.close_dialog)
 
+        #self.toolButtonAll.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_DialogApplyButton))
+        self.toolButtonAll.clicked.connect(self.select_all)
+        #self.toolButtonNone.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_DialogCancelButton))
+        self.toolButtonNone.clicked.connect(self.select_none)
+
         self.setWorkingDir(load_settings("projects_root", os.path.expanduser("~")))
+
+    def select_all(self):
+        index = 0
+        while index < self.tableWidget.rowCount():
+            row_item = self.tableWidget.item(index, 0)
+            row_item.setCheckState(QtCore.Qt.Checked)
+            index += 1
+
+
+    def select_none(self):
+        index = 0
+        while index < self.tableWidget.rowCount():
+            row_item = self.tableWidget.item(index, 0)
+            row_item.setCheckState(QtCore.Qt.Unchecked)
+            index += 1
 
     def open_url(self, url):
         link = QtCore.QUrl(self.url)
@@ -1237,6 +1484,7 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
             self.shot = data["item"]
             self.url = data["url"]
             self.labelEntity.setText("Shot")
+            loader = bg.EntityFileLoader(self, self.shot)
 
             if "code" in self.project:
                 sections.append(self.project["code"])
@@ -1259,6 +1507,7 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
             self.asset = data["item"]
             self.url = data["url"]
             self.labelEntity.setText("Asset")
+            loader = bg.EntityFileLoader(self, self.asset)
 
             if "code" in self.project:
                 sections.append(self.project["code"])
@@ -1278,6 +1527,36 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
 
         self.toolButtonWeb.setEnabled(self.url is not None)
         self.setEnabled(True)
+
+        
+        loader.callback.loaded.connect(self.files_loaded)
+        self.threadpool.start(loader)
+
+    def get_item_task_type(self, entity):
+        if "task_type_id" in entity:
+            for task_type in self.task_types:
+                if task_type["id"] == entity["task_type_id"]:
+                    return task_type
+        return None        
+
+    def files_loaded(self, data):
+        output_files = data["output_files"]
+        working_files = data["working_files"]
+
+        self.files = []
+        if output_files:
+            for item in output_files:
+                item["task_type"] = self.get_item_task_type(item)
+                item["status"] = ""
+                self.files.append(item)
+
+        if working_files:
+            for item in working_files:
+                item["task_type"] = self.get_item_task_type(item)                
+                item["status"] = ""
+                self.files.append(item)        
+
+        self.load_files(self.files)        
 
 
     def setWorkingDir(self, working_dir):
@@ -1314,10 +1593,15 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
             file_item = row_item.data(QtCore.Qt.UserRole)
             if file_item and file_id == file_item["id"]:
                 status_item = self.tableWidget.item(self.tableWidget.row(row_item), 5)
-                status_item.setText("Downloaded {}".format(human_size(size)))
+                status_item.setText("{} - DONE".format(human_size(size)))
                 break        
 
             index += 1
+
+        self.downloads -= 1
+        if self.downloads <= 0:
+            self.pushButtonCancel.setText("Close")
+            self.pushButtonCancel.setEnabled(True)
 
     def file_loading(self, result):
         message = result["message"]
@@ -1331,7 +1615,7 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
             file_item = row_item.data(QtCore.Qt.UserRole)
             if file_item and file_id == file_item["id"]:
                 status_item = self.tableWidget.item(self.tableWidget.row(row_item), 5)
-                status_item.setText("{}".format(human_size(size)))
+                status_item.setText("- {}".format(human_size(size)))
                 break
             index += 1        
 
@@ -1339,11 +1623,14 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
     def load_files(self, files):
         self.files = files
 
-        load_file_table_widget(self.tableWidget, self.files)
+        load_file_table_widget(self.tableWidget, files)
 
     def download_files(self):
         self.pushButtonDownload.blockSignals(True)
-        self.threadpool = QtCore.QThreadPool()
+        self.threadpool = QtCore.QThreadPool.globalInstance()
+        self.pushButtonCancel.setText("Busy")
+        self.pushButtonCancel.setEnabled(False)
+        self.downloads = 0
 
         file_list = []
 
@@ -1366,19 +1653,32 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
         row = 0
         for item in file_list:
             write_log("Downloading {} to {}".format(item["name"], self.working_dir))
-            if "working_file" in item["type"]:
-                target = os.path.normpath(os.path.join(self.working_dir, item["name"]))
+            if "WorkingFile" in item["type"]:
+                if "task_type" in item and item["task_type"]:
+                    if item["task_type"]["short_name"]:                    
+                        target = os.path.normpath(os.path.join(self.working_dir, item["task_type"]["short_name"], item["name"]))
+                    else:
+                        target = os.path.normpath(os.path.join(self.working_dir, item["task_type"]["name"], item["name"]))
+                else:
+                    target = os.path.normpath(os.path.join(self.working_dir, item["name"]))
                 url = "{}/api/preview_file/{}".format(edit_api, item["id"])
 
                 worker = bg.FileDownloader(self, self.working_dir, item["id"], url, target, email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
 
                 worker.callback.progress.connect(self.file_loading)
                 worker.callback.done.connect(self.file_loaded)
-
                 self.threadpool.start(worker)
+                self.downloads += 1                
                 item["status"] = "Busy"
             else:
-                target = os.path.normpath(os.path.join(self.working_dir, item["name"]))
+                if "task_type" in item and item["task_type"]:
+                    if item["task_type"]["short_name"]:
+                        target = os.path.normpath(os.path.join(self.working_dir, item["task_type"]["short_name"], item["name"]))
+                    else:
+                        target = os.path.normpath(os.path.join(self.working_dir, item["task_type"]["name"], item["name"]))
+                else:
+                    target = os.path.normpath(os.path.join(self.working_dir, item["name"]))
+
                 url = "{}/api/output_file/{}".format(edit_api, item["id"])
 
                 worker = bg.FileDownloader(self, self.working_dir, item["id"], url, target, email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
@@ -1387,6 +1687,8 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
                 worker.callback.done.connect(self.file_loaded)
                 
                 self.threadpool.start(worker)
+                self.downloads += 1            
+
                 item["status"] = "Busy"
             row = row + 1        
         self.pushButtonDownload.blockSignals(False)
@@ -1409,7 +1711,7 @@ def load_keyring(key, val, default):
     return result
 
 def write_log(*args):
-    log = "{}: SWING".format(datetime.now().strftime("%d/%m%Y %H:%M:%S.%f"))
+    log = "{} swing: ".format(datetime.now().strftime("%Y/%m/%d %H:%M:%S.%f"))
     for log_data in args:
         log += " {}".format(log_data)
     print(log)

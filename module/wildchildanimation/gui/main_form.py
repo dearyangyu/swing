@@ -227,6 +227,7 @@ class Ui_WcaMayaDialog(object):
         self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
         self.pushButtonNew = QPushButton(self.tabTasks)
         self.pushButtonNew.setObjectName(u"pushButtonNew")
+        self.pushButtonNew.setEnabled(False)
 
         self.horizontalLayout_4.addWidget(self.pushButtonNew)
 
@@ -265,12 +266,6 @@ class Ui_WcaMayaDialog(object):
         self.pushButtonImport.setEnabled(False)
 
         self.horizontalLayout_5.addWidget(self.pushButtonImport)
-
-        self.pushButtonLoad = QPushButton(self.tabFiles)
-        self.pushButtonLoad.setObjectName(u"pushButtonLoad")
-        self.pushButtonLoad.setEnabled(False)
-
-        self.horizontalLayout_5.addWidget(self.pushButtonLoad)
 
         self.pushButtonDownload = QPushButton(self.tabFiles)
         self.pushButtonDownload.setObjectName(u"pushButtonDownload")
@@ -391,15 +386,11 @@ class Ui_WcaMayaDialog(object):
         self.pushButtonPublish.setShortcut(QCoreApplication.translate("WcaMayaDialog", u"Alt+P", None))
 #endif // QT_CONFIG(shortcut)
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabTasks), QCoreApplication.translate("WcaMayaDialog", u"Tasks", None))
-        self.pushButtonImport.setText(QCoreApplication.translate("WcaMayaDialog", u"Import", None))
+        self.pushButtonImport.setText(QCoreApplication.translate("WcaMayaDialog", u"Import Ref", None))
 #if QT_CONFIG(shortcut)
         self.pushButtonImport.setShortcut(QCoreApplication.translate("WcaMayaDialog", u"Alt+I", None))
 #endif // QT_CONFIG(shortcut)
-        self.pushButtonLoad.setText(QCoreApplication.translate("WcaMayaDialog", u"Load", None))
-#if QT_CONFIG(shortcut)
-        self.pushButtonLoad.setShortcut(QCoreApplication.translate("WcaMayaDialog", u"Alt+L", None))
-#endif // QT_CONFIG(shortcut)
-        self.pushButtonDownload.setText(QCoreApplication.translate("WcaMayaDialog", u"Download", None))
+        self.pushButtonDownload.setText(QCoreApplication.translate("WcaMayaDialog", u"Download Files", None))
 #if QT_CONFIG(shortcut)
         self.pushButtonDownload.setShortcut(QCoreApplication.translate("WcaMayaDialog", u"Alt+D", None))
 #endif // QT_CONFIG(shortcut)

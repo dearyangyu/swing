@@ -414,6 +414,9 @@
             <layout class="QHBoxLayout" name="horizontalLayout_4">
              <item>
               <widget class="QPushButton" name="pushButtonNew">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
                <property name="text">
                 <string>New</string>
                </property>
@@ -469,23 +472,10 @@
                 <bool>false</bool>
                </property>
                <property name="text">
-                <string>Import</string>
+                <string>Import Ref</string>
                </property>
                <property name="shortcut">
                 <string>Alt+I</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="pushButtonLoad">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
-               <property name="text">
-                <string>Load</string>
-               </property>
-               <property name="shortcut">
-                <string>Alt+L</string>
                </property>
               </widget>
              </item>
@@ -495,7 +485,7 @@
                 <bool>false</bool>
                </property>
                <property name="text">
-                <string>Download</string>
+                <string>Download Files</string>
                </property>
                <property name="shortcut">
                 <string>Alt+D</string>

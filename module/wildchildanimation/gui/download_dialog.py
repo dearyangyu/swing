@@ -102,6 +102,25 @@ class Ui_DownloadDialog(object):
 
         self.verticalLayout.addLayout(self.horizontalLayout_3)
 
+        self.horizontalLayout_5 = QHBoxLayout()
+        self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
+        self.toolButtonAll = QToolButton(DownloadDialog)
+        self.toolButtonAll.setObjectName(u"toolButtonAll")
+
+        self.horizontalLayout_5.addWidget(self.toolButtonAll)
+
+        self.toolButtonNone = QToolButton(DownloadDialog)
+        self.toolButtonNone.setObjectName(u"toolButtonNone")
+
+        self.horizontalLayout_5.addWidget(self.toolButtonNone)
+
+        self.horizontalSpacer_6 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.horizontalLayout_5.addItem(self.horizontalSpacer_6)
+
+
+        self.verticalLayout.addLayout(self.horizontalLayout_5)
+
         self.tableWidget = QTableWidget(DownloadDialog)
         if (self.tableWidget.columnCount() < 6):
             self.tableWidget.setColumnCount(6)
@@ -123,7 +142,7 @@ class Ui_DownloadDialog(object):
         self.tableWidget.setFont(font)
         self.tableWidget.setProperty("showDropIndicator", False)
         self.tableWidget.setAlternatingRowColors(True)
-        self.tableWidget.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.tableWidget.setSelectionBehavior(QAbstractItemView.SelectItems)
         self.tableWidget.horizontalHeader().setStretchLastSection(True)
 
         self.verticalLayout.addWidget(self.tableWidget)
@@ -165,6 +184,8 @@ class Ui_DownloadDialog(object):
         self.toolButtonWorkingDir.setText(QCoreApplication.translate("DownloadDialog", u"...", None))
         self.checkBoxSkipExisting.setText(QCoreApplication.translate("DownloadDialog", u"Skip Existing Files", None))
         self.checkBoxExtractZips.setText(QCoreApplication.translate("DownloadDialog", u"Extract Zip Files", None))
+        self.toolButtonAll.setText(QCoreApplication.translate("DownloadDialog", u"+", None))
+        self.toolButtonNone.setText(QCoreApplication.translate("DownloadDialog", u"-", None))
         ___qtablewidgetitem = self.tableWidget.horizontalHeaderItem(0)
         ___qtablewidgetitem.setText(QCoreApplication.translate("DownloadDialog", u"File", None));
         ___qtablewidgetitem1 = self.tableWidget.horizontalHeaderItem(1)
