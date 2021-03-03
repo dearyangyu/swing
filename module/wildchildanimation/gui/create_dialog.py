@@ -18,7 +18,7 @@ class Ui_CreateDialog(object):
         if not CreateDialog.objectName():
             CreateDialog.setObjectName(u"CreateDialog")
         CreateDialog.setEnabled(True)
-        CreateDialog.resize(853, 386)
+        CreateDialog.resize(853, 416)
         self.verticalLayout = QVBoxLayout(CreateDialog)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.verticalLayoutEntity = QVBoxLayout()
@@ -165,21 +165,6 @@ class Ui_CreateDialog(object):
 
         self.verticalLayoutOptions = QVBoxLayout()
         self.verticalLayoutOptions.setObjectName(u"verticalLayoutOptions")
-        self.checkBoxSkipExisting = QCheckBox(CreateDialog)
-        self.checkBoxSkipExisting.setObjectName(u"checkBoxSkipExisting")
-        self.checkBoxSkipExisting.setMinimumSize(QSize(100, 0))
-        self.checkBoxSkipExisting.setStyleSheet(u"")
-        self.checkBoxSkipExisting.setChecked(True)
-
-        self.verticalLayoutOptions.addWidget(self.checkBoxSkipExisting)
-
-        self.checkBoxExtractZips = QCheckBox(CreateDialog)
-        self.checkBoxExtractZips.setObjectName(u"checkBoxExtractZips")
-        self.checkBoxExtractZips.setMinimumSize(QSize(100, 0))
-        self.checkBoxExtractZips.setChecked(True)
-
-        self.verticalLayoutOptions.addWidget(self.checkBoxExtractZips)
-
 
         self.verticalLayout.addLayout(self.verticalLayoutOptions)
 
@@ -244,8 +229,6 @@ class Ui_CreateDialog(object):
         self.labelFrameOut.setText(QCoreApplication.translate("CreateDialog", u"Out", None))
         self.labelFrameCount.setText(QCoreApplication.translate("CreateDialog", u"Count", None))
         self.label.setText(QCoreApplication.translate("CreateDialog", u"Notes and Comments", None))
-        self.checkBoxSkipExisting.setText(QCoreApplication.translate("CreateDialog", u"Option 1", None))
-        self.checkBoxExtractZips.setText(QCoreApplication.translate("CreateDialog", u"Option 2", None))
         self.labelFiles.setText(QCoreApplication.translate("CreateDialog", u"Status", None))
         self.textEditStatus.setHtml(QCoreApplication.translate("CreateDialog", u"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"

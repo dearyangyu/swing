@@ -178,6 +178,32 @@ class Ui_LoaderDialog(object):
 
         self.verticalLayoutOptions.addWidget(self.checkBoxExtractZips)
 
+        self.horizontalLayout_4 = QHBoxLayout()
+        self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
+        self.checkBoxReferences = QCheckBox(LoaderDialog)
+        self.checkBoxReferences.setObjectName(u"checkBoxReferences")
+        self.checkBoxReferences.setChecked(True)
+
+        self.horizontalLayout_4.addWidget(self.checkBoxReferences)
+
+        self.horizontalSpacer_2 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.horizontalLayout_4.addItem(self.horizontalSpacer_2)
+
+        self.checkBoxNamespace = QCheckBox(LoaderDialog)
+        self.checkBoxNamespace.setObjectName(u"checkBoxNamespace")
+        self.checkBoxNamespace.setChecked(True)
+
+        self.horizontalLayout_4.addWidget(self.checkBoxNamespace)
+
+        self.lineEditNamespace = QLineEdit(LoaderDialog)
+        self.lineEditNamespace.setObjectName(u"lineEditNamespace")
+
+        self.horizontalLayout_4.addWidget(self.lineEditNamespace)
+
+
+        self.verticalLayoutOptions.addLayout(self.horizontalLayout_4)
+
 
         self.verticalLayout.addLayout(self.verticalLayoutOptions)
 
@@ -244,6 +270,11 @@ class Ui_LoaderDialog(object):
         self.toolButtonWorkingDir.setText(QCoreApplication.translate("LoaderDialog", u"...", None))
         self.checkBoxSkipExisting.setText(QCoreApplication.translate("LoaderDialog", u"Skip existing files", None))
         self.checkBoxExtractZips.setText(QCoreApplication.translate("LoaderDialog", u"Extract zip files automatically", None))
+#if QT_CONFIG(tooltip)
+        self.checkBoxReferences.setToolTip(QCoreApplication.translate("LoaderDialog", u"Unselect to load file", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkBoxReferences.setText(QCoreApplication.translate("LoaderDialog", u"Import as Reference", None))
+        self.checkBoxNamespace.setText(QCoreApplication.translate("LoaderDialog", u"Set Namespace", None))
         self.labelFiles.setText(QCoreApplication.translate("LoaderDialog", u"Status", None))
         self.textEditStatus.setHtml(QCoreApplication.translate("LoaderDialog", u"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"

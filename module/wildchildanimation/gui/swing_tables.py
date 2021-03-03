@@ -56,7 +56,7 @@ def human_size(bytes):
 class FileTableModel(QtCore.QAbstractTableModel):    
 
     columns = [
-        "File Name", "Size", "Revision", "Task", "Comment", "Description", "Updated", "Status"
+        "File Name", "Size", "Revision", "Task", "Comment", "Description", "Updated"
     ]
     files = []
 
@@ -113,16 +113,12 @@ class FileTableModel(QtCore.QAbstractTableModel):
                 return item["description"]
             elif col == 6:
                 return my_date_format(item["updated_at"])
-            elif col == 7:
-                if "task_type" in item and item["task_type"]:
-                    return item["task_type"]["name"]
-
 
         if role == QtCore.Qt.BackgroundRole:
             col = index.column()
             row = index.row()
 
-            if col == 7:
+            if col == 3:
                 item = self.files[row]
                 if "status" in item:
                     col = index.column()
@@ -304,7 +300,7 @@ def load_file_table_widget(tableWidget, model):
         cell.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
         tableWidget.setItem(row, 4, cell)                                        
 
-        cell = QtWidgets.QTableWidgetItem(str("-"))
+        cell = QtWidgets.QTableWidgetItem(str(""))
         cell.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
         tableWidget.setItem(row, 5, cell)
         row += 1

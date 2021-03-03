@@ -5,8 +5,9 @@
 # date: 18 Feb 2021
 #
 #############################
-_PLUGIN_VERSION = "1.01"
-
+_APP_NAME = "treehouse: swing"
+_APP_VERSION = "1.02"
+ 
 import traceback
 import sys
 import os
@@ -45,19 +46,10 @@ from wildchildanimation.gui.upload_monitor_dialog import Ui_UploadMonitorDialog
 
 from wildchildanimation.gui.swing_tables import FileTableModel, TaskTableModel, CastingTableModel, load_file_table_widget, human_size
 
-
-def resource_path(resource):
-    base_path = os.path.dirname(os.path.realpath(__file__))
-
-    return os.path.join(base_path, resource)
-### 
-
-def my_date_format(date):
-    if len(date) == 19: # YYYY-MM-DDTHH:MM:SS
-        dt = datetime.strptime(date, "%Y-%m-%dT%H:%M:%S")
-        return dt.strftime("%Y-%m-%d %H:%M:%S")
-    return date.strftime("%Y-%m-%d %H:%M:%S")
-
+'''
+    SwingGUI Main class
+    ################################################################################
+'''
 class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
     loading = False
     user_email = None
@@ -87,10 +79,16 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
         self.setupUi(self)
         self.handler = studio_handler
         self.connect(self, QtCore.SIGNAL("finished(int)"), self.finished)
+        self.setWindowTitle("{} v{}".format(_APP_NAME, _APP_VERSION))
+
+        resource_file = resource_path("resources/wca.png")
+        if os.path.exists(resource_file):
+            icon = QtGui.QIcon(resource_file)
+            self.setWindowIcon(icon)
 
         QtCore.QCoreApplication.setOrganizationName("Wild Child Animation")
         QtCore.QCoreApplication.setOrganizationDomain("wildchildanimation.com")
-        QtCore.QCoreApplication.setApplicationName("Treehouse: Swing")        
+        QtCore.QCoreApplication.setApplicationName(_APP_NAME)
         
         self.comboBoxAsset.currentIndexChanged.connect(self.load_asset_files)
         self.comboBoxShot.currentIndexChanged.connect(self.load_shot_files)    
@@ -504,12 +502,12 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
 
         self.tableViewFiles.setModel(FileTableModel(self, self.files))                
         self.tableViewFiles.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
-        self.tableViewFiles.setColumnWidth(0, 400)
-        self.tableViewFiles.setColumnWidth(1, 100)
+        self.tableViewFiles.setColumnWidth(0, 300)
+        self.tableViewFiles.setColumnWidth(1, 75)
         self.tableViewFiles.setColumnWidth(2, 75)
-        self.tableViewFiles.setColumnWidth(3, 200)
-        self.tableViewFiles.setColumnWidth(4, 350)
-        self.tableViewFiles.setColumnWidth(6, 200)
+        self.tableViewFiles.setColumnWidth(3, 150)
+        #self.tableViewFiles.setColumnWidth(4, 350)
+        #self.tableViewFiles.setColumnWidth(6, 200)
 
         selectionModel = self.tableViewFiles.selectionModel()
         selectionModel.selectionChanged.connect(self.file_table_selection_changed)       
@@ -633,6 +631,11 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
             dialog = CreateDialogGUI(self, self.handler, self.selected_task)
             dialog.show() 
 
+'''
+    ConnectionDialog class
+    ################################################################################
+'''
+
 class ConnectionDialogGUI(QtWidgets.QDialog, Ui_ConnectionDialog):
 
     def __init__(self, parent = None):
@@ -673,6 +676,11 @@ class ConnectionDialogGUI(QtWidgets.QDialog, Ui_ConnectionDialog):
 
         self.buttonBox.accepted.connect(self.save_settings)
         return True
+
+'''
+    CreeateDialog class
+    ################################################################################
+'''
 
 class CreateDialogGUI(QtWidgets.QDialog, Ui_CreateDialog):
 
@@ -839,9 +847,10 @@ class CreateDialogGUI(QtWidgets.QDialog, Ui_CreateDialog):
         self.close()
 
     def select_wcd(self):
-        self.working_dir = QtWidgets.QFileDialog.getExistingDirectory(self, 'Select working directory')
-
-        self.lineEditWorkingDir.setText(self.working_dir)
+        q = QtWidgets.QFileDialog.getExistingDirectory(self, 'Select working directory')
+        if (q and q[0] != ''): 
+            self.working_dir = q[0]
+            self.lineEditWorkingDir.setText(self.working_dir)
 
     def append_status(self, status_message, error = None):
         cursor = QtGui.QTextCursor(self.textEditStatus.document()) 
@@ -896,8 +905,13 @@ class CreateDialogGUI(QtWidgets.QDialog, Ui_CreateDialog):
         else:
             self.append_status("Maya handler not loaded")
 
-     
+        self.close()
     # process
+
+'''
+    UploadListModel class
+    ################################################################################
+'''
 
 class UploadListModel(QtCore.QAbstractListModel):
 
@@ -927,6 +941,11 @@ class UploadListModel(QtCore.QAbstractListModel):
         self.status[item] = text
         self.layoutChanged.emit()
 
+'''
+    UploadMonitorDialog class
+    ################################################################################
+'''
+
 class UploadMonitorDialog(QtWidgets.QDialog, Ui_UploadMonitorDialog):
 
     def __init__(self, parent = None, handler = None, task = None):
@@ -950,6 +969,10 @@ class UploadMonitorDialog(QtWidgets.QDialog, Ui_UploadMonitorDialog):
         source = status["source"]     
 
         self.model.set_item_text(source, message)        
+'''
+    PublishDialogClass class
+    ################################################################################
+'''
 
 class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
 
@@ -1068,9 +1091,7 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
                     self.threadpool.start(worker)                  
             row += 1
 
-        #worker.callback.done.connect(self.file_loaded)
-        # dialog.show()
-        #self.threadpool.start(worker)
+        self.hide()
 
     def get_references(self):
         return self.references
@@ -1149,6 +1170,11 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
 
                 self.reviewTitleLineEdit.setText(file_name)
                 self.last_dir = q[0]
+
+'''
+    LoaderDialog class
+    ################################################################################
+'''
 
 class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
 
@@ -1283,6 +1309,19 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
             working_dir = "{}{}{}".format(self.working_dir, os.path.sep, "/".join(sections))
             self.setWorkingDir(os.path.normpath(working_dir))           
 
+        namespace = ""
+        if self.asset_type_name:
+            namespace = self.asset_type_name
+        elif self.asset_name:
+            namespace = self.asset_name
+        elif self.task_type_name:
+            namespace = self.task_type_name
+        elif self.shot_name:
+            namespace = self.shot_name
+        else:
+            namespace = "_ns"
+
+        self.lineEditNamespace.setText(namespace.strip())
         self.toolButtonWeb.setEnabled(self.url is not None)
         self.setEnabled(True)
 
@@ -1340,12 +1379,26 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
 
         # call maya handler: import into existing workspace
         if self.handler:
-            self.append_status("Importing reference")
             try:
-                if (self.handler.on_import(source = file_name, working_dir = working_dir)):
-                    self.append_status("Import done")
+                if self.checkBoxReferences.checkState() == QtCore.Qt.Checked:
+                    # see if we know a namespace
+                    if self.checkBoxNamespace.checkState() == QtCore.Qt.Checked:
+                        namespace = self.lineEditNamespace.text()
+                    else:
+                        namespace = None
+
+                    self.append_status("Importing reference")
+                    if (self.handler.import_reference(source = file_name, working_dir = working_dir, namespace = namespace)):
+                        self.append_status("Import done")
+                    else:
+                        self.append_status("Import error", True)
                 else:
-                    self.append_status("Import error", True)
+                    self.append_status("Loading file")
+                    if (self.handler.load_file(source = file_name, working_dir = working_dir)):
+                        self.append_status("Loading done")
+                    else:
+                        self.append_status("Loading error", True)
+
             except:
                 traceback.print_exc(file=sys.stdout)          
         else:
@@ -1418,6 +1471,11 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
             self.append_status("Loading {}".format(item["name"]))
         # file type
     # process
+
+'''
+    DownloadDialogGui class
+    ################################################################################
+'''
 
 class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
 
@@ -1527,7 +1585,6 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
 
         self.toolButtonWeb.setEnabled(self.url is not None)
         self.setEnabled(True)
-
         
         loader.callback.loaded.connect(self.files_loaded)
         self.threadpool.start(loader)
@@ -1593,7 +1650,8 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
             file_item = row_item.data(QtCore.Qt.UserRole)
             if file_item and file_id == file_item["id"]:
                 status_item = self.tableWidget.item(self.tableWidget.row(row_item), 5)
-                status_item.setText("{} - DONE".format(human_size(size)))
+                status_item.setText("{}".format(human_size(size)))
+                status_item.setBackground(QtGui.QColor('darkGreen'))
                 break        
 
             index += 1
@@ -1602,6 +1660,10 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
         if self.downloads <= 0:
             self.pushButtonCancel.setText("Close")
             self.pushButtonCancel.setEnabled(True)
+
+            self.pushButtonDownload.setText("Download")
+            self.pushButtonDownload.setEnabled(True)
+
 
     def file_loading(self, result):
         message = result["message"]
@@ -1615,19 +1677,21 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
             file_item = row_item.data(QtCore.Qt.UserRole)
             if file_item and file_id == file_item["id"]:
                 status_item = self.tableWidget.item(self.tableWidget.row(row_item), 5)
-                status_item.setText("- {}".format(human_size(size)))
+                status_item.setText("{}".format(human_size(size)))
+                status_item.setBackground(QtGui.QColor('darkCyan'))
                 break
             index += 1        
 
-
     def load_files(self, files):
         self.files = files
-
         load_file_table_widget(self.tableWidget, files)
 
     def download_files(self):
-        self.pushButtonDownload.blockSignals(True)
         self.threadpool = QtCore.QThreadPool.globalInstance()
+
+        self.pushButtonDownload.setText("Downloading")
+        self.pushButtonDownload.setEnabled(False)
+        
         self.pushButtonCancel.setText("Busy")
         self.pushButtonCancel.setEnabled(False)
         self.downloads = 0
@@ -1691,8 +1755,10 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
 
                 item["status"] = "Busy"
             row = row + 1        
-        self.pushButtonDownload.blockSignals(False)
 
+'''
+    Utility functions
+'''
 def load_settings(key, default):
     settings = QtCore.QSettings()    
     return settings.value(key, default)
@@ -1718,3 +1784,13 @@ def write_log(*args):
 
 def friendly_string(string):
     return re.sub('\W+','_', str(string).strip())
+
+def resource_path(resource):
+    base_path = os.path.dirname(os.path.realpath(__file__))
+    return os.path.join(base_path, resource)
+
+def my_date_format(date):
+    if len(date) == 19: # YYYY-MM-DDTHH:MM:SS
+        dt = datetime.strptime(date, "%Y-%m-%dT%H:%M:%S")
+        return dt.strftime("%Y-%m-%d %H:%M:%S")
+    return date.strftime("%Y-%m-%d %H:%M:%S")

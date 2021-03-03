@@ -58,11 +58,34 @@ class StudioHandler():
         return True
 
     # tries to import the file specified in source into the currently open scene
-    def on_import(self, **kwargs):
+    def import_reference(self, **kwargs):
+        source = kwargs["source"]
+        working_dir = kwargs["working_dir"]
+        namespace = kwargs["namespace"]
+
+        write_log("import_reference start", source, working_dir)
+
+        filename, file_extension = os.path.splitext(source)
+
+        if file_extension in [".ma", ".mb", ".fbx", ".obj"]:
+            write_log("Importing {}".format(filename))
+            try:
+                cmds.file(source, reference = True, ignoreVersion = True, namespace = namespace, options = "v=0;")
+                write_log("Imported {}".format(filename))
+            except:
+                traceback.print_exc(file=sys.stdout)
+                write_log("Error importing file {}".format(source))
+                return False
+
+        write_log("import_reference complete")
+        return True
+
+    # tries to import the file specified in source into the currently open scene
+    def load_file(self, **kwargs):
         source = kwargs["source"]
         working_dir = kwargs["working_dir"]
 
-        write_log("on_import start", source, working_dir)
+        write_log("load_file start", source, working_dir)
 
         filename, file_extension = os.path.splitext(source)
 
@@ -76,8 +99,8 @@ class StudioHandler():
                 write_log("Error importing file {}".format(source))
                 return False
 
-        write_log("on_import_file complete")
-        return True
+        write_log("load_file complete")
+        return True        
 
     def on_save(self, **kwargs):
         file_path = cmds.file(q = True, sn = True)
