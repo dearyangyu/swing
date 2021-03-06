@@ -6,6 +6,8 @@ import os
 import requests
 import shutil
 
+from zipfile import ZipFile
+
 from requests_toolbelt.streaming_iterator import StreamingIterator
 from requests_toolbelt import (
     MultipartEncoder,
@@ -93,9 +95,10 @@ class ProjectHierarchyLoaderThread(QtCore.QRunnable):
 
 class EntityFileLoader(QtCore.QRunnable):
 
-    def __init__(self, parent, entity):
+    def __init__(self, parent, entity, working_dir):
         super(EntityFileLoader, self).__init__(self, parent)
         self.entity = entity
+        self.working_dir = working_dir
         self.callback = LoadedSignal()        
 
     def run(self):
@@ -113,7 +116,7 @@ class EntityFileLoader(QtCore.QRunnable):
                     
                 #for item in casting:
                 #    file_list += reportdata.load_working_files(item["asset_id"])            
-
+                
                 output_files = gazu.files.all_output_files_for_entity(self.entity)
                 working_files = gazu.files.get_all_working_files_for_entity(self.entity)
 
@@ -280,6 +283,7 @@ class FileDownloader(QtCore.QRunnable):
 
     def progress(self, count):
         results = {
+            "status": "ok",
             "message": "downloading",
             "file_id": self.file_id,
             "target": self.target,
@@ -290,7 +294,6 @@ class FileDownloader(QtCore.QRunnable):
 
     def run(self):
         filename, file_extension = os.path.splitext(self.target)
-
         ###
         if self.skip_existing:
             # check if the target 
@@ -299,6 +302,7 @@ class FileDownloader(QtCore.QRunnable):
 
                 size = os.path.getsize(self.target)                
                 status = {
+                    "status": "skipped",
                     "message": "Skipped existing file",
                     "file_id": self.file_id,
                     "target": self.target,
@@ -313,6 +317,7 @@ class FileDownloader(QtCore.QRunnable):
 
                 size = os.path.getsize(self.target)                
                 status = {
+                    "status": "skipped",
                     "message": "Skipped existing file",
                     "file_id": self.file_id,
                     "target": self.target,
@@ -329,7 +334,11 @@ class FileDownloader(QtCore.QRunnable):
 
         target_dir = os.path.dirname(self.target)
         if not os.path.exists(target_dir):
-            os.makedirs(target_dir)        
+            try:
+                os.makedirs(target_dir)   
+                print("Made dir: {}".format(target_dir))     
+            except:
+                pass
 
         count = 0
         rq = requests.post(self.url, data = params, stream = True)
@@ -341,6 +350,7 @@ class FileDownloader(QtCore.QRunnable):
                     self.progress(count)
         else:
             status = {
+                "status": "error",
                 "message": "Error downloading file",
                 "file_id": self.file_id,
                 "target": target_dir,
@@ -361,7 +371,8 @@ class FileDownloader(QtCore.QRunnable):
             zip_root = os.path.normpath(os.path.join(self.working_dir, filename))
 
             status = {
-                "message": "Extracting archive",
+                "status": "ok",
+                "message": "Extracting zip",
                 "file_id": self.file_id,
                 "target": zip_root,
                 "working_dir": self.working_dir,
@@ -373,9 +384,30 @@ class FileDownloader(QtCore.QRunnable):
                 os.makedirs(zip_root)
             except:
                 pass
-            self.extract_zip(self.target, zip_root)
+
+            if self.extract_zip(self.target, zip_root):
+                status = {
+                    "status": "ok",
+                    "message": "Extracted zip",
+                    "file_id": self.file_id,
+                    "target": zip_root,
+                    "working_dir": self.working_dir,
+                    "size": size
+                }   
+                self.callback.progress.emit(status)  
+            else:
+                status = {
+                    "status": "error",
+                    "message": "Error extracting zip",
+                    "file_id": self.file_id,
+                    "target": zip_root,
+                    "working_dir": self.working_dir,
+                    "size": size
+                }   
+                self.callback.progress.emit(status)                               
 
         status = {
+            "status": "ok",
             "message": "Download complete",
             "file_id": self.file_id,
             "target": self.target,
@@ -388,9 +420,14 @@ class FileDownloader(QtCore.QRunnable):
     def extract_zip(self, archive, directory):
         try:
             os.chdir(directory)
-            shutil.unpack_archive(archive)        
+            with ZipFile(archive, 'r') as zipObj:
+                # Extract all the contents of zip file in current directory
+                zipObj.extractall()
+                #shutil.unpack_archive(archive)        
+            return True
         except:
             traceback.print_exc(file=sys.stdout)
+            return False
             # extract all items in 64bit
         # open zip file in read binary
 
@@ -416,6 +453,7 @@ def create_callback(encoder, upload_signal, source):
     encoder_len = int(encoder.len / _READ_SIZE)
     
     upload_signal.progress.emit({
+        "status": "ok",
         "message": "[0 of %s MB]" % (encoder_len),
         "source": source
     })
@@ -423,6 +461,7 @@ def create_callback(encoder, upload_signal, source):
     def callback(monitor):
         bytes_read = int(monitor.bytes_read / _READ_SIZE)
         upload_signal.progress.emit({
+            "status": "ok",
             "message": "[%s of %s MB]" % (bytes_read, encoder_len),
             "source": source
         })
@@ -483,6 +522,7 @@ class WorkingFileUploader(QtCore.QRunnable):
         try:
             r = client.post(upload_url, data=monitor, headers=headers, auth=(self.email, self.password))
             self.callback.done.emit({
+                "status": "ok",
                 "source": self.source,
                 "message": "upload complete"
             })
@@ -492,6 +532,11 @@ class WorkingFileUploader(QtCore.QRunnable):
             print('\nUpload cancelled.')
         except Exception as e:
             print(e)
+            self.callback.done.emit({
+                "status": "error",
+                "source": self.source,
+                "message": "error uploading {}".format(e)
+            })            
 
         return True        
 

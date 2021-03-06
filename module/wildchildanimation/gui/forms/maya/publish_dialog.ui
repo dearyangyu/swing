@@ -142,7 +142,7 @@
           </size>
          </property>
          <property name="text">
-          <string>Preview File</string>
+          <string>Review File</string>
          </property>
         </widget>
        </item>
@@ -181,7 +181,7 @@
           </size>
          </property>
          <property name="text">
-          <string>Preview Title</string>
+          <string>Review Title</string>
          </property>
         </widget>
        </item>

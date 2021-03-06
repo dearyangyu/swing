@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>629</width>
-    <height>301</height>
+    <width>419</width>
+    <height>258</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,7 +20,11 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_3">
      <item>
-      <widget class="QListView" name="listView"/>
+      <widget class="QListView" name="listView">
+       <property name="isWrapping" stdset="0">
+        <bool>true</bool>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>

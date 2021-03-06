@@ -423,6 +423,13 @@
               </widget>
              </item>
              <item>
+              <widget class="QPushButton" name="pushButtonPlayblast">
+               <property name="text">
+                <string>Playblast</string>
+               </property>
+              </widget>
+             </item>
+             <item>
               <widget class="QPushButton" name="pushButtonPublish">
                <property name="enabled">
                 <bool>false</bool>

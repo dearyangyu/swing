@@ -6,7 +6,7 @@
 #
 #############################
 _APP_NAME = "treehouse: swing"
-_APP_VERSION = "1.02"
+_APP_VERSION = "1.05"
  
 import traceback
 import sys
@@ -81,7 +81,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
         self.connect(self, QtCore.SIGNAL("finished(int)"), self.finished)
         self.setWindowTitle("{} v{}".format(_APP_NAME, _APP_VERSION))
 
-        resource_file = resource_path("resources/wca.png")
+        resource_file = resource_path("resources/TreeHouse_Logo_no_text.png")
         if os.path.exists(resource_file):
             icon = QtGui.QIcon(resource_file)
             self.setWindowIcon(icon)
@@ -398,8 +398,8 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
         self.comboBoxAssetType.blockSignals(True)
         self.comboBoxAssetType.clear()
         for item in self.asset_types:
-            name = "{} {}".format(self.currentProject["code"], item["name"])            
-            self.comboBoxAssetType.addItem(name) 
+            #name = "{} {}".format(self.currentProject["code"], item["name"])            
+            self.comboBoxAssetType.addItem(item["name"]) 
         self.comboBoxAssetType.blockSignals(False)                       
         self.comboBoxAssetType.setEnabled(True)
 
@@ -423,8 +423,8 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
         self.comboBoxShot.clear()
 
         for item in self.currentSequences[self.currentSequencesIndex]["shots"]:
-            name = "{} {}".format(item["sequence_name"],  item["name"])
-            self.comboBoxShot.addItem(name) 
+            #name = "{} {}".format(item["sequence_name"],  item["name"])
+            self.comboBoxShot.addItem(item["name"]) 
         self.comboBoxShot.blockSignals(False)                 
 
         if len(self.currentSequences[self.currentSequencesIndex]["shots"]) > 0:
@@ -444,7 +444,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
         self.currentShot = self.currentSequences[self.currentSequencesIndex]["shots"][index]
         write_log("load shot files {}".format(index))
 
-        loader = bg.EntityFileLoader(self, self.currentShot)
+        loader = bg.EntityFileLoader(self, self.currentShot, working_dir = load_settings("projects_root", os.path.expanduser("~")))
         loader.callback.loaded.connect(self.files_loaded)
         self.threadpool.start(loader)
 
@@ -465,14 +465,14 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
         for p in self.assets:
             name = ""
 
-            if self.currentProject:
-                name = "{} {}".format(name, self.currentProject["code"])
+            #if self.currentProject:
+            #    name = "{} {}".format(name, self.currentProject["code"])
 
-            if self.currentEpisode:
-                name = "{} {}".format(name, self.currentEpisode["name"])
+            #if self.currentEpisode:
+            #    name = "{} {}".format(name, self.currentEpisode["name"])
 
-            if self.currentSequences and self.currentSequencesIndex and len(self.currentSequences) > 0:
-                name = "{} {}".format(name, self.currentSequences[self.currentSequencesIndex]["name"])
+            #if self.currentSequences and self.currentSequencesIndex and len(self.currentSequences) > 0:
+            #    name = "{} {}".format(name, self.currentSequences[self.currentSequencesIndex]["name"])
 
             name = "{} {}".format(name, p["name"]).strip()
             self.comboBoxAsset.addItem(name)     
@@ -482,7 +482,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
         self.currentAsset = self.assets[index]
 
         write_log("load asset files {}".format(index))
-        loader = bg.EntityFileLoader(self, self.currentAsset)
+        loader = bg.EntityFileLoader(self, self.currentAsset, working_dir = load_settings("projects_root", os.path.expanduser("~")))
         loader.callback.loaded.connect(self.files_loaded)
         self.threadpool.start(loader)       
 
@@ -1107,6 +1107,7 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         #Get the file location
         q = QtWidgets.QFileDialog.getOpenFileNames(self, "Add secondary assets", self.last_dir, "All Files (*.*)")
         if (q):
+            self.last_dir = q[0][1]
             for name in q[0]:
                 self.references.append(name)
 
@@ -1140,7 +1141,6 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         """
         if not self.last_dir:
             self.last_dir = "."
-
         
         #Get the file location
         q = QtWidgets.QFileDialog.getOpenFileName(self, "Open Output File", self.last_dir, "FBX (*.fbx), All Files (*.*)")
@@ -1267,9 +1267,6 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
                 text = ""
             self.lineEditFrameCount.setText(text)                
             self.lineEditFrameCount.setEnabled(False)                          
-
-            working_dir = "{}{}{}".format(self.working_dir, os.path.sep, "/".join(sections))
-            self.setWorkingDir(os.path.normpath(working_dir))
         else:
             self.setWindowTitle("swing: import asset")
             self.asset = data["item"]
@@ -1305,9 +1302,6 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
 
             self.lineEditFrameCount.setText("")
             self.lineEditFrameCount.setEnabled(False)
-
-            working_dir = "{}{}{}".format(self.working_dir, os.path.sep, "/".join(sections))
-            self.setWorkingDir(os.path.normpath(working_dir))           
 
         namespace = ""
         if self.asset_type_name:
@@ -1356,9 +1350,9 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
         self.close()
 
     def select_wcd(self):
-        self.working_dir = QtWidgets.QFileDialog.getExistingDirectory(self, 'Select working directory')
-
-        self.lineEditWorkingDir.setText(self.working_dir)
+        q = QtWidgets.QFileDialog.getExistingDirectory(self, 'Select working directory')
+        if (q):
+            self.setWorkingDir(q[0][1])
 
     def append_status(self, status_message, error = None):
         cursor = QtGui.QTextCursor(self.textEditStatus.document()) 
@@ -1371,11 +1365,13 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
         cursor.insertHtml(text)
 
     def file_loaded(self, results):
+        status = results["status"]
         message = results["message"]
         size = results["size"]
         row = results["file_id"]
         file_name = results["target"]
         working_dir = results["working_dir"]
+        self.append_status(message, "error" in status)
 
         # call maya handler: import into existing workspace
         if self.handler:
@@ -1435,7 +1431,6 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
         self.threadpool = QtCore.QThreadPool.globalInstance()
 
         self.set_ui_enabled(False)
-        write_log("Multithreading with maximum %d threads" % self.threadpool.maxThreadCount())
 
         email = load_settings('user', 'user@example.com')
         password = load_keyring('swing', 'password', 'Not A Password')
@@ -1445,30 +1440,31 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
         # download the currently selected file
         item = self.files[self.comboBoxWorkingFile.currentIndex()]
         row = 0
-        write_log("Downloading {} to {}".format(item["name"], self.working_dir))
         if "WorkingFile" in item["type"]:
-            target = os.path.normpath(os.path.join(self.working_dir, item["name"]))
+            #target = os.path.normpath(os.path.join(self.working_dir, item["name"]))
             url = "{}/api/working_file/{}".format(edit_api, item["id"])
+            target = set_target(item, self.working_dir)
 
-            worker = bg.FileDownloader(self, self.working_dir, item["id"], url, target, email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
+            worker = bg.FileDownloader(self, self.working_dir, item["id"], url, item["target_path"], email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
 
             worker.callback.progress.connect(self.file_loading)
             worker.callback.done.connect(self.file_loaded)
 
             self.threadpool.start(worker)
-            self.append_status("Loading {}".format(item["name"]))
+            self.append_status("Downloading {} to {}".format(item["name"], item["target_path"]))
             #file_item["status"] = "Busy"
         else:
-            target = os.path.normpath(os.path.join(self.working_dir, item["name"]))
+            #target = os.path.normpath(os.path.join(self.working_dir, item["name"]))
             url = "{}/api/output_file/{}".format(edit_api, item["id"])
+            target = set_target(item, self.working_dir)
 
-            worker = bg.FileDownloader(self, self.working_dir, item["id"], url, target, email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
+            worker = bg.FileDownloader(self, self.working_dir, item["id"], url,  item["target_path"], email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
 
             worker.callback.progress.connect(self.file_loading)
             worker.callback.done.connect(self.file_loaded)
             
             self.threadpool.start(worker)
-            self.append_status("Loading {}".format(item["name"]))
+            self.append_status("Downloading {} to {}".format(item["name"], item["target_path"]))
         # file type
     # process
 
@@ -1536,13 +1532,14 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
         self.shot = None
         self.asset = None
         self.project = data["project"]
+        self.setWorkingDir(load_settings("projects_root", os.path.expanduser("~")))
 
         sections = []
         if self.type == "Shot":
             self.shot = data["item"]
             self.url = data["url"]
             self.labelEntity.setText("Shot")
-            loader = bg.EntityFileLoader(self, self.shot)
+            loader = bg.EntityFileLoader(self, self.shot, self.working_dir)
 
             if "code" in self.project:
                 sections.append(self.project["code"])
@@ -1558,14 +1555,12 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
 
             sections.append(self.shot["name"])
             self.lineEditEntity.setText(" / ".join(sections))
-
-            working_dir = "{}{}{}".format(self.working_dir, os.path.sep, "/".join(sections))
-            self.setWorkingDir(os.path.normpath(working_dir))
+            #working_dir = "{}{}{}".format(self.working_dir, os.path.sep, "/".join(sections))
         else:
             self.asset = data["item"]
             self.url = data["url"]
             self.labelEntity.setText("Asset")
-            loader = bg.EntityFileLoader(self, self.asset)
+            loader = bg.EntityFileLoader(self, self.asset, self.working_dir)
 
             if "code" in self.project:
                 sections.append(self.project["code"])
@@ -1579,9 +1574,6 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
             sections.append(self.entity["name"].strip())
 
             self.lineEditEntity.setText(" / ".join(sections))
-
-            working_dir = "{}{}{}".format(self.working_dir, os.path.sep, "/".join(sections))
-            self.setWorkingDir(os.path.normpath(working_dir))           
 
         self.toolButtonWeb.setEnabled(self.url is not None)
         self.setEnabled(True)
@@ -1638,6 +1630,7 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
         self.lineEditWorkingDirectory.setText(self.working_dir)
 
     def file_loaded(self, results):
+        status = results["status"]
         message = results["message"]
         size = results["size"]
         file_id = results["file_id"]
@@ -1650,8 +1643,14 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
             file_item = row_item.data(QtCore.Qt.UserRole)
             if file_item and file_id == file_item["id"]:
                 status_item = self.tableWidget.item(self.tableWidget.row(row_item), 5)
-                status_item.setText("{}".format(human_size(size)))
-                status_item.setBackground(QtGui.QColor('darkGreen'))
+                status_item.setText("{} - {}".format(human_size(size), message))
+
+                if "error" in status:
+                    status_item.setBackground(QtGui.QColor('darkRed'))
+                elif "skipped" in status:
+                    status_item.setBackground(QtGui.QColor('lightCyan'))
+                else:
+                    status_item.setBackground(QtGui.QColor('darkGreen'))
                 break        
 
             index += 1
@@ -1684,6 +1683,7 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
 
     def load_files(self, files):
         self.files = files
+
         load_file_table_widget(self.tableWidget, files)
 
     def download_files(self):
@@ -1717,17 +1717,20 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
         row = 0
         for item in file_list:
             write_log("Downloading {} to {}".format(item["name"], self.working_dir))
-            if "WorkingFile" in item["type"]:
-                if "task_type" in item and item["task_type"]:
-                    if item["task_type"]["short_name"]:                    
-                        target = os.path.normpath(os.path.join(self.working_dir, item["task_type"]["short_name"], item["name"]))
-                    else:
-                        target = os.path.normpath(os.path.join(self.working_dir, item["task_type"]["name"], item["name"]))
-                else:
-                    target = os.path.normpath(os.path.join(self.working_dir, item["name"]))
-                url = "{}/api/preview_file/{}".format(edit_api, item["id"])
 
-                worker = bg.FileDownloader(self, self.working_dir, item["id"], url, target, email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
+            if "WorkingFile" in item["type"]:
+                #if "task_type" in item and item["task_type"]:
+                #    if item["task_type"]["short_name"]:                    
+                #        target = os.path.normpath(os.path.join(self.working_dir, item["task_type"]["short_name"], item["name"]))
+                #    else:
+                #        target = os.path.normpath(os.path.join(self.working_dir, item["task_type"]["name"], item["name"]))
+                #else:
+                #    target = os.path.normpath(os.path.join(self.working_dir, item["name"]))
+
+                url = "{}/api/working_file/{}".format(edit_api, item["id"])
+                target = set_target(item, self.working_dir)
+
+                worker = bg.FileDownloader(self, self.working_dir, item["id"], url, item["target_path"], email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
 
                 worker.callback.progress.connect(self.file_loading)
                 worker.callback.done.connect(self.file_loaded)
@@ -1735,17 +1738,19 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
                 self.downloads += 1                
                 item["status"] = "Busy"
             else:
-                if "task_type" in item and item["task_type"]:
-                    if item["task_type"]["short_name"]:
-                        target = os.path.normpath(os.path.join(self.working_dir, item["task_type"]["short_name"], item["name"]))
-                    else:
-                        target = os.path.normpath(os.path.join(self.working_dir, item["task_type"]["name"], item["name"]))
-                else:
-                    target = os.path.normpath(os.path.join(self.working_dir, item["name"]))
+                #if "task_type" in item and item["task_type"]:
+                #    if item["task_type"]["short_name"]:
+                #        target = os.path.normpath(os.path.join(self.working_dir, item["task_type"]["short_name"], item["name"]))
+                #    else:
+                #        target = os.path.normpath(os.path.join(self.working_dir, item["task_type"]["name"], item["name"]))
+                #else:
+                #    target = os.path.normpath(os.path.join(self.working_dir, item["name"]))
+
 
                 url = "{}/api/output_file/{}".format(edit_api, item["id"])
+                target = set_target(item, self.working_dir)
 
-                worker = bg.FileDownloader(self, self.working_dir, item["id"], url, target, email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
+                worker = bg.FileDownloader(self, self.working_dir, item["id"], url, item["target_path"], email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
 
                 worker.callback.progress.connect(self.file_loading)
                 worker.callback.done.connect(self.file_loaded)
@@ -1759,6 +1764,12 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
 '''
     Utility functions
 '''
+def set_target(file_item, local_root):
+    path = file_item["path"]
+    path = path.replace("/mnt/content/productions", local_root)
+    file_item["target_path"] = path
+    return file_item
+ 
 def load_settings(key, default):
     settings = QtCore.QSettings()    
     return settings.value(key, default)

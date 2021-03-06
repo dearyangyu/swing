@@ -231,6 +231,11 @@ class Ui_WcaMayaDialog(object):
 
         self.horizontalLayout_4.addWidget(self.pushButtonNew)
 
+        self.pushButtonPlayblast = QPushButton(self.tabTasks)
+        self.pushButtonPlayblast.setObjectName(u"pushButtonPlayblast")
+
+        self.horizontalLayout_4.addWidget(self.pushButtonPlayblast)
+
         self.pushButtonPublish = QPushButton(self.tabTasks)
         self.pushButtonPublish.setObjectName(u"pushButtonPublish")
         self.pushButtonPublish.setEnabled(False)
@@ -381,6 +386,7 @@ class Ui_WcaMayaDialog(object):
         self.radioButtonShot.setShortcut(QCoreApplication.translate("WcaMayaDialog", u"Alt+S", None))
 #endif // QT_CONFIG(shortcut)
         self.pushButtonNew.setText(QCoreApplication.translate("WcaMayaDialog", u"New", None))
+        self.pushButtonPlayblast.setText(QCoreApplication.translate("WcaMayaDialog", u"Playblast", None))
         self.pushButtonPublish.setText(QCoreApplication.translate("WcaMayaDialog", u"Publish", None))
 #if QT_CONFIG(shortcut)
         self.pushButtonPublish.setShortcut(QCoreApplication.translate("WcaMayaDialog", u"Alt+P", None))

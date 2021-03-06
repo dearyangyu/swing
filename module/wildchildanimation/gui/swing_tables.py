@@ -56,7 +56,7 @@ def human_size(bytes):
 class FileTableModel(QtCore.QAbstractTableModel):    
 
     columns = [
-        "File Name", "Size", "Revision", "Task", "Comment", "Description", "Updated"
+        "File Name", "Size", "v", "Task", "Comment", "Description", "Updated"
     ]
     files = []
 
@@ -108,7 +108,7 @@ class FileTableModel(QtCore.QAbstractTableModel):
                     return item["task_type"]["name"]
                 return ""
             elif col == 4:
-                return item["comment"]
+                return item["comment"]                
             elif col == 5:
                 return item["description"]
             elif col == 6:
@@ -290,6 +290,7 @@ def load_file_table_widget(tableWidget, model):
 
         if "task_type" in item and item["task_type"]:
             cell = QtWidgets.QTableWidgetItem(item["task_type"]["name"])
+            cell.setBackgroundColor(QtGui.QColor(item["task_type"]["color"]))
         else:
             cell = QtWidgets.QTableWidgetItem("")
 

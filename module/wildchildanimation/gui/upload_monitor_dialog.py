@@ -18,13 +18,14 @@ class Ui_UploadMonitorDialog(object):
         if not UploadMonitorDialog.objectName():
             UploadMonitorDialog.setObjectName(u"UploadMonitorDialog")
         UploadMonitorDialog.setEnabled(True)
-        UploadMonitorDialog.resize(629, 301)
+        UploadMonitorDialog.resize(419, 258)
         self.verticalLayout = QVBoxLayout(UploadMonitorDialog)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.horizontalLayout_3 = QHBoxLayout()
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
         self.listView = QListView(UploadMonitorDialog)
         self.listView.setObjectName(u"listView")
+        self.listView.setProperty("isWrapping", True)
 
         self.horizontalLayout_3.addWidget(self.listView)
 

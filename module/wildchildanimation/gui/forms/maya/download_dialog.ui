@@ -55,7 +55,7 @@
         </size>
        </property>
        <property name="text">
-        <string>Working Directory:</string>
+        <string>Root Folder</string>
        </property>
       </widget>
      </item>
@@ -225,7 +225,7 @@
      </column>
      <column>
       <property name="text">
-       <string>Revision</string>
+       <string>v</string>
       </property>
      </column>
      <column>

@@ -180,7 +180,7 @@ class Ui_DownloadDialog(object):
         DownloadDialog.setWindowTitle(QCoreApplication.translate("DownloadDialog", u"Download Files", None))
         self.labelEntity.setText(QCoreApplication.translate("DownloadDialog", u"Entity", None))
         self.toolButtonWeb.setText(QCoreApplication.translate("DownloadDialog", u"...", None))
-        self.labelWorkingDirectory.setText(QCoreApplication.translate("DownloadDialog", u"Working Directory:", None))
+        self.labelWorkingDirectory.setText(QCoreApplication.translate("DownloadDialog", u"Root Folder", None))
         self.toolButtonWorkingDir.setText(QCoreApplication.translate("DownloadDialog", u"...", None))
         self.checkBoxSkipExisting.setText(QCoreApplication.translate("DownloadDialog", u"Skip Existing Files", None))
         self.checkBoxExtractZips.setText(QCoreApplication.translate("DownloadDialog", u"Extract Zip Files", None))
@@ -191,7 +191,7 @@ class Ui_DownloadDialog(object):
         ___qtablewidgetitem1 = self.tableWidget.horizontalHeaderItem(1)
         ___qtablewidgetitem1.setText(QCoreApplication.translate("DownloadDialog", u"Size", None));
         ___qtablewidgetitem2 = self.tableWidget.horizontalHeaderItem(2)
-        ___qtablewidgetitem2.setText(QCoreApplication.translate("DownloadDialog", u"Revision", None));
+        ___qtablewidgetitem2.setText(QCoreApplication.translate("DownloadDialog", u"v", None));
         ___qtablewidgetitem3 = self.tableWidget.horizontalHeaderItem(3)
         ___qtablewidgetitem3.setText(QCoreApplication.translate("DownloadDialog", u"Task", None));
         ___qtablewidgetitem4 = self.tableWidget.horizontalHeaderItem(4)
