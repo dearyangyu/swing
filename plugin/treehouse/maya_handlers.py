@@ -2,28 +2,56 @@
 #
 # Studio Handler callback methods from Treehouse Swing
 #
-import maya.mel as mel
-import maya.cmds as cmds
-
-import pymel.core as pm
-
-from pymel.util import putEnv
-
 import os
 import sys
 import traceback
 
 from datetime import datetime
 
+_maya_loaded = False    
+try:
+    import maya.cmds as cmds
+    import maya.mel as mel
+    import maya.OpenMaya as om
+    import maya.OpenMayaUI as omui
 
-def write_log(*args):
-    log = "# {} : swing".format(datetime.now().strftime("%d/%m%Y %H:%M:%S.%f"))
-    for log_data in args:
-        log += " {}".format(log_data)
-    print(log)
+    import pymel.core as pm
+    from pymel.util import putEnv
+    _maya_loaded = True
+except:
+    print("Maya not found")
 
+# ==== auto Qt load ====
+try:
+    from PySide2 import QtCore
+    qtMode = 0
+except ImportError:
+    from PyQt5 import QtCore
+    qtMode = 1    
 
-class StudioHandler():
+class StudioHandler(QtCore.QObject):
+
+    VERSION = "0.0.2"
+    SUPPORTED_TYPES = [".ma", ".mb", ".fbx", ".obj", ".mov", ".mp4", ".wav", ".jpg", ".png" ]
+
+    def __init__(self):
+        super(StudioHandler, self).__init__()
+        self.log_output("Maya Found: {0}, QtMode: {1}".format(_maya_loaded, qtMode))
+
+    def log_error(self, text):
+        if _maya_loaded:
+            om.MGlobal.displayError("[StudioHandler] {0}".format(text))
+        write_log("[error] {}".format(text))
+
+    def log_warning(self, text):
+        if _maya_loaded:
+            om.MGlobal.displayWarning("[StudioHandler] {0}".format(text))
+        write_log("[warn] {}".format(text))
+
+    def log_output(self, text):
+        if _maya_loaded:
+            om.MGlobal.displayInfo(text)
+        write_log("[info] {}".format(text))    
 
     def set_globals(self, **kwargs):
         write_log("on_globals")
@@ -57,25 +85,40 @@ class StudioHandler():
 
         return True
 
+    #
+    # returns a list of unresolved files in a scene
+    def list_unresolved(self):
+        list_dir = pm.filePathEditor(query = True, listDirectories = "", unresolved = True)
+        list_files = []
+        for directory in list_dir:
+            list_file_elem = pm.filePathEditor(query = True, listFiles = directory, withAttribute = True)
+            it = iter(list_file_elem)
+            list_tuple_file = zip(it, it)
+            for (x, y) in list_tuple_file:
+                list_files.append((os.path.normpath(os.path.join(directory, x)), y))
+        return list_files
+
     # tries to import the file specified in source into the currently open scene
     def import_reference(self, **kwargs):
         source = kwargs["source"]
         working_dir = kwargs["working_dir"]
         namespace = kwargs["namespace"]
 
-        write_log("import_reference start", source, working_dir)
+        self.log_output("Importing {0} to {1}".format(source, working_dir))
 
         filename, file_extension = os.path.splitext(source)
 
-        if file_extension in [".ma", ".mb", ".fbx", ".obj"]:
-            write_log("Importing {}".format(filename))
+        if file_extension in StudioHandler.SUPPORTED_TYPES:
+            self.log_output("Importing file {}".format(source))
             try:
                 cmds.file(source, reference = True, ignoreVersion = True, namespace = namespace, options = "v=0;")
-                write_log("Imported {}".format(filename))
+                self.log_output("cmds.file (references = True) {} successfully".format(filename))
             except:
                 traceback.print_exc(file=sys.stdout)
-                write_log("Error importing file {}".format(source))
+                self.log_error("Error processing importing reference {}".format(source))
                 return False
+        else:
+            self.log_error("File extension not valid {0}".format(file_extension))
 
         write_log("import_reference complete")
         return True
@@ -85,19 +128,21 @@ class StudioHandler():
         source = kwargs["source"]
         working_dir = kwargs["working_dir"]
 
-        write_log("load_file start", source, working_dir)
+        self.log_output("Loading {0} to {1}".format(source, working_dir))
 
         filename, file_extension = os.path.splitext(source)
 
-        if file_extension in [".ma", ".mb", ".fbx", ".obj"]:
-            write_log("Importing {}".format(filename))
+        if file_extension in StudioHandler.SUPPORTED_TYPES:
+            self.log_output("Loading file {}".format(source))
             try:
                 pm.system.importFile(source)
-                write_log("Imported {}".format(filename))
+                self.log_output("importFile {} successfully".format(filename))
             except:
                 traceback.print_exc(file=sys.stdout)
-                write_log("Error importing file {}".format(source))
+                self.log_error("Error processing load file {}".format(source))
                 return False
+        else:
+            self.log_error("File extension not valid {0}".format(file_extension))                
 
         write_log("load_file complete")
         return True        
@@ -126,7 +171,7 @@ class StudioHandler():
         target = os.path.join(working_dir, source)
         target = os.path.normpath(target)
 
-        write_log("on_create start", source, working_dir, target)
+        self.log_output("on_create start {} {} {}".format(source, working_dir, target))
         try:
             # check if there are unsaved changes
             fileCheckState = cmds.file(q=True, modified=True)
@@ -135,7 +180,7 @@ class StudioHandler():
             if fileCheckState:
                 # pm.confirmDialog(title='Please save your project', message='Please save your project before using Swing', button=['Ok'], defaultButton='Ok', cancelButton='Ok', dismissString='Ok')
                 # return False
-                write_log("on_create", "saving scene")
+                self.log_output("on_create::saving scene")
                 # This is maya's native call to save, with dialogs, etc.
                 # No need to write your own.
                 cmds.SaveScene()
@@ -150,15 +195,18 @@ class StudioHandler():
             return True
         except:
             traceback.print_exc(file=sys.stdout)
-            write_log("Error creating file {}".format(source))
+            self.log_error("Error creating file {}".format(source))
 
-    write_log("on_create complete")
+        self.log_output("on_create complete")
 
     def on_playblast(self, **kwargs):
-        write_log("on_playblast", kwargs)
+        self.log_output("on_playblast", kwargs)
         return False
         # playblast  -format avi -sequenceTime 0 -clearCache 1 -viewer 1 -showOrnaments 1 -fp 4 -percent 50 -compression "none" -quality 70;
 
-# source = "C:\Users\User\Documents\hby\shots\E00\SQ00\SH00\hby_titleText_mastermesh.ma"
-# working_dir = "C:\Users\User\Documents\hby\shots\E00\SQ00\SH00"
-# StudioHandler().on_import_file(source, working_dir)
+
+def write_log(*args):
+    log = "# {} : swing".format(datetime.now().strftime("%d/%m/%Y %H:%M:%S.%f"))
+    for log_data in args:
+        log += " {}".format(log_data)
+    print(log)

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'download_dialog.ui'
+## Form generated from reading UI file 'references_dialog.ui'
 ##
 ## Created by: Qt User Interface Compiler version 5.15.2
 ##
@@ -13,28 +13,28 @@ from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
 
-class Ui_DownloadDialog(object):
-    def setupUi(self, DownloadDialog):
-        if not DownloadDialog.objectName():
-            DownloadDialog.setObjectName(u"DownloadDialog")
-        DownloadDialog.setEnabled(True)
-        DownloadDialog.resize(629, 301)
-        self.verticalLayout = QVBoxLayout(DownloadDialog)
+class Ui_ReferencesDialog(object):
+    def setupUi(self, ReferencesDialog):
+        if not ReferencesDialog.objectName():
+            ReferencesDialog.setObjectName(u"ReferencesDialog")
+        ReferencesDialog.setEnabled(True)
+        ReferencesDialog.resize(629, 301)
+        self.verticalLayout = QVBoxLayout(ReferencesDialog)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.horizontalLayout_6 = QHBoxLayout()
         self.horizontalLayout_6.setObjectName(u"horizontalLayout_6")
-        self.labelEntity = QLabel(DownloadDialog)
+        self.labelEntity = QLabel(ReferencesDialog)
         self.labelEntity.setObjectName(u"labelEntity")
         self.labelEntity.setMinimumSize(QSize(100, 0))
 
         self.horizontalLayout_6.addWidget(self.labelEntity)
 
-        self.lineEditEntity = QLineEdit(DownloadDialog)
+        self.lineEditEntity = QLineEdit(ReferencesDialog)
         self.lineEditEntity.setObjectName(u"lineEditEntity")
 
         self.horizontalLayout_6.addWidget(self.lineEditEntity)
 
-        self.toolButtonWeb = QToolButton(DownloadDialog)
+        self.toolButtonWeb = QToolButton(ReferencesDialog)
         self.toolButtonWeb.setObjectName(u"toolButtonWeb")
 
         self.horizontalLayout_6.addWidget(self.toolButtonWeb)
@@ -44,18 +44,18 @@ class Ui_DownloadDialog(object):
 
         self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.labelWorkingDirectory = QLabel(DownloadDialog)
+        self.labelWorkingDirectory = QLabel(ReferencesDialog)
         self.labelWorkingDirectory.setObjectName(u"labelWorkingDirectory")
         self.labelWorkingDirectory.setMinimumSize(QSize(100, 0))
 
         self.horizontalLayout.addWidget(self.labelWorkingDirectory)
 
-        self.lineEditWorkingDirectory = QLineEdit(DownloadDialog)
+        self.lineEditWorkingDirectory = QLineEdit(ReferencesDialog)
         self.lineEditWorkingDirectory.setObjectName(u"lineEditWorkingDirectory")
 
         self.horizontalLayout.addWidget(self.lineEditWorkingDirectory)
 
-        self.toolButtonWorkingDir = QToolButton(DownloadDialog)
+        self.toolButtonWorkingDir = QToolButton(ReferencesDialog)
         self.toolButtonWorkingDir.setObjectName(u"toolButtonWorkingDir")
 
         self.horizontalLayout.addWidget(self.toolButtonWorkingDir)
@@ -69,7 +69,7 @@ class Ui_DownloadDialog(object):
 
         self.horizontalLayout_2.addItem(self.horizontalSpacer_4)
 
-        self.checkBoxSkipExisting = QCheckBox(DownloadDialog)
+        self.checkBoxSkipExisting = QCheckBox(ReferencesDialog)
         self.checkBoxSkipExisting.setObjectName(u"checkBoxSkipExisting")
         self.checkBoxSkipExisting.setMinimumSize(QSize(100, 0))
         self.checkBoxSkipExisting.setChecked(True)
@@ -89,7 +89,7 @@ class Ui_DownloadDialog(object):
 
         self.horizontalLayout_3.addItem(self.horizontalSpacer_5)
 
-        self.checkBoxExtractZips = QCheckBox(DownloadDialog)
+        self.checkBoxExtractZips = QCheckBox(ReferencesDialog)
         self.checkBoxExtractZips.setObjectName(u"checkBoxExtractZips")
         self.checkBoxExtractZips.setChecked(True)
 
@@ -104,12 +104,12 @@ class Ui_DownloadDialog(object):
 
         self.horizontalLayout_5 = QHBoxLayout()
         self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
-        self.toolButtonAll = QToolButton(DownloadDialog)
+        self.toolButtonAll = QToolButton(ReferencesDialog)
         self.toolButtonAll.setObjectName(u"toolButtonAll")
 
         self.horizontalLayout_5.addWidget(self.toolButtonAll)
 
-        self.toolButtonNone = QToolButton(DownloadDialog)
+        self.toolButtonNone = QToolButton(ReferencesDialog)
         self.toolButtonNone.setObjectName(u"toolButtonNone")
 
         self.horizontalLayout_5.addWidget(self.toolButtonNone)
@@ -121,7 +121,7 @@ class Ui_DownloadDialog(object):
 
         self.verticalLayout.addLayout(self.horizontalLayout_5)
 
-        self.tableWidget = QTableWidget(DownloadDialog)
+        self.tableWidget = QTableWidget(ReferencesDialog)
         if (self.tableWidget.columnCount() < 6):
             self.tableWidget.setColumnCount(6)
         __qtablewidgetitem = QTableWidgetItem()
@@ -149,7 +149,7 @@ class Ui_DownloadDialog(object):
 
         self.horizontalLayout_4 = QHBoxLayout()
         self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
-        self.pushButtonDownload = QPushButton(DownloadDialog)
+        self.pushButtonDownload = QPushButton(ReferencesDialog)
         self.pushButtonDownload.setObjectName(u"pushButtonDownload")
 
         self.horizontalLayout_4.addWidget(self.pushButtonDownload)
@@ -158,7 +158,7 @@ class Ui_DownloadDialog(object):
 
         self.horizontalLayout_4.addItem(self.horizontalSpacer_3)
 
-        self.pushButtonCancel = QPushButton(DownloadDialog)
+        self.pushButtonCancel = QPushButton(ReferencesDialog)
         self.pushButtonCancel.setObjectName(u"pushButtonCancel")
         self.pushButtonCancel.setAutoDefault(False)
 
@@ -168,37 +168,37 @@ class Ui_DownloadDialog(object):
         self.verticalLayout.addLayout(self.horizontalLayout_4)
 
 
-        self.retranslateUi(DownloadDialog)
+        self.retranslateUi(ReferencesDialog)
 
         self.pushButtonDownload.setDefault(True)
 
 
-        QMetaObject.connectSlotsByName(DownloadDialog)
+        QMetaObject.connectSlotsByName(ReferencesDialog)
     # setupUi
 
-    def retranslateUi(self, DownloadDialog):
-        DownloadDialog.setWindowTitle(QCoreApplication.translate("DownloadDialog", u"Download Files", None))
-        self.labelEntity.setText(QCoreApplication.translate("DownloadDialog", u"Entity", None))
-        self.toolButtonWeb.setText(QCoreApplication.translate("DownloadDialog", u"...", None))
-        self.labelWorkingDirectory.setText(QCoreApplication.translate("DownloadDialog", u"Projects Folder", None))
-        self.toolButtonWorkingDir.setText(QCoreApplication.translate("DownloadDialog", u"...", None))
-        self.checkBoxSkipExisting.setText(QCoreApplication.translate("DownloadDialog", u"Skip Existing Files", None))
-        self.checkBoxExtractZips.setText(QCoreApplication.translate("DownloadDialog", u"Extract Zip Files", None))
-        self.toolButtonAll.setText(QCoreApplication.translate("DownloadDialog", u"+", None))
-        self.toolButtonNone.setText(QCoreApplication.translate("DownloadDialog", u"-", None))
+    def retranslateUi(self, ReferencesDialog):
+        ReferencesDialog.setWindowTitle(QCoreApplication.translate("ReferencesDialog", u"Find references", None))
+        self.labelEntity.setText(QCoreApplication.translate("ReferencesDialog", u"Entity", None))
+        self.toolButtonWeb.setText(QCoreApplication.translate("ReferencesDialog", u"...", None))
+        self.labelWorkingDirectory.setText(QCoreApplication.translate("ReferencesDialog", u"Projects Folder", None))
+        self.toolButtonWorkingDir.setText(QCoreApplication.translate("ReferencesDialog", u"...", None))
+        self.checkBoxSkipExisting.setText(QCoreApplication.translate("ReferencesDialog", u"Skip Existing Files", None))
+        self.checkBoxExtractZips.setText(QCoreApplication.translate("ReferencesDialog", u"Extract Zip Files", None))
+        self.toolButtonAll.setText(QCoreApplication.translate("ReferencesDialog", u"+", None))
+        self.toolButtonNone.setText(QCoreApplication.translate("ReferencesDialog", u"-", None))
         ___qtablewidgetitem = self.tableWidget.horizontalHeaderItem(0)
-        ___qtablewidgetitem.setText(QCoreApplication.translate("DownloadDialog", u"File", None));
+        ___qtablewidgetitem.setText(QCoreApplication.translate("ReferencesDialog", u"File", None));
         ___qtablewidgetitem1 = self.tableWidget.horizontalHeaderItem(1)
-        ___qtablewidgetitem1.setText(QCoreApplication.translate("DownloadDialog", u"Size", None));
+        ___qtablewidgetitem1.setText(QCoreApplication.translate("ReferencesDialog", u"Size", None));
         ___qtablewidgetitem2 = self.tableWidget.horizontalHeaderItem(2)
-        ___qtablewidgetitem2.setText(QCoreApplication.translate("DownloadDialog", u"v", None));
+        ___qtablewidgetitem2.setText(QCoreApplication.translate("ReferencesDialog", u"v", None));
         ___qtablewidgetitem3 = self.tableWidget.horizontalHeaderItem(3)
-        ___qtablewidgetitem3.setText(QCoreApplication.translate("DownloadDialog", u"Task", None));
+        ___qtablewidgetitem3.setText(QCoreApplication.translate("ReferencesDialog", u"Task", None));
         ___qtablewidgetitem4 = self.tableWidget.horizontalHeaderItem(4)
-        ___qtablewidgetitem4.setText(QCoreApplication.translate("DownloadDialog", u"Updated", None));
+        ___qtablewidgetitem4.setText(QCoreApplication.translate("ReferencesDialog", u"Updated", None));
         ___qtablewidgetitem5 = self.tableWidget.horizontalHeaderItem(5)
-        ___qtablewidgetitem5.setText(QCoreApplication.translate("DownloadDialog", u"Status", None));
-        self.pushButtonDownload.setText(QCoreApplication.translate("DownloadDialog", u"Download", None))
-        self.pushButtonCancel.setText(QCoreApplication.translate("DownloadDialog", u"Close", None))
+        ___qtablewidgetitem5.setText(QCoreApplication.translate("ReferencesDialog", u"Status", None));
+        self.pushButtonDownload.setText(QCoreApplication.translate("ReferencesDialog", u"Search", None))
+        self.pushButtonCancel.setText(QCoreApplication.translate("ReferencesDialog", u"Close", None))
     # retranslateUi
 

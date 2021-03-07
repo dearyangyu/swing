@@ -6,7 +6,7 @@
 #
 #############################
 _APP_NAME = "treehouse: swing"
-_APP_VERSION = "1.05"
+_APP_VERSION = "0.0.5"
  
 import traceback
 import sys
@@ -43,6 +43,9 @@ from wildchildanimation.gui.download_dialog import Ui_DownloadDialog
 from wildchildanimation.gui.loader_dialog import Ui_LoaderDialog
 from wildchildanimation.gui.create_dialog import Ui_CreateDialog
 from wildchildanimation.gui.upload_monitor_dialog import Ui_UploadMonitorDialog
+from wildchildanimation.gui.playblast_dialog import Ui_PlayblastDialog
+from wildchildanimation.gui.zurbrigg_playblast import *
+from wildchildanimation.gui.references import *
 
 from wildchildanimation.gui.swing_tables import FileTableModel, TaskTableModel, CastingTableModel, load_file_table_widget, human_size
 
@@ -77,6 +80,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
     def __init__(self, studio_handler = None):
         super(SwingGUI, self).__init__(None) # Call the inherited classes __init__ method
         self.setupUi(self)
+        self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
         self.handler = studio_handler
         self.connect(self, QtCore.SIGNAL("finished(int)"), self.finished)
         self.setWindowTitle("{} v{}".format(_APP_NAME, _APP_VERSION))
@@ -100,8 +104,9 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
         self.pushButtonImport.clicked.connect(self.load_asset)
         self.pushButtonDownload.clicked.connect(self.download_files)
         self.pushButtonPublish.clicked.connect(self.publish_scene)
-        # self.pushButtonPlayblast.clicked.connect(self.playblast_scene)
+        self.pushButtonPlayblast.clicked.connect(self.playblast_scene)
         self.pushButtonNew.clicked.connect(self.new_scene)
+        self.pushButtonFindRefs.clicked.connect(self.load_references)
 
         self.pushButtonClose.clicked.connect(self.close_dialog)
 
@@ -123,6 +128,11 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
         if self.connect_to_server():
             self.labelConnection.setText("Connected")
             self.refresh_data()
+
+    def keyPressEvent(self, event):
+        super(SwingGUI, self).keyPressEvent(event)
+
+        event.accept()
 
     def finished(self, code):
         write_log('we are finished %s\n' % str(code))            
@@ -586,10 +596,12 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
 
         return True        
 
+    def load_references(self):
+        dialog = ReferencesDialogGUI(self, self.handler, self.get_current_selection())
+        dialog.exec_()
+
     def download_files(self):
         dialog = DownloadDialogGUI(self, self.get_current_selection(), self.task_types)
-        #dialog.load_files(self.tableViewFiles.model().files)
-        # dialog.set_selected(self.selected_file)
         dialog.resize(self.size())
         dialog.exec_()
 
@@ -609,6 +621,10 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
             dialog.show()
 
     def playblast_scene(self):
+        dialog = ZurbriggPlayblastUi()
+        dialog.show()
+        
+        '''
         # call maya handler: import into existing workspace
         if self.handler:
             self.append_status("Running handlers")
@@ -624,6 +640,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
 
 
         self.append_status("{}".format(message))        
+        '''
 
 
     def new_scene(self):
@@ -641,6 +658,7 @@ class ConnectionDialogGUI(QtWidgets.QDialog, Ui_ConnectionDialog):
     def __init__(self, parent = None):
         super(ConnectionDialogGUI, self).__init__(parent) # Call the inherited classes __init__ method
         self.setupUi(self)
+        self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
 
         self.buttonBox.accepted.connect(self.save_settings)
 
@@ -687,6 +705,7 @@ class CreateDialogGUI(QtWidgets.QDialog, Ui_CreateDialog):
     def __init__(self, parent = None, handler = None, task = None):
         super(CreateDialogGUI, self).__init__(parent) # Call the inherited classes __init__ method
         self.setupUi(self)
+        self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
 
         self.handler = handler
 
@@ -718,6 +737,7 @@ class CreateDialogGUI(QtWidgets.QDialog, Ui_CreateDialog):
         self.pushButtonCancel.clicked.connect(self.close_dialog)
         self.pushButtonImport.clicked.connect(self.process)
 
+        self.setWorkingDir(load_settings("projects_root", os.path.expanduser("~")))
 
     def open_url(self, url):
         link = QtCore.QUrl(self.url)
@@ -827,9 +847,8 @@ class CreateDialogGUI(QtWidgets.QDialog, Ui_CreateDialog):
         self.setEnabled(True)
 
     def task_loaded(self, results):
+        self.task_dir = results["task_dir"]
         self.task = results["task"]
-
-        self.setWorkingDir(os.path.normpath( results["working_dir"]))           
 
     def set_selected(self, file_item):
         index = 0
@@ -840,6 +859,7 @@ class CreateDialogGUI(QtWidgets.QDialog, Ui_CreateDialog):
             index += 1
 
     def setWorkingDir(self, working_dir):
+
         self.working_dir = working_dir
         self.lineEditWorkingDir.setText(self.working_dir)
 
@@ -879,6 +899,9 @@ class CreateDialogGUI(QtWidgets.QDialog, Ui_CreateDialog):
         software = self.software[self.comboBoxSoftware.currentIndex()]
         name = "{}{}".format(self.lineEditEntity.text().strip(), software["file_extension"])
         workingDir = self.lineEditWorkingDir.text().strip()
+
+        workingDir = os.path.normpath(workingDir)
+        workingDir = self.task_dir.replace("/mnt/content/productions", workingDir)
         workingDir = workingDir.replace("\\", "/")
 
         # only create working files on uploads
@@ -951,6 +974,8 @@ class UploadMonitorDialog(QtWidgets.QDialog, Ui_UploadMonitorDialog):
     def __init__(self, parent = None, handler = None, task = None):
         super(UploadMonitorDialog, self).__init__(parent) # Call the inherited classes __init__ method    
         self.setupUi(self)
+        self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
+
         self.model = UploadListModel(self.listView)
         self.listView.setModel(self.model)
         self.pushButtonCancel.clicked.connect(self.close_dialog)
@@ -980,6 +1005,8 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         super(PublishDialogGUI, self).__init__(parent) # Call the inherited classes __init__ method    
 
         self.setupUi(self)
+        self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
+
         self.handler = handler
         self.task = task
         self.last_dir = None
@@ -1181,6 +1208,8 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
     def __init__(self, parent = None, handler = None, entity = None):
         super(LoaderDialogGUI, self).__init__(parent) # Call the inherited classes __init__ method
         self.setupUi(self)
+        self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
+
         self.handler = handler
         self.entity = entity
         self.shot = None
@@ -1303,19 +1332,19 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
             self.lineEditFrameCount.setText("")
             self.lineEditFrameCount.setEnabled(False)
 
-        namespace = ""
-        if self.asset_type_name:
-            namespace = self.asset_type_name
-        elif self.asset_name:
-            namespace = self.asset_name
-        elif self.task_type_name:
-            namespace = self.task_type_name
-        elif self.shot_name:
-            namespace = self.shot_name
-        else:
-            namespace = "_ns"
+        namespace = "_".join(sections).lower().strip()
+        #if self.asset_type_name:
+        #    namespace = self.asset_type_name
+        #elif self.asset_name:
+        #    namespace = self.asset_name
+        #elif self.task_type_name:
+        #    namespace = self.task_type_name
+        #elif self.shot_name:
+        #    namespace = self.shot_name
+        #else:
+        #    namespace = "_ns"
 
-        self.lineEditNamespace.setText(namespace.strip())
+        self.lineEditNamespace.setText(namespace)
         self.toolButtonWeb.setEnabled(self.url is not None)
         self.setEnabled(True)
 
@@ -1383,13 +1412,13 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
                     else:
                         namespace = None
 
-                    self.append_status("Importing reference")
+                    self.append_status("Importing reference {}".format(file_name))
                     if (self.handler.import_reference(source = file_name, working_dir = working_dir, namespace = namespace)):
                         self.append_status("Import done")
                     else:
                         self.append_status("Import error", True)
                 else:
-                    self.append_status("Loading file")
+                    self.append_status("Loading file {}".format(file_name))
                     if (self.handler.load_file(source = file_name, working_dir = working_dir)):
                         self.append_status("Loading done")
                     else:
@@ -1480,9 +1509,10 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
     def __init__(self, parent = None, entity = None, task_types = None):
         super(DownloadDialogGUI, self).__init__(None) # Call the inherited classes __init__ method
         self.setupUi(self)
+        self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
+
         self.entity = entity 
         self.threadpool = QtCore.QThreadPool.globalInstance()
-        # self.connect(self, QtCore.SIGNAL("finished(int)"), self.finished)
         self.task_types = task_types
 
         if self.entity:
@@ -1514,7 +1544,6 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
             row_item.setCheckState(QtCore.Qt.Checked)
             index += 1
 
-
     def select_none(self):
         index = 0
         while index < self.tableWidget.rowCount():
@@ -1532,7 +1561,6 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
         self.shot = None
         self.asset = None
         self.project = data["project"]
-        self.setWorkingDir(load_settings("projects_root", os.path.expanduser("~")))
 
         sections = []
         if self.type == "Shot":
@@ -1555,7 +1583,6 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
 
             sections.append(self.shot["name"])
             self.lineEditEntity.setText(" / ".join(sections))
-            #working_dir = "{}{}{}".format(self.working_dir, os.path.sep, "/".join(sections))
         else:
             self.asset = data["item"]
             self.url = data["url"]
@@ -1626,8 +1653,9 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
         self.close()
 
     def select_wcd(self):
-        self.working_dir = QtWidgets.QFileDialog.getExistingDirectory(self, 'Select working directory')
-        self.lineEditWorkingDirectory.setText(self.working_dir)
+        q = QtWidgets.QFileDialog.getExistingDirectory(self, 'Select working directory')
+        if (q):
+            self.setWorkingDir(q[0])
 
     def file_loaded(self, results):
         status = results["status"]
@@ -1706,8 +1734,8 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
 
             index += 1
 
-        write_log("Downloading {} files".format(len(file_list)))
-        write_log("Multithreading with maximum %d threads" % self.threadpool.maxThreadCount())
+        #write_log("Downloading {} files".format(len(file_list)))
+        #write_log("Multithreading with maximum %d threads" % self.threadpool.maxThreadCount())
 
         email = load_settings('user', 'user@example.com')
         password = load_keyring('swing', 'password', 'Not A Password')
@@ -1719,14 +1747,6 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
             write_log("Downloading {} to {}".format(item["name"], self.working_dir))
 
             if "WorkingFile" in item["type"]:
-                #if "task_type" in item and item["task_type"]:
-                #    if item["task_type"]["short_name"]:                    
-                #        target = os.path.normpath(os.path.join(self.working_dir, item["task_type"]["short_name"], item["name"]))
-                #    else:
-                #        target = os.path.normpath(os.path.join(self.working_dir, item["task_type"]["name"], item["name"]))
-                #else:
-                #    target = os.path.normpath(os.path.join(self.working_dir, item["name"]))
-
                 url = "{}/api/working_file/{}".format(edit_api, item["id"])
                 target = set_target(item, self.working_dir)
 
@@ -1738,15 +1758,6 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
                 self.downloads += 1                
                 item["status"] = "Busy"
             else:
-                #if "task_type" in item and item["task_type"]:
-                #    if item["task_type"]["short_name"]:
-                #        target = os.path.normpath(os.path.join(self.working_dir, item["task_type"]["short_name"], item["name"]))
-                #    else:
-                #        target = os.path.normpath(os.path.join(self.working_dir, item["task_type"]["name"], item["name"]))
-                #else:
-                #    target = os.path.normpath(os.path.join(self.working_dir, item["name"]))
-
-
                 url = "{}/api/output_file/{}".format(edit_api, item["id"])
                 target = set_target(item, self.working_dir)
 
@@ -1767,6 +1778,10 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
 def set_target(file_item, local_root):
     path = file_item["path"]
     path = path.replace("/mnt/content/productions", local_root)
+
+    if not path.endswith(file_item["name"]):
+        path = "{}/{}".format(path, file_item["name"])
+
     file_item["target_path"] = path
     return file_item
  

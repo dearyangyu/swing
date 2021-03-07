@@ -278,6 +278,11 @@ class Ui_WcaMayaDialog(object):
 
         self.horizontalLayout_5.addWidget(self.pushButtonDownload)
 
+        self.pushButtonFindRefs = QPushButton(self.tabFiles)
+        self.pushButtonFindRefs.setObjectName(u"pushButtonFindRefs")
+
+        self.horizontalLayout_5.addWidget(self.pushButtonFindRefs)
+
         self.horizontalSpacer_3 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
         self.horizontalLayout_5.addItem(self.horizontalSpacer_3)
@@ -360,7 +365,7 @@ class Ui_WcaMayaDialog(object):
 
         self.retranslateUi(WcaMayaDialog)
 
-        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(1)
 
 
         QMetaObject.connectSlotsByName(WcaMayaDialog)
@@ -392,14 +397,15 @@ class Ui_WcaMayaDialog(object):
         self.pushButtonPublish.setShortcut(QCoreApplication.translate("WcaMayaDialog", u"Alt+P", None))
 #endif // QT_CONFIG(shortcut)
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabTasks), QCoreApplication.translate("WcaMayaDialog", u"Tasks", None))
-        self.pushButtonImport.setText(QCoreApplication.translate("WcaMayaDialog", u"Import Ref", None))
+        self.pushButtonImport.setText(QCoreApplication.translate("WcaMayaDialog", u"Import", None))
 #if QT_CONFIG(shortcut)
         self.pushButtonImport.setShortcut(QCoreApplication.translate("WcaMayaDialog", u"Alt+I", None))
 #endif // QT_CONFIG(shortcut)
-        self.pushButtonDownload.setText(QCoreApplication.translate("WcaMayaDialog", u"Download Files", None))
+        self.pushButtonDownload.setText(QCoreApplication.translate("WcaMayaDialog", u"Download", None))
 #if QT_CONFIG(shortcut)
         self.pushButtonDownload.setShortcut(QCoreApplication.translate("WcaMayaDialog", u"Alt+D", None))
 #endif // QT_CONFIG(shortcut)
+        self.pushButtonFindRefs.setText(QCoreApplication.translate("WcaMayaDialog", u"Find Refs", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabFiles), QCoreApplication.translate("WcaMayaDialog", u"Files", None))
         self.pushButtonClose.setText(QCoreApplication.translate("WcaMayaDialog", u"Close", None))
         self.labelConnection.setText(QCoreApplication.translate("WcaMayaDialog", u"Offline", None))

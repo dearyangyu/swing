@@ -205,18 +205,11 @@ class TaskFileInfoThread(QtCore.QRunnable):
     def run(self):
         task = gazu.task.get_task(self.task)
         project = gazu.project.get_project(self.task["project_id"])
-        working_dir = gazu.files.build_working_file_path(task)
-
-        if project["file_tree"]:
-            file_tree = project["file_tree"]
-            if "working" in file_tree and file_tree["working"]["mountpoint"]:
-                mount_point = file_tree["working"]["mountpoint"]
-                working_dir = os.path.normpath(working_dir.replace(mount_point, self.project_root))
-
+        task_dir = gazu.files.build_working_file_path(task)
 
         results = {
             "task": task,
-            "working_dir": working_dir,
+            "task_dir": task_dir,
             "project": project
         }
 
@@ -313,7 +306,7 @@ class FileDownloader(QtCore.QRunnable):
                 return
 
             if os.path.exists(os.path.join(self.working_dir, filename)):
-                write_log("Target exists {}".format(os.path.join(self.working_dir, filename)))
+                write_log("Working path exists {}".format(os.path.join(self.working_dir, filename)))
 
                 size = os.path.getsize(self.target)                
                 status = {

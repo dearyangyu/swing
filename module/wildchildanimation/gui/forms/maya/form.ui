@@ -398,7 +398,7 @@
      <item>
       <widget class="QTabWidget" name="tabWidget">
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="tabTasks">
         <attribute name="title">
@@ -479,7 +479,7 @@
                 <bool>false</bool>
                </property>
                <property name="text">
-                <string>Import Ref</string>
+                <string>Import</string>
                </property>
                <property name="shortcut">
                 <string>Alt+I</string>
@@ -492,10 +492,17 @@
                 <bool>false</bool>
                </property>
                <property name="text">
-                <string>Download Files</string>
+                <string>Download</string>
                </property>
                <property name="shortcut">
                 <string>Alt+D</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="pushButtonFindRefs">
+               <property name="text">
+                <string>Find Refs</string>
                </property>
               </widget>
              </item>

@@ -5,15 +5,20 @@ import traceback
 from PySide2 import QtCore
 from PySide2 import QtGui
 
-import maya.cmds as cmds
-import maya.mel as mel
-import maya.OpenMaya as OpenMaya
+try:
+    import maya.cmds as cmds
+    import maya.mel as mel
+    import maya.OpenMaya as om
+    import maya.OpenMayaUI as omui
+except:
+    print("Maya not loaded")
 
 class SwingPlayblast(QtCore.QObject):
 
     DEFAULT_FFMPEG_PATH = "C:/ffmpeg/ffmpeg-4.2.1/bin/ffmpeg.exe"
 
     VERSION = "0.0.1"
+    TITLE = "Swing Playblaster"
 
     RESOLUTION_LOOKUP = {
         "Render": (),
@@ -24,7 +29,7 @@ class SwingPlayblast(QtCore.QObject):
 
     FRAME_RANGE_PRESETS = [
         "Render",
-        "Playblack",
+        "Playback",
         "Animation"
     ]
 
@@ -37,7 +42,7 @@ class SwingPlayblast(QtCore.QObject):
     H264_QUALITIES = {
         "Very High": 18,
         "High": 20,
-        "Medium": 23',
+        "Medium": 23,
         "Low": 26
     }
 
@@ -90,7 +95,7 @@ class SwingPlayblast(QtCore.QObject):
         ["Selection Highlighting", "sel"],
     ]    
 
-    VIEWPORT_VISIBITY_PRESETS = {
+    VIEWPORT_VISIBILITY_PRESETS = {
         "Viewport": [],
         "Geo": ["NURBS Surfaces", "Polygons"],
         "Dynamics": ["NURBS Surfaces", "Polygons", "Dynamics", "Fluids", "nParticles"],
@@ -127,30 +132,35 @@ class SwingPlayblast(QtCore.QObject):
 
     def set_maya_logging_enabled(self, enabled):
         self._log_to_maya = enabled
+        if enabled:
+            self.log_output("[info] maya logging enabled")
 
     def log_error(self, text):
         if self._log_to_maya:
             om.MGlobal.displayError("[swingplayblast] {0}".format(text))
         self.output_logged.emit("[error] {0}".format(text))
+        print("[error] {}".format(text))
 
     def log_warning(self, text):
         if self._log_to_maya:
             om.MGlobal.displayWarning("[swingplayblast] {0}".format(text))
         self.output_logged.emit("[warning] {0}".format(text))
+        print("[warn] {}".format(text))
 
     def log_output(self, text):
         if self._log_to_maya:
             om.MGlobal.displayInfo(text)
         self.output_logged.emit(text)
+        print("[info] {}".format(text))
 
     def set_ffmpeg_path(self, path):
         if path:
             self._ffmpeg_path = path
         else:
-            self.ffmpeg_path = self.DEFAULT_FFMPEG_PATH
+            self._ffmpeg_path = self.DEFAULT_FFMPEG_PATH
 
     def get_ffmpeg_path(self):
-        return self.ffmpeg_path
+        return self._ffmpeg_path
 
     def set_camera(self, camera):
         if camera and camera not in cmds.listCameras():
@@ -200,35 +210,34 @@ class SwingPlayblast(QtCore.QObject):
             valid_resolution = False
 
         if valid_resolution:
-            if widthHeight[0] <= 0 or widthHeight[1] <= 0:
-                self.log_error("Invalid resolution {0}. Values must be greater than 0".format(widthHeight))
-                return 
+            if widthHeight[0] <=0 or widthHeight[1] <= 0:
+                self.log_error("Invalid resolution: {0}. Values must be greater than zero.".format(widthHeight))
+                return
         else:
             presets = []
             for preset in SwingPlayblast.RESOLUTION_LOOKUP.keys():
-                presets.append("{0}".format(preset))
+                presets.append("'{0}'".format(preset))
 
-            self.log_error("Invalid resolution {0}. Expected one of [int, int], {1}".format(widthHeight, ", ".join(presets)))
+            self.log_error("Invalid resoluton: {0}. Expected one of [int, int], {1}".format(widthHeight, ", ".join(presets)))
             return
 
         self._widthHeight = (widthHeight[0], widthHeight[1])
 
     def get_resolution_width_height(self):
         if self._resolution_preset:
-            return self.preset_to_resolution(self.._resolution_preset)
+            return self.preset_to_resolution(self._resolution_preset)
 
         return self._widthHeight
 
     def preset_to_resolution(self, resolution_preset):
-        if "Render" in resolution_preset:
+        if resolution_preset == "Render":
             width = cmds.getAttr("defaultResolution.width")
             height = cmds.getAttr("defaultResolution.height")
             return (width, height)
-
-        if resolution_preset in SwingPlayblast.DEFAULT_RESOLUTION:
+        elif resolution_preset in SwingPlayblast.RESOLUTION_LOOKUP.keys():
             return SwingPlayblast.RESOLUTION_LOOKUP[resolution_preset]
-
-        raise RuntimeError("Invalid resolution preset {0}".format(resolution_preset))
+        else:
+            raise RuntimeError("Invalid resolution preset: {0}".format(resolution_preset))
 
     def set_visibility(self, visibility_data):
         if not visibility_data:
@@ -236,6 +245,9 @@ class SwingPlayblast(QtCore.QObject):
 
         if not type(visibility_data) in [list, tuple]:
             visibility_data = self.preset_to_visibility(visibility_data)
+
+            if visibility_data is None:
+                return
 
         self._visibility = copy.copy(visibility_data)
 
@@ -245,51 +257,50 @@ class SwingPlayblast(QtCore.QObject):
 
         return self._visibility
 
-    def preset_to_visibility(self, visiblity_preset):
-        if not visiblity_preset in SwingPlayblast.VIEWPORT_VISIBITY_PRESETS.keys():
-            self.log_error("Invalid visibility preset: {0}".format(visiblity_preset))
+    def preset_to_visibility(self, visibility_preset):
+        if not visibility_preset in SwingPlayblast.VIEWPORT_VISIBILITY_PRESETS.keys():
+            self.log_error("Invaild visibility preset: {0}".format(visibility_preset))
             return None
 
-        preset_names = SwingPlayblast.VIEWPORT_VISIBITY_PRESETS[visiblity_preset]
-
         visibility_data = []
+
+        preset_names = SwingPlayblast.VIEWPORT_VISIBILITY_PRESETS[visibility_preset]
         if preset_names:
             for lookup_item in SwingPlayblast.VIEWPORT_VISIBILITY_LOOKUP:
                 visibility_data.append(lookup_item[0] in preset_names)
 
         return visibility_data
 
-
     def get_viewport_visibility(self):
         model_panel = self.get_viewport_panel()
         if not model_panel:
-            self.log_error("Failed to get viewport visibility. A viewport is not active")
-            return 
-
-        viewport_visiblity = []
-        try:
-            for item in SwingPlayblast.VIEWPORT_VISIBILITY_LOOKUP:
-                kwargs = { item[1]: True }
-                viewport_visiblity.append(cmds.modelEditor(model_panel, q = True, **kwargs))
-        except:
-            traceback.print_exc()
-            self.log_error("Failed to get active viewport visibility. Check script editor.")
+            self.log_error("Failed to get viewport visibility. A viewport is not active.")
             return None
 
-        return viewport_visiblity
-    
-    def set_viewport_visibility(self, model_editor, visibility_flags):
-        cmds.modelEditor(model_editor, e = True, **visibility_flags)
+        viewport_visibility = []
+        try:
+            for item in SwingPlayblast.VIEWPORT_VISIBILITY_LOOKUP:
+                kwargs = {item[1]: True}
+                viewport_visibility.append(cmds.modelEditor(model_panel, q=True, **kwargs))
+        except:
+            traceback.print_exc()
+            self.log_error("Failed to get active viewport visibility. See script editor for details.")
+            return None
 
-    def create_viewport_visibility_flags(self, visiblity_data):
-        visiblity_flags = {}
+        return viewport_visibility
+
+    def set_viewport_visibility(self, model_editor, visibility_flags):
+        cmds.modelEditor(model_editor, e=True, **visibility_flags)
+
+    def create_viewport_visibility_flags(self, visibility_data):
+        visibility_flags = {}
 
         data_index = 0
         for item in SwingPlayblast.VIEWPORT_VISIBILITY_LOOKUP:
-            visiblity_flags[item[0]] = visiblity_data[data_index]
+            visibility_flags[item[1]] = visibility_data[data_index]
             data_index += 1
 
-        return visiblity_flags
+        return visibility_flags
 
     def set_encoding(self, container_format, encoder):
         if container_format not in SwingPlayblast.VIDEO_ENCODER_LOOKUP.keys():
@@ -308,7 +319,7 @@ class SwingPlayblast(QtCore.QObject):
             self.log_error("Invalid h264 quality {0}. Expected one of {1}".format(quality, SwingPlayblast.H264_QUALITIES.keys()))
             return 
 
-        if preset not in SwingPlayblast.H264_PRESETS[quality]:
+        if preset not in SwingPlayblast.H264_PRESETS:
             self.log_error("Invalid h264 preset {0}. Expected one of {1}".format(preset, SwingPlayblast.H264_PRESETS[quality]))
             return
 
@@ -334,7 +345,6 @@ class SwingPlayblast(QtCore.QObject):
     
     def set_frame_range(self, frame_range):
         resolved_frame_range = self.resolve_frame_range(frame_range)
-
         if not resolved_frame_range:
             return
 
@@ -348,7 +358,7 @@ class SwingPlayblast(QtCore.QObject):
     def get_start_end_frame(self):
         if self._frame_range_preset:
             return self.preset_to_frame_range(self._frame_range_preset)
-        
+
         return (self._start_frame, self._end_frame)
 
     def resolve_frame_range(self, frame_range):
@@ -358,26 +368,29 @@ class SwingPlayblast(QtCore.QObject):
                 end_frame = frame_range[1]
             else:
                 start_frame, end_frame = self.preset_to_frame_range(frame_range)
-            
+
             return (start_frame, end_frame)
+
         except:
             presets = []
             for preset in SwingPlayblast.FRAME_RANGE_PRESETS:
-                presets.append("{0}".format(preset))
-            self.log_error("Invalid frame range. Expected ne of (start_frame, end_frame), {0}".format(", ".join(presets)))
+                presets.append("'{0}'".format(preset))
+            self.log_error('Invalid frame range. Expected one of (start_frame, end_frame), {0}'.format(", ".join(presets)))
 
-    def preset_to_frame_range(self, frame_range_preset)
+        return None
+
+    def preset_to_frame_range(self, frame_range_preset):
         if frame_range_preset == "Render":
-            start_frame = cmds.getAttri("defaultRenderGlobals.startFrame")
-            end_frame = cmds.getAttri("defaultRenderGlobals.endFrame")
-        elif frame_range_preset == "Playblack":
-            start_frame = int(cmds.playblackOptions(q = True, minTime = True))
-            end_frame = int(cmds.playblackOptions(q = True, maxTime = True))
+            start_frame = int(cmds.getAttr("defaultRenderGlobals.startFrame"))
+            end_frame = int(cmds.getAttr("defaultRenderGlobals.endFrame"))
+        elif frame_range_preset == "Playback":
+            start_frame = int(cmds.playbackOptions(q=True, minTime=True))
+            end_frame = int(cmds.playbackOptions(q=True, maxTime=True))
         elif frame_range_preset == "Animation":
-            start_frame = int(cmds.playblackOptions(q = True, animationStartTime = True))
-            end_frame = int(cmds.playblackOptions(q = True, animationEndTime = True))
+            start_frame = int(cmds.playbackOptions(q=True, animationStartTime=True))
+            end_frame = int(cmds.playbackOptions(q=True, animationEndTime=True))
         else:
-            raise RuntimeError("Invalid frame range preset {0}".format(frame_range_preset))
+            raise RuntimeError("Invalid frame range preset: {0}".format(frame_range_preset))
 
         return (start_frame, end_frame)
 
@@ -385,16 +398,16 @@ class SwingPlayblast(QtCore.QObject):
         return self._container_format != "Image"
 
     def validate_ffmpeg(self):
-        if not self.ffmpeg_path:
+        if not self._ffmpeg_path:
             self.log_output("ffmpeg path not set")
             return False
         
         if not os.path.exists(self._ffmpeg_path):
-            self.log_error("ffmpeg path not found: {0}".format(self.ffmpeg_path))
+            self.log_error("ffmpeg path not found: {0}".format(self._ffmpeg_path))
             return False
 
         if not os.path.isfile(self._ffmpeg_path):
-            self.log_error("ffmpeg path not found: {0}".format(self.ffmpeg_path))
+            self.log_error("ffmpeg path not found: {0}".format(self._ffmpeg_path))
             return False
 
         return True
@@ -499,7 +512,7 @@ class SwingPlayblast(QtCore.QObject):
         start_frame, end_frame = self.get_start_end_frame()
 
         options = {
-            "filename": playblast_output_dir, 
+            "filename": playblast_output,
             "widthHeight": widthHeight,
             "percent": 100,
             "startTime": start_frame,
@@ -508,13 +521,14 @@ class SwingPlayblast(QtCore.QObject):
             "forceOverwrite": force_overwrite,
             "format": "image",
             "compression": compression,
-            "quality": quality,
+            "quality": image_quality,
             "indexFromZero": index_from_zero,
             "framePadding": padding,
-            "showOrnaments", show_ornaments,
-            "viewer": viewer
+            "showOrnaments": show_ornaments,
+            "viewer": viewer,
         }
-        self.log_output("Playblast options {0}".format(options))
+
+        self.log_output("Playblast options: {0}".format(options))
 
         # store viewport settings
         orig_camera = self.get_active_camera()
@@ -523,7 +537,7 @@ class SwingPlayblast(QtCore.QObject):
             camera = orig_camera
 
         if not camera not in cmds.listCameras():
-            self.log_error("Camera does not exist {0}".format(camear))
+            self.log_error("Camera does not exist {0}".format(camera))
             return
 
         self.set_active_camera(camera)

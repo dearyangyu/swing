@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>DownloadDialog</class>
- <widget class="QDialog" name="DownloadDialog">
+ <class>ReferencesDialog</class>
+ <widget class="QDialog" name="ReferencesDialog">
   <property name="enabled">
    <bool>true</bool>
   </property>
@@ -14,7 +14,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Download Files</string>
+   <string>Find references</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -250,7 +250,7 @@
      <item>
       <widget class="QPushButton" name="pushButtonDownload">
        <property name="text">
-        <string>Download</string>
+        <string>Search</string>
        </property>
        <property name="default">
         <bool>true</bool>

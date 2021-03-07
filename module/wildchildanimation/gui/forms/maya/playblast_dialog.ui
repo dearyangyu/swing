@@ -6,18 +6,21 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>420</width>
-    <height>453</height>
+    <width>498</width>
+    <height>467</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Publish Asset for Task</string>
+   <string>Playblaster</string>
+  </property>
+  <property name="sizeGripEnabled">
+   <bool>true</bool>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_3">
    <item>
-    <layout class="QVBoxLayout" name="verticalLayout_2">
+    <layout class="QVBoxLayout" name="verticalLayoutPathing">
      <item>
-      <layout class="QHBoxLayout" name="horizontalLayoutProjectFile">
+      <layout class="QHBoxLayout" name="horizontalLayoutDirectory">
        <item>
         <widget class="QLabel" name="projectFileLabel">
          <property name="sizePolicy">
@@ -43,6 +46,9 @@
        <item>
         <widget class="QLineEdit" name="output_dir_path_le">
          <property name="text">
+          <string/>
+         </property>
+         <property name="placeholderText">
           <string>{project}/movies</string>
          </property>
         </widget>
@@ -94,9 +100,9 @@
       </layout>
      </item>
      <item>
-      <layout class="QHBoxLayout" name="horizontalLayoutProjectFile_2">
+      <layout class="QHBoxLayout" name="horizontalLayoutFile">
        <item>
-        <widget class="QLabel" name="fbxFileLabel">
+        <widget class="QLabel" name="filename_label">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
            <horstretch>0</horstretch>
@@ -120,6 +126,9 @@
        <item>
         <widget class="QLineEdit" name="output_filename_le">
          <property name="text">
+          <string/>
+         </property>
+         <property name="placeholderText">
           <string>{scene}</string>
          </property>
         </widget>
@@ -128,25 +137,6 @@
         <widget class="QCheckBox" name="force_overwrite_cb">
          <property name="text">
           <string>Force overwrite</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QToolButton" name="fbxFileToolButton">
-         <property name="minimumSize">
-          <size>
-           <width>40</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>40</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>...</string>
          </property>
         </widget>
        </item>
@@ -175,8 +165,14 @@
          </property>
          <property name="minimumSize">
           <size>
-           <width>80</width>
+           <width>100</width>
            <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>100</width>
+           <height>16777215</height>
           </size>
          </property>
          <property name="text">
@@ -224,8 +220,14 @@
          </property>
          <property name="minimumSize">
           <size>
-           <width>80</width>
+           <width>100</width>
            <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>100</width>
+           <height>16777215</height>
           </size>
          </property>
          <property name="text">
@@ -254,6 +256,18 @@
        </item>
        <item>
         <widget class="QSpinBox" name="resolution_width_sb">
+         <property name="minimumSize">
+          <size>
+           <width>80</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>100</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="frame">
           <bool>true</bool>
          </property>
@@ -292,6 +306,18 @@
        </item>
        <item>
         <widget class="QSpinBox" name="resolution_height_sb">
+         <property name="minimumSize">
+          <size>
+           <width>80</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>100</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="buttonSymbols">
           <enum>QAbstractSpinBox::NoButtons</enum>
          </property>
@@ -302,6 +328,19 @@
           <number>9999</number>
          </property>
         </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_4">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </item>
@@ -317,8 +356,14 @@
          </property>
          <property name="minimumSize">
           <size>
-           <width>80</width>
+           <width>100</width>
            <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>100</width>
+           <height>16777215</height>
           </size>
          </property>
          <property name="text">
@@ -347,6 +392,18 @@
        </item>
        <item>
         <widget class="QSpinBox" name="frame_range_start_sb">
+         <property name="minimumSize">
+          <size>
+           <width>80</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>100</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="buttonSymbols">
           <enum>QAbstractSpinBox::NoButtons</enum>
          </property>
@@ -382,6 +439,18 @@
        </item>
        <item>
         <widget class="QSpinBox" name="frame_range_end_sb">
+         <property name="minimumSize">
+          <size>
+           <width>80</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>100</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="buttonSymbols">
           <enum>QAbstractSpinBox::NoButtons</enum>
          </property>
@@ -392,6 +461,19 @@
           <number>9999</number>
          </property>
         </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_5">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </item>
@@ -407,8 +489,14 @@
          </property>
          <property name="minimumSize">
           <size>
-           <width>80</width>
+           <width>100</width>
            <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>100</width>
+           <height>16777215</height>
           </size>
          </property>
          <property name="text">
@@ -485,8 +573,14 @@
          </property>
          <property name="minimumSize">
           <size>
-           <width>80</width>
+           <width>100</width>
            <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>100</width>
+           <height>16777215</height>
           </size>
          </property>
          <property name="text">
@@ -573,6 +667,16 @@
        </property>
        <property name="text">
         <string>Show in Viewer</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="overscan_cb">
+       <property name="text">
+        <string>Overscan</string>
        </property>
        <property name="checked">
         <bool>true</bool>
