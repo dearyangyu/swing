@@ -136,3 +136,14 @@ tmp/
 *.virtualenv
 
 contrib/*
+
+module/maya
+module/pymel
+module/PySide2
+module/pyside2uic
+module/shiboken2
+module/shiboken2_generator
+module/ufe
+module/alembic.pyd
+module/iex.pyd
+module/imath.pyd
