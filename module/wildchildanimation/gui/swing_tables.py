@@ -20,38 +20,8 @@ except ImportError:
 
 from datetime import datetime
 
-def my_date_format(date):
-    if isinstance(date, str):
-        return date
-
-    if len(date) == 19: # YYYY-MM-DDTHH:MM:SS
-        dt = datetime.strptime(date, "%Y-%m-%dT%H:%M:%S")
-        return dt.strftime("%Y-%m-%d %H:%M:%S")
-
-    return date.strftime("%Y-%m-%d %H:%M:%S")    
-
-def human_size(bytes):
-    if bytes < 1024:
-        return "{} bytes".format(bytes)
-    
-    bytes /= 1024
-    if bytes < 1024:
-        return "{:.2f} Kb".format(bytes)
-    
-    bytes /= 1024
-    if bytes < 1024:
-        return "{:.2f} Mb".format(bytes)
-    
-    bytes /= 1024
-    if bytes < 1024:
-        return "{:.2f} Gb".format(bytes)
-    
-    bytes /= 1024
-    if bytes < 1024:
-        return "{:.2f} Tb".format(bytes)
-
-    # really ?     
-    return "{:.2f}".format(bytes)    
+from wildchildanimation.gui.swing_utils import human_size, my_date_format
+ 
 
 class FileTableModel(QtCore.QAbstractTableModel):    
 

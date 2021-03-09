@@ -1,23 +1,19 @@
+'''
+    Set to folder containing module/ and plugin/
+'''
+
+WCA_ROOT = "Z:/env/maya/treehouse/wca-maya/"
+
 import sys
 
-import PySide2.QtWidgets
-import PySide2.QtGui
-from PySide2.QtWidgets import QApplication, QWidget
-
-sys.path.append("C:\\DEV\\Github\\wca-maya\\module")
+sys.path.append("{0}/{1}".format(WCA_ROOT, "/module"))
 from wildchildanimation.swing_gui import SwingGUI
 
 # studio specific import callbacks 
-#from maya_handlers import StudioHandler
-# handler = StudioHandler()    
-handler = None
+sys.path.append("{0}/{1}".format(WCA_ROOT, "/plugin/treehouse"))
+from maya_handlers import StudioHandler
 
 if __name__ == '__main__':
-    app = QApplication(sys.argv)
-
-    ex = SwingGUI(handler)
+    ex = SwingGUI(StudioHandler())
     ex.show()
-    sys.exit(app.exec_())
-else:
-    ex = SwingGUI(handler)
 # entry point    

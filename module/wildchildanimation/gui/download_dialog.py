@@ -154,9 +154,12 @@ class Ui_DownloadDialog(object):
 
         self.horizontalLayout_4.addWidget(self.pushButtonDownload)
 
-        self.horizontalSpacer_3 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.progressBar = QProgressBar(DownloadDialog)
+        self.progressBar.setObjectName(u"progressBar")
+        self.progressBar.setMaximum(1)
+        self.progressBar.setValue(-1)
 
-        self.horizontalLayout_4.addItem(self.horizontalSpacer_3)
+        self.horizontalLayout_4.addWidget(self.progressBar)
 
         self.pushButtonCancel = QPushButton(DownloadDialog)
         self.pushButtonCancel.setObjectName(u"pushButtonCancel")

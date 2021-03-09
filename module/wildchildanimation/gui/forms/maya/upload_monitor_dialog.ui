@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>419</width>
-    <height>258</height>
+    <width>600</width>
+    <height>240</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -31,22 +31,19 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_4">
      <item>
-      <spacer name="horizontalSpacer_3">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
+      <widget class="QProgressBar" name="progressBar">
+       <property name="maximum">
+        <number>1</number>
        </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
+       <property name="value">
+        <number>-1</number>
        </property>
-      </spacer>
+      </widget>
      </item>
      <item>
       <widget class="QPushButton" name="pushButtonCancel">
        <property name="text">
-        <string>Close</string>
+        <string>Hide</string>
        </property>
        <property name="autoDefault">
         <bool>false</bool>

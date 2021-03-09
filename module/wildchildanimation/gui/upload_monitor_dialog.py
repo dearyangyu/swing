@@ -18,7 +18,7 @@ class Ui_UploadMonitorDialog(object):
         if not UploadMonitorDialog.objectName():
             UploadMonitorDialog.setObjectName(u"UploadMonitorDialog")
         UploadMonitorDialog.setEnabled(True)
-        UploadMonitorDialog.resize(419, 258)
+        UploadMonitorDialog.resize(600, 240)
         self.verticalLayout = QVBoxLayout(UploadMonitorDialog)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.horizontalLayout_3 = QHBoxLayout()
@@ -34,9 +34,12 @@ class Ui_UploadMonitorDialog(object):
 
         self.horizontalLayout_4 = QHBoxLayout()
         self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
-        self.horizontalSpacer_3 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.progressBar = QProgressBar(UploadMonitorDialog)
+        self.progressBar.setObjectName(u"progressBar")
+        self.progressBar.setMaximum(1)
+        self.progressBar.setValue(-1)
 
-        self.horizontalLayout_4.addItem(self.horizontalSpacer_3)
+        self.horizontalLayout_4.addWidget(self.progressBar)
 
         self.pushButtonCancel = QPushButton(UploadMonitorDialog)
         self.pushButtonCancel.setObjectName(u"pushButtonCancel")
@@ -55,6 +58,6 @@ class Ui_UploadMonitorDialog(object):
 
     def retranslateUi(self, UploadMonitorDialog):
         UploadMonitorDialog.setWindowTitle(QCoreApplication.translate("UploadMonitorDialog", u"File Monitor", None))
-        self.pushButtonCancel.setText(QCoreApplication.translate("UploadMonitorDialog", u"Close", None))
+        self.pushButtonCancel.setText(QCoreApplication.translate("UploadMonitorDialog", u"Hide", None))
     # retranslateUi
 

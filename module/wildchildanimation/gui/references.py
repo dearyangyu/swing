@@ -23,29 +23,124 @@ except ImportError:
 from datetime import datetime
 
 import wildchildanimation.background_workers as bg
+from wildchildanimation.gui.swing_utils import *
 
 from wildchildanimation.gui.references_dialog import Ui_ReferencesDialog
 
 from wildchildanimation.gui.swing_tables import human_size
+from wildchildanimation.gui.downloads import *
+
+TEST_MISSING = [
+    'C:/Users/wildwrangler/Documents/maya/projects/hushabye_s02/hsb2_build/e00/shots/sq00/sh00/layout/sq00_sh00_layout/hby_e00_sq00_sh00_layout.mb',
+    'C:/Users/wildwrangler/Documents/maya/projects/hushabye_s02/hsb2_build/e00/shots/sq00/cloud_test/layout/sq00_cloud_test_layout/hby_BBC_Test_v01.ma',
+    'C:/Users/wildwrangler/Documents/maya/projects/hushabye_s02/hsb2_build/e00/shots/sq00/cloud_test/layout/sq00_cloud_test_layout/hby_BBC_Test_v01.ma{1}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/characters/hby_character_dillyDally_rig_v004.ma',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/environments/hby_mountains_master_02.ma',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/environments/hby_launchpad_mastermesh_02.ma',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/environments/hby_wall_mastermesh_02.ma',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/props/hby_rocket_mastermesh.ma',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/characters/hby_dillyTeddy_rig_v002.ma',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/environments/hby_titleText_mastermesh.ma',
+    '/Volumes/LaCie 12big USB3.1/user/jen/HB2/season_02/layout_main/assets/props/hushabye_season_2_prop_bed_asset_model_v3.ma',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/environments/hushabye_season_2_environment_mountains_hills_model_v4.ma',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/characters/hby_character_flower_rig_v003.ma',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/characters/hby_character_flower_small_rig_v003.ma',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/characters/hby_character_flower_rig_v003.ma{1}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/characters/hby_character_flower_rig_v003.ma{2}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/characters/hby_character_flower_small_rig_v003.ma{1}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/characters/hby_character_flower_small_rig_v003.ma{2}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/props/hby_prop_cloud_proxy_v001.ma',
+    'C:/Users/wildwrangler/Documents/maya/projects/hushabye_s02/hsb2_build/e00/shots/sq00/cloud_test/layout/sq00_cloud_test_layout/hby_BBC_Test_v01.ma{2}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/characters/hby_character_dillyDally_rig_v004.ma{1}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/environments/hby_mountains_master_02.ma{1}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/environments/hby_launchpad_mastermesh_02.ma{1}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/environments/hby_wall_mastermesh_02.ma{1}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/props/hby_rocket_mastermesh.ma{1}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/characters/hby_dillyTeddy_rig_v002.ma{1}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/environments/hby_titleText_mastermesh.ma{1}',
+    '/Volumes/LaCie 12big USB3.1/user/jen/HB2/season_02/layout_main/assets/props/hushabye_season_2_prop_bed_asset_model_v3.ma{1}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/environments/hushabye_season_2_environment_mountains_hills_model_v4.ma{1}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/characters/hby_character_flower_rig_v003.ma{3}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/characters/hby_character_flower_small_rig_v003.ma{3}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/characters/hby_character_flower_rig_v003.ma{4}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/characters/hby_character_flower_rig_v003.ma{5}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/characters/hby_character_flower_small_rig_v003.ma{4}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/characters/hby_character_flower_small_rig_v003.ma{5}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/props/hby_prop_cloud_proxy_v001.ma{1}',
+    'C:/Users/wildwrangler/Documents/maya/projects/hushabye_s02/hsb2_build/e00/shots/sq00/cloud_test/layout/sq00_cloud_test_layout/hby_BBC_Test_v01.ma{3}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/characters/hby_character_dillyDally_rig_v004.ma{2}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/environments/hby_mountains_master_02.ma{2}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/environments/hby_launchpad_mastermesh_02.ma{2}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/environments/hby_wall_mastermesh_02.ma{2}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/props/hby_rocket_mastermesh.ma{2}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/characters/hby_dillyTeddy_rig_v002.ma{2}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/environments/hby_titleText_mastermesh.ma{2}',
+    '/Volumes/LaCie 12big USB3.1/user/jen/HB2/season_02/layout_main/assets/props/hushabye_season_2_prop_bed_asset_model_v3.ma{2}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/environments/hushabye_season_2_environment_mountains_hills_model_v4.ma{2}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/characters/hby_character_flower_rig_v003.ma{6}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/characters/hby_character_flower_small_rig_v003.ma{6}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/characters/hby_character_flower_rig_v003.ma{7}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/characters/hby_character_flower_rig_v003.ma{8}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/characters/hby_character_flower_small_rig_v003.ma{7}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/characters/hby_character_flower_small_rig_v003.ma{8}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/props/hby_prop_cloud_proxy_v001.ma{2}',
+    'C:/Users/wildwrangler/Documents/maya/projects/hushabye_s02/hsb2_build/e00/shots/sq00/cloud_test/layout/sq00_cloud_test_layout/hby_BBC_Test_v01.ma{4}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/characters/hby_character_dillyDally_rig_v004.ma{3}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/environments/hby_mountains_master_02.ma{3}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/environments/hby_launchpad_mastermesh_02.ma{3}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/environments/hby_wall_mastermesh_02.ma{3}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/props/hby_rocket_mastermesh.ma{3}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/characters/hby_dillyTeddy_rig_v002.ma{3}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/environments/hby_titleText_mastermesh.ma{3}',
+    '/Volumes/LaCie 12big USB3.1/user/jen/HB2/season_02/layout_main/assets/props/hushabye_season_2_prop_bed_asset_model_v3.ma{3}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/environments/hushabye_season_2_environment_mountains_hills_model_v4.ma{3}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/characters/hby_character_flower_rig_v003.ma{9}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/characters/hby_character_flower_small_rig_v003.ma{9}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/characters/hby_character_flower_rig_v003.ma{10}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/characters/hby_character_flower_rig_v003.ma{11}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/characters/hby_character_flower_small_rig_v003.ma{10}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/characters/hby_character_flower_small_rig_v003.ma{11}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/props/hby_prop_cloud_proxy_v001.ma{3}',
+    'C:/Users/wildwrangler/Documents/maya/projects/hushabye_s02/hsb2_build/e00/shots/sq00/cloud_test/layout/sq00_cloud_test_layout/hby_BBC_Test_v01.ma{5}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/characters/hby_character_dillyDally_rig_v004.ma{4}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/environments/hby_mountains_master_02.ma{4}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/environments/hby_launchpad_mastermesh_02.ma{4}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/environments/hby_wall_mastermesh_02.ma{4}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/props/hby_rocket_mastermesh.ma{4}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/characters/hby_dillyTeddy_rig_v002.ma{4}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/environments/hby_titleText_mastermesh.ma{4}',
+    '/Volumes/LaCie 12big USB3.1/user/jen/HB2/season_02/layout_main/assets/props/hushabye_season_2_prop_bed_asset_model_v3.ma{4}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/environments/hushabye_season_2_environment_mountains_hills_model_v4.ma{4}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/characters/hby_character_flower_rig_v003.ma{12}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/characters/hby_character_flower_small_rig_v003.ma{12}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/characters/hby_character_flower_rig_v003.ma{13}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/characters/hby_character_flower_rig_v003.ma{14}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/characters/hby_character_flower_small_rig_v003.ma{13}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/characters/hby_character_flower_small_rig_v003.ma{14}',
+    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/props/hby_prop_cloud_proxy_v001.ma{4}'
+]
 
 
 class ReferencesDialogGUI(QtWidgets.QDialog, Ui_ReferencesDialog):
 
     working_dir = None
     
-    def __init__(self, parent = None, handler = None, entity = None):
+    def __init__(self, parent = None, handler = None, entity = None, task_types = None):
         super(ReferencesDialogGUI, self).__init__(None) # Call the inherited classes __init__ method
         self.setupUi(self)
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
-        self.setMinimumWidth(500)
+        self.setMinimumWidth(640)
 
         self.handler = handler
         self.entity = entity
+        self.task_types = task_types
 
         if self.handler:
             self.files = self.handler.list_unresolved()
+            write_log("[swing]", "Loaded {0} files from Maya".format(len(self.files)))
         else:
-            self.files = []
+            self.files = TEST_MISSING
+            write_log("[swing]", "Loaded {0} TEST FILES".format(len(self.files)))
 
         self.threadpool = QtCore.QThreadPool.globalInstance()
 
@@ -53,21 +148,69 @@ class ReferencesDialogGUI(QtWidgets.QDialog, Ui_ReferencesDialog):
         loader.callback.loaded.connect(self.entity_loaded)
         self.threadpool.start(loader)        
 
-        self.toolButtonWeb.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_CommandLink))
-        self.toolButtonWeb.setEnabled(False)
-
-        self.toolButtonWorkingDir.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_DirOpenIcon))
-        self.toolButtonWorkingDir.clicked.connect(self.select_wcd)               
-
-        #self.pushButtonDownload.clicked.connect(self.download_files)
+        self.pushButtonDownload.clicked.connect(self.process)
         self.pushButtonCancel.clicked.connect(self.close_dialog)
-
-        load_table_widget(self.tableWidget, self.files)
 
         self.toolButtonAll.clicked.connect(self.select_all)
         self.toolButtonNone.clicked.connect(self.select_none)
 
         self.setWorkingDir(load_settings("projects_root", os.path.expanduser("~")))
+
+    def process(self):
+        #self.threadpool = QtCore.QThreadPool()
+        self.threadpool = QtCore.QThreadPool.globalInstance()
+
+        email = load_settings('user', 'user@example.com')
+        password = load_keyring('swing', 'password', 'Not A Password')
+        server = load_settings('server', 'https://production.wildchildanimation.com')
+        edit_api = "{}/edit".format(server)
+
+        file_list = []
+
+        self.counter = 0
+        while self.counter < self.tableWidget.rowCount():
+            row_item = self.tableWidget.item(self.counter, 0)
+            if row_item.checkState():
+                file_list.append(row_item.data(QtCore.Qt.UserRole))
+
+            self.counter += 1
+
+        worker = bg.SearchFn(self, edit_api, email, password, file_list)
+        worker.callback.results.connect(self.search_results)
+
+        self.threadpool.start(worker)
+
+        self.enable_ui(False)
+        #worker.run()
+    # process        
+
+    def enable_ui(self, enabled):
+        self.pushButtonDownload.setEnabled(enabled)
+        self.pushButtonCancel.setEnabled(enabled)
+        self.toolButtonAll.setEnabled(enabled)
+        self.toolButtonNone.setEnabled(enabled)
+
+        if enabled:
+            self.progressBar.setRange(0, 1)
+        else:
+            # set progressbar to busy
+            self.progressBar.setRange(0, 0)
+
+    def search_results(self, results):
+        self.enable_ui(True)
+
+        file_list = []
+
+        for sr in results:
+            for result in sr:
+                file_list.append(result)
+
+        dialog = DownloadDialogGUI(self, self.entity, self.task_types, file_list)
+        dialog.load_files(file_list)
+        dialog.resize(self.size())
+        dialog.exec_()            
+
+        self.hide()
 
     def select_all(self):
         index = 0
@@ -83,18 +226,8 @@ class ReferencesDialogGUI(QtWidgets.QDialog, Ui_ReferencesDialog):
             row_item.setCheckState(QtCore.Qt.Unchecked)
             index += 1
 
-    def open_url(self, url):
-        link = QtCore.QUrl(self.url)
-        if not QtGui.QDesktopServices.openUrl(link):
-            QtGui.QMessageBox.warning(self, 'Open Url', 'Could not open url')        
-
     def setWorkingDir(self, working_dir):
         self.working_dir = working_dir
-        self.lineEditWorkingDirectory.setText(self.working_dir)        
-
-    def select_wcd(self):
-        self.working_dir = QtWidgets.QFileDialog.getExistingDirectory(self, 'Select working directory')
-        self.lineEditWorkingDirectory.setText(self.working_dir)        
 
     def close_dialog(self):
         self.close()     
@@ -124,7 +257,6 @@ class ReferencesDialogGUI(QtWidgets.QDialog, Ui_ReferencesDialog):
 
             self.shot_name = self.shot["name"] 
             sections.append(self.shot_name)
-            self.lineEditEntity.setText(" / ".join(sections))
         else:
             self.setWindowTitle("swing: import asset")
             self.asset = data["item"]
@@ -142,24 +274,31 @@ class ReferencesDialogGUI(QtWidgets.QDialog, Ui_ReferencesDialog):
 
             self.asset_name = self.entity["name"].strip() 
             sections.append(self.asset_name)
-
             sections.append(self.entity["name"].strip())
-
-            self.lineEditEntity.setText(" / ".join(sections))
 
         namespace = "_".join(sections).lower().strip()
 
-        #self.lineEditNamespace.setText(namespace)
-        self.toolButtonWeb.setEnabled(self.url is not None)
+        load_table_widget(self.tableWidget, self.files)
         self.setEnabled(True)
-
 
 
 def load_table_widget(tableWidget, files):
     model = []
+
+    unique_files = []
     for item in files:
+        item_name = item.split("{")[0]
+        if not item_name in unique_files:
+            unique_files.append(item_name)
+    
+    for item in unique_files:
+        name, ext = os.path.splitext(os.path.basename(item))
+
         model.append({
-            "name": item,
+            "name": os.path.basename(item),
+            "item": item,
+            "filename": name,
+            "fileext": ext,
             "size": "0",
             "status": "unknown"
         })
@@ -175,26 +314,7 @@ def load_table_widget(tableWidget, files):
         cell.setCheckState(QtCore.Qt.Checked)  
         tableWidget.setItem(row, 0, cell)
 
-        if item["size"]:
-            size = int(item["size"])
-            if (size):
-                cell = QtWidgets.QTableWidgetItem(human_size(size))
-            else:
-                cell = QtWidgets.QTableWidgetItem("")
-        cell.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
-        tableWidget.setItem(row, 1, cell)
-
-        cell = QtWidgets.QTableWidgetItem("{}".format(item["status"]))
-        cell.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
-        tableWidget.setItem(row, 2, cell)
-
-    tableWidget.setColumnWidth(0, 350)
-    tableWidget.setColumnWidth(1, 100)
-    tableWidget.setColumnWidth(2, 50)        
+        row += 1
 
     return tableWidget
 ###########################################################################           
-
-def load_settings(key, default):
-    settings = QtCore.QSettings()    
-    return settings.value(key, default)

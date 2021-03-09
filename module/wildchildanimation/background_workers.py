@@ -533,3 +533,39 @@ class WorkingFileUploader(QtCore.QRunnable):
 
         return True        
 
+class SearchResultSignal(QtCore.QObject):
+
+    # setting up custom signal
+    results = QtCore.Signal(object)        
+
+class SearchFn(QtCore.QRunnable):
+
+    def __init__(self, parent, edit_api, email, password, list_of_names):
+        super(SearchFn, self).__init__(self, parent)
+        self.parent = parent
+        self.url = edit_api
+        self.email = email
+        self.password = password        
+        self.search_list = list_of_names
+        self.callback = SearchResultSignal()
+
+    def run(self):
+        search_url = "{}/{}".format(self.url, "api/search/fn")
+        results = []
+
+        count = 0
+        for item in self.search_list:
+            params = { 
+                "username": self.email,
+                "password": self.password,
+                "filename": item["name"]
+            }             
+
+            rq = requests.post(search_url, data = params)
+            if rq.status_code == 200:
+                message = rq.json()
+                results.append(message)
+            count += 1
+
+        self.callback.results.emit(results)
+        return True        

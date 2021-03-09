@@ -88,15 +88,11 @@ class StudioHandler(QtCore.QObject):
     #
     # returns a list of unresolved files in a scene
     def list_unresolved(self):
-        list_dir = pm.filePathEditor(query = True, listDirectories = "", unresolved = True)
-        list_files = []
-        for directory in list_dir:
-            list_file_elem = pm.filePathEditor(query = True, listFiles = directory, withAttribute = True)
-            it = iter(list_file_elem)
-            list_tuple_file = zip(it, it)
-            for (x, y) in list_tuple_file:
-                list_files.append((os.path.normpath(os.path.join(directory, x)), y))
-        return list_files
+        self.log_output("searching for unresolved references")
+        refs = cmds.file(query = True, list = True, unresolvedName = True)
+
+        self.log_output("searching for unresolved references {}".format(refs))
+        return refs
 
     # tries to import the file specified in source into the currently open scene
     def import_reference(self, **kwargs):
@@ -110,13 +106,18 @@ class StudioHandler(QtCore.QObject):
 
         if file_extension in StudioHandler.SUPPORTED_TYPES:
             self.log_output("Importing file {}".format(source))
+
+            prompt_val = cmds.file(prompt=True, q=True)
             try:
-                cmds.file(source, reference = True, ignoreVersion = True, namespace = namespace, options = "v=0;")
-                self.log_output("cmds.file (references = True) {} successfully".format(filename))
+                cmds.file(source, prompt = False, reference = True, ignoreVersion = True, namespace = namespace, options = "v=0;")
+                self.log_output('cmds.file({0}, prompt = False, reference = True, ignoreVersion = True, namespace = {1}, options = "v=0;"'.format(source, namespace))
             except:
                 traceback.print_exc(file=sys.stdout)
                 self.log_error("Error processing importing reference {}".format(source))
                 return False
+            finally:
+                cmds.file(prompt = prompt_val)
+
         else:
             self.log_error("File extension not valid {0}".format(file_extension))
 
