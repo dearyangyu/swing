@@ -18,7 +18,8 @@ class Ui_DownloadDialog(object):
         if not DownloadDialog.objectName():
             DownloadDialog.setObjectName(u"DownloadDialog")
         DownloadDialog.setEnabled(True)
-        DownloadDialog.resize(629, 301)
+        DownloadDialog.resize(640, 480)
+        DownloadDialog.setMinimumSize(QSize(640, 480))
         self.verticalLayout = QVBoxLayout(DownloadDialog)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.horizontalLayout_6 = QHBoxLayout()

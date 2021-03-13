@@ -558,7 +558,7 @@ class SearchFn(QtCore.QRunnable):
             params = { 
                 "username": self.email,
                 "password": self.password,
-                "filename": item["name"]
+                "filename": "%{}%".format(item)
             }             
 
             rq = requests.post(search_url, data = params)

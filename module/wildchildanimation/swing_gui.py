@@ -6,7 +6,7 @@
 #
 #############################
 _APP_NAME = "treehouse: swing"
-_APP_VERSION = "0.0.6"
+_APP_VERSION = "0.0.7"
  
 import traceback
 import sys
@@ -50,6 +50,7 @@ from wildchildanimation.gui.playblast_dialog import Ui_PlayblastDialog
 from wildchildanimation.gui.zurbrigg_playblast import *
 
 from wildchildanimation.gui.references import *
+from wildchildanimation.gui.search import *
 from wildchildanimation.gui.downloads import *
 
 from wildchildanimation.gui.swing_tables import FileTableModel, TaskTableModel, CastingTableModel, load_file_table_widget, human_size
@@ -111,7 +112,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
         self.pushButtonPublish.clicked.connect(self.publish_scene)
         self.pushButtonPlayblast.clicked.connect(self.playblast_scene)
         self.pushButtonNew.clicked.connect(self.new_scene)
-        self.pushButtonFindRefs.clicked.connect(self.load_references)
+        self.pushButtonSearchFiles.clicked.connect(self.search_files_dialog)
 
         self.pushButtonClose.clicked.connect(self.close_dialog)
 
@@ -166,9 +167,9 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
         self.loading = is_loading
 
         if self.loading:
-            self.labelMessage.setText("Loading ...")
+            self.progressBar.setMaximum(0)
         else:
-            self.labelMessage.setText("OK")
+            self.progressBar.setMaximum(1)
 
         self.comboBoxEpisode.setEnabled(not is_loading)
         self.comboBoxSequence.setEnabled(not is_loading)
@@ -304,7 +305,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
             loader = bg.ProjectLoaderThread(self)
             loader.callback.loaded.connect(self.projects_loaded)
 
-            self.labelMessage.setText("Loading ...")
+            self.progressBar.setMaximum(0)
             self.set_loading(True)
 
             self.threadpool.start(loader)
@@ -315,7 +316,8 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
         write_log("[projects_loaded]")
         #self.comboBoxProject.setEnabled(True)
 
-        self.labelMessage.setText("OK")
+        self.progressBar.setMaximum(1)
+
         self.projects = results["projects"]
         self.task_types = results["task_types"]
 
@@ -352,7 +354,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
         self.comboBoxAssetType.clear()
 
         if self.currentProject:
-            self.labelMessage.setText("Loading ...")
+            self.progressBar.setMaximum(0)
             self.set_loading(True)                
 
             loader = bg.ProjectHierarchyLoaderThread(self, self.currentProject)
@@ -370,7 +372,8 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
 
     def hierarchy_loaded(self, data): 
         write_log("[hierarchy_loaded]")
-        self.labelMessage.setText("OK")
+        self.progressBar.setMaximum(1)
+
         self.episodes = data
 
         self.comboBoxEpisode.blockSignals(True)
@@ -403,8 +406,6 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
             if len(self.currentEpisode["sequences"]) > 0:
                 self.comboBoxSequence.setEnabled(True)
                 self.sequence_changed(0)
-        
-        self.labelMessage.setText("OK")
 
     def asset_types_loaded(self, data): 
         write_log("[asset_types_loaded]")
@@ -601,8 +602,8 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
 
         return True        
 
-    def load_references(self):
-        dialog = ReferencesDialogGUI(self, self.handler, self.get_current_selection(), self.task_types)
+    def search_files_dialog(self):
+        dialog = SearchFilesDialog(self, self.handler, self.get_current_selection(), self.task_types)
         dialog.exec_()
 
     def download_files(self):

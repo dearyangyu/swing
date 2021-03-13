@@ -34,14 +34,19 @@ class Ui_WcaMayaDialog(object):
 
         self.connectionLayout.addWidget(self.pushButtonConnect)
 
+        self.horizontalSpacer_4 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.connectionLayout.addItem(self.horizontalSpacer_4)
+
+        self.pushButtonPlayblast = QPushButton(WcaMayaDialog)
+        self.pushButtonPlayblast.setObjectName(u"pushButtonPlayblast")
+
+        self.connectionLayout.addWidget(self.pushButtonPlayblast)
+
         self.pushButtonRefresh = QPushButton(WcaMayaDialog)
         self.pushButtonRefresh.setObjectName(u"pushButtonRefresh")
 
         self.connectionLayout.addWidget(self.pushButtonRefresh)
-
-        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
-
-        self.connectionLayout.addItem(self.horizontalSpacer)
 
 
         self.verticalLayout.addLayout(self.connectionLayout)
@@ -231,11 +236,6 @@ class Ui_WcaMayaDialog(object):
 
         self.horizontalLayout_4.addWidget(self.pushButtonNew)
 
-        self.pushButtonPlayblast = QPushButton(self.tabTasks)
-        self.pushButtonPlayblast.setObjectName(u"pushButtonPlayblast")
-
-        self.horizontalLayout_4.addWidget(self.pushButtonPlayblast)
-
         self.pushButtonPublish = QPushButton(self.tabTasks)
         self.pushButtonPublish.setObjectName(u"pushButtonPublish")
         self.pushButtonPublish.setEnabled(False)
@@ -278,10 +278,10 @@ class Ui_WcaMayaDialog(object):
 
         self.horizontalLayout_5.addWidget(self.pushButtonDownload)
 
-        self.pushButtonFindRefs = QPushButton(self.tabFiles)
-        self.pushButtonFindRefs.setObjectName(u"pushButtonFindRefs")
+        self.pushButtonSearchFiles = QPushButton(self.tabFiles)
+        self.pushButtonSearchFiles.setObjectName(u"pushButtonSearchFiles")
 
-        self.horizontalLayout_5.addWidget(self.pushButtonFindRefs)
+        self.horizontalLayout_5.addWidget(self.pushButtonSearchFiles)
 
         self.horizontalSpacer_3 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
@@ -300,25 +300,11 @@ class Ui_WcaMayaDialog(object):
 
         self.verticalLayout.addLayout(self.horizontalLayoutFiles)
 
-        self.horizontalLayoutButtons = QHBoxLayout()
-        self.horizontalLayoutButtons.setObjectName(u"horizontalLayoutButtons")
-        self.horizontalSpacerButton = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
-
-        self.horizontalLayoutButtons.addItem(self.horizontalSpacerButton)
-
-        self.pushButtonClose = QPushButton(WcaMayaDialog)
-        self.pushButtonClose.setObjectName(u"pushButtonClose")
-
-        self.horizontalLayoutButtons.addWidget(self.pushButtonClose)
-
-
-        self.verticalLayout.addLayout(self.horizontalLayoutButtons)
-
         self.horizontalLayoutStatus = QHBoxLayout()
         self.horizontalLayoutStatus.setObjectName(u"horizontalLayoutStatus")
         self.labelConnection = QLabel(WcaMayaDialog)
         self.labelConnection.setObjectName(u"labelConnection")
-        sizePolicy4 = QSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
+        sizePolicy4 = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Preferred)
         sizePolicy4.setHorizontalStretch(0)
         sizePolicy4.setVerticalStretch(0)
         sizePolicy4.setHeightForWidth(self.labelConnection.sizePolicy().hasHeightForWidth())
@@ -335,29 +321,19 @@ class Ui_WcaMayaDialog(object):
 
         self.horizontalLayoutStatus.addWidget(self.labelConnection)
 
-        self.line_2 = QFrame(WcaMayaDialog)
-        self.line_2.setObjectName(u"line_2")
-        self.line_2.setFrameShape(QFrame.VLine)
-        self.line_2.setFrameShadow(QFrame.Sunken)
+        self.progressBar = QProgressBar(WcaMayaDialog)
+        self.progressBar.setObjectName(u"progressBar")
+        sizePolicy2.setHeightForWidth(self.progressBar.sizePolicy().hasHeightForWidth())
+        self.progressBar.setSizePolicy(sizePolicy2)
+        self.progressBar.setMaximum(1)
+        self.progressBar.setValue(-1)
 
-        self.horizontalLayoutStatus.addWidget(self.line_2)
+        self.horizontalLayoutStatus.addWidget(self.progressBar)
 
-        self.horizontalSpacerStatus = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.pushButtonClose = QPushButton(WcaMayaDialog)
+        self.pushButtonClose.setObjectName(u"pushButtonClose")
 
-        self.horizontalLayoutStatus.addItem(self.horizontalSpacerStatus)
-
-        self.labelMessage = QLabel(WcaMayaDialog)
-        self.labelMessage.setObjectName(u"labelMessage")
-        sizePolicy4.setHeightForWidth(self.labelMessage.sizePolicy().hasHeightForWidth())
-        self.labelMessage.setSizePolicy(sizePolicy4)
-        self.labelMessage.setFont(font1)
-        self.labelMessage.setFrameShape(QFrame.NoFrame)
-        self.labelMessage.setLineWidth(0)
-        self.labelMessage.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
-        self.labelMessage.setMargin(1)
-        self.labelMessage.setIndent(5)
-
-        self.horizontalLayoutStatus.addWidget(self.labelMessage)
+        self.horizontalLayoutStatus.addWidget(self.pushButtonClose)
 
 
         self.verticalLayout.addLayout(self.horizontalLayoutStatus)
@@ -375,6 +351,10 @@ class Ui_WcaMayaDialog(object):
         WcaMayaDialog.setWindowTitle(QCoreApplication.translate("WcaMayaDialog", u"treehouse: swing", None))
         self.pushButtonSettings.setText(QCoreApplication.translate("WcaMayaDialog", u"Settings", None))
         self.pushButtonConnect.setText(QCoreApplication.translate("WcaMayaDialog", u"Connect", None))
+        self.pushButtonPlayblast.setText(QCoreApplication.translate("WcaMayaDialog", u"Playblast", None))
+#if QT_CONFIG(shortcut)
+        self.pushButtonPlayblast.setShortcut(QCoreApplication.translate("WcaMayaDialog", u"F8", None))
+#endif // QT_CONFIG(shortcut)
         self.pushButtonRefresh.setText(QCoreApplication.translate("WcaMayaDialog", u"Refresh", None))
 #if QT_CONFIG(shortcut)
         self.pushButtonRefresh.setShortcut(QCoreApplication.translate("WcaMayaDialog", u"F5", None))
@@ -391,7 +371,6 @@ class Ui_WcaMayaDialog(object):
         self.radioButtonShot.setShortcut(QCoreApplication.translate("WcaMayaDialog", u"Alt+S", None))
 #endif // QT_CONFIG(shortcut)
         self.pushButtonNew.setText(QCoreApplication.translate("WcaMayaDialog", u"New", None))
-        self.pushButtonPlayblast.setText(QCoreApplication.translate("WcaMayaDialog", u"Playblast", None))
         self.pushButtonPublish.setText(QCoreApplication.translate("WcaMayaDialog", u"Publish", None))
 #if QT_CONFIG(shortcut)
         self.pushButtonPublish.setShortcut(QCoreApplication.translate("WcaMayaDialog", u"Alt+P", None))
@@ -405,10 +384,12 @@ class Ui_WcaMayaDialog(object):
 #if QT_CONFIG(shortcut)
         self.pushButtonDownload.setShortcut(QCoreApplication.translate("WcaMayaDialog", u"Alt+D", None))
 #endif // QT_CONFIG(shortcut)
-        self.pushButtonFindRefs.setText(QCoreApplication.translate("WcaMayaDialog", u"Find Refs", None))
+        self.pushButtonSearchFiles.setText(QCoreApplication.translate("WcaMayaDialog", u"Search", None))
+#if QT_CONFIG(shortcut)
+        self.pushButtonSearchFiles.setShortcut(QCoreApplication.translate("WcaMayaDialog", u"F3", None))
+#endif // QT_CONFIG(shortcut)
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabFiles), QCoreApplication.translate("WcaMayaDialog", u"Files", None))
-        self.pushButtonClose.setText(QCoreApplication.translate("WcaMayaDialog", u"Close", None))
         self.labelConnection.setText(QCoreApplication.translate("WcaMayaDialog", u"Offline", None))
-        self.labelMessage.setText(QCoreApplication.translate("WcaMayaDialog", u"OK", None))
+        self.pushButtonClose.setText(QCoreApplication.translate("WcaMayaDialog", u"Close", None))
     # retranslateUi
 

@@ -37,17 +37,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButtonRefresh">
-       <property name="text">
-        <string>Refresh</string>
-       </property>
-       <property name="shortcut">
-        <string>F5</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer">
+      <spacer name="horizontalSpacer_4">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
@@ -58,6 +48,36 @@
         </size>
        </property>
       </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButtonPlayblast">
+       <property name="text">
+        <string>Playblast</string>
+       </property>
+       <property name="shortcut">
+        <string>F8</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButtonSearchFiles">
+       <property name="text">
+        <string>Search</string>
+       </property>
+       <property name="shortcut">
+        <string>F3</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButtonRefresh">
+       <property name="text">
+        <string>Refresh</string>
+       </property>
+       <property name="shortcut">
+        <string>F5</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
@@ -398,7 +418,7 @@
      <item>
       <widget class="QTabWidget" name="tabWidget">
        <property name="currentIndex">
-        <number>1</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="tabTasks">
         <attribute name="title">
@@ -419,13 +439,6 @@
                </property>
                <property name="text">
                 <string>New</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="pushButtonPlayblast">
-               <property name="text">
-                <string>Playblast</string>
                </property>
               </widget>
              </item>
@@ -500,13 +513,6 @@
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="pushButtonFindRefs">
-               <property name="text">
-                <string>Find Refs</string>
-               </property>
-              </widget>
-             </item>
-             <item>
               <spacer name="horizontalSpacer_3">
                <property name="orientation">
                 <enum>Qt::Horizontal</enum>
@@ -530,35 +536,11 @@
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayoutButtons">
-     <item>
-      <spacer name="horizontalSpacerButton">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
-      <widget class="QPushButton" name="pushButtonClose">
-       <property name="text">
-        <string>Close</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
     <layout class="QHBoxLayout" name="horizontalLayoutStatus">
      <item>
       <widget class="QLabel" name="labelConnection">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+        <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
@@ -588,57 +570,25 @@
       </widget>
      </item>
      <item>
-      <widget class="Line" name="line_2">
-       <property name="orientation">
-        <enum>Qt::Vertical</enum>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacerStatus">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
-      <widget class="QLabel" name="labelMessage">
+      <widget class="QProgressBar" name="progressBar">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="font">
-        <font>
-         <pointsize>7</pointsize>
-         <weight>75</weight>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="frameShape">
-        <enum>QFrame::NoFrame</enum>
-       </property>
-       <property name="lineWidth">
-        <number>0</number>
-       </property>
-       <property name="text">
-        <string>OK</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-       <property name="margin">
+       <property name="maximum">
         <number>1</number>
        </property>
-       <property name="indent">
-        <number>5</number>
+       <property name="value">
+        <number>-1</number>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButtonClose">
+       <property name="text">
+        <string>Close</string>
        </property>
       </widget>
      </item>
