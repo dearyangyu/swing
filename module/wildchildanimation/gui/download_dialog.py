@@ -143,7 +143,7 @@ class Ui_DownloadDialog(object):
         self.tableWidget.setFont(font)
         self.tableWidget.setProperty("showDropIndicator", False)
         self.tableWidget.setAlternatingRowColors(True)
-        self.tableWidget.setSelectionBehavior(QAbstractItemView.SelectItems)
+        self.tableWidget.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.tableWidget.horizontalHeader().setStretchLastSection(True)
 
         self.verticalLayout.addWidget(self.tableWidget)
@@ -184,7 +184,7 @@ class Ui_DownloadDialog(object):
         DownloadDialog.setWindowTitle(QCoreApplication.translate("DownloadDialog", u"Download Files", None))
         self.labelEntity.setText(QCoreApplication.translate("DownloadDialog", u"Entity", None))
         self.toolButtonWeb.setText(QCoreApplication.translate("DownloadDialog", u"...", None))
-        self.labelWorkingDirectory.setText(QCoreApplication.translate("DownloadDialog", u"Projects Folder", None))
+        self.labelWorkingDirectory.setText(QCoreApplication.translate("DownloadDialog", u"Root Folder", None))
         self.toolButtonWorkingDir.setText(QCoreApplication.translate("DownloadDialog", u"...", None))
         self.checkBoxSkipExisting.setText(QCoreApplication.translate("DownloadDialog", u"Skip Existing Files", None))
         self.checkBoxExtractZips.setText(QCoreApplication.translate("DownloadDialog", u"Extract Zip Files", None))

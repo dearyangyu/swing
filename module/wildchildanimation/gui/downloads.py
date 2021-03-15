@@ -253,6 +253,21 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
         self.files = files
 
         load_file_table_widget(self.tableWidget, files)
+        self.tableWidget.doubleClicked.connect(self.on_click) 
+
+    def on_click(self, index):
+        row = index.row()
+        column = index.column()
+
+        row_item = self.tableWidget.item(row, column)
+        selected = row_item.data(QtCore.Qt.UserRole)
+        working_dir = load_settings("projects_root", os.path.expanduser("~"))
+        set_target(selected, working_dir)        
+
+        if os.path.exists(selected["target_path"]):
+            reply = QtWidgets.QMessageBox.question(self, 'File found:', 'Would you like to open the existing folder?', QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
+            if reply == QtWidgets.QMessageBox.Yes:
+                open_folder(os.path.dirname(selected["target_path"]))
 
     def download_files(self):
         self.threadpool = QtCore.QThreadPool.globalInstance()

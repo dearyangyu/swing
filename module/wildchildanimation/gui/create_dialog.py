@@ -221,7 +221,7 @@ class Ui_CreateDialog(object):
         self.toolButtonWeb.setToolTip(QCoreApplication.translate("CreateDialog", u"Opens link in Kitsu", None))
 #endif // QT_CONFIG(tooltip)
         self.toolButtonWeb.setText(QCoreApplication.translate("CreateDialog", u"Web", None))
-        self.labelWorkingDir.setText(QCoreApplication.translate("CreateDialog", u"Projects Folder", None))
+        self.labelWorkingDir.setText(QCoreApplication.translate("CreateDialog", u"Root Folder", None))
         self.toolButtonWorkingDir.setText(QCoreApplication.translate("CreateDialog", u"...", None))
         self.labelSoftware.setText(QCoreApplication.translate("CreateDialog", u"Software", None))
         self.labelFrames.setText(QCoreApplication.translate("CreateDialog", u"Frame", None))

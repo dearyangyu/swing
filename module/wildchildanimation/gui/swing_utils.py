@@ -4,16 +4,23 @@
 '''
 # ==== auto Qt load ====
 try:
-    from PySide2 import QtCore
+    from PySide2 import QtCore, QtGui
     qtMode = 0
 except ImportError:
-    from PyQt5 import QtCore
+    from PyQt5 import QtCore, QtGui
 
 import keyring
 import os.path
 import re
 
 from datetime import datetime
+
+def open_folder(directory):
+    file_info = QtCore.QFileInfo(directory)
+    if file_info.isDir():
+        QtGui.QDesktopServices.openUrl(directory)
+    else:
+        write_log("[ERROR] Invalid directory path: {0}".format(directory))
 
 def set_target(file_item, local_root):
     path = file_item["path"]
