@@ -43,6 +43,11 @@ class Ui_WcaMayaDialog(object):
 
         self.connectionLayout.addWidget(self.pushButtonPlayblast)
 
+        self.pushButtonSearchFiles = QPushButton(WcaMayaDialog)
+        self.pushButtonSearchFiles.setObjectName(u"pushButtonSearchFiles")
+
+        self.connectionLayout.addWidget(self.pushButtonSearchFiles)
+
         self.pushButtonRefresh = QPushButton(WcaMayaDialog)
         self.pushButtonRefresh.setObjectName(u"pushButtonRefresh")
 
@@ -278,11 +283,6 @@ class Ui_WcaMayaDialog(object):
 
         self.horizontalLayout_5.addWidget(self.pushButtonDownload)
 
-        self.pushButtonSearchFiles = QPushButton(self.tabFiles)
-        self.pushButtonSearchFiles.setObjectName(u"pushButtonSearchFiles")
-
-        self.horizontalLayout_5.addWidget(self.pushButtonSearchFiles)
-
         self.horizontalSpacer_3 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
         self.horizontalLayout_5.addItem(self.horizontalSpacer_3)
@@ -341,7 +341,7 @@ class Ui_WcaMayaDialog(object):
 
         self.retranslateUi(WcaMayaDialog)
 
-        self.tabWidget.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(0)
 
 
         QMetaObject.connectSlotsByName(WcaMayaDialog)
@@ -354,6 +354,10 @@ class Ui_WcaMayaDialog(object):
         self.pushButtonPlayblast.setText(QCoreApplication.translate("WcaMayaDialog", u"Playblast", None))
 #if QT_CONFIG(shortcut)
         self.pushButtonPlayblast.setShortcut(QCoreApplication.translate("WcaMayaDialog", u"F8", None))
+#endif // QT_CONFIG(shortcut)
+        self.pushButtonSearchFiles.setText(QCoreApplication.translate("WcaMayaDialog", u"Search", None))
+#if QT_CONFIG(shortcut)
+        self.pushButtonSearchFiles.setShortcut(QCoreApplication.translate("WcaMayaDialog", u"F3", None))
 #endif // QT_CONFIG(shortcut)
         self.pushButtonRefresh.setText(QCoreApplication.translate("WcaMayaDialog", u"Refresh", None))
 #if QT_CONFIG(shortcut)
@@ -383,10 +387,6 @@ class Ui_WcaMayaDialog(object):
         self.pushButtonDownload.setText(QCoreApplication.translate("WcaMayaDialog", u"Download", None))
 #if QT_CONFIG(shortcut)
         self.pushButtonDownload.setShortcut(QCoreApplication.translate("WcaMayaDialog", u"Alt+D", None))
-#endif // QT_CONFIG(shortcut)
-        self.pushButtonSearchFiles.setText(QCoreApplication.translate("WcaMayaDialog", u"Search", None))
-#if QT_CONFIG(shortcut)
-        self.pushButtonSearchFiles.setShortcut(QCoreApplication.translate("WcaMayaDialog", u"F3", None))
 #endif // QT_CONFIG(shortcut)
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabFiles), QCoreApplication.translate("WcaMayaDialog", u"Files", None))
         self.labelConnection.setText(QCoreApplication.translate("WcaMayaDialog", u"Offline", None))

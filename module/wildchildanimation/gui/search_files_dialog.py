@@ -19,6 +19,7 @@ class Ui_SearchFilesDialog(object):
             SearchFilesDialog.setObjectName(u"SearchFilesDialog")
         SearchFilesDialog.setEnabled(True)
         SearchFilesDialog.resize(609, 159)
+        SearchFilesDialog.setSizeGripEnabled(True)
         self.verticalLayout = QVBoxLayout(SearchFilesDialog)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.horizontalLayout_6 = QHBoxLayout()
@@ -75,7 +76,7 @@ class Ui_SearchFilesDialog(object):
     # setupUi
 
     def retranslateUi(self, SearchFilesDialog):
-        SearchFilesDialog.setWindowTitle(QCoreApplication.translate("SearchFilesDialog", u"Find references", None))
+        SearchFilesDialog.setWindowTitle(QCoreApplication.translate("SearchFilesDialog", u"Search for files", None))
         self.label.setText(QCoreApplication.translate("SearchFilesDialog", u"Enter a comma seperated list of file names or partial file names to search for ", None))
         self.pushButtonSearch.setText(QCoreApplication.translate("SearchFilesDialog", u"Search", None))
 #if QT_CONFIG(shortcut)
