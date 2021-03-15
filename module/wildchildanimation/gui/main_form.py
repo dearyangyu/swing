@@ -43,6 +43,11 @@ class Ui_WcaMayaDialog(object):
 
         self.connectionLayout.addWidget(self.pushButtonPlayblast)
 
+        self.pushButtonBreakout = QPushButton(WcaMayaDialog)
+        self.pushButtonBreakout.setObjectName(u"pushButtonBreakout")
+
+        self.connectionLayout.addWidget(self.pushButtonBreakout)
+
         self.pushButtonSearchFiles = QPushButton(WcaMayaDialog)
         self.pushButtonSearchFiles.setObjectName(u"pushButtonSearchFiles")
 
@@ -341,7 +346,7 @@ class Ui_WcaMayaDialog(object):
 
         self.retranslateUi(WcaMayaDialog)
 
-        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(1)
 
 
         QMetaObject.connectSlotsByName(WcaMayaDialog)
@@ -355,6 +360,7 @@ class Ui_WcaMayaDialog(object):
 #if QT_CONFIG(shortcut)
         self.pushButtonPlayblast.setShortcut(QCoreApplication.translate("WcaMayaDialog", u"F8", None))
 #endif // QT_CONFIG(shortcut)
+        self.pushButtonBreakout.setText(QCoreApplication.translate("WcaMayaDialog", u"Breakout", None))
         self.pushButtonSearchFiles.setText(QCoreApplication.translate("WcaMayaDialog", u"Search", None))
 #if QT_CONFIG(shortcut)
         self.pushButtonSearchFiles.setShortcut(QCoreApplication.translate("WcaMayaDialog", u"F3", None))

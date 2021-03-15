@@ -52,6 +52,7 @@ from wildchildanimation.gui.zurbrigg_playblast import *
 from wildchildanimation.gui.references import *
 from wildchildanimation.gui.search import *
 from wildchildanimation.gui.downloads import *
+from wildchildanimation.gui.breakout import *
 
 from wildchildanimation.gui.swing_tables import FileTableModel, TaskTableModel, CastingTableModel, load_file_table_widget, human_size
 
@@ -113,6 +114,9 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
         self.pushButtonPlayblast.clicked.connect(self.playblast_scene)
         self.pushButtonNew.clicked.connect(self.new_scene)
         self.pushButtonSearchFiles.clicked.connect(self.search_files_dialog)
+        self.pushButtonBreakout.clicked.connect(self.breakout_dialog)
+        #self.setWorkingDir(load_settings("projects_root", os.path.expanduser("~")))
+
 
         self.pushButtonClose.clicked.connect(self.close_dialog)
 
@@ -612,6 +616,13 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
     def search_files_dialog(self):
         dialog = SearchFilesDialog(self, self.handler, self.get_current_selection(), self.task_types)
         dialog.exec_()
+
+    def breakout_dialog(self):
+        if self.currentProject and self.currentEpisode:
+            dialog = BreakoutUploadDialog(self)
+            dialog.set_project(self.currentProject)
+            dialog.set_episode(self.currentEpisode)
+            dialog.exec_()
 
     def download_files(self):
         dialog = DownloadDialogGUI(self, self.get_current_selection(), self.task_types)

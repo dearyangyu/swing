@@ -27,11 +27,7 @@ except ImportError:
 
 from datetime import datetime
 
-def write_log(*args):
-    log = "{} swing: ".format(datetime.now().strftime("%Y/%m/%d %H:%M:%S.%f"))
-    for log_data in args:
-        log += " {}".format(log_data)
-    print(log)
+from wildchildanimation.gui.swing_utils import *
 
 class LoadedSignal(QtCore.QObject):
     loaded = QtCore.Signal(object)        
@@ -533,6 +529,179 @@ class WorkingFileUploader(QtCore.QRunnable):
 
         return True        
 
+class ShotCreatorSignal(QtCore.QObject):
+
+    # setting up custom signal
+    results = QtCore.Signal(object) 
+
+
+
+class ShotCreator(QtCore.QRunnable):
+
+    def __init__(self, parent, project, episode, sequence, shot_list):
+        super(ShotCreator, self).__init__(self, parent)
+        self.parent = parent
+
+        # expecting gazu entities
+        self.project = project
+        self.episode = episode
+        self.sequence = sequence
+
+        # expecting breakout format json
+        self.shot_list = shot_list
+        self.callback = ShotCreatorSignal()
+
+    def get_shot_task(self, shot, task_type_name, task_status):
+        tasks = gazu.task.all_tasks_for_shot(shot)
+        for t in tasks:
+            if t["task_type_name"] == task_type_name and t["task_status_name"] == task_status["name"]:
+                    return t
+        return False        
+
+    def run(self):
+        email = load_settings('user', 'user@example.com')
+        password = load_keyring('swing', 'password', 'Not A Password')        
+        server = load_settings('server', 'https://production.wildchildanimation.com')
+        edit_api = "{}/edit".format(server)                                      
+
+        sequence = gazu.shot.get_sequence(self.sequence["id"])
+        if not sequence:
+            results = {
+                "status": "Error",
+                "message": "Sequence not found"
+            }
+            self.callback.results.emit(results)
+            return False
+
+        #task_type = gazu.task.get_task_type_by_name("Layout")
+        #todo: fix case insensitive search on gazu.task.get_task_type_by_name
+        task_type = gazu.task.get_task_type("821d35d1-819f-475c-90ee-47bce5839a28")
+        if not task_type:
+            results = {
+                "status": "Error",
+                "message": "Task type Layout not found"
+            }        
+            self.callback.results.emit(results)
+            return False
+
+        task_status = gazu.task.get_task_status_by_name("Todo")
+        if not task_status:
+            results = {
+                "status": "Error",
+                "message": "Task status Todo not found"
+            }        
+            self.callback.results.emit(results)
+            return False   
+
+        software = gazu.files.get_software_by_name("Maya 2020")
+        if not software:
+            results = {
+                "status": "Error",
+                "message": "Software Maya 2020 not found in Kitsu config"
+            }        
+            self.callback.results.emit(results)
+            return False                         
+
+        person = gazu.person.get_person_by_email(email)            
+        if not person:
+            results = {
+                "status": "Error",
+                "message": "Person Maya 2020 not found in Kitsu config"
+            }        
+            self.callback.results.emit(results)
+            return False           
+
+        for item in self.shot_list:
+            number = str(item["shot_number"])
+            shot_name = "sh{}".format(number.zfill(3))
+
+            shot = gazu.shot.get_shot_by_name(sequence, shot_name)
+            results = {
+                "status": "OK", 
+                "message": "Checking shot {0}".format(shot_name),
+            }        
+            self.callback.results.emit(results)                
+
+            if not shot:
+                shot = gazu.shot.new_shot(self.project, sequence, shot_name)
+
+                results = {
+                    "status": "OK", 
+                    "message": "Created new shot {0}".format(shot_name),
+                }        
+                self.callback.results.emit(results)                
+
+            if "project_file_name" in item:
+                file_name = item["project_file_name"]
+                file_path = item["project_file_path"]
+                
+                if os.path.exists(file_path) and os.path.isfile(file_path):
+                    task = self.get_shot_task(shot, task_type["name"], task_status)
+                    if not task:
+                        task = gazu.task.new_task(shot, task_type, task_status = task_status, assigner = None, assignees = None)
+                    working_files = gazu.files.get_working_files_for_task(task)
+
+                    if len(working_files) == 0:
+                        source = file_path
+                        if os.path.exists(source):
+                            file_base = os.path.basename(source)
+                            file_path = os.path.dirname(source)
+                            file_name, file_ext = os.path.splitext(file_base)                
+
+                            # self.threadpool.start(worker)                        
+                            worker = WorkingFileUploader(self, edit_api, task, source, file_base, software["name"], "Breakout file", email, password, mode = "working")
+                            worker.run()
+
+                            results = {
+                                "status": "OK", 
+                                "message": "Uploaded file {0}".format(source),
+                            }                              
+
+                        self.callback.results.emit(results)                
+            ### project working file
+
+            # add playblast to Layout task if Layout task doesn't exist or is set to Todo
+            if "playblast_file_name" in item:
+                file_name = item["playblast_file_name"]
+                file_path = item["playblast_file_path"]
+                
+                if os.path.exists(file_path) and os.path.isfile(file_path):
+                    task = self.get_shot_task(shot, task_type["name"], task_status)
+                    if not task:
+                        task = gazu.task.new_task(shot, task_type, task_status = task_status, assigner = None, assignees = None)                    
+                    previews = gazu.files.get_all_preview_files_for_task(task)
+                    if len(previews) == 0:
+                        source = file_path
+                        if os.path.exists(source):
+                            file_base = os.path.basename(source)
+                            file_path = os.path.dirname(source)
+                            file_name, file_ext = os.path.splitext(file_base)                
+
+                            # self.threadpool.start(worker)                        
+                            worker = WorkingFileUploader(self, edit_api, task, source, file_base, software["name"], "Breakout file", email, password,  mode = "preview")
+                            worker.run()
+
+                            results = {
+                                "status": "OK", 
+                                "message": "Uploaded file {0}".format(source),
+                            }  
+
+                            self.callback.results.emit(results)      
+
+            results = {
+                "status": "OK", 
+                "message": "Processed shot {0}".format(shot_name),
+            }        
+            self.callback.results.emit(results)                                        
+
+        results = {
+            "status": "OK", 
+            "message": "Create shots success",
+        }        
+
+        self.callback.results.emit(results)
+        return True        
+
 class SearchResultSignal(QtCore.QObject):
 
     # setting up custom signal
@@ -569,3 +738,4 @@ class SearchFn(QtCore.QRunnable):
 
         self.callback.results.emit(results)
         return True        
+

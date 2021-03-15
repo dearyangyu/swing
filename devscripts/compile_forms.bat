@@ -27,3 +27,6 @@ c:\dev\github\wca-maya\venv\lib\site-packages\PySide2\uic -g python -o c:\dev\Gi
 
 echo "Compling search dialog"
 c:\dev\github\wca-maya\venv\lib\site-packages\PySide2\uic -g python -o c:\dev\Github\wca-maya\module\wildchildanimation\gui\search_files_dialog.py c:\dev\Github\wca-maya\module\wildchildanimation\gui\forms\maya\search_files_dialog.ui
+
+echo "Compling breakout dialog"
+c:\dev\github\wca-maya\venv\lib\site-packages\PySide2\uic -g python -o c:\dev\Github\wca-maya\module\wildchildanimation\gui\breakout_upload_dialog.py c:\dev\Github\wca-maya\module\wildchildanimation\gui\forms\maya\breakout_upload_dialog.ui

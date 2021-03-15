@@ -60,6 +60,13 @@
       </widget>
      </item>
      <item>
+      <widget class="QPushButton" name="pushButtonBreakout">
+       <property name="text">
+        <string>Breakout</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="pushButtonSearchFiles">
        <property name="text">
         <string>Search</string>
@@ -418,7 +425,7 @@
      <item>
       <widget class="QTabWidget" name="tabWidget">
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="tabTasks">
         <attribute name="title">
