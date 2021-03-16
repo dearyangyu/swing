@@ -546,12 +546,13 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
                 reply = QtWidgets.QMessageBox.question(self, 'File found:', 'Would you like to open the existing folder?', QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
                 if reply == QtWidgets.QMessageBox.Yes:
                     open_folder(os.path.dirname(self.selected_file["target_path"]))
-                else:
-                    dialog = LoaderDialogGUI(self, self.handler, self.get_current_selection())
-                    dialog.load_files(self.tableViewFiles.model().files)
-                    dialog.set_selected(self.selected_file)
-                    #dialog.exec_()
-                    dialog.show()
+                    return True
+
+            dialog = LoaderDialogGUI(self, self.handler, self.get_current_selection())
+            dialog.load_files(self.tableViewFiles.model().files)
+            dialog.set_selected(self.selected_file)
+            #dialog.exec_()
+            dialog.show()
 
 
     def file_table_selection_changed(self):
