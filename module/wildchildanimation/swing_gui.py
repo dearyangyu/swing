@@ -996,7 +996,7 @@ class UploadListModel(QtCore.QAbstractListModel):
 
 class UploadMonitorDialog(QtWidgets.QDialog, Ui_UploadMonitorDialog):
 
-    def __init__(self, parent = None, handler = None, task = None):
+    def __init__(self, parent = None, task = None):
         super(UploadMonitorDialog, self).__init__(parent) # Call the inherited classes __init__ method    
         self.setupUi(self)
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
@@ -1005,6 +1005,7 @@ class UploadMonitorDialog(QtWidgets.QDialog, Ui_UploadMonitorDialog):
         self.model = UploadListModel(self.listView)
         self.listView.setModel(self.model)
         self.pushButtonCancel.clicked.connect(self.close_dialog)
+        self.task = task
 
         self.progressBar.setRange(0, len(self.model.files))
 
@@ -1028,6 +1029,12 @@ class UploadMonitorDialog(QtWidgets.QDialog, Ui_UploadMonitorDialog):
 
         if self.progressBar.value() >= len(self.model.files):
             QtWidgets.QMessageBox.question(self, 'Publishing complete', 'All files uploaded, thank you', QtWidgets.QMessageBox.Ok)
+            try:
+                url = gazu.task.get_task_url(self.task)
+                self.open_url(url)
+            except:
+                print("Error loading url {0}".format(url))
+                pass
 
     def add_item(self, source, text):
         self.model.add_item(source, text)         
@@ -1036,6 +1043,11 @@ class UploadMonitorDialog(QtWidgets.QDialog, Ui_UploadMonitorDialog):
         self.progressBar.setRange(0, len(self.model.files))      
         self.progressBar.setValue(1)
         print("Upload monitor created for {0} files".format(len(self.model.files)))    
+
+    def open_url(self, url):
+        link = QtCore.QUrl(self.url)
+        if not QtGui.QDesktopServices.openUrl(link):
+            QtGui.QMessageBox.warning(self, 'Open Url', 'Could not open url')           
 '''
     PublishDialogClass class
     ################################################################################
@@ -1101,7 +1113,7 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         edit_api = "{}/edit".format(server)        
 
         #self, parent, task, source, software_name, comment, email, password
-        dialog = UploadMonitorDialog(self)
+        dialog = UploadMonitorDialog(self, self.task)
 
         # project file
         if len(self.projectFileEdit.text()) > 0:
