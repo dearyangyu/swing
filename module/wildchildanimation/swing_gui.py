@@ -1006,7 +1006,6 @@ class UploadMonitorDialog(QtWidgets.QDialog, Ui_UploadMonitorDialog):
         self.listView.setModel(self.model)
         self.pushButtonCancel.clicked.connect(self.close_dialog)
 
-        
         self.progressBar.setRange(0, len(self.model.files))
 
     def close_dialog(self):
@@ -1026,6 +1025,9 @@ class UploadMonitorDialog(QtWidgets.QDialog, Ui_UploadMonitorDialog):
 
         self.model.set_item_text(source, message)        
         self.progressBar.setValue(self.progressBar.value() + 1)
+
+        if self.progressBar.value() >= len(self.model.files):
+            QtWidgets.QMessageBox.question(self, 'Publishing complete', 'All files uploaded, thank you', QtWidgets.QMessageBox.Ok)
 
     def add_item(self, source, text):
         self.model.add_item(source, text)         
