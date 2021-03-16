@@ -1079,16 +1079,18 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
             self.request = self.handler.on_save() 
             self.projectFileEdit.setText(self.request["file_path"])
 
-     
-
     def close_dialog(self):
         self.close()
 
     def file_loaded(self, status):
-        self.pushButtonCancel.setEnabled(True)
+        self.process_count -= 1
+        if self.process_count == 0:
+            QtWidgets.QMessageBox.question(self, 'Publishing complete', 'All files uploaded, thank you', QtWidgets.QMessageBox.Ok)
+            self.pushButtonCancel.setEnabled(True)
 
     def process(self):
         self.pushButtonCancel.setEnabled(False)
+        self.process_count = 0
 
         email = load_settings('user', 'user@example.com')
         password = load_keyring('swing', 'password', 'Not A Password')        
@@ -1112,7 +1114,10 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
                 worker.callback.progress.connect(dialog.file_loading)
                 worker.callback.done.connect(dialog.file_loaded)
                 dialog.add_item(source, "Pending")
+
+                self.process_count += 1                
                 self.threadpool.start(worker)
+
 
         if len(self.fbxFileEdit.text()) > 0:
             source = self.fbxFileEdit.text()
@@ -1125,6 +1130,8 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
                 worker.callback.progress.connect(dialog.file_loading)
                 worker.callback.done.connect(dialog.file_loaded)
                 dialog.add_item(source, "Pending")    
+
+                self.process_count += 1
                 self.threadpool.start(worker)            
 
         if len(self.reviewFileEdit.text()) > 0:
@@ -1138,6 +1145,8 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
                 worker.callback.progress.connect(dialog.file_loading)
                 worker.callback.done.connect(dialog.file_loaded)
                 dialog.add_item(source, "Pending")    
+
+                self.process_count += 1
                 self.threadpool.start(worker)   
 
         row = 0
@@ -1155,7 +1164,9 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
                     worker = bg.WorkingFileUploader(self, edit_api, self.task, source, file_name, "working", self.commentEdit.toPlainText().strip(), email, password)
                     worker.callback.progress.connect(dialog.file_loading)
                     worker.callback.done.connect(dialog.file_loaded)
-                    dialog.add_item(source, "Pending")    
+                    dialog.add_item(source, "Pending")   
+
+                    self.process_count += 1
                     self.threadpool.start(worker)                  
             row += 1
 
@@ -1504,6 +1515,7 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
         self.threadpool = QtCore.QThreadPool.globalInstance()
 
         self.set_ui_enabled(False)
+        self.process_count = 0
 
         email = load_settings('user', 'user@example.com')
         password = load_keyring('swing', 'password', 'Not A Password')
@@ -1523,6 +1535,7 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
             worker.callback.progress.connect(self.file_loading)
             worker.callback.done.connect(self.file_loaded)
 
+            self.process_count += 1
             self.threadpool.start(worker)
             self.append_status("Downloading {} to {}".format(item["name"], item["target_path"]))
             #file_item["status"] = "Busy"
@@ -1536,6 +1549,7 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
             worker.callback.progress.connect(self.file_loading)
             worker.callback.done.connect(self.file_loaded)
             
+            self.process_count += 1
             self.threadpool.start(worker)
             self.append_status("Downloading {} to {}".format(item["name"], item["target_path"]))
         # file type
