@@ -727,13 +727,14 @@ class SearchFn(QtCore.QRunnable):
             params = { 
                 "username": self.email,
                 "password": self.password,
-                "filename": "%{}%".format(item)
+                "filename": "%{}%".format(item.strip())
             }             
 
             rq = requests.post(search_url, data = params)
             if rq.status_code == 200:
-                message = rq.json()
-                results.append(message)
+                found = rq.json()
+                for item in found:
+                    results.append(item)
             count += 1
 
         self.callback.results.emit(results)

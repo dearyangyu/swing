@@ -76,7 +76,6 @@ class SearchFilesDialog(QtWidgets.QDialog, Ui_SearchFilesDialog):
 
         self.threadpool.start(worker)
         self.enable_ui(False)
-        #worker.run()
     # process        
 
     def enable_ui(self, enabled):
@@ -89,14 +88,8 @@ class SearchFilesDialog(QtWidgets.QDialog, Ui_SearchFilesDialog):
             # set progressbar to busy
             self.progressBar.setRange(0, 0)
 
-    def search_results(self, results):
+    def search_results(self, file_list):
         self.enable_ui(True)
-
-        file_list = []
-
-        for sr in results:
-            for result in sr:
-                file_list.append(result)
 
         if len(file_list) == 0:
             QtWidgets.QMessageBox.information(self, 'File Search', 'No files found, sorry', QtWidgets.QMessageBox.Ok)            
