@@ -1,4 +1,6 @@
-python-qt5
 gazu
 keyring
 PyQt5
+PySide2
+requests_toolbelt
+qdarkstyle

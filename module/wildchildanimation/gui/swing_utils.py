@@ -9,6 +9,7 @@ try:
 except ImportError:
     from PyQt5 import QtCore, QtGui
 
+import gazu
 import keyring
 import os.path
 import re
@@ -71,7 +72,6 @@ def my_date_format(date):
         return dt.strftime("%Y-%m-%d %H:%M:%S")
     return date.strftime("%Y-%m-%d %H:%M:%S")
 
-
 def my_date_format(date):
     if isinstance(date, str):
         return date
@@ -104,3 +104,13 @@ def human_size(bytes):
 
     # really ?     
     return "{:.2f}".format(bytes)   
+
+def connect_to_server(email, password): 
+    server = load_settings('server', 'https://production.wildchildanimation.com')
+    gazu.set_host("{}/api".format(server))
+    try:
+        gazu.log_in(email, password)
+    except:
+        return False
+
+    return True        

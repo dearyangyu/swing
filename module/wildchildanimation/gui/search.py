@@ -22,7 +22,7 @@ except ImportError:
 
 from datetime import datetime
 
-import wildchildanimation.background_workers as bg
+import background_workers as bg
 from wildchildanimation.gui.swing_utils import *
 
 from wildchildanimation.gui.search_files_dialog import Ui_SearchFilesDialog

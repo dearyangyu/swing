@@ -35,7 +35,7 @@ from datetime import datetime
 
 import requests
 
-import wildchildanimation.background_workers as bg
+import wildchildanimation.gui.background_workers as bg
 
 from wildchildanimation.gui.swing_utils import *
 
@@ -83,6 +83,22 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
 
     selected_file = None
     selected_task = None
+
+    dlg_instance = None
+
+    @classmethod
+    def show_dialog(cls):
+        if not cls.dlg_instance:
+            cls.dlg_instance = SwingGUI()
+
+        if cls.dlg_instance.isHidden():
+            cls.dlg_instance.show()
+        else:
+            cls.dlg_instance.raise_()
+            cls.dlg_instance.activateWindow()    
+
+    def keyPressEvent(self, event):
+        super(SwingGUI, self).keyPressEvent(event)            
 
     def __init__(self, studio_handler = None):
         super(SwingGUI, self).__init__(None) # Call the inherited classes __init__ method

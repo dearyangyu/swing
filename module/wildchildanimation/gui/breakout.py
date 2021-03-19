@@ -26,7 +26,7 @@ from wildchildanimation.gui.swing_utils import *
 from wildchildanimation.gui.breakout_upload_dialog import Ui_BreakoutUploadDialog
 from wildchildanimation.gui.swing_tables import human_size, load_file_table_widget
 
-from wildchildanimation.background_workers import ShotCreator, ShotCreatorSignal
+from wildchildanimation.gui.background_workers import ShotCreator, ShotCreatorSignal
 
 '''
     BreakoutUploadDialog class

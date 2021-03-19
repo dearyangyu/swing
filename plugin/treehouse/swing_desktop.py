@@ -1,34 +1,51 @@
-'''
-    Set to folder containing module/ and plugin/
-'''
+# -*- coding: utf-8 -*-
+# Swing Standalone command line runner
+#
 
-# WCA_ROOT = "Z:/env/maya/treehouse/wca-maya/"
-WCA_ROOT = "C:/DEV/Github/wca-maya"
+#
+# local import wildchildanimation module by adding to the path
+WCA_ROOT = "C:/WCA/wca-maya-main/"
 
 import sys
 
 sys.path.append("{0}/{1}".format(WCA_ROOT, "/module"))
 from wildchildanimation.swing_gui import SwingGUI
 
-# studio specific import callbacks 
-sys.path.append("{0}/{1}".format(WCA_ROOT, "/plugin/treehouse"))
-from maya_handlers import StudioHandler
+#
+#
+try:
+    import qdarkstyle
+    darkStyle = True
+except:
+    darkStyle = False
 
-import PySide2.QtWidgets
-import PySide2.QtGui
-from PySide2.QtWidgets import QApplication, QWidget
 
-# studio specific import callbacks 
-#from maya_handlers import StudioHandler
-# handler = StudioHandler()    
-handler = None
+# ==== auto Qt load ====
+try:
+    from PySide2.QtWidgets import QApplication, QWidget    
+    qtMode = 0
+except ImportError:
+    from PyQt5.QtWidgets import QApplication, QWidget
+    qtMode = 1
 
-if __name__ == '__main__':
+if __name__ == "__main__":
+    try:
+        swing_gui.close() # pylint: disable=E0601
+        swing_gui.deleteLater()
+    except:
+        pass
+
     app = QApplication(sys.argv)
 
-    ex = SwingGUI(handler)
-    ex.show()
+    if darkStyle:
+        # setup stylesheet
+        app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
+        # or in new API
+        app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))        
+
+    swing_gui = SwingGUI()
+    swing_gui.show()
+
     sys.exit(app.exec_())
-else:
-    ex = SwingGUI(handler)
-# entry point    
+
+

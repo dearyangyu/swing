@@ -217,7 +217,10 @@ class Ui_BreakoutUploadDialog(object):
     # setupUi
 
     def retranslateUi(self, BreakoutUploadDialog):
-        BreakoutUploadDialog.setWindowTitle(QCoreApplication.translate("BreakoutUploadDialog", u"File Monitor", None))
+        BreakoutUploadDialog.setWindowTitle(QCoreApplication.translate("BreakoutUploadDialog", u"Upload Layout Sequence", None))
+#if QT_CONFIG(tooltip)
+        BreakoutUploadDialog.setToolTip(QCoreApplication.translate("BreakoutUploadDialog", u"Select playblast and project file directories to upload as Layout", None))
+#endif // QT_CONFIG(tooltip)
         self.labelProject.setText(QCoreApplication.translate("BreakoutUploadDialog", u"Project", None))
         self.labelShotEpisode.setText(QCoreApplication.translate("BreakoutUploadDialog", u"Episode", None))
         self.labelShotSequence.setText(QCoreApplication.translate("BreakoutUploadDialog", u"Sequence", None))

@@ -23,14 +23,14 @@ try:
     qtMode = 0
 except ImportError:
     from PyQt5 import QtCore
-    from QtCore import pyqtSignal
+    from PyQt5.QtCore import pyqtSignal
 
 from datetime import datetime
 
-from wildchildanimation.gui.swing_utils import *
+from swing_utils import *
 
 class LoadedSignal(QtCore.QObject):
-    loaded = QtCore.Signal(object)        
+    loaded = pyqtSignal(object)        
 
 class ProjectLoaderThread(QtCore.QRunnable):
 
@@ -252,8 +252,8 @@ class SoftwareLoader(QtCore.QRunnable):
 class DownloadSignal(QtCore.QObject):
 
     # setting up custom signal
-    done = QtCore.Signal(object)        
-    progress = QtCore.Signal(object)
+    done = pyqtSignal(object)        
+    progress = pyqtSignal(object)
 
 class FileDownloader(QtCore.QRunnable):
 
@@ -428,8 +428,8 @@ class FileDownloader(QtCore.QRunnable):
 class UploadSignal(QtCore.QObject):
 
     # setting up custom signal
-    done = QtCore.Signal(object)        
-    progress = QtCore.Signal(object)
+    done = pyqtSignal(object)        
+    progress = pyqtSignal(object)
 
 
 
@@ -532,7 +532,7 @@ class WorkingFileUploader(QtCore.QRunnable):
 class ShotCreatorSignal(QtCore.QObject):
 
     # setting up custom signal
-    results = QtCore.Signal(object) 
+    results = pyqtSignal(object) 
 
 
 
@@ -705,7 +705,7 @@ class ShotCreator(QtCore.QRunnable):
 class SearchResultSignal(QtCore.QObject):
 
     # setting up custom signal
-    results = QtCore.Signal(object)        
+    results = pyqtSignal(object)        
 
 class SearchFn(QtCore.QRunnable):
 
