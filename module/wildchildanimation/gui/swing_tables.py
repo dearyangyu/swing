@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import traceback
 import sys
+import copy
 import os
 
 # ==== auto Qt load ====
@@ -237,7 +238,9 @@ def load_file_table_widget(tableWidget, model):
     tableWidget.setRowCount(len(model))
 
     row = 0
-    for item in model:
+    for file_item in model:
+        item = copy.copy(file_item)
+
         cell = QtWidgets.QTableWidgetItem(item["name"])
         cell.setData(QtCore.Qt.UserRole, item)
 
@@ -279,8 +282,9 @@ def load_file_table_widget(tableWidget, model):
     tableWidget.setColumnWidth(0, 350)
     tableWidget.setColumnWidth(1, 100)
     tableWidget.setColumnWidth(2, 50)        
-    tableWidget.setColumnWidth(3, 150)        
-    tableWidget.setColumnWidth(4, 150)       
+    tableWidget.setColumnWidth(3, 200)        
+    tableWidget.setColumnWidth(4, 200)       
+    tableWidget.setColumnWidth(5, 100)     
 
     return tableWidget
 ###########################################################################    

@@ -57,6 +57,9 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
         self.comboBoxEpisode.currentIndexChanged.connect(self.episode_changed)
         self.comboBoxSequence.currentIndexChanged.connect(self.sequence_changed)
 
+    def get_task_types(self):
+        return self._task_types
+
     def get_project(self):
         return self._projects[self.comboBoxProject.currentIndex()]
 
@@ -69,6 +72,7 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
     def selection_changed(self, source, object):
         if "project_changed" in source:
             self.load_project_hierarchy()
+
         elif "episode_changed" in source:
             self.load_sequence()
 
@@ -84,7 +88,6 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
             "episode": self._episodes[index] 
         } )
 
-        self.load_sequence()
         write_log("episode_changed", self._episodes[index]["id"])
 
     def sequence_changed(self, index):
@@ -154,6 +157,7 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
             for item in self._sequences:
                 self.comboBoxSequence.addItem(item["name"])
 
+        self.sequence_changed(self.comboBoxSequence.currentIndex())
         self.lock_ui(False)
 
     def hierarchy_loaded(self, data): 
@@ -165,6 +169,12 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
 
         for item in self._episodes:
             self.comboBoxEpisode.addItem(item["name"])
+
+        if len(self._episodes) >= 0:
+            self.episode_changed(self.comboBoxEpisode.currentIndex())
+
+        if len(self._sequences) >= 0:
+            self.sequence_changed(self.comboBoxSequence.currentIndex())            
 
         self.lock_ui(False)
 
@@ -186,6 +196,7 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
                 self.comboBoxProject.addItem(item["name"])
 
             self.load_project_hierarchy()
+
 
 if __name__ == "__main__":
     password = load_keyring('swing', 'password', 'Not A Password')

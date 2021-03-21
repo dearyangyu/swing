@@ -88,7 +88,7 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
     def open_url(self, url):
         link = QtCore.QUrl(self.url)
         if not QtGui.QDesktopServices.openUrl(link):
-            QtGui.QMessageBox.warning(self, 'Open Url', 'Could not open url')              
+            QtWidgets.QMessageBox.warning(self, 'Open Url', 'Could not open url')              
 
     def entity_loaded(self, data):
         self.type = data["type"]
@@ -213,7 +213,7 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
                 if "error" in status:
                     status_item.setBackground(QtGui.QColor('darkRed'))
                 elif "skipped" in status:
-                    status_item.setBackground(QtGui.QColor('lightCyan'))
+                    status_item.setBackground(QtGui.QColor('darkCyan'))
                 else:
                     status_item.setBackground(QtGui.QColor('darkGreen'))
                 break        

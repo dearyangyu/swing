@@ -198,7 +198,6 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         dialog.load_files(file_list)
         dialog.set_file_name(file_name)
         dialog.show()        
-        
 
     def set_loading(self, is_loading):
         self.loading = is_loading
@@ -222,9 +221,10 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
                 if self.currentAssetType:
                     self.asset_type_changed(self.comboBoxAssetType.currentIndex())
                 else:
-                    asset_loader = bg.AssetTypeLoaderThread(self, self.currentProject)
-                    asset_loader.callback.loaded.connect(self.asset_types_loaded)
-                    self.threadpool.start(asset_loader)
+                    if self.projectNav.get_project():
+                        asset_loader = bg.AssetTypeLoaderThread(self, self.projectNav.get_project())
+                        asset_loader.callback.loaded.connect(self.asset_types_loaded)
+                        self.threadpool.start(asset_loader)
 
     def get_current_selection(self):
         if self.radioButtonAsset.isChecked():
@@ -300,8 +300,6 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             self.connected = True
             self.user_email = email
             self.pushButtonConnect.setText("Connected")
-
-            self.refresh_data()
         except:
             self.pushButtonConnect.setText("Reconnect")
             return False
@@ -354,20 +352,36 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.currentProjectIndex = index
 
         if self.currentProject:
-            self.set_loading(True)                
+            self.set_loading(True)     
+
+            self.comboBoxAssetType.clear()
+            self.comboBoxAsset.clear()
+            self.comboBoxShot.clear()
 
             asset_loader = bg.AssetTypeLoaderThread(self, self.currentProject)
             asset_loader.callback.loaded.connect(self.asset_types_loaded)
             self.threadpool.start(asset_loader)
 
+            self.comboBoxAssetType.clear()
+
             task_loader = bg.TaskLoaderThread(self, self.currentProject, self.user_email)
             task_loader.callback.loaded.connect(self.tasks_loaded)
             self.threadpool.start(task_loader)
 
+            if self.projectNav.get_sequence():
+                self.sequence_changed(0)
+
     def episode_changed(self, index):
         write_log("[episode_changed]")
+
         self.currentEpisode = self.projectNav.get_episode()
         self.currentEpisodeIndex = index
+
+        if self.projectNav.comboBoxSequence.currentIndex() >= 0:
+            self.load_shot_files(self.projectNav.comboBoxSequence.currentIndex())   
+
+        elif self.comboBoxShot.currentIndex() >= 0:
+            self.load_shot_files(self.comboBoxShot.currentIndex())
 
     def asset_types_loaded(self, data): 
         write_log("[asset_types_loaded]")
@@ -479,11 +493,11 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.tableViewFiles.setModel(FileTableModel(self, self.files))                
         self.tableViewFiles.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
         self.tableViewFiles.setColumnWidth(0, 300)
-        self.tableViewFiles.setColumnWidth(1, 75)
+        self.tableViewFiles.setColumnWidth(1, 150)
         self.tableViewFiles.setColumnWidth(2, 75)
         self.tableViewFiles.setColumnWidth(3, 150)
         #self.tableViewFiles.setColumnWidth(4, 350)
-        #self.tableViewFiles.setColumnWidth(6, 200)
+        self.tableViewFiles.setColumnWidth(6, 200)
 
         selectionModel = self.tableViewFiles.selectionModel()
         selectionModel.selectionChanged.connect(self.file_table_selection_changed)       
@@ -530,7 +544,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
     def get_item_task_type(self, entity):
         if "task_type_id" in entity:
-            for task_type in self.task_types:
+            for task_type in self.projectNav.get_task_types():
                 if task_type["id"] == entity["task_type_id"]:
                     return task_type
         return None
@@ -546,6 +560,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.tableViewTasks.setColumnWidth(2, 250)
         self.tableViewTasks.setColumnWidth(3, 350)
         self.tableViewTasks.setColumnWidth(4, 120)
+        self.tableViewTasks.setColumnWidth(6, 160)
 
         selectionModel = self.tableViewTasks.selectionModel()
         selectionModel.selectionChanged.connect(self.task_table_selection_changed)          
@@ -583,10 +598,8 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         else:
             QtWidgets.QMessageBox.info(self, 'Break Out', 'Please select a project and an episode first')        
 
-
-
     def download_files(self):
-        dialog = DownloadDialogGUI(self, self.get_current_selection(), self.task_types)
+        dialog = DownloadDialogGUI(self, self.get_current_selection(), self.projectNav.get_task_types())
         dialog.resize(self.size())
         dialog.exec_()
 
