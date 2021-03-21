@@ -1459,7 +1459,7 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
                         namespace = self.lineEditEntity.text()
 
                     # loop through spinbox counter
-                    if ref in range(self.spinBoxReferenceCount.value()):
+                    for ref in range(self.spinBoxReferenceCount.value()):
                         ref_str = str(ref).zpad(4)
                         ref_namespace = "{0}_{1}".format(namespace, ref_str)
 
