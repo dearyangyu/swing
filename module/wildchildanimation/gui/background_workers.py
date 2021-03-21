@@ -26,8 +26,9 @@ except ImportError:
     from PyQt5.QtCore import pyqtSignal
 
 from datetime import datetime
+from wildchildanimation.gui.swing_utils import write_log, connect_to_server
 
-from swing_utils import *
+import wildchildanimation.gui.swing_utils
 
 class LoadedSignal(QtCore.QObject):
     loaded = pyqtSignal(object)        

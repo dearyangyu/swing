@@ -26,9 +26,9 @@ try:
 except:
     darkStyle = False
 
-from swing_utils import connect_to_server, write_log, load_keyring, load_settings, save_settings
-from background_workers import ProjectLoaderThread, ProjectHierarchyLoaderThread
-from project_nav_widget import Ui_ProjectNavWidget
+from wildchildanimation.gui.swing_utils import connect_to_server, write_log, load_keyring, load_settings, save_settings
+from wildchildanimation.gui.background_workers import ProjectLoaderThread, ProjectHierarchyLoaderThread
+from wildchildanimation.gui.project_nav_widget import Ui_ProjectNavWidget
 
 
 class NavigationChangedSignal(QObject):
@@ -73,30 +73,50 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
             self.load_sequence()
 
     def project_changed(self, index):
-        self.signal.selection_changed.emit("project_changed", self._projects[index])
+        self.signal.selection_changed.emit("project_changed", { 
+            "project": self._projects[index]
+        } )
 
-        write_log("project_changed", self._projects[index])
+        write_log("project_changed", self._projects[index]["id"])
 
     def episode_changed(self, index):
-        self.signal.selection_changed.emit("episode_changed", self._episodes[index])
+        self.signal.selection_changed.emit("episode_changed", { 
+            "episode": self._episodes[index] 
+        } )
 
-        write_log("episode_changed", self._episodes[index])
+        self.load_sequence()
+        write_log("episode_changed", self._episodes[index]["id"])
 
     def sequence_changed(self, index):
-        self.signal.selection_changed.emit("sequence_changed", self._sequences[index]["id"], self._sequences[index]["name"])
+        self.signal.selection_changed.emit("sequence_changed", { 
+            "sequence": self._sequences[index]["id"],
+            "name": self._sequences[index]["name"]
+        })
 
-        write_log("sequence_changed", self._sequences[index])
+        write_log("sequence_changed", self._sequences[index]["id"])
 
     def lock_ui(self, enabled):
         if enabled:
             self.comboBoxProject.setEnabled(False)
+            self.comboBoxProject.blockSignals(True)
+
             self.comboBoxEpisode.setEnabled(False)
+            self.comboBoxEpisode.blockSignals(True)
+
             self.comboBoxSequence.setEnabled(False)
+            self.comboBoxSequence.blockSignals(True)
+
             self.progressBar.setMaximum(0)
         else:
             self.comboBoxProject.setEnabled(True)
+            self.comboBoxProject.blockSignals(False)
+
             self.comboBoxEpisode.setEnabled(True)
+            self.comboBoxEpisode.blockSignals(False)
+
             self.comboBoxSequence.setEnabled(True)
+            self.comboBoxSequence.blockSignals(False)
+
             self.progressBar.setMaximum(1)
 
     def load_open_projects(self):
@@ -119,7 +139,9 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
 
     def load_sequence(self):
         self.lock_ui(True)
+
         self.comboBoxSequence.clear()
+        self._sequences = []
 
         episode = self.get_episode()
 
@@ -150,19 +172,20 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
         write_log("[projects_loaded]")
 
         self._projects = []
-        for item in results["projects"]:
-            self._projects.append(copy.copy(item))
-
         self._task_types = []
-        for item in results["task_types"]:
-            self._task_types.append(copy.copy(item))
 
-        index = 0
-        for item in self._projects:
-            self.comboBoxProject.addItem(item["name"])
+        if len(results) > 0:
+            for item in results["projects"]:
+                self._projects.append(copy.copy(item))
 
-        self.lock_ui(False)
+            for item in results["task_types"]:
+                self._task_types.append(copy.copy(item))
 
+            index = 0
+            for item in self._projects:
+                self.comboBoxProject.addItem(item["name"])
+
+            self.load_project_hierarchy()
 
 if __name__ == "__main__":
     password = load_keyring('swing', 'password', 'Not A Password')

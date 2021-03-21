@@ -28,6 +28,7 @@ from wildchildanimation.gui.swing_tables import human_size, load_file_table_widg
 
 from wildchildanimation.gui.background_workers import ShotCreator, ShotCreatorSignal
 
+
 '''
     BreakoutUploadDialog class
     ################################################################################
@@ -92,16 +93,20 @@ class BreakoutUploadDialog(QtWidgets.QDialog, Ui_BreakoutUploadDialog):
     def process(self):    
         project = self.project
         episode = self.episode
-        sequence = self.episode["sequences"][self.comboBoxSequence.currentIndex()]
-        shot_list = self.model.shots
 
-        self.threadpool = QtCore.QThreadPool.globalInstance()        
+        if self.checkBoxSequence.isChecked():
+            sequence = self.episode["sequences"][self.comboBoxSequence.currentIndex()]
+            shot_list = self.model.shots
 
-        worker = ShotCreator(self, project, episode, sequence, shot_list)
-        worker.callback.results.connect(self.results)
+            self.threadpool = QtCore.QThreadPool.globalInstance()        
 
-        self.threadpool.start(worker)
-        #worker.run()
+            worker = ShotCreator(self, self.project, self.episode, sequence, shot_list)
+            worker.callback.results.connect(self.results)
+
+            self.threadpool.start(worker)
+        else:
+            QtWidgets.QMessageBox.info(self, 'Break Out', 'Please select a sequence')               
+            #worker.run()
 
     def results(self, results):        
         self.lineEdit.setText(results["message"])
@@ -160,14 +165,12 @@ class BreakoutUploadDialog(QtWidgets.QDialog, Ui_BreakoutUploadDialog):
 
     def set_project(self, project):
         self.project = project
-        self.lineEditProject.setText(self.project["name"])
 
     def set_episode(self, episode):
         self.episode = episode
-        self.lineEditEpisode.setText(self.episode["name"])
         self.sequences = self.episode["sequences"]
-        self.comboBoxSequence.clear()
 
+        self.comboBoxSequence.clear()
         for item in self.sequences:
             self.comboBoxSequence.addItem(item["name"])
 
@@ -244,4 +247,3 @@ class ShotlistModel(QtCore.QAbstractTableModel):
 
     def rowCount(self, index):
         return len(self.shots)   
-

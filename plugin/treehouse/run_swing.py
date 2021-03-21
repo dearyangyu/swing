@@ -2,7 +2,9 @@
     Set to folder containing module/ and plugin/
 '''
 
-WCA_ROOT = "Z:/env/maya/treehouse/wca-maya/"
+#WCA_ROOT = "Z:/env/maya/treehouse/wca-maya/"
+WCA_ROOT = "C:/DEV/github/wca-maya/"
+
 
 import sys
 

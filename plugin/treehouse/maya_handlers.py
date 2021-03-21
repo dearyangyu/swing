@@ -6,6 +6,8 @@ import os
 import sys
 import traceback
 
+import urllib2, shutil, zipfile
+
 from datetime import datetime
 
 _maya_loaded = False    
@@ -211,3 +213,53 @@ def write_log(*args):
     for log_data in args:
         log += " {}".format(log_data)
     print(log)
+
+
+def formatPath(path):
+    path = path.replace('/', os.sep)
+    path = path.replace('\\\\', os.sep)
+    return path
+
+def aToolsOfflineInstall(offlineFilePath):
+
+    mayaAppDir = mel.eval('getenv MAYA_APP_DIR')    
+    aToolsPath = mayaAppDir + os.sep + 'scripts'
+    aToolsFolder = aToolsPath + os.sep + 'aTools' + os.sep
+    tmpZipFile = '%s%stmp.zip'%(aToolsPath, os.sep)
+    offlineFileUrl = r'file:///%s'%offlineFilePath
+        
+    if os.path.isfile(tmpZipFile):     
+        os.remove(tmpZipFile)   
+
+    if os.path.isdir(aToolsFolder): 
+        shutil.rmtree(aToolsFolder)      
+    
+    output = download(offlineFileUrl, tmpZipFile)    
+    
+    zfobj = zipfile.ZipFile(tmpZipFile)
+    for name in zfobj.namelist():
+        uncompressed = zfobj.read(name)
+    
+        filename  = formatPath('%s%s%s'%(aToolsPath, os.sep, name))        
+        d = os.path.dirname(filename)
+        
+        if not os.path.exists(d): 
+            os.makedirs(d)
+
+        if filename.endswith(os.sep): 
+            continue
+        
+        output = open(filename,'wb')
+        output.write(uncompressed)
+        output.close()
+        
+    zfobj.close()
+    if os.path.isfile(tmpZipFile):     
+        os.remove(tmpZipFile)
+
+    from aTools import setup; 
+    reload(setup); 
+    setup.install([offlineFilePath, True]) 
+
+    cmds.confirmDialog(message=\'A file aTools_offline_install.mel has been created in the same aTools.zip location. If other people in your network are installing aTools, just ask them to drag\\'n drop this file into Maya\\'s viewport.\')
+    cmds.evalDeferred(\"from aTools.animTools.animBar import animBarUI; reload(animBarUI); animBarUI.show(\\'refresh\\')\")         

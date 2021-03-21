@@ -18,7 +18,7 @@ class Ui_LoaderDialog(object):
         if not LoaderDialog.objectName():
             LoaderDialog.setObjectName(u"LoaderDialog")
         LoaderDialog.setEnabled(True)
-        LoaderDialog.resize(874, 443)
+        LoaderDialog.resize(874, 446)
         self.verticalLayout = QVBoxLayout(LoaderDialog)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.verticalLayoutEntity = QVBoxLayout()
@@ -189,6 +189,13 @@ class Ui_LoaderDialog(object):
         self.horizontalSpacer_2 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
         self.horizontalLayout_4.addItem(self.horizontalSpacer_2)
+
+        self.spinBoxReferenceCount = QSpinBox(LoaderDialog)
+        self.spinBoxReferenceCount.setObjectName(u"spinBoxReferenceCount")
+        self.spinBoxReferenceCount.setMinimum(1)
+        self.spinBoxReferenceCount.setMaximum(999999)
+
+        self.horizontalLayout_4.addWidget(self.spinBoxReferenceCount)
 
         self.checkBoxNamespace = QCheckBox(LoaderDialog)
         self.checkBoxNamespace.setObjectName(u"checkBoxNamespace")

@@ -4,12 +4,13 @@
 
 #
 # local import wildchildanimation module by adding to the path
-WCA_ROOT = "C:/WCA/wca-maya-main/"
+WCA_ROOT = "C:/DEV/github/wca-maya/"
 
 import sys
 
 sys.path.append("{0}/{1}".format(WCA_ROOT, "/module"))
-from wildchildanimation.swing_gui import SwingGUI
+from wildchildanimation.swing import SwingGUI
+from wildchildanimation.gui.breakout import BreakoutUploadDialog
 
 #
 #
@@ -36,7 +37,6 @@ if __name__ == "__main__":
         pass
 
     app = QApplication(sys.argv)
-
     if darkStyle:
         # setup stylesheet
         app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())

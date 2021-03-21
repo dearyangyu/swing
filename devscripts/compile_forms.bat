@@ -1,6 +1,9 @@
 echo "Compling project nav widget"
 c:\dev\github\wca-maya\venv\lib\site-packages\PySide2\uic -g python -o c:\dev\Github\wca-maya\module\wildchildanimation\gui\project_nav_widget.py C:\DEV\Github\wca-maya\module\wildchildanimation\gui\forms\maya\project_nav_widget.ui
 
+echo "Compling main form"
+c:\dev\github\wca-maya\venv\lib\site-packages\PySide2\uic -g python -o c:\dev\Github\wca-maya\module\wildchildanimation\gui\swing_desktop.py C:\DEV\Github\wca-maya\module\wildchildanimation\gui\forms\maya\swing_desktop.ui
+
 echo "Compling connection dialog"
 c:\dev\github\wca-maya\venv\lib\site-packages\PySide2\uic -g python -o c:\dev\Github\wca-maya\module\wildchildanimation\gui\connection_dialog.py c:\dev\Github\wca-maya\module\wildchildanimation\gui\forms\maya\connection_dialog.ui
 

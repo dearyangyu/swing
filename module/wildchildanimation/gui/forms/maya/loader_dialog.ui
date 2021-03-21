@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>874</width>
-    <height>443</height>
+    <height>446</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -278,6 +278,16 @@
           </size>
          </property>
         </spacer>
+       </item>
+       <item>
+        <widget class="QSpinBox" name="spinBoxReferenceCount">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>999999</number>
+         </property>
+        </widget>
        </item>
        <item>
         <widget class="QCheckBox" name="checkBoxNamespace">
