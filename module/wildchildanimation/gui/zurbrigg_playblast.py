@@ -386,7 +386,7 @@ class ZurbriggPlayblast(QtCore.QObject):
         if self.requires_ffmpeg():
             output_path = os.path.normpath(os.path.join(output_dir, "{0}.{1}".format(filename, self._container_format)))
             if not overwrite and os.path.exists(output_path):
-                self.log_error("Output file already exists. Eanble overwrite to ignore.")
+                self.log_error("Output file already exists. Enable overwrite to ignore.")
                 return
 
             playblast_output_dir = "{0}/playblast_temp".format(output_dir)
