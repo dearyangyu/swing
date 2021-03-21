@@ -10,7 +10,6 @@ import sys
 
 sys.path.append("{0}/{1}".format(WCA_ROOT, "/module"))
 from wildchildanimation.swing import SwingGUI
-from wildchildanimation.gui.breakout import BreakoutUploadDialog
 
 #
 #
