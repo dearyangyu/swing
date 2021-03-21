@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+#
 # Swing Standalone command line runner
 #
 
@@ -9,7 +10,7 @@ WCA_ROOT = "C:/DEV/github/wca-maya/"
 import sys
 
 sys.path.append("{0}/{1}".format(WCA_ROOT, "/module"))
-from wildchildanimation.swing import SwingGUI
+from wildchildanimation.swing_gui import SwingGUI
 
 #
 #
@@ -18,7 +19,6 @@ try:
     darkStyle = True
 except:
     darkStyle = False
-
 
 # ==== auto Qt load ====
 try:

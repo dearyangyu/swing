@@ -6,7 +6,7 @@
 #
 #############################
 _APP_NAME = "treehouse: swing"
-_APP_VERSION = "0.0.7"
+_APP_VERSION = "0.0.8"
  
 import traceback
 import sys
@@ -56,11 +56,14 @@ from wildchildanimation.gui.breakout import *
 
 from wildchildanimation.gui.swing_tables import FileTableModel, TaskTableModel, CastingTableModel, load_file_table_widget, human_size
 
+from wildchildanimation.gui.swing_desktop import Ui_SwingMain
+from wildchildanimation.gui.project_nav import ProjectNavWidget
+
 '''
     SwingGUI Main class
     ################################################################################
 '''
-class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
+class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
     loading = False
     user_email = None
     tasks = []
@@ -104,7 +107,9 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
         super(SwingGUI, self).__init__(None) # Call the inherited classes __init__ method
         self.setupUi(self)
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
-        self.handler = studio_handler
+
+        self.set_handler(studio_handler)
+
         self.connect(self, QtCore.SIGNAL("finished(int)"), self.finished)
         self.setWindowTitle("{} v{}".format(_APP_NAME, _APP_VERSION))
 
@@ -116,6 +121,11 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
         QtCore.QCoreApplication.setOrganizationName("Wild Child Animation")
         QtCore.QCoreApplication.setOrganizationDomain("wildchildanimation.com")
         QtCore.QCoreApplication.setApplicationName(_APP_NAME)
+
+        self.projectNav = ProjectNavWidget()
+        self.projectNav.signal.selection_changed.connect(self.selection_changed)        
+
+        self.horizontalLayoutProject.addWidget(self.projectNav)
         
         self.comboBoxAsset.currentIndexChanged.connect(self.load_asset_files)
         self.comboBoxShot.currentIndexChanged.connect(self.load_shot_files)    
@@ -133,12 +143,12 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
         self.pushButtonBreakout.clicked.connect(self.breakout_dialog)
         #self.setWorkingDir(load_settings("projects_root", os.path.expanduser("~")))
 
-
         self.pushButtonClose.clicked.connect(self.close_dialog)
 
-        self.comboBoxProject.currentIndexChanged.connect(self.project_changed)
-        self.comboBoxEpisode.currentIndexChanged.connect(self.episode_changed)
-        self.comboBoxSequence.currentIndexChanged.connect(self.sequence_changed)
+        self.projectNav.comboBoxProject.currentIndexChanged.connect(self.project_changed)
+        self.projectNav.comboBoxEpisode.currentIndexChanged.connect(self.episode_changed)
+        self.projectNav.comboBoxSequence.currentIndexChanged.connect(self.sequence_changed)
+
         self.comboBoxAssetType.currentIndexChanged.connect(self.asset_type_changed)      
 
         self.radioButtonShot.toggled.connect(self.set_to_shot)
@@ -155,6 +165,14 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
             self.labelConnection.setText("Connected")
             self.refresh_data()
 
+    def set_handler(self, studio_handler):
+        if not studio_handler:
+            self.handler = None
+            self.pushButtonPlayblast.setEnabled(False)
+        else:
+            self.handler = studio_handler   
+            self.pushButtonPlayblast.setEnabled(True)
+
     def keyPressEvent(self, event):
         super(SwingGUI, self).keyPressEvent(event)
 
@@ -162,7 +180,6 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
 
     def finished(self, code):
         write_log('we are finished %s\n' % str(code))            
-
 
     def open_file_item(self, index):
         item = self.treeWidgetFiles.itemFromIndex(index)
@@ -185,20 +202,6 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
 
     def set_loading(self, is_loading):
         self.loading = is_loading
-
-        if self.loading:
-            self.progressBar.setMaximum(0)
-        else:
-            self.progressBar.setMaximum(1)
-
-        self.comboBoxEpisode.setEnabled(not is_loading)
-        self.comboBoxSequence.setEnabled(not is_loading)
-        self.comboBoxShot.setEnabled(not is_loading)
-        self.comboBoxAssetType.setEnabled(not is_loading)
-        self.radioButtonAsset.setEnabled(not is_loading)
-        self.radioButtonShot.setEnabled(not is_loading)
-        self.tabWidget.setEnabled(not is_loading)
-
 
     def set_to_shot(self):
         self.comboBoxShot.setEnabled(self.radioButtonShot.isChecked())
@@ -321,65 +324,37 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
         write_log("[refresh_data]")
 
         if not self.loading:
-            self.comboBoxProject.blockSignals(True)
-            loader = bg.ProjectLoaderThread(self)
-            loader.callback.loaded.connect(self.projects_loaded)
+            self.projectNav.load_open_projects()    
+            
+            #loader = bg.ProjectLoaderThread(self)
+            #loader.callback.loaded.connect(self.projects_loaded)
 
-            self.progressBar.setMaximum(0)
-            self.set_loading(True)
+            #self.progressBar.setMaximum(0)
+            #self.set_loading(True)
 
-            self.threadpool.start(loader)
+            #self.threadpool.start(loader)
         else:
             write_log("Loading in progress")
 
-    def projects_loaded(self, results): 
-        write_log("[projects_loaded]")
+    def selection_changed(self, source, selection): 
+        write_log("[selection_changed]", source)
+
+        if "project" in source:
+            self.project_changed(self.projectNav.comboBoxProject.currentIndex())
         #self.comboBoxProject.setEnabled(True)
 
-        self.progressBar.setMaximum(1)
-
-        self.projects = results["projects"]
-        self.task_types = results["task_types"]
-
-        self.comboBoxProject.clear()
-        self.currentProjectIndex = 0
-
-        index = 0
-        for item in self.projects:
-            self.comboBoxProject.addItem(item["name"])
-
-            if self.last_project and self.last_project == item["id"]:
-                self.currentProjectIndex = index
-            index += 1
-
-        self.comboBoxProject.blockSignals(False)      
-
-        if self.currentProjectIndex:
-            self.comboBoxProject.setCurrentIndex(self.currentProjectIndex)
-            #self.project_changed(self.currentProjectIndex)   
-            # 
-        if self.first_load:
-            self.first_load = False
-            self.project_changed(self.currentProjectIndex)   
+        #if self.first_load:
+        #    self.first_load = False
+        #    self.project_changed(self.currentProjectIndex)   
 
     def project_changed(self, index):
         write_log("[project_changed]")
 
-        self.currentProject = self.projects[index]
+        self.currentProject = self.projectNav.get_project()
         self.currentProjectIndex = index
 
-        self.comboBoxEpisode.clear()
-        self.comboBoxSequence.clear()
-        self.comboBoxShot.clear()
-        self.comboBoxAssetType.clear()
-
         if self.currentProject:
-            self.progressBar.setMaximum(0)
             self.set_loading(True)                
-
-            loader = bg.ProjectHierarchyLoaderThread(self, self.currentProject)
-            loader.callback.loaded.connect(self.hierarchy_loaded)
-            self.threadpool.start(loader)
 
             asset_loader = bg.AssetTypeLoaderThread(self, self.currentProject)
             asset_loader.callback.loaded.connect(self.asset_types_loaded)
@@ -389,43 +364,10 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
             task_loader.callback.loaded.connect(self.tasks_loaded)
             self.threadpool.start(task_loader)
 
-
-    def hierarchy_loaded(self, data): 
-        write_log("[hierarchy_loaded]")
-        self.progressBar.setMaximum(1)
-
-        self.episodes = data
-
-        self.comboBoxEpisode.blockSignals(True)
-        for item in self.episodes:
-            self.comboBoxEpisode.addItem(item["name"])
-
-        self.comboBoxEpisode.setEnabled(len(self.episodes) > 0)
-        self.comboBoxEpisode.blockSignals(False)
-
-        if len(self.episodes) > 0:
-            self.episode_changed(0)
-        else:
-            self.asset_type_changed(0)
-
-        self.set_loading(False)
-
-        
     def episode_changed(self, index):
         write_log("[episode_changed]")
-        self.currentEpisode = self.episodes[index]
+        self.currentEpisode = self.projectNav.get_episode()
         self.currentEpisodeIndex = index
-
-        if self.currentEpisode:
-            self.comboBoxSequence.blockSignals(True)
-            self.comboBoxSequence.clear()
-            for item in self.currentEpisode["sequences"]:
-                self.comboBoxSequence.addItem(item["name"])          
-            self.comboBoxSequence.blockSignals(False)    
-
-            if len(self.currentEpisode["sequences"]) > 0:
-                self.comboBoxSequence.setEnabled(True)
-                self.sequence_changed(0)
 
     def asset_types_loaded(self, data): 
         write_log("[asset_types_loaded]")
@@ -451,21 +393,19 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
     def sequence_changed(self, index):
         write_log("[sequence_changed]")
         
-        self.currentSequencesIndex = self.comboBoxSequence.currentIndex()
-        self.currentSequences = self.currentEpisode["sequences"]
-        self.currentEpisode["sequences"][self.currentSequencesIndex]
-
         self.comboBoxShot.blockSignals(True)                 
         self.comboBoxShot.clear()
 
-        for item in self.currentSequences[self.currentSequencesIndex]["shots"]:
-            #name = "{} {}".format(item["sequence_name"],  item["name"])
+        have_shots = False
+        for item in self.projectNav.get_sequence()["shots"]:
+            name = "{} {}".format(item["sequence_name"],  item["name"])
             self.comboBoxShot.addItem(item["name"]) 
+            have_shots  = True
+
         self.comboBoxShot.blockSignals(False)                 
 
-        if len(self.currentSequences[self.currentSequencesIndex]["shots"]) > 0:
+        if have_shots:
             if self.radioButtonShot.isChecked():
-                self.comboBoxShot.setEnabled(True)
                 self.load_shot_files(0)
 
     def asset_type_changed(self, index):
@@ -477,7 +417,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
         self.threadpool.start(loader)
 
     def load_shot_files(self, index):
-        self.currentShot = self.currentSequences[self.currentSequencesIndex]["shots"][index]
+        self.currentShot = self.projectNav.get_sequence()["shots"][index]
         write_log("load shot files {}".format(index))
 
         loader = bg.EntityFileLoader(self, self.currentShot, working_dir = load_settings("projects_root", os.path.expanduser("~")))
@@ -635,11 +575,15 @@ class SwingGUI(QtWidgets.QDialog, Ui_WcaMayaDialog):
         dialog.exec_()
 
     def breakout_dialog(self):
-        if self.currentProject and self.currentEpisode:
+        if self.projectNav.get_project() and self.projectNav.get_episode():
             dialog = BreakoutUploadDialog(self)
-            dialog.set_project(self.currentProject)
-            dialog.set_episode(self.currentEpisode)
+            dialog.set_project(self.projectNav.get_project())
+            dialog.set_episode(self.projectNav.get_episode())
             dialog.exec_()
+        else:
+            QtWidgets.QMessageBox.info(self, 'Break Out', 'Please select a project and an episode first')        
+
+
 
     def download_files(self):
         dialog = DownloadDialogGUI(self, self.get_current_selection(), self.task_types)
@@ -783,7 +727,7 @@ class CreateDialogGUI(QtWidgets.QDialog, Ui_CreateDialog):
     def open_url(self, url):
         link = QtCore.QUrl(self.url)
         if not QtGui.QDesktopServices.openUrl(link):
-            QtGui.QMessageBox.warning(self, 'Open Url', 'Could not open url')        
+            QtWidgets.QMessageBox.warning(self, 'Open Url', 'Could not open url')        
 
     def software_loaded(self, results):
         self.software = results["software"]
@@ -1063,7 +1007,7 @@ class UploadMonitorDialog(QtWidgets.QDialog, Ui_UploadMonitorDialog):
     def open_url(self, url):
         link = QtCore.QUrl(self.url)
         if not QtGui.QDesktopServices.openUrl(link):
-            QtGui.QMessageBox.warning(self, 'Open Url', 'Could not open url')           
+            QtWidgets.QMessageBox.warning(self, 'Open Url', 'Could not open url')           
 '''
     PublishDialogClass class
     ################################################################################
@@ -1321,7 +1265,7 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
     def open_url(self, url):
         link = QtCore.QUrl(self.url)
         if not QtGui.QDesktopServices.openUrl(link):
-            QtGui.QMessageBox.warning(self, 'Open Url', 'Could not open url')        
+            QtWidgets.QMessageBox.warning(self, 'Open Url', 'Could not open url')        
 
     def entity_loaded(self, data):
         self.type = data["type"]
@@ -1365,7 +1309,7 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
             #    self.task_type_name = self.task["task_type"]["name"]
             #    sections.append(self.task_type_name)
 
-            self.lineEditEntity.setText(" / ".join(sections))
+            self.lineEditEntity.setText("_".join(sections))
 
             self.textEditShotInfo.setText(self.shot["description"])
 
@@ -1405,7 +1349,7 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
 
             sections.append(self.entity["name"].strip())
 
-            self.lineEditEntity.setText(" / ".join(sections))
+            self.lineEditEntity.setText("_".join(sections))
             self.textEditShotInfo.setText(self.asset["description"].strip())
 
             self.lineEditFrameIn.setText("")
@@ -1490,18 +1434,27 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
         # call maya handler: import into existing workspace
         if self.handler:
             try:
+                #
+                # import referenes
+                # 
                 if self.checkBoxReferences.checkState() == QtCore.Qt.Checked:
+
                     # see if we know a namespace
                     if self.checkBoxNamespace.checkState() == QtCore.Qt.Checked:
                         namespace = self.lineEditNamespace.text()
                     else:
-                        namespace = None
+                        namespace = self.lineEditEntity.text()
 
-                    self.append_status("Importing reference {}".format(file_name))
-                    if (self.handler.import_reference(source = file_name, working_dir = working_dir, namespace = namespace)):
-                        self.append_status("Import done")
-                    else:
-                        self.append_status("Import error", True)
+                    # loop through spinbox counter
+                    if ref in range(self.spinBoxReferenceCount.value()):
+                        ref_str = str(ref).zpad(4)
+                        ref_namespace = "{0}_{1}".format(namespace, ref_str)
+
+                        self.append_status("Adding reference {}".format(file_name))
+                        if (self.handler.import_reference(source = file_name, working_dir = working_dir, namespace = ref_namespace)):
+                            self.append_status("Added {0}".format(ref_namespace))
+                        else:
+                            self.append_status("Import error", True)
                 else:
                     self.append_status("Loading file {}".format(file_name))
                     if (self.handler.load_file(source = file_name, working_dir = working_dir)):
