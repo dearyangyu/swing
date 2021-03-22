@@ -90,9 +90,9 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
     dlg_instance = None
 
     @classmethod
-    def show_dialog(cls):
+    def show_dialog(cls, handler):
         if not cls.dlg_instance:
-            cls.dlg_instance = SwingGUI()
+            cls.dlg_instance = SwingGUI(handler)
 
         if cls.dlg_instance.isHidden():
             cls.dlg_instance.show()
@@ -307,6 +307,11 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         return True
 
     def close_dialog(self):
+        # hide ourselves in a DCC
+        if self.handler:
+            self.hide()
+
+        # otherwise exit
         self.close()
 
     def closeEvent(self, event):

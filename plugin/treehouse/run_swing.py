@@ -16,6 +16,5 @@ sys.path.append("{0}/{1}".format(WCA_ROOT, "/plugin/treehouse"))
 from maya_handlers import StudioHandler
 
 if __name__ == '__main__':
-    ex = SwingGUI(StudioHandler())
-    ex.show()
+    SwingGUI.show_dialog(StudioHandler())
 # entry point    
