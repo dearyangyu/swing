@@ -143,7 +143,10 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.pushButtonBreakout.clicked.connect(self.breakout_dialog)
         #self.setWorkingDir(load_settings("projects_root", os.path.expanduser("~")))
 
+        # setup to hide in a dcc
         self.pushButtonClose.clicked.connect(self.close_dialog)
+        if self.handler:
+            self.pushButtonClose.setText("Hide")
 
         self.projectNav.comboBoxProject.currentIndexChanged.connect(self.project_changed)
         self.projectNav.comboBoxEpisode.currentIndexChanged.connect(self.episode_changed)
@@ -315,14 +318,19 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.close()
 
     def closeEvent(self, event):
-        reply = QtWidgets.QMessageBox.question(self, 'Exit Application', 'Are you sure ?', QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
+        # save settings
+        self.writeSettings()        
 
-        if reply == QtWidgets.QMessageBox.Yes:
-            self.writeSettings()
-            event.accept()
-            self.close()
-        else:
-            event.ignore()        
+        # in DCC, we will just hide
+        if not self.handler:
+            # in desktop, confirm and write 
+            reply = QtWidgets.QMessageBox.question(self, 'Confirm Exit', 'close {} ?'.format(_APP_NAME), QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
+
+            if reply == QtWidgets.QMessageBox.Yes:
+
+                event.accept()
+            else:
+                event.ignore()        
 
     def refresh_data(self):
         write_log("[refresh_data]")
