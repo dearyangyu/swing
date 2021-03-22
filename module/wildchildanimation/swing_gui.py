@@ -320,6 +320,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         if reply == QtWidgets.QMessageBox.Yes:
             self.writeSettings()
             event.accept()
+            self.close()
         else:
             event.ignore()        
 
