@@ -144,9 +144,12 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         #self.setWorkingDir(load_settings("projects_root", os.path.expanduser("~")))
 
         # setup to hide in a dcc
-        self.pushButtonClose.clicked.connect(self.close_dialog)
         if self.handler:
             self.pushButtonClose.setText("Hide")
+            self.pushButtonClose.clicked.connect(self.hide_dialog)
+        else:
+            self.pushButtonClose.setText("Close")            
+            self.pushButtonClose.clicked.connect(self.close_dialog)
 
         self.projectNav.comboBoxProject.currentIndexChanged.connect(self.project_changed)
         self.projectNav.comboBoxEpisode.currentIndexChanged.connect(self.episode_changed)
@@ -309,28 +312,24 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
         return True
 
-    def close_dialog(self):
+    def hide_dialog(self):
         # hide ourselves in a DCC
-        if self.handler:
-            self.hide()
+        self.hide()
 
+    def close_dialog(self):
         # otherwise exit
         self.close()
 
     def closeEvent(self, event):
-        # save settings
-        self.writeSettings()        
+        # in desktop, confirm and write 
+        reply = QtWidgets.QMessageBox.question(self, 'Confirm Exit', 'close {} ?'.format(_APP_NAME), QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
 
-        # in DCC, we will just hide
-        if not self.handler:
-            # in desktop, confirm and write 
-            reply = QtWidgets.QMessageBox.question(self, 'Confirm Exit', 'close {} ?'.format(_APP_NAME), QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
-
-            if reply == QtWidgets.QMessageBox.Yes:
-
-                event.accept()
-            else:
-                event.ignore()        
+        if reply == QtWidgets.QMessageBox.Yes:
+            # save settings
+            self.writeSettings()      
+            event.accept()
+        else:
+            event.ignore()        
 
     def refresh_data(self):
         write_log("[refresh_data]")
