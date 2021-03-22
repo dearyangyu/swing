@@ -4,6 +4,7 @@ import traceback
 import sys
 import os
 import re
+import json
 
 # ==== auto Qt load ====
 try:
@@ -28,6 +29,8 @@ from wildchildanimation.gui.swing_tables import human_size, load_file_table_widg
 
 from wildchildanimation.gui.background_workers import ShotCreator, ShotCreatorSignal
 
+from wildchildanimation.utils.media_info import *
+
 
 '''
     BreakoutUploadDialog class
@@ -51,9 +54,13 @@ class BreakoutUploadDialog(QtWidgets.QDialog, Ui_BreakoutUploadDialog):
         self.pushButtonScan.clicked.connect(self.scan)
         self.pushButtonCreate.clicked.connect(self.process)
 
+        self.pushButtonLoad.clicked.connect(self.load)
+        self.pushButtonSave.clicked.connect(self.save)
+
         self.toolButtonSelectPlayblasts.clicked.connect(self.select_playblast_folder)
         self.toolButtonSelectProjects.clicked.connect(self.select_project_files_folder)
 
+        self.model = None
         self.project = None
         self.episode = None
         self.sequences = None
@@ -61,6 +68,37 @@ class BreakoutUploadDialog(QtWidgets.QDialog, Ui_BreakoutUploadDialog):
 
         self.lineEditPlayblastFolder.setText(load_settings("last_breakout_playblast", os.path.expanduser("~")))
         self.lineEditProjectsFolder.setText(load_settings("last_breakout_projects", os.path.expanduser("~")))
+
+        self.ffprobe_bin = load_settings("ffprobe_bin", None)
+        self.pushButtonFfprobe.setEnabled(self.ffprobe_bin is not None)
+        self.pushButtonFfprobe.clicked.connect(self.ffprobe)
+        self.pushButtonSetRange.clicked.connect(self.set_range)
+
+        self.threadpool = QtCore.QThreadPool.globalInstance()
+        
+
+    def save(self):
+        #Get the file location
+        q = QtWidgets.QFileDialog.getSaveFileName(self, "select json file", load_settings("last_breakout", os.path.expanduser("~")), "All Files (*.*)")
+        if not (q):
+            return 
+
+        self.model.save_to_file(q[0])
+        save_settings("last_breakout", q[0])        
+
+    def load(self):
+        #Get the file location
+        q = QtWidgets.QFileDialog.getOpenFileName(self, "select json file", load_settings("last_breakout", os.path.expanduser("~")), "All Files (*.*)")
+        if not (q):
+            return 
+
+        if not self.model:
+            self.model = ShotlistModel(self)
+        
+        self.model.load_from_file(q[0])
+        self.tableView.setModel(self.model)
+
+        save_settings("last_breakout", q[0]) 
 
     def close_dialog(self):
         self.close()        
@@ -111,6 +149,38 @@ class BreakoutUploadDialog(QtWidgets.QDialog, Ui_BreakoutUploadDialog):
     def results(self, results):        
         self.lineEdit.setText(results["message"])
 
+    def ffprobe(self):
+        for item in self.model.shots:
+            if "playblast_file_path" in item and item["playblast_file_path"]:
+                worker = MediaInfo(self, self.ffprobe_bin, item["playblast_file_path"], item)
+                worker.callback.info.connect(self.media_info)
+                self.threadpool.start(worker)
+
+    def set_range(self):
+        start_frame = self.spinBoxStartingFrame.value()
+        handles = self.checkBoxHandles.isChecked()
+        handle_count = self.spinBoxHandles.value()
+
+        if handles:
+            start_frame += handles
+        
+        for item in self.model.shots:
+            if item["nb_frames"]:
+                nb_frames = int(item["nb_frames"])
+
+                item["in"] = str(start_frame)
+                start_frame += nb_frames
+
+                if handles:
+                    start_frame += handles
+
+                item["out"] = str(start_frame)
+                start_frame += 1
+
+    def media_info(self, results):
+        item = results["item"]
+        item["nb_frames"] = results["results"]
+
     def scan(self):
         save_settings("last_breakout_playblast", self.lineEditPlayblastFolder.text())
         save_settings("last_breakout_projects", self.lineEditProjectsFolder.text())
@@ -123,7 +193,7 @@ class BreakoutUploadDialog(QtWidgets.QDialog, Ui_BreakoutUploadDialog):
                 if not shot_number in self.shot_list:
                     shot = {
                         "shot_number": shot_number,
-                        "in": None, "out" : None, "status": None,
+                        "in": None, "out" : None, "nb_frames": None, "status": None,
                         "playblast_file_name": item,
                         "playblast_file_path": os.path.normpath(os.path.join(root_folder, item))
                     }
@@ -142,7 +212,7 @@ class BreakoutUploadDialog(QtWidgets.QDialog, Ui_BreakoutUploadDialog):
                 if not shot_number in self.shot_list:
                     shot = {
                         "shot_number": shot_number,
-                        "in": None, "out" : None, "status": None,                        
+                        "in": None, "out" : None, "nb_frames": None, "status": None,
                         "project_file_name": item,                        
                         "project_file_path": os.path.normpath(os.path.join(root_folder, item))
                     }
@@ -176,13 +246,9 @@ class BreakoutUploadDialog(QtWidgets.QDialog, Ui_BreakoutUploadDialog):
 
 class ShotlistModel(QtCore.QAbstractTableModel):
 
-    #columns = [
-    #    "Shot", "Playblast", "Project", "In", "Out", "Status"
-    #]    
-
     columns = [
-        "Shot", "Playblast", "Project"
-    ]        
+        "Shot", "Playblast", "Project", "Frames", "In", "Out", "Status"
+    ]    
 
     def __init__(self, parent, shots = None):
         super(ShotlistModel, self).__init__(parent)
@@ -201,9 +267,12 @@ class ShotlistModel(QtCore.QAbstractTableModel):
                 item["shot_number"] = "{}".format(value)
                 return True
             elif 3 == col:
-                item["in"] = str(value)
+                item["nb_frames"] = str(value)
                 return True
             elif 4 == col:
+                item["in"] = str(value)
+                return True
+            elif 5 == col:
                 item["out"] = str(value)
                 return True
 
@@ -211,7 +280,7 @@ class ShotlistModel(QtCore.QAbstractTableModel):
 
     def flags(self, index):
         col = index.column()
-        if col in [0, 3, 4]:
+        if col in [0, 3, 4, 5]:
             return QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled| QtCore.Qt.ItemIsEditable            
             
         return QtCore.Qt.ItemIsEnabled
@@ -239,11 +308,22 @@ class ShotlistModel(QtCore.QAbstractTableModel):
                 if "project_file_name" in item:
                     return item["project_file_name"]
             elif 3 == col:
-                return item["in"]
+                return item["nb_frames"]
             elif 4 == col:
-                return item["out"]
+                return item["in"]
             elif 5 == col:
+                return item["out"]
+            elif 6 == col:
                 return item["status"]
 
     def rowCount(self, index):
         return len(self.shots)   
+
+    def load_from_file(self, json_file_name):
+        with open(json_file_name, 'r') as f:
+            self.shots = json.load(f)
+        self.layoutChanged.emit()
+
+    def save_to_file(self, json_file_name):
+        with open(json_file_name, 'w') as json_file:
+            json.dump(self.shots, json_file)

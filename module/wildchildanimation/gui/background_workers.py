@@ -159,7 +159,10 @@ class AssetLoaderThread(QtCore.QRunnable):
         self.callback = LoadedSignal()        
 
     def run(self):
-        results = gazu.asset.all_assets_for_project_and_type(self.project, self.asset_type)
+        if self.asset_type:
+            results = gazu.asset.all_assets_for_project_and_type(self.project, self.asset_type)
+        else:
+            results = gazu.asset.all_assets_for_project(self.project)
 
         self.callback.loaded.emit(results)          
 

@@ -383,6 +383,11 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
             if self.projectNav.get_sequence():
                 self.sequence_changed(0)
+            else:
+                self.episode_changed(self.projectNav.comboBoxSequence.currentIndex())
+
+            self.set_to_asset()
+            
 
     def episode_changed(self, index):
         write_log("[episode_changed]")
@@ -439,9 +444,11 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         write_log("[asset_type_changed]")
         self.currentAssetType = self.asset_types[index]
 
-        loader = bg.AssetLoaderThread(self, self.currentProject, self.currentAssetType)
-        loader.callback.loaded.connect(self.asset_loaded)
-        self.threadpool.start(loader)
+        project = self.projectNav.get_project()
+        if project:
+            loader = bg.AssetLoaderThread(self, project, self.currentAssetType)
+            loader.callback.loaded.connect(self.asset_loaded)
+            self.threadpool.start(loader)
 
     def load_shot_files(self, index):
         self.currentShot = self.projectNav.get_sequence()["shots"][index]
@@ -683,6 +690,9 @@ class ConnectionDialogGUI(QtWidgets.QDialog, Ui_ConnectionDialog):
         self.toolButtonFfmpegBin.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_DirOpenIcon))
         self.toolButtonFfmpegBin.clicked.connect(self.select_ffmpeg_bin)    
 
+        self.lineEditFfprobeBin.setText(load_settings("ffprobe_bin", ""))
+        self.toolButtonFfprobeBin.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_DirOpenIcon))
+        self.toolButtonFfprobeBin.clicked.connect(self.select_ffprobe_bin)    
 
     def select_projects_dir(self):
         directory = QtWidgets.QFileDialog.getExistingDirectory(self, 'Select working directory')
@@ -694,6 +704,11 @@ class ConnectionDialogGUI(QtWidgets.QDialog, Ui_ConnectionDialog):
         if binary:
             self.lineEditFfmpegBin.setText(binary[0])            
 
+    def select_ffprobe_bin(self):
+        binary = QtWidgets.QFileDialog.getOpenFileName(self, 'Select ffprobe binary')
+        if binary:
+            self.lineEditFfprobeBin.setText(binary[0])            
+
     def save_settings(self):
         self.buttonBox.accepted.disconnect()
 
@@ -701,13 +716,14 @@ class ConnectionDialogGUI(QtWidgets.QDialog, Ui_ConnectionDialog):
         save_settings('user', self.lineEditEmail.text())
         save_settings("projects_root", self.lineEditProjectsFolder.text())                            
         save_settings("ffmpeg_bin", self.lineEditFfmpegBin.text())    
+        save_settings("ffprobe_bin", self.lineEditFfprobeBin.text())    
         keyring.set_password('swing', 'password', self.lineEditPassword.text())
 
         self.buttonBox.accepted.connect(self.save_settings)
         return True
 
 '''
-    CreeateDialog class
+    CreateDialog class
     ################################################################################
 '''
 
@@ -1322,11 +1338,11 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
                 
             if "episode_name" in self.shot:
                 self.episode_name = self.shot["episode_name"]
-                sections.append(self.episode_name)
+                #sections.append(self.episode_name)
 
             if "sequence_name" in self.shot:
                 self.sequence_name = self.shot["sequence_name"]
-                sections.append(self.sequence_name)
+                #sections.append(self.sequence_name)
 
             self.shot_name = self.shot["name"] 
             sections.append(self.shot_name)
@@ -1335,7 +1351,7 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
             #    self.task_type_name = self.task["task_type"]["name"]
             #    sections.append(self.task_type_name)
 
-            self.lineEditEntity.setText("_".join(sections))
+            self.lineEditEntity.setText(friendly_string("_".join(sections)))
 
             self.textEditShotInfo.setText(self.shot["description"])
 
@@ -1364,7 +1380,7 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
 
             if "asset_type_name" in self.asset:
                 self.asset_type_name = self.asset["asset_type_name"].strip()
-                sections.append(self.asset_type_name)                 
+                #sections.append(self.asset_type_name)                 
 
             self.asset_name = self.entity["name"].strip() 
             sections.append(self.asset_name)
@@ -1373,9 +1389,9 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
             #    self.task_type_name = self.task["task_type"]["name"]
             #    sections.append(self.task_type_name)               
 
-            sections.append(self.entity["name"].strip())
+            #sections.append(self.entity["name"].strip())
 
-            self.lineEditEntity.setText("_".join(sections))
+            self.lineEditEntity.setText(friendly_string("_".join(sections)))
             self.textEditShotInfo.setText(self.asset["description"].strip())
 
             self.lineEditFrameIn.setText("")
@@ -1387,7 +1403,7 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
             self.lineEditFrameCount.setText("")
             self.lineEditFrameCount.setEnabled(False)
 
-        namespace = "_".join(sections).lower().strip()
+        namespace = friendly_string("_".join(sections).lower().strip())
         #if self.asset_type_name:
         #    namespace = self.asset_type_name
         #elif self.asset_name:

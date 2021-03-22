@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>766</width>
-    <height>264</height>
+    <width>388</width>
+    <height>344</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -144,7 +144,7 @@
         </size>
        </property>
        <property name="text">
-        <string>Ffmpeg binary</string>
+        <string>ffmpeg binary</string>
        </property>
       </widget>
      </item>
@@ -157,6 +157,37 @@
      </item>
      <item>
       <widget class="QToolButton" name="toolButtonFfmpegBin">
+       <property name="text">
+        <string>...</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_6">
+     <item>
+      <widget class="QLabel" name="label_4">
+       <property name="minimumSize">
+        <size>
+         <width>120</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>ffprobe binary</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="lineEditFfprobeBin">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Location of ffmpeg executable, usually something like &lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;C:\ffmpeg\ffmpeg-20200831-4a11a6f-win64-static\bin\ffmpeg.exe&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="toolButtonFfprobeBin">
        <property name="text">
         <string>...</string>
        </property>

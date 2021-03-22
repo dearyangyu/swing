@@ -87,7 +87,7 @@ class Ui_SwingMain(object):
         font.setBold(True)
         font.setWeight(75)
         self.radioButtonAsset.setFont(font)
-        self.radioButtonAsset.setChecked(True)
+        self.radioButtonAsset.setChecked(False)
 
         self.horizontalLayoutAsset.addWidget(self.radioButtonAsset)
 
@@ -267,7 +267,7 @@ class Ui_SwingMain(object):
 
         self.retranslateUi(SwingMain)
 
-        self.tabWidget.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(0)
 
 
         QMetaObject.connectSlotsByName(SwingMain)

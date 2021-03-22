@@ -17,7 +17,7 @@ class Ui_ConnectionDialog(object):
     def setupUi(self, ConnectionDialog):
         if not ConnectionDialog.objectName():
             ConnectionDialog.setObjectName(u"ConnectionDialog")
-        ConnectionDialog.resize(766, 264)
+        ConnectionDialog.resize(388, 344)
         self.verticalLayout = QVBoxLayout(ConnectionDialog)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.horizontalLayout = QHBoxLayout()
@@ -115,6 +115,27 @@ class Ui_ConnectionDialog(object):
 
         self.verticalLayout.addLayout(self.horizontalLayout_5)
 
+        self.horizontalLayout_6 = QHBoxLayout()
+        self.horizontalLayout_6.setObjectName(u"horizontalLayout_6")
+        self.label_4 = QLabel(ConnectionDialog)
+        self.label_4.setObjectName(u"label_4")
+        self.label_4.setMinimumSize(QSize(120, 0))
+
+        self.horizontalLayout_6.addWidget(self.label_4)
+
+        self.lineEditFfprobeBin = QLineEdit(ConnectionDialog)
+        self.lineEditFfprobeBin.setObjectName(u"lineEditFfprobeBin")
+
+        self.horizontalLayout_6.addWidget(self.lineEditFfprobeBin)
+
+        self.toolButtonFfprobeBin = QToolButton(ConnectionDialog)
+        self.toolButtonFfprobeBin.setObjectName(u"toolButtonFfprobeBin")
+
+        self.horizontalLayout_6.addWidget(self.toolButtonFfprobeBin)
+
+
+        self.verticalLayout.addLayout(self.horizontalLayout_6)
+
         self.verticalSpacer_2 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
 
         self.verticalLayout.addItem(self.verticalSpacer_2)
@@ -153,10 +174,15 @@ class Ui_ConnectionDialog(object):
         self.lineEditProjectsFolder.setToolTip(QCoreApplication.translate("ConnectionDialog", u"<html><head/><body><p>Root directory for projects</p><p><br/></p><p>Shots will be downloaded to:</p><p><span style=\" font-weight:600;\">root/project/assets</span></p><p><br/></p><p>Assets will be downloaded to: </p><p><span style=\" font-weight:600;\">root/project/assets</span></p></body></html>", None))
 #endif // QT_CONFIG(tooltip)
         self.toolButtonProjectsFolder.setText(QCoreApplication.translate("ConnectionDialog", u"...", None))
-        self.label_2.setText(QCoreApplication.translate("ConnectionDialog", u"Ffmpeg binary", None))
+        self.label_2.setText(QCoreApplication.translate("ConnectionDialog", u"ffmpeg binary", None))
 #if QT_CONFIG(tooltip)
         self.lineEditFfmpegBin.setToolTip(QCoreApplication.translate("ConnectionDialog", u"<html><head/><body><p>Location of ffmpeg executable, usually something like </p><p><br/></p><p>C:\\ffmpeg\\ffmpeg-20200831-4a11a6f-win64-static\\bin\\ffmpeg.exe</p></body></html>", None))
 #endif // QT_CONFIG(tooltip)
         self.toolButtonFfmpegBin.setText(QCoreApplication.translate("ConnectionDialog", u"...", None))
+        self.label_4.setText(QCoreApplication.translate("ConnectionDialog", u"ffprobe binary", None))
+#if QT_CONFIG(tooltip)
+        self.lineEditFfprobeBin.setToolTip(QCoreApplication.translate("ConnectionDialog", u"<html><head/><body><p>Location of ffmpeg executable, usually something like </p><p><br/></p><p>C:\\ffmpeg\\ffmpeg-20200831-4a11a6f-win64-static\\bin\\ffmpeg.exe</p></body></html>", None))
+#endif // QT_CONFIG(tooltip)
+        self.toolButtonFfprobeBin.setText(QCoreApplication.translate("ConnectionDialog", u"...", None))
     # retranslateUi
 
