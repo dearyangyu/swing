@@ -659,7 +659,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
     def fbx_export(self):
         # call handler: export to an fbx file
         if self.handler:
-            self.append_status("Running handlers")
+            #self.append_status("Running handlers")
             try:
                 fbx_file = QtWidgets.QFileDialog.getSaveFileName(self, 'Export FBX')
                 working_dir = load_settings("projects_root", os.path.expanduser("~"))
@@ -671,15 +671,16 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
                     "target": fbx_file, 
                     "working_dir": working_dir
                     })):
-                    self.append_status("fbx_export done")
+                    #self.append_status("fbx_export done")
                 else:
-                    self.append_status("fbx_export error", True)
+                    #self.append_status("fbx_export error", True)
             except:
                 traceback.print_exc(file=sys.stdout)          
         else:
-            self.append_status("Handler not loaded")
+            #self.append_status("Handler not loaded")
+            pass
 
-        self.append_status("{}".format(message))        
+        #self.append_status("{}".format(message))        
         
 
     def new_scene(self):
