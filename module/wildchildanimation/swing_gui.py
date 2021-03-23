@@ -109,6 +109,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
 
         # setup to hide in a dcc
+        ## debug studio_handler = True
         self.set_handler(studio_handler)
 
         self.connect(self, QtCore.SIGNAL("finished(int)"), self.finished)
@@ -657,31 +658,29 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         '''
 
     def fbx_export(self):
-        # call handler: export to an fbx file
-        if self.handler:
-            #self.append_status("Running handlers")
-            try:
-                fbx_file = QtWidgets.QFileDialog.getSaveFileName(self, 'Export FBX')
-                working_dir = load_settings("projects_root", os.path.expanduser("~"))
+        if not self.handler:
+            return False
 
-                if not fbfx_file:
-                    return False
+        try:
+            selection = self.get_current_selection()
+            if selection:
+                export = "{0}.fbx".format(friendly_string(selection["name"]))
+            else:
+                export = "fbx.fbx"
 
-                if (self.handler.fbx_export({
-                    "target": fbx_file, 
-                    "working_dir": working_dir
-                    })):
-                    #self.append_status("fbx_export done")
-                else:
-                    #self.append_status("fbx_export error", True)
-            except:
-                traceback.print_exc(file=sys.stdout)          
-        else:
-            #self.append_status("Handler not loaded")
-            pass
+            working_dir = load_settings("last_fbx", os.path.expanduser("~"))
 
-        #self.append_status("{}".format(message))        
-        
+            default_name = os.path.normpath(os.path.join(working_dir, export))
+            fbx_file = QtWidgets.QFileDialog.getSaveFileName(self, caption = 'Export FBX as', dir = default_name, filter = "fbx (*.fbx);;All files (*.*)")
+
+            if not fbx_file:
+                return False
+
+            save_settings("last_fbx", os.path.dirname(fbx_file[0]))                
+
+            self.handler.fbx_export(target = fbx_file[0], working_dir = working_dir)
+        except:
+            traceback.print_exc(file=sys.stdout)          
 
     def new_scene(self):
         if self.selected_task:

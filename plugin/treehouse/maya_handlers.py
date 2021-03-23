@@ -201,18 +201,22 @@ class StudioHandler(QtCore.QObject):
         self.log_output("on_create complete")
 
     def on_playblast(self, **kwargs):
-        self.log_output("on_playblast", kwargs)
+        # use zurbrigg playblast
+        # self.log_output("on_playblast", kwargs)
         return False
         # playblast  -format avi -sequenceTime 0 -clearCache 1 -viewer 1 -showOrnaments 1 -fp 4 -percent 50 -compression "none" -quality 70;
 
     def fbx_export(self, **kwargs):
         source = kwargs["target"]
         working_dir = kwargs["working_dir"]
+
+        self.log_output("calling fbx export {0} {1}".format(source, working_dir))
+
         target = os.path.join(working_dir, source)
         target = os.path.normpath(target)        
 
         cmds.FBXExport('-file', target, '-s')
-        self.log_output("fbx_export", kwargs)
+        ##self.log_output("fbx_export", kwargs)
         return True
 
 
