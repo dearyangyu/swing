@@ -48,15 +48,15 @@ class Ui_SwingMain(object):
 
         self.connectionLayout.addWidget(self.pushButtonBreakout)
 
+        self.pushButtonFbx = QPushButton(SwingMain)
+        self.pushButtonFbx.setObjectName(u"pushButtonFbx")
+
+        self.connectionLayout.addWidget(self.pushButtonFbx)
+
         self.pushButtonSearchFiles = QPushButton(SwingMain)
         self.pushButtonSearchFiles.setObjectName(u"pushButtonSearchFiles")
 
         self.connectionLayout.addWidget(self.pushButtonSearchFiles)
-
-        self.pushButtonRefresh = QPushButton(SwingMain)
-        self.pushButtonRefresh.setObjectName(u"pushButtonRefresh")
-
-        self.connectionLayout.addWidget(self.pushButtonRefresh)
 
 
         self.verticalLayout.addLayout(self.connectionLayout)
@@ -87,7 +87,7 @@ class Ui_SwingMain(object):
         font.setBold(True)
         font.setWeight(75)
         self.radioButtonAsset.setFont(font)
-        self.radioButtonAsset.setChecked(False)
+        self.radioButtonAsset.setChecked(True)
 
         self.horizontalLayoutAsset.addWidget(self.radioButtonAsset)
 
@@ -282,13 +282,10 @@ class Ui_SwingMain(object):
         self.pushButtonPlayblast.setShortcut(QCoreApplication.translate("SwingMain", u"F8", None))
 #endif // QT_CONFIG(shortcut)
         self.pushButtonBreakout.setText(QCoreApplication.translate("SwingMain", u"Breakout", None))
+        self.pushButtonFbx.setText(QCoreApplication.translate("SwingMain", u"FBX", None))
         self.pushButtonSearchFiles.setText(QCoreApplication.translate("SwingMain", u"Search", None))
 #if QT_CONFIG(shortcut)
         self.pushButtonSearchFiles.setShortcut(QCoreApplication.translate("SwingMain", u"F3", None))
-#endif // QT_CONFIG(shortcut)
-        self.pushButtonRefresh.setText(QCoreApplication.translate("SwingMain", u"Refresh", None))
-#if QT_CONFIG(shortcut)
-        self.pushButtonRefresh.setShortcut(QCoreApplication.translate("SwingMain", u"F5", None))
 #endif // QT_CONFIG(shortcut)
         self.radioButtonAsset.setText(QCoreApplication.translate("SwingMain", u"Asset", None))
 #if QT_CONFIG(shortcut)

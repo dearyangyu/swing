@@ -142,6 +142,7 @@ class BreakoutUploadDialog(QtWidgets.QDialog, Ui_BreakoutUploadDialog):
             worker.callback.results.connect(self.results)
 
             self.threadpool.start(worker)
+            #worker.run()
         else:
             QtWidgets.QMessageBox.info(self, 'Break Out', 'Please select a sequence')               
             #worker.run()
@@ -161,9 +162,6 @@ class BreakoutUploadDialog(QtWidgets.QDialog, Ui_BreakoutUploadDialog):
         handles = self.checkBoxHandles.isChecked()
         handle_count = self.spinBoxHandles.value()
 
-        if handles:
-            start_frame += handles
-        
         for item in self.model.shots:
             if item["nb_frames"]:
                 nb_frames = int(item["nb_frames"])
@@ -172,10 +170,11 @@ class BreakoutUploadDialog(QtWidgets.QDialog, Ui_BreakoutUploadDialog):
                 start_frame += nb_frames
 
                 if handles:
-                    start_frame += handles
-
+                    start_frame += handle_count
+                    
                 item["out"] = str(start_frame)
-                start_frame += 1
+                start_frame += 1                
+                
 
     def media_info(self, results):
         item = results["item"]

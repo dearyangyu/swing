@@ -181,11 +181,15 @@ class Ui_BreakoutUploadDialog(object):
 
         self.spinBoxStartingFrame = QSpinBox(BreakoutUploadDialog)
         self.spinBoxStartingFrame.setObjectName(u"spinBoxStartingFrame")
+        self.spinBoxStartingFrame.setAccelerated(True)
+        self.spinBoxStartingFrame.setMaximum(9999999)
+        self.spinBoxStartingFrame.setValue(1)
 
         self.horizontalLayout_9.addWidget(self.spinBoxStartingFrame)
 
         self.checkBoxHandles = QCheckBox(BreakoutUploadDialog)
         self.checkBoxHandles.setObjectName(u"checkBoxHandles")
+        self.checkBoxHandles.setChecked(True)
 
         self.horizontalLayout_9.addWidget(self.checkBoxHandles)
 

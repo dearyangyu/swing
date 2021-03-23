@@ -26,7 +26,7 @@ except ImportError:
     from PyQt5.QtCore import pyqtSignal
 
 from datetime import datetime
-from wildchildanimation.gui.swing_utils import write_log, connect_to_server
+from wildchildanimation.gui.swing_utils import write_log, connect_to_server, load_settings, load_keyring
 
 import wildchildanimation.gui.swing_utils
 
@@ -633,7 +633,7 @@ class ShotCreator(QtCore.QRunnable):
                     "status": "OK", 
                     "message": "Created new shot {0}".format(shot_name),
                 }        
-                self.callback.results.emit(results)                
+                self.callback.results.emit(results)     
 
             if "project_file_name" in item:
                 file_name = item["project_file_name"]
@@ -691,6 +691,22 @@ class ShotCreator(QtCore.QRunnable):
                             }  
 
                             self.callback.results.emit(results)      
+            ### add playblast movie
+
+            # check timings
+            data = {}
+            if "nb_frames" in item and item["nb_frames"]:
+                data["nb_frames"] = item["nb_frames"]
+
+            if "in" in item and item["in"]:
+                data["frame_in"] = item["in"]
+
+            if "out" in item and item["out"]:
+                data["frame_out"] = item["out"]
+
+            if len(data.keys()) > 0:
+                gazu.shot.update_shot_data(shot, data)
+            ### update timings
 
             results = {
                 "status": "OK", 

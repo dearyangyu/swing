@@ -3,7 +3,8 @@
 '''
 
 #WCA_ROOT = "Z:/env/maya/treehouse/wca-maya/"
-WCA_ROOT = "C:/DEV/github/wca-maya/"
+#WCA_ROOT = "C:/DEV/github/wca-maya/"
+WCA_ROOT = "C:/WCA/wca-maya/"
 
 
 import sys

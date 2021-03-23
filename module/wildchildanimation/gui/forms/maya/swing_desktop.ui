@@ -51,6 +51,9 @@
      </item>
      <item>
       <widget class="QPushButton" name="pushButtonPlayblast">
+       <property name="toolTip">
+        <string>Opens Playblaster for current viewport in DCC</string>
+       </property>
        <property name="text">
         <string>Playblast</string>
        </property>
@@ -60,7 +63,20 @@
       </widget>
      </item>
      <item>
+      <widget class="QPushButton" name="pushButtonFbx">
+       <property name="toolTip">
+        <string>Export current selection in DCC to an FBX</string>
+       </property>
+       <property name="text">
+        <string>FBX</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="pushButtonBreakout">
+       <property name="toolTip">
+        <string>Opens Shot Breakout Dialog</string>
+       </property>
        <property name="text">
         <string>Breakout</string>
        </property>
@@ -73,16 +89,6 @@
        </property>
        <property name="shortcut">
         <string>F3</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="pushButtonRefresh">
-       <property name="text">
-        <string>Refresh</string>
-       </property>
-       <property name="shortcut">
-        <string>F5</string>
        </property>
       </widget>
      </item>
@@ -141,7 +147,7 @@
         <string>Alt+A</string>
        </property>
        <property name="checked">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
       </widget>
      </item>

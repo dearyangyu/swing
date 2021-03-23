@@ -6,8 +6,6 @@ import os
 import sys
 import traceback
 
-import urllib2, shutil, zipfile
-
 from datetime import datetime
 
 _maya_loaded = False    
@@ -206,6 +204,16 @@ class StudioHandler(QtCore.QObject):
         self.log_output("on_playblast", kwargs)
         return False
         # playblast  -format avi -sequenceTime 0 -clearCache 1 -viewer 1 -showOrnaments 1 -fp 4 -percent 50 -compression "none" -quality 70;
+
+    def fbx_export(self, **kwargs):
+        source = kwargs["target"]
+        working_dir = kwargs["working_dir"]
+        target = os.path.join(working_dir, source)
+        target = os.path.normpath(target)        
+
+        cmds.FBXExport('-file', target, '-s')
+        self.log_output("fbx_export", kwargs)
+        return True
 
 
 def write_log(*args):

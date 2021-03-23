@@ -42,6 +42,11 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
     _episodes = []
     _sequences = []
     _task_types = []
+    _status = { 
+        "projects": False,
+        "episodes": False,
+        "sequences": False
+    }
     
     def __init__(self):
         super(ProjectNavWidget, self).__init__(None) # Call the inherited classes __init__ method
@@ -49,6 +54,7 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
 
         self.setupUi(self)
         self.toolButtonRefresh.setIcon(self.style().standardIcon(QStyle.SP_BrowserReload))
+        self.toolButtonRefresh.clicked.connect(self.load_project_hierarchy)
 
         self.signal = NavigationChangedSignal()
         self.signal.selection_changed.connect(self.selection_changed)
@@ -57,17 +63,26 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
         self.comboBoxEpisode.currentIndexChanged.connect(self.episode_changed)
         self.comboBoxSequence.currentIndexChanged.connect(self.sequence_changed)
 
+    def is_loaded(self):
+        return self._status["projects"] and self._status["episodes"] and self._status["sequences"]
+
     def get_task_types(self):
         return self._task_types
 
     def get_project(self):
-        return self._projects[self.comboBoxProject.currentIndex()]
+        if self.comboBoxProject.currentIndex() >= 0:
+            return self._projects[self.comboBoxProject.currentIndex()]
+        return None
 
     def get_episode(self):
-        return self._episodes[self.comboBoxEpisode.currentIndex()]
+        if self.comboBoxEpisode.currentIndex() >= 0:
+            return self._episodes[self.comboBoxEpisode.currentIndex()]
+        return None
 
     def get_sequence(self):
-        return self._sequences[self.comboBoxSequence.currentIndex()]
+        if self.comboBoxSequence.currentIndex() >= 0:
+            return self._sequences[self.comboBoxSequence.currentIndex()]
+        return None
 
     def selection_changed(self, source, object):
         if "project_changed" in source:
@@ -78,7 +93,8 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
 
     def project_changed(self, index):
         self.signal.selection_changed.emit("project_changed", { 
-            "project": self._projects[index]
+            "project": self._projects[index],
+            "is_loaded": self.is_loaded()
         } )
 
         write_log("project_changed", self._projects[index]["id"])
@@ -99,6 +115,9 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
         write_log("sequence_changed", self._sequences[index]["id"])
 
     def lock_ui(self, enabled):
+        if not self.is_loaded():
+            return False
+
         if enabled:
             self.comboBoxProject.setEnabled(False)
             self.comboBoxProject.blockSignals(True)
@@ -147,6 +166,8 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
         self._sequences = []
 
         episode = self.get_episode()
+        if not episode:
+            return False
 
         if "sequences" in episode:
             sequences = episode["sequences"]
@@ -156,6 +177,8 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
 
             for item in self._sequences:
                 self.comboBoxSequence.addItem(item["name"])
+
+        self._status["sequences"] = True
 
         self.sequence_changed(self.comboBoxSequence.currentIndex())
         self.lock_ui(False)
@@ -176,6 +199,7 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
         if len(self._sequences) >= 0:
             self.sequence_changed(self.comboBoxSequence.currentIndex())            
 
+        self._status["episodes"] = True
         self.lock_ui(False)
 
     def projects_loaded(self, results): 
@@ -195,7 +219,8 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
             for item in self._projects:
                 self.comboBoxProject.addItem(item["name"])
 
-            self.load_project_hierarchy()
+        self._status["projects"] = True
+        self.load_project_hierarchy()
 
 
 if __name__ == "__main__":

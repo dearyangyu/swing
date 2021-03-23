@@ -108,6 +108,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.setupUi(self)
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
 
+        # setup to hide in a dcc
         self.set_handler(studio_handler)
 
         self.connect(self, QtCore.SIGNAL("finished(int)"), self.finished)
@@ -132,24 +133,18 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
         self.pushButtonSettings.clicked.connect(self.open_connection_settings)
         self.pushButtonConnect.clicked.connect(self.connect_to_server)
-        self.pushButtonRefresh.clicked.connect(self.refresh_data)
 
         self.pushButtonImport.clicked.connect(self.load_asset)
         self.pushButtonDownload.clicked.connect(self.download_files)
         self.pushButtonPublish.clicked.connect(self.publish_scene)
+
         self.pushButtonPlayblast.clicked.connect(self.playblast_scene)
+        self.pushButtonFbx.clicked.connect(self.fbx_export)
+        
         self.pushButtonNew.clicked.connect(self.new_scene)
         self.pushButtonSearchFiles.clicked.connect(self.search_files_dialog)
         self.pushButtonBreakout.clicked.connect(self.breakout_dialog)
         #self.setWorkingDir(load_settings("projects_root", os.path.expanduser("~")))
-
-        # setup to hide in a dcc
-        if self.handler:
-            self.pushButtonClose.setText("Hide")
-            self.pushButtonClose.clicked.connect(self.hide_dialog)
-        else:
-            self.pushButtonClose.setText("Close")            
-            self.pushButtonClose.clicked.connect(self.close_dialog)
 
         self.projectNav.comboBoxProject.currentIndexChanged.connect(self.project_changed)
         self.projectNav.comboBoxEpisode.currentIndexChanged.connect(self.episode_changed)
@@ -169,15 +164,23 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
         if self.connect_to_server():
             self.labelConnection.setText("Connected")
-            self.refresh_data()
+            self.projectNav.load_open_projects()
 
     def set_handler(self, studio_handler):
         if not studio_handler:
             self.handler = None
             self.pushButtonPlayblast.setEnabled(False)
+            self.pushButtonFbx.setEnabled(False)
+
+            self.pushButtonClose.setText("Close")            
+            self.pushButtonClose.clicked.connect(self.close_dialog)            
         else:
             self.handler = studio_handler   
             self.pushButtonPlayblast.setEnabled(True)
+            self.pushButtonFbx.setEnabled(True)
+
+            self.pushButtonClose.setText("Hide")
+            self.pushButtonClose.clicked.connect(self.hide_dialog)            
 
     def keyPressEvent(self, event):
         super(SwingGUI, self).keyPressEvent(event)
@@ -331,26 +334,10 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         else:
             event.ignore()        
 
-    def refresh_data(self):
-        write_log("[refresh_data]")
-
-        if not self.loading:
-            self.projectNav.load_open_projects()    
-            
-            #loader = bg.ProjectLoaderThread(self)
-            #loader.callback.loaded.connect(self.projects_loaded)
-
-            #self.progressBar.setMaximum(0)
-            #self.set_loading(True)
-
-            #self.threadpool.start(loader)
-        else:
-            write_log("Loading in progress")
-
     def selection_changed(self, source, selection): 
         write_log("[selection_changed]", source)
 
-        if "project" in source:
+        if "project" in source and selection["is_loaded"]:
             self.project_changed(self.projectNav.comboBoxProject.currentIndex())
         #self.comboBoxProject.setEnabled(True)
 
@@ -362,6 +349,9 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         write_log("[project_changed]")
 
         self.currentProject = self.projectNav.get_project()
+        if not self.currentProject:
+            return False
+
         self.currentProjectIndex = index
 
         if self.currentProject:
@@ -393,13 +383,14 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         write_log("[episode_changed]")
 
         self.currentEpisode = self.projectNav.get_episode()
-        self.currentEpisodeIndex = index
+        if self.currentEpisode:
+            self.currentEpisodeIndex = index
 
-        if self.projectNav.comboBoxSequence.currentIndex() >= 0:
-            self.load_shot_files(self.projectNav.comboBoxSequence.currentIndex())   
+            if self.projectNav.comboBoxSequence.currentIndex() >= 0:
+                self.load_shot_files(self.projectNav.comboBoxSequence.currentIndex())   
 
-        elif self.comboBoxShot.currentIndex() >= 0:
-            self.load_shot_files(self.comboBoxShot.currentIndex())
+            elif self.comboBoxShot.currentIndex() >= 0:
+                self.load_shot_files(self.comboBoxShot.currentIndex())
 
     def asset_types_loaded(self, data): 
         write_log("[asset_types_loaded]")
@@ -429,7 +420,11 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.comboBoxShot.clear()
 
         have_shots = False
-        for item in self.projectNav.get_sequence()["shots"]:
+        sequence = self.projectNav.get_sequence()
+        if not sequence:
+            return False
+
+        for item in sequence["shots"]:
             name = "{} {}".format(item["sequence_name"],  item["name"])
             self.comboBoxShot.addItem(item["name"]) 
             have_shots  = True
@@ -451,12 +446,14 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             self.threadpool.start(loader)
 
     def load_shot_files(self, index):
-        self.currentShot = self.projectNav.get_sequence()["shots"][index]
-        write_log("load shot files {}".format(index))
+        sequence = self.projectNav.get_sequence()
+        if sequence:
+            self.currentShot = sequence["shots"][index]
+            write_log("load shot files {}".format(index))
 
-        loader = bg.EntityFileLoader(self, self.currentShot, working_dir = load_settings("projects_root", os.path.expanduser("~")))
-        loader.callback.loaded.connect(self.files_loaded)
-        self.threadpool.start(loader)
+            loader = bg.EntityFileLoader(self, self.currentShot, working_dir = load_settings("projects_root", os.path.expanduser("~")))
+            loader.callback.loaded.connect(self.files_loaded)
+            self.threadpool.start(loader)
 
     def files_loaded(self, data):
         output_files = data["output_files"]
@@ -543,7 +540,6 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             dialog.set_selected(self.selected_file)
             #dialog.exec_()
             dialog.show()
-
 
     def file_table_selection_changed(self):
         if not (self.tableViewFiles.selectedIndexes()):
@@ -660,6 +656,31 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.append_status("{}".format(message))        
         '''
 
+    def fbx_export(self):
+        # call handler: export to an fbx file
+        if self.handler:
+            self.append_status("Running handlers")
+            try:
+                fbx_file = QtWidgets.QFileDialog.getSaveFileName(self, 'Export FBX')
+                working_dir = load_settings("projects_root", os.path.expanduser("~"))
+
+                if not fbfx_file:
+                    return False
+
+                if (self.handler.fbx_export({
+                    "target": fbx_file, 
+                    "working_dir": working_dir
+                    })):
+                    self.append_status("fbx_export done")
+                else:
+                    self.append_status("fbx_export error", True)
+            except:
+                traceback.print_exc(file=sys.stdout)          
+        else:
+            self.append_status("Handler not loaded")
+
+        self.append_status("{}".format(message))        
+        
 
     def new_scene(self):
         if self.selected_task:
