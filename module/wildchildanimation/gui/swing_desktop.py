@@ -38,20 +38,19 @@ class Ui_SwingMain(object):
 
         self.connectionLayout.addItem(self.horizontalSpacer_4)
 
-        self.pushButtonPlayblast = QPushButton(SwingMain)
-        self.pushButtonPlayblast.setObjectName(u"pushButtonPlayblast")
+        self.pushButtonDCCTools = QPushButton(SwingMain)
+        self.pushButtonDCCTools.setObjectName(u"pushButtonDCCTools")
 
-        self.connectionLayout.addWidget(self.pushButtonPlayblast)
+        self.connectionLayout.addWidget(self.pushButtonDCCTools)
+
+        self.horizontalSpacer_5 = QSpacerItem(40, 20, QSizePolicy.Minimum, QSizePolicy.Minimum)
+
+        self.connectionLayout.addItem(self.horizontalSpacer_5)
 
         self.pushButtonBreakout = QPushButton(SwingMain)
         self.pushButtonBreakout.setObjectName(u"pushButtonBreakout")
 
         self.connectionLayout.addWidget(self.pushButtonBreakout)
-
-        self.pushButtonFbx = QPushButton(SwingMain)
-        self.pushButtonFbx.setObjectName(u"pushButtonFbx")
-
-        self.connectionLayout.addWidget(self.pushButtonFbx)
 
         self.pushButtonSearchFiles = QPushButton(SwingMain)
         self.pushButtonSearchFiles.setObjectName(u"pushButtonSearchFiles")
@@ -277,12 +276,17 @@ class Ui_SwingMain(object):
         SwingMain.setWindowTitle(QCoreApplication.translate("SwingMain", u"treehouse: swing", None))
         self.pushButtonSettings.setText(QCoreApplication.translate("SwingMain", u"Settings", None))
         self.pushButtonConnect.setText(QCoreApplication.translate("SwingMain", u"Connect", None))
-        self.pushButtonPlayblast.setText(QCoreApplication.translate("SwingMain", u"Playblast", None))
+#if QT_CONFIG(tooltip)
+        self.pushButtonDCCTools.setToolTip(QCoreApplication.translate("SwingMain", u"Open Swing Tools", None))
+#endif // QT_CONFIG(tooltip)
+        self.pushButtonDCCTools.setText(QCoreApplication.translate("SwingMain", u"DCC Tools", None))
 #if QT_CONFIG(shortcut)
-        self.pushButtonPlayblast.setShortcut(QCoreApplication.translate("SwingMain", u"F8", None))
+        self.pushButtonDCCTools.setShortcut(QCoreApplication.translate("SwingMain", u"F8", None))
 #endif // QT_CONFIG(shortcut)
+#if QT_CONFIG(tooltip)
+        self.pushButtonBreakout.setToolTip(QCoreApplication.translate("SwingMain", u"Opens Shot Breakout Dialog", None))
+#endif // QT_CONFIG(tooltip)
         self.pushButtonBreakout.setText(QCoreApplication.translate("SwingMain", u"Breakout", None))
-        self.pushButtonFbx.setText(QCoreApplication.translate("SwingMain", u"FBX", None))
         self.pushButtonSearchFiles.setText(QCoreApplication.translate("SwingMain", u"Search", None))
 #if QT_CONFIG(shortcut)
         self.pushButtonSearchFiles.setShortcut(QCoreApplication.translate("SwingMain", u"F3", None))

@@ -1,0 +1,13 @@
+notes & defs:
+
+Shot Track -- Edit
+Camera Cut Track - Per Shot
+
+Remember Autokey
+
+- Avoid motion blur when blocking
+- Skeletons should have 1 root bone
+
+- Asset Action/ Select Skeleton / 
+
+- Unreal will automatically convert quads to triads

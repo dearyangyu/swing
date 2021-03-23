@@ -47,17 +47,19 @@ from wildchildanimation.gui.loader_dialog import Ui_LoaderDialog
 from wildchildanimation.gui.create_dialog import Ui_CreateDialog
 from wildchildanimation.gui.upload_monitor_dialog import Ui_UploadMonitorDialog
 from wildchildanimation.gui.playblast_dialog import Ui_PlayblastDialog
-from wildchildanimation.gui.zurbrigg_playblast import *
 
 from wildchildanimation.gui.references import *
 from wildchildanimation.gui.search import *
 from wildchildanimation.gui.downloads import *
 from wildchildanimation.gui.breakout import *
+from wildchildanimation.gui.dcc_tools import *
 
 from wildchildanimation.gui.swing_tables import FileTableModel, TaskTableModel, CastingTableModel, load_file_table_widget, human_size
 
 from wildchildanimation.gui.swing_desktop import Ui_SwingMain
 from wildchildanimation.gui.project_nav import ProjectNavWidget
+
+from wildchildanimation.studio_interface import StudioInterface
 
 '''
     SwingGUI Main class
@@ -109,7 +111,6 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
 
         # setup to hide in a dcc
-        ## debug studio_handler = True
         self.set_handler(studio_handler)
 
         self.connect(self, QtCore.SIGNAL("finished(int)"), self.finished)
@@ -139,13 +140,11 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.pushButtonDownload.clicked.connect(self.download_files)
         self.pushButtonPublish.clicked.connect(self.publish_scene)
 
-        self.pushButtonPlayblast.clicked.connect(self.playblast_scene)
-        self.pushButtonFbx.clicked.connect(self.fbx_export)
-        
+        self.pushButtonDCCTools.clicked.connect(self.dcc_tools_dialog)
+
         self.pushButtonNew.clicked.connect(self.new_scene)
         self.pushButtonSearchFiles.clicked.connect(self.search_files_dialog)
         self.pushButtonBreakout.clicked.connect(self.breakout_dialog)
-        #self.setWorkingDir(load_settings("projects_root", os.path.expanduser("~")))
 
         self.projectNav.comboBoxProject.currentIndexChanged.connect(self.project_changed)
         self.projectNav.comboBoxEpisode.currentIndexChanged.connect(self.episode_changed)
@@ -169,16 +168,16 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
     def set_handler(self, studio_handler):
         if not studio_handler:
-            self.handler = None
-            self.pushButtonPlayblast.setEnabled(False)
-            self.pushButtonFbx.setEnabled(False)
+            self.handler = StudioInterface()
+            #self.pushButtonDCCTools.setEnabled(False)
+            #self.pushButtonFbx.setEnabled(False)
 
             self.pushButtonClose.setText("Close")            
             self.pushButtonClose.clicked.connect(self.close_dialog)            
         else:
             self.handler = studio_handler   
-            self.pushButtonPlayblast.setEnabled(True)
-            self.pushButtonFbx.setEnabled(True)
+            #self.pushButtonDCCTools.setEnabled(True)
+            #self.pushButtonFbx.setEnabled(True)
 
             self.pushButtonClose.setText("Hide")
             self.pushButtonClose.clicked.connect(self.hide_dialog)            
@@ -613,7 +612,11 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             dialog.set_episode(self.projectNav.get_episode())
             dialog.exec_()
         else:
-            QtWidgets.QMessageBox.info(self, 'Break Out', 'Please select a project and an episode first')        
+            QtWidgets.QMessageBox.info(self, 'Break Out', 'Please select a project and an episode first')  
+
+    def dcc_tools_dialog(self):
+        dialog = DCCToolsDialog(self, self.handler, self.get_current_selection())
+        dialog.exec_()
 
     def download_files(self):
         dialog = DownloadDialogGUI(self, self.get_current_selection(), self.projectNav.get_task_types())
@@ -634,53 +637,6 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             dialog = PublishDialogGUI(self, self.handler, self.selected_task)
             dialog.resize(self.size())
             dialog.show()
-
-    def playblast_scene(self):
-        dialog = ZurbriggPlayblastUi()
-        dialog.show()
-        
-        '''
-        # call maya handler: import into existing workspace
-        if self.handler:
-            self.append_status("Running handlers")
-            try:
-                if (self.handler.on_playblast(source = file_name, working_dir = working_dir)):
-                    self.append_status("Playblast done")
-                else:
-                    self.append_status("Playblast error", True)
-            except:
-                traceback.print_exc(file=sys.stdout)          
-        else:
-            self.append_status("Maya handler not loaded")
-
-
-        self.append_status("{}".format(message))        
-        '''
-
-    def fbx_export(self):
-        if not self.handler:
-            return False
-
-        try:
-            selection = self.get_current_selection()
-            if selection:
-                export = "{0}.fbx".format(friendly_string(selection["name"]))
-            else:
-                export = "fbx.fbx"
-
-            working_dir = load_settings("last_fbx", os.path.expanduser("~"))
-
-            default_name = os.path.normpath(os.path.join(working_dir, export))
-            fbx_file = QtWidgets.QFileDialog.getSaveFileName(self, caption = 'Export FBX as', dir = default_name, filter = "fbx (*.fbx);;All files (*.*)")
-
-            if not fbx_file:
-                return False
-
-            save_settings("last_fbx", os.path.dirname(fbx_file[0]))                
-
-            self.handler.fbx_export(target = fbx_file[0], working_dir = working_dir)
-        except:
-            traceback.print_exc(file=sys.stdout)          
 
     def new_scene(self):
         if self.selected_task:

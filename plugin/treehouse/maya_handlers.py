@@ -29,7 +29,9 @@ except ImportError:
     from PyQt5 import QtCore
     qtMode = 1    
 
-class StudioHandler(QtCore.QObject):
+from wildchildanimation.studio_interface import StudioInterface
+
+class StudioHandler(StudioInterface, QtCore.QObject):
 
     VERSION = "0.0.2"
     SUPPORTED_TYPES = [".ma", ".mb", ".fbx", ".obj", ".mov", ".mp4", ".wav", ".jpg", ".png" ]
@@ -52,6 +54,27 @@ class StudioHandler(QtCore.QObject):
         if _maya_loaded:
             om.MGlobal.displayInfo(text)
         write_log("[info] {}".format(text))    
+
+    def get_param(self, option, value) -> object:
+        ### runs a custom value request against the local dcc
+        if option == "frame_range":
+
+            if param == "Render":
+                start_frame = int(cmds.getAttr("defaultRenderGlobals.startFrame"))
+                end_frame = int(cmds.getAttr("defaultRenderGlobals.endFrame"))
+            elif param == "Playback":
+                start_frame = int(cmds.playbackOptions(q=True, minTime=True))
+                end_frame = int(cmds.playbackOptions(q=True, maxTime=True))
+            elif param == "Animation":
+                start_frame = int(cmds.playbackOptions(q=True, animationStartTime=True))
+                end_frame = int(cmds.playbackOptions(q=True, animationEndTime=True))
+            else:
+                raise RuntimeError("Invalid frame range preset: {0}".format(value))
+
+            return (start_frame, end_frame)
+
+        raise None
+        
 
     def set_globals(self, **kwargs):
         write_log("on_globals")

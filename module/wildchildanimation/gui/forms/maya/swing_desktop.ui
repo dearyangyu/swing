@@ -50,12 +50,12 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButtonPlayblast">
+      <widget class="QPushButton" name="pushButtonDCCTools">
        <property name="toolTip">
-        <string>Opens Playblaster for current viewport in DCC</string>
+        <string>Open Swing Tools</string>
        </property>
        <property name="text">
-        <string>Playblast</string>
+        <string>DCC Tools</string>
        </property>
        <property name="shortcut">
         <string>F8</string>
@@ -63,14 +63,20 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButtonFbx">
-       <property name="toolTip">
-        <string>Export current selection in DCC to an FBX</string>
+      <spacer name="horizontalSpacer_5">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
        </property>
-       <property name="text">
-        <string>FBX</string>
+       <property name="sizeType">
+        <enum>QSizePolicy::Minimum</enum>
        </property>
-      </widget>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
      </item>
      <item>
       <widget class="QPushButton" name="pushButtonBreakout">
