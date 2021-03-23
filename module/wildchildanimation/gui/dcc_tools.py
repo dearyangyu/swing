@@ -130,6 +130,8 @@ class DCCToolsDialog(QtWidgets.QDialog, Ui_DCCToolsDialog):
                 export = "fbx.fbx"
 
             working_dir = load_settings("last_fbx", os.path.expanduser("~"))
+            selection = self.comboBoxFbxSelection.currentText()
+
 
             default_name = os.path.normpath(os.path.join(working_dir, export))
             fbx_file = QtWidgets.QFileDialog.getSaveFileName(self, caption = 'Export FBX as', dir = default_name, filter = "fbx (*.fbx);;All files (*.*)")
@@ -139,7 +141,7 @@ class DCCToolsDialog(QtWidgets.QDialog, Ui_DCCToolsDialog):
 
             save_settings("last_fbx", os.path.dirname(fbx_file[0]))                
 
-            self.handler.fbx_export(target = fbx_file[0], working_dir = working_dir)
+            self.handler.fbx_export(target = fbx_file[0], working_dir = working_dir, selection = selection)
         except:
             traceback.print_exc(file=sys.stdout)           
 

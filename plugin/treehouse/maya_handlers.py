@@ -26,7 +26,7 @@ from wildchildanimation.gui.zurbrigg_playblast import *
 
 class StudioHandler(StudioInterface):
 
-    NAME = "MayaSwingInterface
+    NAME = "MayaSwingInterface"
     VERSION = "0.0.1"
     SUPPORTED_TYPES = [".ma", ".mb", ".fbx", ".obj", ".mov", ".mp4", ".wav", ".jpg", ".png" ]
 
@@ -226,11 +226,24 @@ class StudioHandler(StudioInterface):
         # playblast  -format avi -sequenceTime 0 -clearCache 1 -viewer 1 -showOrnaments 1 -fp 4 -percent 50 -compression "none" -quality 70;
 
     def fbx_export(self, **kwargs):
+        # exports current selected
         source = kwargs["target"]
         working_dir = kwargs["working_dir"]
+        selection = kwargs["selection"]
 
         target = os.path.join(working_dir, source)
-        target = os.path.normpath(target)        
+        target = os.path.normpath(target)       
+
+        if "All" in selection:
+            # select all dag objects and all dependency nodes
+            pm.select(all = True) 
+
+        # https://tech-artists.org/t/solved-problem-exporting-fbx-from-maya-without-animation/8796        
+        cmds.FBXResetExport()
+        cmds.FBXExportHardEdges('-v', True)
+        cmds.FBXExportSmoothingGroups('-v', True)
+        cmds.FBXExportTangents('-v', True)
+        cmds.FBXExportBakeComplexAnimation('-v', True)
 
         cmds.FBXExport('-file', target, '-s')
 
