@@ -26,7 +26,8 @@ from wildchildanimation.gui.zurbrigg_playblast import *
 
 class StudioHandler(StudioInterface):
 
-    VERSION = "0.0.2"
+    NAME = "MayaSwingInterface
+    VERSION = "0.0.1"
     SUPPORTED_TYPES = [".ma", ".mb", ".fbx", ".obj", ".mov", ".mp4", ".wav", ".jpg", ".png" ]
 
     def __init__(self):

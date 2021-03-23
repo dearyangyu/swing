@@ -22,15 +22,11 @@ class Ui_DCCToolsDialog(object):
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.pushButtonPlayblast = QPushButton(DCCToolsDialog)
-        self.pushButtonPlayblast.setObjectName(u"pushButtonPlayblast")
-        self.pushButtonPlayblast.setMinimumSize(QSize(85, 0))
+        self.lineEditEntityName = QLineEdit(DCCToolsDialog)
+        self.lineEditEntityName.setObjectName(u"lineEditEntityName")
+        self.lineEditEntityName.setEnabled(False)
 
-        self.horizontalLayout.addWidget(self.pushButtonPlayblast)
-
-        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
-
-        self.horizontalLayout.addItem(self.horizontalSpacer)
+        self.horizontalLayout.addWidget(self.lineEditEntityName)
 
 
         self.verticalLayout.addLayout(self.horizontalLayout)
@@ -118,12 +114,12 @@ class Ui_DCCToolsDialog(object):
 
         self.horizontalLayout_2.addItem(self.horizontalSpacerFrameRange)
 
-        self.spinBoxWidth = QSpinBox(DCCToolsDialog)
-        self.spinBoxWidth.setObjectName(u"spinBoxWidth")
-        self.spinBoxWidth.setButtonSymbols(QAbstractSpinBox.NoButtons)
-        self.spinBoxWidth.setMaximum(9999999)
+        self.spinBoxStart = QSpinBox(DCCToolsDialog)
+        self.spinBoxStart.setObjectName(u"spinBoxStart")
+        self.spinBoxStart.setButtonSymbols(QAbstractSpinBox.NoButtons)
+        self.spinBoxStart.setMaximum(9999999)
 
-        self.horizontalLayout_2.addWidget(self.spinBoxWidth)
+        self.horizontalLayout_2.addWidget(self.spinBoxStart)
 
         self.labelFrameRangeX = QLabel(DCCToolsDialog)
         self.labelFrameRangeX.setObjectName(u"labelFrameRangeX")
@@ -131,12 +127,12 @@ class Ui_DCCToolsDialog(object):
 
         self.horizontalLayout_2.addWidget(self.labelFrameRangeX)
 
-        self.spinBoxHeight = QSpinBox(DCCToolsDialog)
-        self.spinBoxHeight.setObjectName(u"spinBoxHeight")
-        self.spinBoxHeight.setButtonSymbols(QAbstractSpinBox.NoButtons)
-        self.spinBoxHeight.setMaximum(9999999)
+        self.spinBoxEnd = QSpinBox(DCCToolsDialog)
+        self.spinBoxEnd.setObjectName(u"spinBoxEnd")
+        self.spinBoxEnd.setButtonSymbols(QAbstractSpinBox.NoButtons)
+        self.spinBoxEnd.setMaximum(9999999)
 
-        self.horizontalLayout_2.addWidget(self.spinBoxHeight)
+        self.horizontalLayout_2.addWidget(self.spinBoxEnd)
 
 
         self.verticalLayout.addLayout(self.horizontalLayout_2)
@@ -173,8 +169,7 @@ class Ui_DCCToolsDialog(object):
     # setupUi
 
     def retranslateUi(self, DCCToolsDialog):
-        DCCToolsDialog.setWindowTitle(QCoreApplication.translate("DCCToolsDialog", u"Swing DCC Handler", None))
-        self.pushButtonPlayblast.setText(QCoreApplication.translate("DCCToolsDialog", u"Playblast", None))
+        DCCToolsDialog.setWindowTitle(QCoreApplication.translate("DCCToolsDialog", u"Swing: Export", None))
         self.pushButtonFbxExport.setText(QCoreApplication.translate("DCCToolsDialog", u"Export FBX", None))
         self.labelFbxSelection.setText(QCoreApplication.translate("DCCToolsDialog", u"selection:", None))
         self.comboBoxFbxSelection.setItemText(0, QCoreApplication.translate("DCCToolsDialog", u"All", None))
@@ -186,7 +181,7 @@ class Ui_DCCToolsDialog(object):
         self.comboBoxAlembicSelection.setItemText(1, QCoreApplication.translate("DCCToolsDialog", u"Selected", None))
 
         self.label.setText(QCoreApplication.translate("DCCToolsDialog", u"Frame Range:", None))
-        self.labelFrameRangeX.setText(QCoreApplication.translate("DCCToolsDialog", u"x", None))
+        self.labelFrameRangeX.setText(QCoreApplication.translate("DCCToolsDialog", u" - ", None))
         self.pushButtonDialog.setText(QCoreApplication.translate("DCCToolsDialog", u"Close", None))
     # retranslateUi
 

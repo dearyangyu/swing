@@ -58,10 +58,8 @@ from wildchildanimation.gui.swing_tables import FileTableModel, TaskTableModel, 
 
 from wildchildanimation.gui.swing_desktop import Ui_SwingMain
 from wildchildanimation.gui.project_nav import ProjectNavWidget
-
 from wildchildanimation.studio_interface import StudioInterface
 
-from wildchildanimation.gui.zurbrigg_playblast import *
 
 '''
     SwingGUI Main class
@@ -94,7 +92,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
     dlg_instance = None
 
     @classmethod
-    def show_dialog(cls, handler):
+    def show_dialog(cls, handler = StudioInterface()):
         if not cls.dlg_instance:
             cls.dlg_instance = SwingGUI(handler)
 
@@ -107,7 +105,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
     def keyPressEvent(self, event):
         super(SwingGUI, self).keyPressEvent(event)            
 
-    def __init__(self, studio_handler = None):
+    def __init__(self, studio_handler):
         super(SwingGUI, self).__init__(None) # Call the inherited classes __init__ method
         self.setupUi(self)
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
@@ -145,7 +143,6 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.pushButtonPlayblast.clicked.connect(self.playblast_dialog)
         self.pushButtonExport.clicked.connect(self.dcc_tools_dialog)
 
-
         self.pushButtonNew.clicked.connect(self.new_scene)
         self.pushButtonSearchFiles.clicked.connect(self.search_files_dialog)
         self.pushButtonBreakout.clicked.connect(self.breakout_dialog)
@@ -171,18 +168,12 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             self.projectNav.load_open_projects()
 
     def set_handler(self, studio_handler):
-        if not studio_handler:
-            self.handler = StudioInterface()
-            #self.pushButtonDCCTools.setEnabled(False)
-            #self.pushButtonFbx.setEnabled(False)
+        self.handler = studio_handler
 
+        if self.handler.NAME == "StudioInterface":
             self.pushButtonClose.setText("Close")            
             self.pushButtonClose.clicked.connect(self.close_dialog)            
         else:
-            self.handler = studio_handler   
-            #self.pushButtonDCCTools.setEnabled(True)
-            #self.pushButtonFbx.setEnabled(True)
-
             self.pushButtonClose.setText("Hide")
             self.pushButtonClose.clicked.connect(self.hide_dialog)            
 
@@ -619,8 +610,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             QtWidgets.QMessageBox.info(self, 'Break Out', 'Please select a project and an episode first')  
 
     def playblast_dialog(self):
-        zurbrigg_playblast_dialog = ZurbriggPlayblastUi()
-        zurbrigg_playblast_dialog.show()        
+        self.handler.on_playblast()
 
     def dcc_tools_dialog(self):
         dialog = DCCToolsDialog(self, self.handler, self.get_current_selection())
@@ -919,26 +909,23 @@ class CreateDialogGUI(QtWidgets.QDialog, Ui_CreateDialog):
         # only create working files on uploads
         # working_file = gazu.files.new_working_file(self.task, name = name, mode = mode, software = software)
 
-        # call maya handler
-        if self.handler:
-            try:
-                self.append_status("Create new project: {} {} {}".format(name, workingDir, software['name']))
+        # call handler
+        try:
+            self.append_status("Create new project: {} {} {}".format(name, workingDir, software['name']))
 
-                if (self.handler.on_create(source = name, working_dir = workingDir, software = software)):
-                    self.append_status("created scene")
-                else:
-                    self.append_status("Error creating scene", True)
+            if (self.handler.on_create(source = name, working_dir = workingDir, software = software)):
+                self.append_status("created scene")
+            else:
+                self.append_status("Error creating scene", True)
 
-                if self.type == "Shot":
-                    self.handler.set_globals(project = self.project_name, episode = self.episode_name, sequence = self.sequence_name, task = self.task_type_name, shot = self.shot_name, frame_in = self.lineEditFrameIn.text(), frame_out = self.lineEditFrameOut.text(), frame_count = self.lineEditFrameCount.text())
-                else:
-                    self.handler.set_globals(project = self.project_name, asset_type = self.asset_type_name, task = self.task_type_name, asset = self.asset_name)
+            if self.type == "Shot":
+                self.handler.set_globals(project = self.project_name, episode = self.episode_name, sequence = self.sequence_name, task = self.task_type_name, shot = self.shot_name, frame_in = self.lineEditFrameIn.text(), frame_out = self.lineEditFrameOut.text(), frame_count = self.lineEditFrameCount.text())
+            else:
+                self.handler.set_globals(project = self.project_name, asset_type = self.asset_type_name, task = self.task_type_name, asset = self.asset_name)
 
-                self.append_status("Set globals")
-            except:
-                traceback.print_exc(file=sys.stdout)          
-        else:
-            self.append_status("Maya handler not loaded")
+            self.append_status("Set globals")
+        except:
+            traceback.print_exc(file=sys.stdout)          
 
         self.close()
     # process
@@ -1076,9 +1063,8 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         self.pushButtonOK.clicked.connect(self.process)
         self.pushButtonCancel.clicked.connect(self.close_dialog)
 
-        if self.handler:
-            self.request = self.handler.on_save() 
-            self.projectFileEdit.setText(self.request["file_path"])
+        self.request = self.handler.on_save() 
+        self.projectFileEdit.setText(self.request["file_path"])
 
     def close_dialog(self):
         self.close()
@@ -1459,40 +1445,37 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
         self.append_status(message, "error" in status)
 
         # call maya handler: import into existing workspace
-        if self.handler:
-            try:
-                #
-                # import referenes
-                # 
-                if self.checkBoxReferences.checkState() == QtCore.Qt.Checked:
+        try:
+            #
+            # import referenes
+            # 
+            if self.checkBoxReferences.checkState() == QtCore.Qt.Checked:
 
-                    # see if we know a namespace
-                    if self.checkBoxNamespace.checkState() == QtCore.Qt.Checked:
-                        namespace = self.lineEditNamespace.text()
-                    else:
-                        namespace = self.lineEditEntity.text()
-
-                    # loop through spinbox counter
-                    for ref in range(self.spinBoxReferenceCount.value()):
-                        ref_str = str(ref).zfill(4)
-                        ref_namespace = "{0}_{1}".format(namespace, ref_str)
-
-                        self.append_status("Adding reference {}".format(file_name))
-                        if (self.handler.import_reference(source = file_name, working_dir = working_dir, namespace = ref_namespace)):
-                            self.append_status("Added {0}".format(ref_namespace))
-                        else:
-                            self.append_status("Import error", True)
+                # see if we know a namespace
+                if self.checkBoxNamespace.checkState() == QtCore.Qt.Checked:
+                    namespace = self.lineEditNamespace.text()
                 else:
-                    self.append_status("Loading file {}".format(file_name))
-                    if (self.handler.load_file(source = file_name, working_dir = working_dir)):
-                        self.append_status("Loading done")
-                    else:
-                        self.append_status("Loading error", True)
+                    namespace = self.lineEditEntity.text()
 
-            except:
-                traceback.print_exc(file=sys.stdout)          
-        else:
-            self.append_status("Maya handler not loaded")
+                # loop through spinbox counter
+                for ref in range(self.spinBoxReferenceCount.value()):
+                    ref_str = str(ref).zfill(4)
+                    ref_namespace = "{0}_{1}".format(namespace, ref_str)
+
+                    self.append_status("Adding reference {}".format(file_name))
+                    if (self.handler.import_reference(source = file_name, working_dir = working_dir, namespace = ref_namespace)):
+                        self.append_status("Added {0}".format(ref_namespace))
+                    else:
+                        self.append_status("Import error", True)
+            else:
+                self.append_status("Loading file {}".format(file_name))
+                if (self.handler.load_file(source = file_name, working_dir = working_dir)):
+                    self.append_status("Loading done")
+                else:
+                    self.append_status("Loading error", True)
+
+        except:
+            traceback.print_exc(file=sys.stdout)          
 
         self.append_status("{}".format(message))
         self.set_ui_enabled(True)
@@ -1564,5 +1547,3 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
             self.append_status("Downloading {} to {}".format(item["name"], item["target_path"]))
         # file type
     # process
-
-

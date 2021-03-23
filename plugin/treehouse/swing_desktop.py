@@ -42,10 +42,7 @@ if __name__ == "__main__":
         # or in new API
         app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))        
 
-    SwingGUI.show_dialog(None)
-    #swing_gui = SwingGUI()
-    #swing_gui.show()
-
+    SwingGUI.show_dialog()
     sys.exit(app.exec_())
 
 

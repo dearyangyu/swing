@@ -17,6 +17,7 @@ class StudioInterface(QtCore.QObject):
         "Custom"
     ]        
 
+    NAME = "StudioInterface"
     VERSION = "0.0.0"
     SUPPORTED_TYPES = [ ]
 

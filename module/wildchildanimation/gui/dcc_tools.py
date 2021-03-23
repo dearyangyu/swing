@@ -28,9 +28,7 @@ from wildchildanimation.gui.dcc_tools_dialog import Ui_DCCToolsDialog
 
 from wildchildanimation.gui.media_info import *
 
-from wildchildanimation.gui.zurbrigg_playblast import *
 from wildchildanimation.studio_interface import StudioInterface
-
 
 '''
     DCC Tools class
@@ -49,11 +47,13 @@ class DCCToolsDialog(QtWidgets.QDialog, Ui_DCCToolsDialog):
         self.handler = handler
         self.selection = selection
 
-        self.pushButtonPlayblast.clicked.connect(self.playblast_scene)
+        if self.selection:
+            self.lineEditEntityName.setText(friendly_string(self.selection["name"]))
+        else:
+            self.lineEditEntityName.setText("Export FBX")
+
         self.pushButtonFbxExport.clicked.connect(self.fbx_export)
-
         self.pushButtonDialog.clicked.connect(self.close_dialog)
-
         self.setupCombo()
 
     def setupCombo(self):
@@ -81,7 +81,10 @@ class DCCToolsDialog(QtWidgets.QDialog, Ui_DCCToolsDialog):
             self._frame_range_preset = frame_range
 
         self._start_frame = resolved_frame_range[0]
+        self.spinBoxStart.setValue(self._start_frame)
+
         self._end_frame = resolved_frame_range[1]
+        self.spinBoxEnd.setValue(self._start_frame)
 
     def get_start_end_frame(self):
         if self._frame_range_preset:
@@ -109,7 +112,7 @@ class DCCToolsDialog(QtWidgets.QDialog, Ui_DCCToolsDialog):
 
     def preset_to_frame_range(self, frame_range_preset):
         if "Custom" in frame_range_preset:
-            return (self.spinBoxWidth.value(), self.spinBoxWidthHeight.value())
+            return (self.spinBoxStart.value(), self.spinBoxEnd.value())
 
         if not self.handler:
             return False        

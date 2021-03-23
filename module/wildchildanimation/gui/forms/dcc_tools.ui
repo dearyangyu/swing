@@ -11,36 +11,17 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Swing DCC Handler</string>
+   <string>Swing: Export</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="QPushButton" name="pushButtonPlayblast">
-       <property name="minimumSize">
-        <size>
-         <width>85</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>Playblast</string>
+      <widget class="QLineEdit" name="lineEditEntityName">
+       <property name="enabled">
+        <bool>false</bool>
        </property>
       </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
      </item>
     </layout>
    </item>
@@ -206,7 +187,7 @@
       </spacer>
      </item>
      <item>
-      <widget class="QSpinBox" name="spinBoxWidth">
+      <widget class="QSpinBox" name="spinBoxStart">
        <property name="buttonSymbols">
         <enum>QAbstractSpinBox::NoButtons</enum>
        </property>
@@ -218,7 +199,7 @@
      <item>
       <widget class="QLabel" name="labelFrameRangeX">
        <property name="text">
-        <string>x</string>
+        <string> - </string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
@@ -226,7 +207,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QSpinBox" name="spinBoxHeight">
+      <widget class="QSpinBox" name="spinBoxEnd">
        <property name="buttonSymbols">
         <enum>QAbstractSpinBox::NoButtons</enum>
        </property>
