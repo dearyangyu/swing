@@ -29,7 +29,7 @@ from wildchildanimation.gui.swing_tables import human_size, load_file_table_widg
 
 from wildchildanimation.gui.background_workers import ShotCreator, ShotCreatorSignal
 
-from wildchildanimation.utils.media_info import *
+from wildchildanimation.gui.utils.media_info import *
 
 
 '''
