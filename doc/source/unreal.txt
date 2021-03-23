@@ -11,3 +11,5 @@ Remember Autokey
 - Asset Action/ Select Skeleton / 
 
 - Unreal will automatically convert quads to triads
+- keep to scale
+

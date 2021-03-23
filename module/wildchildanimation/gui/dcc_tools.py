@@ -110,7 +110,7 @@ class DCCToolsDialog(QtWidgets.QDialog, Ui_DCCToolsDialog):
     def preset_to_frame_range(self, frame_range_preset):
         if "Custom" in frame_range_preset:
             return (self.spinBoxWidth.value(), self.spinBoxWidthHeight.value())
-            
+
         if not self.handler:
             return False        
 
@@ -145,6 +145,7 @@ class DCCToolsDialog(QtWidgets.QDialog, Ui_DCCToolsDialog):
             return False
 
         self.handler.on_playblast()
+        self.close_dialog()
         
         '''
         # call maya handler: import into existing workspace

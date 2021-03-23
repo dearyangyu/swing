@@ -61,6 +61,8 @@ from wildchildanimation.gui.project_nav import ProjectNavWidget
 
 from wildchildanimation.studio_interface import StudioInterface
 
+from wildchildanimation.gui.zurbrigg_playblast import *
+
 '''
     SwingGUI Main class
     ################################################################################
@@ -140,7 +142,9 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.pushButtonDownload.clicked.connect(self.download_files)
         self.pushButtonPublish.clicked.connect(self.publish_scene)
 
-        self.pushButtonDCCTools.clicked.connect(self.dcc_tools_dialog)
+        self.pushButtonPlayblast.clicked.connect(self.playblast_dialog)
+        self.pushButtonExport.clicked.connect(self.dcc_tools_dialog)
+
 
         self.pushButtonNew.clicked.connect(self.new_scene)
         self.pushButtonSearchFiles.clicked.connect(self.search_files_dialog)
@@ -613,6 +617,10 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             dialog.exec_()
         else:
             QtWidgets.QMessageBox.info(self, 'Break Out', 'Please select a project and an episode first')  
+
+    def playblast_dialog(self):
+        zurbrigg_playblast_dialog = ZurbriggPlayblastUi()
+        zurbrigg_playblast_dialog.show()        
 
     def dcc_tools_dialog(self):
         dialog = DCCToolsDialog(self, self.handler, self.get_current_selection())

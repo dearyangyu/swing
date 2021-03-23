@@ -1,6 +1,14 @@
 # -*- coding: utf-8 -*-
 # 
-class StudioInterface:
+# ==== auto Qt load ====
+try:
+    from PySide2 import QtCore
+    qtMode = 0
+except ImportError:
+    from PyQt5 import QtCore
+    qtMode = 1    
+
+class StudioInterface(QtCore.QObject):
 
     FRAME_RANGE_PRESETS = [
         "Render",
@@ -12,7 +20,7 @@ class StudioInterface:
     VERSION = "0.0.0"
     SUPPORTED_TYPES = [ ]
 
-    def get_param(self, option, value) -> object:
+    def get_param(self, option, value):
         ### runs a custom value request against the local dcc
         '''
             --- get_param('frame_range', 'Render') ==>
@@ -33,35 +41,35 @@ class StudioInterface:
         '''        
         pass
 
-    def log_error(self, text) -> bool:
+    def log_error(self, text):
         ### log error
         pass
 
-    def log_warning(self, text) -> bool:
+    def log_warning(self, text):
         ### log warning
         pass
 
-    def log_output(self, text) -> bool:
+    def log_output(self, text):
         ### log output
         pass
 
-    def set_globals(self, **kwargs) -> bool:
+    def set_globals(self, **kwargs):
         ### set global parameters
         pass
 
-    def list_unresolved(self) -> list:
+    def list_unresolved(self):
         ### return a json list of unresolved references
         pass
 
-    def import_reference(self, **kwargs) -> bool:
+    def import_reference(self, **kwargs):
         # tries to import the file specified in source into the currently open scene
         pass
     
-    def load_file(self, **kwargs) -> bool:
+    def load_file(self, **kwargs):
         # tries to import the file specified in source into the currently open scene
         pass
 
-    def on_save(self, **kwargs) -> object:
+    def on_save(self, **kwargs):
         # return the currently open file
         pass
 
@@ -79,15 +87,15 @@ class StudioInterface:
         return request
         '''
 
-    def on_create(self, **kwargs) -> bool:
+    def on_create(self, **kwargs):
         # create a project file
         pass
 
-    def on_playblast(self, **kwargs) -> bool:
+    def on_playblast(self, **kwargs):
         # calls local playblast
         pass
 
-    def fbx_export(self, **kwargs) -> bool:
+    def fbx_export(self, **kwargs):
         # exports to fbx file
         pass
         '''

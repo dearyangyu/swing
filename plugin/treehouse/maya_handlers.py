@@ -21,24 +21,17 @@ try:
 except:
     print("Maya not found")
 
-# ==== auto Qt load ====
-try:
-    from PySide2 import QtCore
-    qtMode = 0
-except ImportError:
-    from PyQt5 import QtCore
-    qtMode = 1    
-
 from wildchildanimation.studio_interface import StudioInterface
+from wildchildanimation.gui.zurbrigg_playblast import *
 
-class StudioHandler(StudioInterface, QtCore.QObject):
+class StudioHandler(StudioInterface):
 
     VERSION = "0.0.2"
     SUPPORTED_TYPES = [".ma", ".mb", ".fbx", ".obj", ".mov", ".mp4", ".wav", ".jpg", ".png" ]
 
     def __init__(self):
         super(StudioHandler, self).__init__()
-        self.log_output("Maya Found: {0}, QtMode: {1}".format(_maya_loaded, qtMode))
+        self.log_output("Maya Found: {0}".format(_maya_loaded))
 
     def log_error(self, text):
         if _maya_loaded:
@@ -55,7 +48,7 @@ class StudioHandler(StudioInterface, QtCore.QObject):
             om.MGlobal.displayInfo(text)
         write_log("[info] {}".format(text))    
 
-    def get_param(self, option, value) -> object:
+    def get_param(self, option, value):
         ### runs a custom value request against the local dcc
         if option == "frame_range":
 
@@ -224,24 +217,24 @@ class StudioHandler(StudioInterface, QtCore.QObject):
         self.log_output("on_create complete")
 
     def on_playblast(self, **kwargs):
-        # use zurbrigg playblast
-        # self.log_output("on_playblast", kwargs)
-        return False
+        zurbrigg_playblast_dialog = ZurbriggPlayblastUi()
+        zurbrigg_playblast_dialog.show()
+
+        self.log_output("open: playblast")
+        return True
         # playblast  -format avi -sequenceTime 0 -clearCache 1 -viewer 1 -showOrnaments 1 -fp 4 -percent 50 -compression "none" -quality 70;
 
     def fbx_export(self, **kwargs):
         source = kwargs["target"]
         working_dir = kwargs["working_dir"]
 
-        self.log_output("calling fbx export {0} {1}".format(source, working_dir))
-
         target = os.path.join(working_dir, source)
         target = os.path.normpath(target)        
 
         cmds.FBXExport('-file', target, '-s')
-        ##self.log_output("fbx_export", kwargs)
-        return True
 
+        self.log_output("fbx export {0} {1}".format(source, working_dir))        
+        return True
 
 def write_log(*args):
     log = "# {} : swing".format(datetime.now().strftime("%d/%m/%Y %H:%M:%S.%f"))

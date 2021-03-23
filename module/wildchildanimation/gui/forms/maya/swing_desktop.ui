@@ -50,12 +50,19 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButtonDCCTools">
+      <widget class="QPushButton" name="pushButtonPlayblast">
+       <property name="text">
+        <string>Playblast</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButtonExport">
        <property name="toolTip">
         <string>Open Swing Tools</string>
        </property>
        <property name="text">
-        <string>DCC Tools</string>
+        <string>Export</string>
        </property>
        <property name="shortcut">
         <string>F8</string>

@@ -38,10 +38,15 @@ class Ui_SwingMain(object):
 
         self.connectionLayout.addItem(self.horizontalSpacer_4)
 
-        self.pushButtonDCCTools = QPushButton(SwingMain)
-        self.pushButtonDCCTools.setObjectName(u"pushButtonDCCTools")
+        self.pushButtonPlayblast = QPushButton(SwingMain)
+        self.pushButtonPlayblast.setObjectName(u"pushButtonPlayblast")
 
-        self.connectionLayout.addWidget(self.pushButtonDCCTools)
+        self.connectionLayout.addWidget(self.pushButtonPlayblast)
+
+        self.pushButtonExport = QPushButton(SwingMain)
+        self.pushButtonExport.setObjectName(u"pushButtonExport")
+
+        self.connectionLayout.addWidget(self.pushButtonExport)
 
         self.horizontalSpacer_5 = QSpacerItem(40, 20, QSizePolicy.Minimum, QSizePolicy.Minimum)
 
@@ -276,12 +281,13 @@ class Ui_SwingMain(object):
         SwingMain.setWindowTitle(QCoreApplication.translate("SwingMain", u"treehouse: swing", None))
         self.pushButtonSettings.setText(QCoreApplication.translate("SwingMain", u"Settings", None))
         self.pushButtonConnect.setText(QCoreApplication.translate("SwingMain", u"Connect", None))
+        self.pushButtonPlayblast.setText(QCoreApplication.translate("SwingMain", u"Playblast", None))
 #if QT_CONFIG(tooltip)
-        self.pushButtonDCCTools.setToolTip(QCoreApplication.translate("SwingMain", u"Open Swing Tools", None))
+        self.pushButtonExport.setToolTip(QCoreApplication.translate("SwingMain", u"Open Swing Tools", None))
 #endif // QT_CONFIG(tooltip)
-        self.pushButtonDCCTools.setText(QCoreApplication.translate("SwingMain", u"DCC Tools", None))
+        self.pushButtonExport.setText(QCoreApplication.translate("SwingMain", u"Export", None))
 #if QT_CONFIG(shortcut)
-        self.pushButtonDCCTools.setShortcut(QCoreApplication.translate("SwingMain", u"F8", None))
+        self.pushButtonExport.setShortcut(QCoreApplication.translate("SwingMain", u"F8", None))
 #endif // QT_CONFIG(shortcut)
 #if QT_CONFIG(tooltip)
         self.pushButtonBreakout.setToolTip(QCoreApplication.translate("SwingMain", u"Opens Shot Breakout Dialog", None))
