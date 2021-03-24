@@ -57,12 +57,20 @@ class MediaInfo(QtCore.QRunnable):
         # ffprobe -v error -select_streams v:0 -show_entries stream=nb_frames -of default=nokey=1:noprint_wrappers=1 203bun_025.mov
         cmds = [self.ffprobe_bin, "-v", "error", "-select_streams","v:0", "-show_entries", "stream=nb_frames", "-of", "default=nokey=1:noprint_wrappers=1", self.media_file]
         #cmds = [self.ffprobe_bin, '-show_format', '-pretty', '-loglevel', 'quiet', self.media_file]
-        process = subprocess.Popen(cmds, stdout=subprocess.PIPE, stderr=subprocess.PIPE)        
+        #process = subprocess.Popen(cmds, stdout=subprocess.PIPE, stderr=subprocess.PIPE)        
 
-        out, err = process.communicate()
-        return_code = process.poll()
-        out = out.decode(sys.stdin.encoding)
-        err = err.decode(sys.stdin.encoding)
+        out = subprocess.check_output(cmds)
+        # print('Have {} bytes in output'.format(len(out)))
+
+        if sys.version_info.major < 3:
+            pass
+        else:
+            out = out.decode(self._encoding)
+
+        #out, err = process.communicate()
+        #return_code = process.poll()
+        #out = out.decode(sys.stdin.encoding)
+        #err = err.decode(sys.stdin.encoding)
 
         results = {
             "item": self.callback_item,

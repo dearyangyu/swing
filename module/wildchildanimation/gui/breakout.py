@@ -174,11 +174,15 @@ class BreakoutUploadDialog(QtWidgets.QDialog, Ui_BreakoutUploadDialog):
                     
                 item["out"] = str(start_frame)
                 start_frame += 1                
+
+        self.model.layoutChanged.emit()
                 
 
     def media_info(self, results):
         item = results["item"]
         item["nb_frames"] = results["results"]
+
+        self.model.layoutChanged.emit()
 
     def scan(self):
         save_settings("last_breakout_playblast", self.lineEditPlayblastFolder.text())

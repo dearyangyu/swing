@@ -19,3 +19,5 @@ Remember Autokey
 
 
 - can't tune alembic within Unreal
+
+--alembic imports +++++ spawnable, heavy
