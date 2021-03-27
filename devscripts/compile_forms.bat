@@ -39,3 +39,6 @@ c:\dev\github\wca-maya\venv\lib\site-packages\PySide2\uic -g python -o c:\dev\Gi
 
 echo "Compling dcctools dialog"
 c:\dev\github\wca-maya\venv\lib\site-packages\PySide2\uic -g python -o c:\dev\Github\wca-maya\module\wildchildanimation\gui\dcc_tools_dialog.py c:\dev\Github\wca-maya\module\wildchildanimation\gui\forms\dcc_tools.ui
+
+echo "Compling entity info dialog"
+c:\dev\github\wca-maya\venv\lib\site-packages\PySide2\uic -g python -o c:\dev\Github\wca-maya\module\wildchildanimation\gui\entity_info_dialog.py c:\dev\Github\wca-maya\module\wildchildanimation\gui\forms\entity_info_dialog.ui

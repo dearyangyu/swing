@@ -277,6 +277,7 @@ def load_file_table_widget(tableWidget, model):
         cell = QtWidgets.QTableWidgetItem(str(""))
         cell.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
         tableWidget.setItem(row, 5, cell)
+
         row += 1
 
     tableWidget.setColumnWidth(0, 350)
@@ -284,7 +285,9 @@ def load_file_table_widget(tableWidget, model):
     tableWidget.setColumnWidth(2, 50)        
     tableWidget.setColumnWidth(3, 200)        
     tableWidget.setColumnWidth(4, 200)       
-    tableWidget.setColumnWidth(5, 100)     
+    tableWidget.setColumnWidth(5, 100)   
+
+    tableWidget.verticalHeader().setDefaultSectionSize(tableWidget.verticalHeader().minimumSectionSize())    
 
     return tableWidget
 ###########################################################################    

@@ -236,6 +236,8 @@ class BreakoutUploadDialog(QtWidgets.QDialog, Ui_BreakoutUploadDialog):
         self.tableView.setColumnWidth(3, 75)
         self.tableView.setColumnWidth(4, 75)
 
+        self.tableView.verticalHeader().setDefaultSectionSize(self.tableView.verticalHeader().minimumSectionSize())
+
     def set_project(self, project):
         self.project = project
 

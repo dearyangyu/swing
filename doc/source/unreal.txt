@@ -17,7 +17,20 @@ Remember Autokey
 
 - flatten tracks on alembic cache import if loads of textures
 
-
 - can't tune alembic within Unreal
 
 --alembic imports +++++ spawnable, heavy
+-- pathing tends to feel artificial
+-- scenery, shots, sequences -- Unreal
+-- art department --> unreal
+-- we don't want to be animating in unreal
+
+shot <--> level sequence (unreal)
+
+shot creation vs shot editing
+-- sort by file system directory name
+-- each shot is a level sequence
+-- Cinematics/sequences/sh010/sh010_v001
+
+
+mxhd files for editing

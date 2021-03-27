@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from __future__ import print_function
 import traceback
 import gazu
@@ -168,9 +170,10 @@ class AssetLoaderThread(QtCore.QRunnable):
 
 class EntityLoaderThread(QtCore.QRunnable):
 
-    def __init__(self, parent, entity_id):
+    def __init__(self, parent, entity_id, load_tasks = False):
         super(EntityLoaderThread, self).__init__(self, parent)
         self.entity_id = entity_id
+        self.load_tasks = load_tasks
         self.callback = LoadedSignal()        
 
     def run(self):
@@ -179,17 +182,29 @@ class EntityLoaderThread(QtCore.QRunnable):
         entity = gazu.entity.get_entity(self.entity_id)
         results["entity"] = entity
         results["type"] = entity["type"]
+        results["history"] = []
 
         if entity["type"] == "Shot":
             results["item"] = gazu.shot.get_shot(self.entity_id)
             results["project"] = gazu.project.get_project(results["item"]["project_id"])
             results["url"] = gazu.shot.get_shot_url(results["item"])
             results["casting"] = gazu.casting.get_shot_casting(results["item"])
+            
+
+            if self.load_tasks:
+                results["tasks"] = gazu.task.all_tasks_for_shot(self.entity_id)
+                for task in results['tasks']:
+                    results["history"].append(gazu.task.get_last_comment_for_task(task))
         else:
             results["item"] = gazu.asset.get_asset(self.entity_id)
             results["project"] = gazu.project.get_project(results["item"]["project_id"])
             results["url"] = gazu.asset.get_asset_url(results["item"])
             results["casting"] = gazu.casting.get_asset_casting(results["item"])
+
+            if self.load_tasks:
+                results["tasks"] = gazu.task.all_tasks_for_asset(self.entity_id)
+                for task in results['tasks']:
+                    results["history"].append(gazu.task.get_last_comment_for_task(task))
 
         self.callback.loaded.emit(results)      
 
@@ -235,6 +250,7 @@ class TaskLoaderThread(QtCore.QRunnable):
         results = []
         for item in tasks:
             if item["project_id"] == self.project["id"]:
+                item["task_url"] = gazu.task.get_task_url(item)
                 results.append(item)
         self.callback.loaded.emit(results)
 

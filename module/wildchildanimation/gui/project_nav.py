@@ -97,14 +97,14 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
             "is_loaded": self.is_loaded()
         } )
 
-        write_log("project_changed", self._projects[index]["id"])
+        ## write_log("project_changed", self._projects[index]["id"])
 
     def episode_changed(self, index):
         self.signal.selection_changed.emit("episode_changed", { 
             "episode": self._episodes[index] 
         } )
 
-        write_log("episode_changed", self._episodes[index]["id"])
+        ## write_log("episode_changed", self._episodes[index]["id"])
 
     def sequence_changed(self, index):
         self.signal.selection_changed.emit("sequence_changed", { 
@@ -112,7 +112,7 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
             "name": self._sequences[index]["name"]
         })
 
-        write_log("sequence_changed", self._sequences[index]["id"])
+        ## write_log("sequence_changed", self._sequences[index]["id"])
 
     def lock_ui(self, enabled):
         if not self.is_loaded():
@@ -203,7 +203,7 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
         self.lock_ui(False)
 
     def projects_loaded(self, results): 
-        write_log("[projects_loaded]")
+        ## write_log("[projects_loaded]")
 
         self._projects = []
         self._task_types = []

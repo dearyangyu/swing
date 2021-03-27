@@ -221,6 +221,9 @@ class Ui_PublishDialog(object):
     def retranslateUi(self, PublishDialog):
         PublishDialog.setWindowTitle(QCoreApplication.translate("PublishDialog", u"Publish Asset for Task", None))
         self.label_2.setText(QCoreApplication.translate("PublishDialog", u"Task", None))
+#if QT_CONFIG(tooltip)
+        self.toolButtonWeb.setToolTip(QCoreApplication.translate("PublishDialog", u"Open in Kitsu", None))
+#endif // QT_CONFIG(tooltip)
         self.toolButtonWeb.setText(QCoreApplication.translate("PublishDialog", u"...", None))
         self.projectFileLabel.setText(QCoreApplication.translate("PublishDialog", u"Project File", None))
         self.projectFileToolButton.setText(QCoreApplication.translate("PublishDialog", u"...", None))

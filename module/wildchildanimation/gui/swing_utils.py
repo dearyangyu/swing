@@ -11,8 +11,10 @@ except ImportError:
 
 import gazu
 import keyring
+import os
 import os.path
 import re
+import zipfile
 
 from datetime import datetime
 
@@ -114,3 +116,39 @@ def connect_to_server(email, password):
         return False
 
     return True        
+ 
+# Declare the function to return all file paths of the particular directory
+def retrieve_file_paths(dirName):
+    # setup file paths variable
+    filePaths = []
+
+    # Read all directory, subdirectories and file lists
+    for root, directories, files in os.walk(dirName):
+        for filename in files:
+            # Create the full filepath by using os module.
+            filePath = os.path.join(root, filename)
+            filePaths.append(filePath)
+    # return all paths
+    return filePaths
+
+def zip_directory(dir_name):
+
+    # Call the function to retrieve all files and folders of the assigned directory
+    filePaths = retrieve_file_paths(dir_name)
+
+    # printing the list of all files to be zipped
+    write_log("Zipping {0} files in {1}".format(len(filePaths), dir_name))
+
+    # writing files to a zipfile
+    zip_file = zipfile.ZipFile(dir_name + '.zip', 'w')
+    with zip_file:
+        # writing each file one by one
+        for file in filePaths:
+            zip_file.write(file)
+        zip_file.close()
+
+    write_log("Created {0}.zip".format(dir_name))
+    return 
+
+
+## zip_directory("C:/Work/testdir")
