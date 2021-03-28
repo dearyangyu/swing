@@ -145,11 +145,6 @@ class Ui_EntityInfoDialog(object):
 
         self.horizontalLayoutButtons.addWidget(self.pushButtonDownload)
 
-        self.pushButtonPlaylist = QPushButton(EntityInfoDialog)
-        self.pushButtonPlaylist.setObjectName(u"pushButtonPlaylist")
-
-        self.horizontalLayoutButtons.addWidget(self.pushButtonPlaylist)
-
         self.pushButtonPublish = QPushButton(EntityInfoDialog)
         self.pushButtonPublish.setObjectName(u"pushButtonPublish")
         self.pushButtonPublish.setEnabled(False)
@@ -192,7 +187,6 @@ class Ui_EntityInfoDialog(object):
         self.labelPreview.setText("")
         self.label.setText(QCoreApplication.translate("EntityInfoDialog", u"File List", None))
         self.pushButtonDownload.setText(QCoreApplication.translate("EntityInfoDialog", u"Download", None))
-        self.pushButtonPlaylist.setText(QCoreApplication.translate("EntityInfoDialog", u"Gen Playlist", None))
         self.pushButtonPublish.setText(QCoreApplication.translate("EntityInfoDialog", u"Publish", None))
         self.pushButtonClose.setText(QCoreApplication.translate("EntityInfoDialog", u"Close", None))
     # retranslateUi

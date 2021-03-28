@@ -32,6 +32,7 @@ from wildchildanimation.gui.image_loader import *
 from wildchildanimation.gui.swing_utils import *
 from wildchildanimation.gui.loader import *
 from wildchildanimation.gui.publish import *
+from wildchildanimation.gui.downloads import *
 
 from wildchildanimation.gui.entity_info_dialog import Ui_EntityInfoDialog
 from wildchildanimation.gui.publish_dialog import Ui_PublishDialog
@@ -68,7 +69,7 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
         self.toolButtonWeb.clicked.connect(self.open_url)
         self.toolButtonWeb.setEnabled(False)            
 
-        #self.pushButtonDownload.clicked.connect(self.download_files)
+        self.pushButtonDownload.clicked.connect(self.download_files)
         self.pushButtonClose.clicked.connect(self.close_dialog)
 
         #self.toolButtonAll.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_DialogApplyButton))
@@ -83,6 +84,11 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
         if self.tasks:
             return self.tasks[self.comboBoxTasks.currentIndex()]
         return None
+
+    def download_files(self):
+        dialog = DownloadDialogGUI(self, self.entity, self.task_types)
+        dialog.resize(self.size())
+        dialog.exec_()        
 
     def publish(self):
         task = self.get_selected_task()
@@ -285,17 +291,22 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
         self.tableViewFiles.setSortingEnabled(True)
         self.tableViewFiles.sortByColumn(0, QtCore.Qt.DescendingOrder)
 
-        self.tableViewFiles.setColumnWidth(0, 300)
-        self.tableViewFiles.setColumnWidth(1, 150)
-        self.tableViewFiles.setColumnWidth(2, 75)
-        self.tableViewFiles.setColumnWidth(3, 150)
-        self.tableViewFiles.setColumnWidth(4, 350)
-        self.tableViewFiles.setColumnWidth(6, 200)
+        #self.tableViewFiles.setColumnWidth(0, 300)
+        #self.tableViewFiles.setColumnWidth(1, 150)
+        #self.tableViewFiles.setColumnWidth(2, 75)
+        #self.tableViewFiles.setColumnWidth(3, 150)
+        #self.tableViewFiles.setColumnWidth(4, 350)
+        #self.tableViewFiles.setColumnWidth(6, 200)
+
+        hh = self.tableViewFiles.horizontalHeader()
+        hh.setMinimumSectionSize(100)
+        hh.setDefaultSectionSize(hh.minimumSectionSize())
+        hh.setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)          
 
         #selectionModel = self.tableViewFiles.selectionModel()
         #selectionModel.selectionChanged.connect(self.file_table_selection_changed)     
 
-        self.tableViewFiles.verticalHeader().setDefaultSectionSize(self.tableViewFiles.verticalHeader().minimumSectionSize())             
+        self.tableViewFiles.verticalHeader().setDefaultSectionSize(self.tableViewFiles.verticalHeader().minimumSectionSize())          
 
         #selectionModel = self.tableViewFiles.selectionModel()
         #selectionModel.selectionChanged.connect(self.file_table_selection_changed)           

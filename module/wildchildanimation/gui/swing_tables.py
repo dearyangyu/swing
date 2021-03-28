@@ -33,11 +33,11 @@ class FileTableModel(QtCore.QAbstractTableModel):
 
     def __init__(self, parent = None, files = [], entity = None):
         QtCore.QAbstractTableModel.__init__(self, parent) 
-        self.files = files
+        self.items = files
         self.entity = entity
 
     def rowCount(self, parent = QtCore.QModelIndex()):
-        return len(self.files)
+        return len(self.items)
 
     def columnCount(self, parent = QtCore.QModelIndex()):
         return len(self.columns)
@@ -62,7 +62,7 @@ class FileTableModel(QtCore.QAbstractTableModel):
             # .column() indexes into the sub-list
             col = index.column()
             row = index.row()
-            item = self.files[row]
+            item = self.items[row]
 
             if col == 0:
                 return item["name"]
@@ -90,11 +90,10 @@ class FileTableModel(QtCore.QAbstractTableModel):
             row = index.row()
 
             if col == 3:
-                item = self.files[row]
+                item = self.items[row]
                 if "status" in item:
                     col = index.column()
                     row = index.row()
-                    item = self.files[row]
                     if "task_type" in item and item["task_type"]:
                         return QtGui.QColor(item["task_type"]["color"])
 
@@ -110,12 +109,12 @@ class TaskTableModel(QtCore.QAbstractTableModel):
 
     def __init__(self, parent = None, tasks = [], entity = None):
         QtCore.QAbstractTableModel.__init__(self, parent) 
-        self.tasks = tasks
+        self.items = tasks
         self.entity = entity
 
 
     def rowCount(self, parent = QtCore.QModelIndex()):
-        return len(self.tasks)
+        return len(self.items)
 
     def columnCount(self, parent = QtCore.QModelIndex()):
         return len(self.columns)
@@ -138,7 +137,7 @@ class TaskTableModel(QtCore.QAbstractTableModel):
 
         col = index.column()
         row = index.row()
-        item = self.tasks[row]
+        item = self.items[row]
 
         ### -----------------------------------------------------------------------------------
         if role == QtCore.Qt.ForegroundRole:
@@ -185,6 +184,18 @@ class TaskTableModel(QtCore.QAbstractTableModel):
                     return item["description"].strip()
                 if item["last_comment"]:
                     return item["last_comment"]["text"].strip()
+
+        if role == QtCore.Qt.BackgroundRole:
+            col = index.column()
+            row = index.row()
+            item = self.items[row]
+
+            if col == 1:
+                if "task_type_color" in item:
+                    return QtGui.QColor(item["task_type_color"])      
+            elif col == 5:
+                if "task_status_color" in item:
+                    return QtGui.QColor(item["task_status_color"])      
 
         return None
 ###########################################################################
@@ -235,6 +246,8 @@ class CastingTableModel(QtCore.QAbstractTableModel):
 def load_file_table_widget(tableWidget, model):
     #headers = [ "File Name", "Size", "Revision", "Task", "Updated", "Status" ]
     #tableWidget.setColumnCount(len(headers))
+
+    tableWidget.clear()
     tableWidget.setRowCount(len(model))
 
     row = 0
@@ -251,7 +264,7 @@ def load_file_table_widget(tableWidget, model):
         if item["size"]:
             size = int(item["size"])
             if (size):
-                cell = QtWidgets.QTableWidgetItem(human_size(size))
+                cell = QtWidgets.QTableWidgetItem("{0}".format(size))
             else:
                 cell = QtWidgets.QTableWidgetItem("")
         cell.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
@@ -280,14 +293,19 @@ def load_file_table_widget(tableWidget, model):
 
         row += 1
 
-    tableWidget.setColumnWidth(0, 350)
-    tableWidget.setColumnWidth(1, 100)
-    tableWidget.setColumnWidth(2, 50)        
-    tableWidget.setColumnWidth(3, 200)        
-    tableWidget.setColumnWidth(4, 200)       
-    tableWidget.setColumnWidth(5, 100)   
+    #tableWidget.setColumnWidth(0, 350)
+    #tableWidget.setColumnWidth(1, 100)
+    #tableWidget.setColumnWidth(2, 50)        
+    #tableWidget.setColumnWidth(3, 200)        
+    #tableWidget.setColumnWidth(4, 200)       
+    #tableWidget.setColumnWidth(5, 100)   
 
-    tableWidget.verticalHeader().setDefaultSectionSize(tableWidget.verticalHeader().minimumSectionSize())    
+    hh = tableWidget.horizontalHeader()
+    hh.setMinimumSectionSize(100)
+    hh.setDefaultSectionSize(hh.minimumSectionSize())
+    hh.setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)     
 
+    tableWidget.verticalHeader().setDefaultSectionSize(tableWidget.verticalHeader().minimumSectionSize())       
+    #tableWidget.verticalHeader().setDefaultSectionSize(tableWidget.verticalHeader().minimumSectionSize())    
     return tableWidget
 ###########################################################################    

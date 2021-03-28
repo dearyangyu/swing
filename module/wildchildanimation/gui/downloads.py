@@ -252,7 +252,7 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
     def load_files(self, files):
         self.files = files
 
-        load_file_table_widget(self.tableWidget, files)
+        self.tableWidget = load_file_table_widget(self.tableWidget, files)
         self.tableWidget.doubleClicked.connect(self.on_click) 
 
     def on_click(self, index):

@@ -50,6 +50,7 @@ from wildchildanimation.gui.references import *
 from wildchildanimation.gui.search import *
 from wildchildanimation.gui.downloads import *
 from wildchildanimation.gui.publish import *
+from wildchildanimation.gui.playlists import *
 from wildchildanimation.gui.breakout import *
 from wildchildanimation.gui.entity_info import *
 from wildchildanimation.gui.dcc_tools import *
@@ -116,7 +117,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.connect(self, QtCore.SIGNAL("finished(int)"), self.finished)
         self.setWindowTitle("{} v{}".format(_APP_NAME, _APP_VERSION))
 
-        resource_file = resource_path("../resources/TreeHouse_Logo_no_text.png")
+        resource_file = resource_path("../resources/swing_logo_white_small.png")
         if os.path.exists(resource_file):
             icon = QtGui.QIcon(resource_file)
             self.setWindowIcon(icon)
@@ -144,8 +145,10 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.pushButtonExport.clicked.connect(self.dcc_tools_dialog)
 
         self.pushButtonNew.clicked.connect(self.new_scene)
-        self.pushButtonSearchFiles.clicked.connect(self.search_files_dialog)
+        
         self.pushButtonBreakout.clicked.connect(self.breakout_dialog)
+        ##self.pushButtonPlaylists.clicked.connect(self.playlist_dialog)
+        self.pushButtonSearchFiles.clicked.connect(self.search_files_dialog)
 
         self.projectNav.comboBoxProject.currentIndexChanged.connect(self.project_changed)
         self.projectNav.comboBoxEpisode.currentIndexChanged.connect(self.episode_changed)
@@ -485,6 +488,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
     def load_files(self, output_files = None, working_files = None):
         self.files = []
+
         if output_files:
             for item in output_files:
                 item["task_type"] = self.get_item_task_type(item)
@@ -497,11 +501,11 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
                 item["status"] = ""
                 self.files.append(item)
 
-        tableModel = FileTableModel(self, self.files)
+        self.tableModelFiles = FileTableModel(self, self.files)
 
         # create the sorter model
         sorterModel = QtCore.QSortFilterProxyModel()
-        sorterModel.setSourceModel(tableModel)
+        sorterModel.setSourceModel(self.tableModelFiles)
         sorterModel.setFilterKeyColumn(0)
 
         self.tableViewFiles.setModel(sorterModel)                
@@ -527,7 +531,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
     def file_table_double_click(self, index):
         row_index = index.row()
-        self.selected_file = self.files[row_index]
+        self.selected_file = self.tableModelFiles.items[row_index]
         if self.selected_file:
             working_dir = load_settings("projects_root", os.path.expanduser("~"))
             set_target(self.selected_file, working_dir)
@@ -569,6 +573,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         return None
 
     def load_tasks(self, tasks = None):
+        self.tasks = tasks
         tableModel = TaskTableModel(self, tasks)
 
         # create the sorter model
@@ -582,18 +587,25 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.tableViewTasks.setSortingEnabled(True)
         self.tableViewTasks.sortByColumn(4, QtCore.Qt.AscendingOrder)
 
-        self.tableViewTasks.setColumnWidth(0, 250)
-        self.tableViewTasks.setColumnWidth(1, 200)
-        self.tableViewTasks.setColumnWidth(2, 200)
-        self.tableViewTasks.setColumnWidth(3, 350)
-        self.tableViewTasks.setColumnWidth(4, 120)
-        self.tableViewTasks.setColumnWidth(5, 160)
-        self.tableViewTasks.setColumnWidth(6, 600)
+        #self.tableViewTasks.setColumnWidth(0, 250)
+        #self.tableViewTasks.setColumnWidth(1, 200)
+        #self.tableViewTasks.setColumnWidth(2, 200)
+        #self.tableViewTasks.setColumnWidth(3, 350)
+        #self.tableViewTasks.setColumnWidth(4, 120)
+        #self.tableViewTasks.setColumnWidth(5, 160)
+        #self.tableViewTasks.setColumnWidth(6, 600)
 
         selectionModel = self.tableViewTasks.selectionModel()
         selectionModel.selectionChanged.connect(self.task_table_selection_changed)         
 
-        self.tableViewTasks.verticalHeader().setDefaultSectionSize(self.tableViewTasks.verticalHeader().minimumSectionSize())
+        self.tableViewTasks.verticalHeader().setDefaultSectionSize(self.tableViewTasks.verticalHeader().minimumSectionSize())   
+
+        hh = self.tableViewTasks.horizontalHeader()
+        hh.setMinimumSectionSize(100)
+        hh.setDefaultSectionSize(hh.minimumSectionSize())
+        hh.setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)        
+
+        #self.tableViewTasks.verticalHeader().setDefaultSectionSize(self.tableViewTasks.verticalHeader().minimumSectionSize())
 
         #tableViewPowerDegree->verticalHeader()->setDefaultSectionSize(tableViewPowerDegree->verticalHeader()->minimumSectionSize()); 
         # self.pushButtonPublish.setEnabled(len(tasks) > 0)
@@ -606,7 +618,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         for index in idx:
             row_index = index.row()
             try:
-                self.selected_task = self.tableViewTasks.model().tasks[row_index]
+                self.selected_task = self.tasks[row_index]
 
                 self.pushButtonNew.setEnabled(self.selected_task is not None)
                 self.pushButtonPublish.setEnabled(self.selected_task is not None)
@@ -618,16 +630,13 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
     def task_table_double_click(self, index):
         row_index = index.row()
-        self.selected_task = self.tableViewTasks.model().tasks[row_index]
+        self.selected_task = self.tasks[row_index]
         if self.selected_task:
             if "task_url" in self.selected_task and self.selected_task["task_url"]:
                 link = self.selected_task["task_url"]
                 if not QtGui.QDesktopServices.openUrl(link):
                     QtWidgets.QMessageBox.warning(self, 'Open Url', 'Could not open url')                    
 
-    def search_files_dialog(self):
-        dialog = SearchFilesDialog(self, self.handler, self.get_current_selection(), self.task_types)
-        dialog.exec_()
 
     def breakout_dialog(self):
         if self.projectNav.get_project() and self.projectNav.get_episode():
@@ -637,6 +646,20 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             dialog.exec_()
         else:
             QtWidgets.QMessageBox.information(self, 'Break Out', 'Please select a project and an episode first')  
+
+    def playlist_dialog(self):
+        if self.projectNav.get_project() and self.projectNav.get_episode():
+            dialog = PlaylistDialog(self)
+            dialog.set_selection(self.projectNav.get_project(), self.projectNav.get_episode())
+            dialog.exec_()
+        else:
+            QtWidgets.QMessageBox.information(self, 'Playlists', 'Please select a project')  
+
+
+    def search_files_dialog(self):
+        dialog = SearchFilesDialog(self, self.handler, self.get_current_selection(), self.task_types)
+        dialog.exec_()
+
 
     def playblast_dialog(self):
         self.handler.on_playblast()
@@ -655,8 +678,10 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         dialog = LoaderDialogGUI(self, self.handler, self.get_current_selection())
         dialog.resize(self.size())    
 
-        dialog.load_files(self.tableViewFiles.model().files)
-        dialog.set_selected(self.selected_file)
+        dialog.load_files(self.tableModelFiles.items)
+        if self.selected_file:
+            dialog.set_selected(self.selected_file)
+
         dialog.show()
 
     def load_shot_info(self):

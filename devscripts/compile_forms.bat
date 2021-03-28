@@ -42,3 +42,6 @@ c:\dev\github\wca-maya\venv\lib\site-packages\PySide2\uic -g python -o c:\dev\Gi
 
 echo "Compling entity info dialog"
 c:\dev\github\wca-maya\venv\lib\site-packages\PySide2\uic -g python -o c:\dev\Github\wca-maya\module\wildchildanimation\gui\entity_info_dialog.py c:\dev\Github\wca-maya\module\wildchildanimation\gui\forms\entity_info_dialog.ui
+
+echo "Compling playlist dialog"
+c:\dev\github\wca-maya\venv\lib\site-packages\PySide2\uic -g python -o c:\dev\Github\wca-maya\module\wildchildanimation\gui\playlist_dialog.py c:\dev\Github\wca-maya\module\wildchildanimation\gui\forms\playlist_dialog.ui
