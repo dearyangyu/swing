@@ -56,13 +56,20 @@ class FileTableModel(QtCore.QAbstractTableModel):
         #    else:
         #        return QtCore.Qt.AlignRight | QtCore.AlignBottom
 
+        if not index.isValid():
+            return
+
+        col = index.column()
+        row = index.row()
+        item = self.items[row]        
+
+        if role == QtCore.Qt.UserRole:
+            return item        
+
         if role == QtCore.Qt.DisplayRole:
             # See below for the nested-list data structure.
             # .row() indexes into the outer list,
             # .column() indexes into the sub-list
-            col = index.column()
-            row = index.row()
-            item = self.items[row]
 
             if col == 0:
                 return item["name"]
@@ -138,6 +145,9 @@ class TaskTableModel(QtCore.QAbstractTableModel):
         col = index.column()
         row = index.row()
         item = self.items[row]
+
+        if role == QtCore.Qt.UserRole:
+            return item
 
         ### -----------------------------------------------------------------------------------
         if role == QtCore.Qt.ForegroundRole:

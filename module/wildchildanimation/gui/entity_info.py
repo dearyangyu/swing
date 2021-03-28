@@ -204,7 +204,8 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
 
             imageLoader = PreviewImageLoader(self, preview_file)
             imageLoader.callback.results.connect(self.load_preview_image)
-            imageLoader.run()
+            #imageLoader.run()
+            self.threadpool.start(imageLoader)
 
             #print(preview_file_id)
             #self.load_preview_image(preview_url)

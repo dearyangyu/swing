@@ -39,8 +39,8 @@ class PreviewImageLoader(QtCore.QRunnable):
         self.callback = ImageLoaderSignal()
 
     def run(self):
-        fp = tempfile.TemporaryDirectory()
-        target = "{0}/{1}.{2}".format(fp.name, self.preview_file["id"], self.preview_file["extension"]).strip()
+        fp = tempfile.mkstemp(".{0}".format(self.preview_file["extension"]))
+        target = fp[1]
         gazu.files.download_preview_file_thumbnail(self.preview_file, target)
 
         pixmap = QtGui.QPixmap(target)

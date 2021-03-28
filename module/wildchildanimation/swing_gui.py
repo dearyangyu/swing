@@ -530,8 +530,8 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.pushButtonImport.setEnabled(len(self.files) > 0)
 
     def file_table_double_click(self, index):
-        row_index = index.row()
-        self.selected_file = self.tableModelFiles.items[row_index]
+        #row_index = index.row()
+        self.selected_file = self.tableViewFiles.model().data(index, QtCore.Qt.UserRole)
         if self.selected_file:
             working_dir = load_settings("projects_root", os.path.expanduser("~"))
             set_target(self.selected_file, working_dir)
@@ -616,21 +616,20 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
         idx = self.tableViewTasks.selectedIndexes()
         for index in idx:
-            row_index = index.row()
             try:
-                self.selected_task = self.tasks[row_index]
+                self.selected_task = self.tableViewTasks.model().data(index, QtCore.Qt.UserRole)
 
                 self.pushButtonNew.setEnabled(self.selected_task is not None)
                 self.pushButtonPublish.setEnabled(self.selected_task is not None)
                 self.pushButtonPlayblast.setEnabled(self.selected_task is not None)
+                break
             except:
                 pass
 
         return True   
 
     def task_table_double_click(self, index):
-        row_index = index.row()
-        self.selected_task = self.tasks[row_index]
+        self.selected_task = self.tableViewTasks.model().data(index, QtCore.Qt.UserRole)
         if self.selected_task:
             if "task_url" in self.selected_task and self.selected_task["task_url"]:
                 link = self.selected_task["task_url"]
