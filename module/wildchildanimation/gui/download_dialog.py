@@ -12,6 +12,8 @@ from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
+from wildchildanimation.gui.swing_utils import fakestr
+
 
 class Ui_DownloadDialog(object):
     def setupUi(self, DownloadDialog):
@@ -181,28 +183,28 @@ class Ui_DownloadDialog(object):
     # setupUi
 
     def retranslateUi(self, DownloadDialog):
-        DownloadDialog.setWindowTitle(QCoreApplication.translate("DownloadDialog", u"Download Files", None))
-        self.labelEntity.setText(QCoreApplication.translate("DownloadDialog", u"Entity", None))
-        self.toolButtonWeb.setText(QCoreApplication.translate("DownloadDialog", u"...", None))
-        self.labelWorkingDirectory.setText(QCoreApplication.translate("DownloadDialog", u"Root Folder", None))
-        self.toolButtonWorkingDir.setText(QCoreApplication.translate("DownloadDialog", u"...", None))
-        self.checkBoxSkipExisting.setText(QCoreApplication.translate("DownloadDialog", u"Skip Existing Files", None))
-        self.checkBoxExtractZips.setText(QCoreApplication.translate("DownloadDialog", u"Extract Zip Files", None))
-        self.toolButtonAll.setText(QCoreApplication.translate("DownloadDialog", u"+", None))
-        self.toolButtonNone.setText(QCoreApplication.translate("DownloadDialog", u"-", None))
+        DownloadDialog.setWindowTitle(fakestr(u"Download Files", None))
+        self.labelEntity.setText(fakestr(u"Entity", None))
+        self.toolButtonWeb.setText(fakestr(u"...", None))
+        self.labelWorkingDirectory.setText(fakestr(u"Root Folder", None))
+        self.toolButtonWorkingDir.setText(fakestr(u"...", None))
+        self.checkBoxSkipExisting.setText(fakestr(u"Skip Existing Files", None))
+        self.checkBoxExtractZips.setText(fakestr(u"Extract Zip Files", None))
+        self.toolButtonAll.setText(fakestr(u"+", None))
+        self.toolButtonNone.setText(fakestr(u"-", None))
         ___qtablewidgetitem = self.tableWidget.horizontalHeaderItem(0)
-        ___qtablewidgetitem.setText(QCoreApplication.translate("DownloadDialog", u"File", None));
+        ___qtablewidgetitem.setText(fakestr(u"File", None));
         ___qtablewidgetitem1 = self.tableWidget.horizontalHeaderItem(1)
-        ___qtablewidgetitem1.setText(QCoreApplication.translate("DownloadDialog", u"Size", None));
+        ___qtablewidgetitem1.setText(fakestr(u"Size", None));
         ___qtablewidgetitem2 = self.tableWidget.horizontalHeaderItem(2)
-        ___qtablewidgetitem2.setText(QCoreApplication.translate("DownloadDialog", u"v", None));
+        ___qtablewidgetitem2.setText(fakestr(u"v", None));
         ___qtablewidgetitem3 = self.tableWidget.horizontalHeaderItem(3)
-        ___qtablewidgetitem3.setText(QCoreApplication.translate("DownloadDialog", u"Task", None));
+        ___qtablewidgetitem3.setText(fakestr(u"Task", None));
         ___qtablewidgetitem4 = self.tableWidget.horizontalHeaderItem(4)
-        ___qtablewidgetitem4.setText(QCoreApplication.translate("DownloadDialog", u"Updated", None));
+        ___qtablewidgetitem4.setText(fakestr(u"Updated", None));
         ___qtablewidgetitem5 = self.tableWidget.horizontalHeaderItem(5)
-        ___qtablewidgetitem5.setText(QCoreApplication.translate("DownloadDialog", u"Status", None));
-        self.pushButtonDownload.setText(QCoreApplication.translate("DownloadDialog", u"Download", None))
-        self.pushButtonCancel.setText(QCoreApplication.translate("DownloadDialog", u"Close", None))
+        ___qtablewidgetitem5.setText(fakestr(u"Status", None));
+        self.pushButtonDownload.setText(fakestr(u"Download", None))
+        self.pushButtonCancel.setText(fakestr(u"Close", None))
     # retranslateUi
 

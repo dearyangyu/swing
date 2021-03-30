@@ -12,6 +12,7 @@ from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
+from wildchildanimation.gui.swing_utils import fakestr
 
 class Ui_EntityInfoDialog(object):
     def setupUi(self, EntityInfoDialog):
@@ -177,17 +178,17 @@ class Ui_EntityInfoDialog(object):
     # setupUi
 
     def retranslateUi(self, EntityInfoDialog):
-        EntityInfoDialog.setWindowTitle(QCoreApplication.translate("EntityInfoDialog", u"Entity Information", None))
-        self.labelProject.setText(QCoreApplication.translate("EntityInfoDialog", u"Project", None))
-        self.labelEntity.setText(QCoreApplication.translate("EntityInfoDialog", u"Entity", None))
+        EntityInfoDialog.setWindowTitle(fakestr(u"Entity Information", None))
+        self.labelProject.setText(fakestr(u"Project", None))
+        self.labelEntity.setText(fakestr(u"Entity", None))
 #if QT_CONFIG(tooltip)
-        self.toolButtonWeb.setToolTip(QCoreApplication.translate("EntityInfoDialog", u"Open in Kitsu", None))
+        self.toolButtonWeb.setToolTip(fakestr(u"Open in Kitsu", None))
 #endif // QT_CONFIG(tooltip)
-        self.toolButtonWeb.setText(QCoreApplication.translate("EntityInfoDialog", u"...", None))
+        self.toolButtonWeb.setText(fakestr(u"...", None))
         self.labelPreview.setText("")
-        self.label.setText(QCoreApplication.translate("EntityInfoDialog", u"File List", None))
-        self.pushButtonDownload.setText(QCoreApplication.translate("EntityInfoDialog", u"Download", None))
-        self.pushButtonPublish.setText(QCoreApplication.translate("EntityInfoDialog", u"Publish", None))
-        self.pushButtonClose.setText(QCoreApplication.translate("EntityInfoDialog", u"Close", None))
+        self.label.setText(fakestr(u"File List", None))
+        self.pushButtonDownload.setText(fakestr(u"Download", None))
+        self.pushButtonPublish.setText(fakestr(u"Publish", None))
+        self.pushButtonClose.setText(fakestr(u"Close", None))
     # retranslateUi
 

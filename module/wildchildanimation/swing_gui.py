@@ -6,7 +6,7 @@
 #
 #############################
 _APP_NAME = "treehouse: swing"
-_APP_VERSION = "0.0.10"
+_APP_VERSION = "0.0.11"
  
 import traceback
 import sys
@@ -59,6 +59,7 @@ from wildchildanimation.gui.swing_tables import FileTableModel, TaskTableModel, 
 
 from wildchildanimation.gui.swing_desktop import Ui_SwingMain
 from wildchildanimation.gui.project_nav import ProjectNavWidget
+
 from wildchildanimation.studio_interface import StudioInterface
 
 

@@ -12,6 +12,8 @@ from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
+from wildchildanimation.gui.swing_utils import fakestr
+
 
 class Ui_UploadMonitorDialog(object):
     def setupUi(self, UploadMonitorDialog):
@@ -57,7 +59,7 @@ class Ui_UploadMonitorDialog(object):
     # setupUi
 
     def retranslateUi(self, UploadMonitorDialog):
-        UploadMonitorDialog.setWindowTitle(QCoreApplication.translate("UploadMonitorDialog", u"File Monitor", None))
-        self.pushButtonCancel.setText(QCoreApplication.translate("UploadMonitorDialog", u"Hide", None))
+        UploadMonitorDialog.setWindowTitle(fakestr(u"File Monitor", None))
+        self.pushButtonCancel.setText(fakestr(u"Hide", None))
     # retranslateUi
 

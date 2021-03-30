@@ -12,6 +12,8 @@ from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
+from wildchildanimation.gui.swing_utils import fakestr
+
 
 class Ui_ProjectNavWidget(object):
     def setupUi(self, ProjectNavWidget):
@@ -135,10 +137,10 @@ class Ui_ProjectNavWidget(object):
     # setupUi
 
     def retranslateUi(self, ProjectNavWidget):
-        ProjectNavWidget.setWindowTitle(QCoreApplication.translate("ProjectNavWidget", u"Form", None))
-        self.labelProject.setText(QCoreApplication.translate("ProjectNavWidget", u"Project", None))
-        self.toolButtonRefresh.setText(QCoreApplication.translate("ProjectNavWidget", u"...", None))
-        self.labelShotEpisode.setText(QCoreApplication.translate("ProjectNavWidget", u"Episode", None))
-        self.labelShotSequence.setText(QCoreApplication.translate("ProjectNavWidget", u"Sequence", None))
+        ProjectNavWidget.setWindowTitle(fakestr(u"Form", None))
+        self.labelProject.setText(fakestr(u"Project", None))
+        self.toolButtonRefresh.setText(fakestr(u"...", None))
+        self.labelShotEpisode.setText(fakestr(u"Episode", None))
+        self.labelShotSequence.setText(fakestr(u"Sequence", None))
     # retranslateUi
 

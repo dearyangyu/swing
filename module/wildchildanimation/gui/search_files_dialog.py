@@ -12,6 +12,8 @@ from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
+from wildchildanimation.gui.swing_utils import fakestr
+
 
 class Ui_SearchFilesDialog(object):
     def setupUi(self, SearchFilesDialog):
@@ -76,12 +78,12 @@ class Ui_SearchFilesDialog(object):
     # setupUi
 
     def retranslateUi(self, SearchFilesDialog):
-        SearchFilesDialog.setWindowTitle(QCoreApplication.translate("SearchFilesDialog", u"Search for files", None))
-        self.label.setText(QCoreApplication.translate("SearchFilesDialog", u"Enter a comma seperated list of file names or partial file names to search for ", None))
-        self.pushButtonSearch.setText(QCoreApplication.translate("SearchFilesDialog", u"Search", None))
+        SearchFilesDialog.setWindowTitle(fakestr(u"Search for files", None))
+        self.label.setText(fakestr(u"Enter a comma seperated list of file names or partial file names to search for ", None))
+        self.pushButtonSearch.setText(fakestr(u"Search", None))
 #if QT_CONFIG(shortcut)
-        self.pushButtonSearch.setShortcut(QCoreApplication.translate("SearchFilesDialog", u"Ctrl+Return", None))
+        self.pushButtonSearch.setShortcut(fakestr(u"Ctrl+Return", None))
 #endif // QT_CONFIG(shortcut)
-        self.pushButtonCancel.setText(QCoreApplication.translate("SearchFilesDialog", u"Close", None))
+        self.pushButtonCancel.setText(fakestr(u"Close", None))
     # retranslateUi
 

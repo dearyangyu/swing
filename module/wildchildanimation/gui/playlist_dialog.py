@@ -12,6 +12,8 @@ from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
+from wildchildanimation.gui.swing_utils import fakestr
+
 
 class Ui_PlaylistDialog(object):
     def setupUi(self, PlaylistDialog):
@@ -272,34 +274,34 @@ class Ui_PlaylistDialog(object):
     # setupUi
 
     def retranslateUi(self, PlaylistDialog):
-        PlaylistDialog.setWindowTitle(QCoreApplication.translate("PlaylistDialog", u"Shot Breakout", None))
+        PlaylistDialog.setWindowTitle(fakestr(u"Shot Breakout", None))
 #if QT_CONFIG(tooltip)
-        PlaylistDialog.setToolTip(QCoreApplication.translate("PlaylistDialog", u"Select playblast and project file directories to upload as Layout", None))
+        PlaylistDialog.setToolTip(fakestr(u"Select playblast and project file directories to upload as Layout", None))
 #endif // QT_CONFIG(tooltip)
-        self.checkBoxSequence.setText(QCoreApplication.translate("PlaylistDialog", u"Episode", None))
-        self.label.setText(QCoreApplication.translate("PlaylistDialog", u"Naming", None))
-        self.comboBoxNaming.setItemText(0, QCoreApplication.translate("PlaylistDialog", u"{203}bun_{010}.{ext}", None))
-        self.comboBoxNaming.setItemText(1, QCoreApplication.translate("PlaylistDialog", u"{tg118wha}_{030}fun_{010}_v01", None))
+        self.checkBoxSequence.setText(fakestr(u"Episode", None))
+        self.label.setText(fakestr(u"Naming", None))
+        self.comboBoxNaming.setItemText(0, fakestr(u"{203}bun_{010}.{ext}", None))
+        self.comboBoxNaming.setItemText(1, fakestr(u"{tg118wha}_{030}fun_{010}_v01", None))
 
-        self.labelPlayblastFolder.setText(QCoreApplication.translate("PlaylistDialog", u"Playblasts", None))
+        self.labelPlayblastFolder.setText(fakestr(u"Playblasts", None))
 #if QT_CONFIG(tooltip)
-        self.lineEditPlayblastFolder.setToolTip(QCoreApplication.translate("PlaylistDialog", u"Select a directory containing media files ###ABC_###", None))
+        self.lineEditPlayblastFolder.setToolTip(fakestr(u"Select a directory containing media files ###ABC_###", None))
 #endif // QT_CONFIG(tooltip)
-        self.toolButtonSelectPlayblasts.setText(QCoreApplication.translate("PlaylistDialog", u"...", None))
-        self.labelProjectsFolder.setText(QCoreApplication.translate("PlaylistDialog", u"Projects", None))
+        self.toolButtonSelectPlayblasts.setText(fakestr(u"...", None))
+        self.labelProjectsFolder.setText(fakestr(u"Projects", None))
 #if QT_CONFIG(tooltip)
-        self.lineEditProjectsFolder.setToolTip(QCoreApplication.translate("PlaylistDialog", u"Select a directory containing project files ###ABC_###", None))
+        self.lineEditProjectsFolder.setToolTip(fakestr(u"Select a directory containing project files ###ABC_###", None))
 #endif // QT_CONFIG(tooltip)
-        self.toolButtonSelectProjects.setText(QCoreApplication.translate("PlaylistDialog", u"...", None))
-        self.pushButtonLoad.setText(QCoreApplication.translate("PlaylistDialog", u"Load", None))
-        self.pushButtonSave.setText(QCoreApplication.translate("PlaylistDialog", u"Save", None))
-        self.pushButtonScan.setText(QCoreApplication.translate("PlaylistDialog", u"Scan Folders", None))
-        self.pushButtonFfprobe.setText(QCoreApplication.translate("PlaylistDialog", u"Count Frames", None))
-        self.pushButtonSetRange.setText(QCoreApplication.translate("PlaylistDialog", u"Set Range", None))
-        self.labelStartingAt.setText(QCoreApplication.translate("PlaylistDialog", u"Starting at", None))
-        self.checkBoxHandles.setText(QCoreApplication.translate("PlaylistDialog", u"Add handles", None))
-        self.checkBoxZip.setText(QCoreApplication.translate("PlaylistDialog", u"Zip projects folder", None))
-        self.pushButtonCreate.setText(QCoreApplication.translate("PlaylistDialog", u"Create Shots", None))
-        self.pushButtonCancel.setText(QCoreApplication.translate("PlaylistDialog", u"Close", None))
+        self.toolButtonSelectProjects.setText(fakestr(u"...", None))
+        self.pushButtonLoad.setText(fakestr(u"Load", None))
+        self.pushButtonSave.setText(fakestr(u"Save", None))
+        self.pushButtonScan.setText(fakestr(u"Scan Folders", None))
+        self.pushButtonFfprobe.setText(fakestr(u"Count Frames", None))
+        self.pushButtonSetRange.setText(fakestr(u"Set Range", None))
+        self.labelStartingAt.setText(fakestr(u"Starting at", None))
+        self.checkBoxHandles.setText(fakestr(u"Add handles", None))
+        self.checkBoxZip.setText(fakestr(u"Zip projects folder", None))
+        self.pushButtonCreate.setText(fakestr(u"Create Shots", None))
+        self.pushButtonCancel.setText(fakestr(u"Close", None))
     # retranslateUi
 

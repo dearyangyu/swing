@@ -12,6 +12,8 @@ from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
+from wildchildanimation.gui.swing_utils import fakestr
+
 
 class Ui_LoaderDialog(object):
     def setupUi(self, LoaderDialog):
@@ -261,34 +263,34 @@ class Ui_LoaderDialog(object):
     # setupUi
 
     def retranslateUi(self, LoaderDialog):
-        LoaderDialog.setWindowTitle(QCoreApplication.translate("LoaderDialog", u"swing: load files", None))
-        self.labelEntity.setText(QCoreApplication.translate("LoaderDialog", u"Entity", None))
+        LoaderDialog.setWindowTitle(fakestr(u"swing: load files", None))
+        self.labelEntity.setText(fakestr(u"Entity", None))
 #if QT_CONFIG(tooltip)
-        self.toolButtonWeb.setToolTip(QCoreApplication.translate("LoaderDialog", u"Opens link in Kitsu", None))
+        self.toolButtonWeb.setToolTip(fakestr(u"Opens link in Kitsu", None))
 #endif // QT_CONFIG(tooltip)
-        self.toolButtonWeb.setText(QCoreApplication.translate("LoaderDialog", u"Web", None))
-        self.labelWorkingFile.setText(QCoreApplication.translate("LoaderDialog", u"Project File", None))
-        self.labelFrames.setText(QCoreApplication.translate("LoaderDialog", u"Frame", None))
-        self.labelFrameIn.setText(QCoreApplication.translate("LoaderDialog", u"In", None))
-        self.labelFrameOut.setText(QCoreApplication.translate("LoaderDialog", u"Out", None))
-        self.labelFrameCount.setText(QCoreApplication.translate("LoaderDialog", u"Count", None))
-        self.label.setText(QCoreApplication.translate("LoaderDialog", u"Notes and Comments", None))
-        self.labelWorkingDir.setText(QCoreApplication.translate("LoaderDialog", u"Work Folder", None))
-        self.toolButtonWorkingDir.setText(QCoreApplication.translate("LoaderDialog", u"...", None))
-        self.checkBoxSkipExisting.setText(QCoreApplication.translate("LoaderDialog", u"Skip existing files", None))
-        self.checkBoxExtractZips.setText(QCoreApplication.translate("LoaderDialog", u"Extract zip files automatically", None))
+        self.toolButtonWeb.setText(fakestr(u"Web", None))
+        self.labelWorkingFile.setText(fakestr(u"Project File", None))
+        self.labelFrames.setText(fakestr(u"Frame", None))
+        self.labelFrameIn.setText(fakestr(u"In", None))
+        self.labelFrameOut.setText(fakestr(u"Out", None))
+        self.labelFrameCount.setText(fakestr(u"Count", None))
+        self.label.setText(fakestr(u"Notes and Comments", None))
+        self.labelWorkingDir.setText(fakestr(u"Work Folder", None))
+        self.toolButtonWorkingDir.setText(fakestr(u"...", None))
+        self.checkBoxSkipExisting.setText(fakestr(u"Skip existing files", None))
+        self.checkBoxExtractZips.setText(fakestr(u"Extract zip files automatically", None))
 #if QT_CONFIG(tooltip)
-        self.checkBoxReferences.setToolTip(QCoreApplication.translate("LoaderDialog", u"Unselect to load file", None))
+        self.checkBoxReferences.setToolTip(fakestr(u"Unselect to load file", None))
 #endif // QT_CONFIG(tooltip)
-        self.checkBoxReferences.setText(QCoreApplication.translate("LoaderDialog", u"Import as Reference", None))
-        self.checkBoxNamespace.setText(QCoreApplication.translate("LoaderDialog", u"Set Namespace", None))
-        self.labelFiles.setText(QCoreApplication.translate("LoaderDialog", u"Status", None))
-        self.textEditStatus.setHtml(QCoreApplication.translate("LoaderDialog", u"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+        self.checkBoxReferences.setText(fakestr(u"Import as Reference", None))
+        self.checkBoxNamespace.setText(fakestr(u"Set Namespace", None))
+        self.labelFiles.setText(fakestr(u"Status", None))
+        self.textEditStatus.setHtml(fakestr(u"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
 "</style></head><body style=\" font-family:'MS Sans Serif'; font-size:8pt; font-weight:400; font-style:normal;\">\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p></body></html>", None))
-        self.pushButtonImport.setText(QCoreApplication.translate("LoaderDialog", u"Go", None))
-        self.pushButtonCancel.setText(QCoreApplication.translate("LoaderDialog", u"Close", None))
+        self.pushButtonImport.setText(fakestr(u"Go", None))
+        self.pushButtonCancel.setText(fakestr(u"Close", None))
     # retranslateUi
 

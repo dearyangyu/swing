@@ -12,6 +12,8 @@ from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
+from wildchildanimation.gui.swing_utils import fakestr
+
 
 class Ui_DCCToolsDialog(object):
     def setupUi(self, DCCToolsDialog):
@@ -169,19 +171,19 @@ class Ui_DCCToolsDialog(object):
     # setupUi
 
     def retranslateUi(self, DCCToolsDialog):
-        DCCToolsDialog.setWindowTitle(QCoreApplication.translate("DCCToolsDialog", u"Swing: Export", None))
-        self.pushButtonFbxExport.setText(QCoreApplication.translate("DCCToolsDialog", u"Export FBX", None))
-        self.labelFbxSelection.setText(QCoreApplication.translate("DCCToolsDialog", u"selection:", None))
-        self.comboBoxFbxSelection.setItemText(0, QCoreApplication.translate("DCCToolsDialog", u"All", None))
-        self.comboBoxFbxSelection.setItemText(1, QCoreApplication.translate("DCCToolsDialog", u"Selected", None))
+        DCCToolsDialog.setWindowTitle(fakestr(u"Swing: Export", None))
+        self.pushButtonFbxExport.setText(fakestr(u"Export FBX", None))
+        self.labelFbxSelection.setText(fakestr(u"selection:", None))
+        self.comboBoxFbxSelection.setItemText(0, fakestr(u"All", None))
+        self.comboBoxFbxSelection.setItemText(1, fakestr(u"Selected", None))
 
-        self.pushButtonAlembicExport.setText(QCoreApplication.translate("DCCToolsDialog", u"Export Alembic", None))
-        self.labelAlembicSelection.setText(QCoreApplication.translate("DCCToolsDialog", u"selection:", None))
-        self.comboBoxAlembicSelection.setItemText(0, QCoreApplication.translate("DCCToolsDialog", u"All", None))
-        self.comboBoxAlembicSelection.setItemText(1, QCoreApplication.translate("DCCToolsDialog", u"Selected", None))
+        self.pushButtonAlembicExport.setText(fakestr(u"Export Alembic", None))
+        self.labelAlembicSelection.setText(fakestr(u"selection:", None))
+        self.comboBoxAlembicSelection.setItemText(0, fakestr(u"All", None))
+        self.comboBoxAlembicSelection.setItemText(1, fakestr(u"Selected", None))
 
-        self.label.setText(QCoreApplication.translate("DCCToolsDialog", u"Frame Range:", None))
-        self.labelFrameRangeX.setText(QCoreApplication.translate("DCCToolsDialog", u" - ", None))
-        self.pushButtonDialog.setText(QCoreApplication.translate("DCCToolsDialog", u"Close", None))
+        self.label.setText(fakestr(u"Frame Range:", None))
+        self.labelFrameRangeX.setText(fakestr(u" - ", None))
+        self.pushButtonDialog.setText(fakestr(u"Close", None))
     # retranslateUi
 

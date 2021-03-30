@@ -12,6 +12,8 @@ from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
+from wildchildanimation.gui.swing_utils import fakestr
+
 
 class Ui_PublishDialog(object):
     def setupUi(self, PublishDialog):
@@ -219,24 +221,24 @@ class Ui_PublishDialog(object):
     # setupUi
 
     def retranslateUi(self, PublishDialog):
-        PublishDialog.setWindowTitle(QCoreApplication.translate("PublishDialog", u"Publish Asset for Task", None))
-        self.label_2.setText(QCoreApplication.translate("PublishDialog", u"Task", None))
+        PublishDialog.setWindowTitle(fakestr(u"Publish Asset for Task", None))
+        self.label_2.setText(fakestr(u"Task", None))
 #if QT_CONFIG(tooltip)
-        self.toolButtonWeb.setToolTip(QCoreApplication.translate("PublishDialog", u"Open in Kitsu", None))
+        self.toolButtonWeb.setToolTip(fakestr(u"Open in Kitsu", None))
 #endif // QT_CONFIG(tooltip)
-        self.toolButtonWeb.setText(QCoreApplication.translate("PublishDialog", u"...", None))
-        self.projectFileLabel.setText(QCoreApplication.translate("PublishDialog", u"Project File", None))
-        self.projectFileToolButton.setText(QCoreApplication.translate("PublishDialog", u"...", None))
-        self.fbxFileLabel.setText(QCoreApplication.translate("PublishDialog", u"FBX File", None))
-        self.fbxFileToolButton.setText(QCoreApplication.translate("PublishDialog", u"...", None))
-        self.reviewFile.setText(QCoreApplication.translate("PublishDialog", u"Review File", None))
-        self.reviewFileToolButton.setText(QCoreApplication.translate("PublishDialog", u"...", None))
-        self.label.setText(QCoreApplication.translate("PublishDialog", u"Review Title", None))
-        self.referencesLabel.setText(QCoreApplication.translate("PublishDialog", u"Secondary Assets", None))
-        self.referencesAddPushButton.setText(QCoreApplication.translate("PublishDialog", u"&Add", None))
-        self.referencesRemovePushButton.setText(QCoreApplication.translate("PublishDialog", u"&Remove", None))
-        self.commentLabel.setText(QCoreApplication.translate("PublishDialog", u"Comments", None))
-        self.pushButtonOK.setText(QCoreApplication.translate("PublishDialog", u"OK", None))
-        self.pushButtonCancel.setText(QCoreApplication.translate("PublishDialog", u"Close", None))
+        self.toolButtonWeb.setText(fakestr(u"...", None))
+        self.projectFileLabel.setText(fakestr(u"Project File", None))
+        self.projectFileToolButton.setText(fakestr(u"...", None))
+        self.fbxFileLabel.setText(fakestr(u"FBX File", None))
+        self.fbxFileToolButton.setText(fakestr(u"...", None))
+        self.reviewFile.setText(fakestr(u"Review File", None))
+        self.reviewFileToolButton.setText(fakestr(u"...", None))
+        self.label.setText(fakestr(u"Review Title", None))
+        self.referencesLabel.setText(fakestr(u"Secondary Assets", None))
+        self.referencesAddPushButton.setText(fakestr(u"&Add", None))
+        self.referencesRemovePushButton.setText(fakestr(u"&Remove", None))
+        self.commentLabel.setText(fakestr(u"Comments", None))
+        self.pushButtonOK.setText(fakestr(u"OK", None))
+        self.pushButtonCancel.setText(fakestr(u"Close", None))
     # retranslateUi
 

@@ -12,6 +12,8 @@ from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
+from wildchildanimation.gui.swing_utils import fakestr
+
 
 class Ui_CreateDialog(object):
     def setupUi(self, CreateDialog):
@@ -215,27 +217,27 @@ class Ui_CreateDialog(object):
     # setupUi
 
     def retranslateUi(self, CreateDialog):
-        CreateDialog.setWindowTitle(QCoreApplication.translate("CreateDialog", u"swing: create new entity", None))
-        self.labelEntity.setText(QCoreApplication.translate("CreateDialog", u"File Name", None))
+        CreateDialog.setWindowTitle(fakestr(u"swing: create new entity", None))
+        self.labelEntity.setText(fakestr(u"File Name", None))
 #if QT_CONFIG(tooltip)
-        self.toolButtonWeb.setToolTip(QCoreApplication.translate("CreateDialog", u"Opens link in Kitsu", None))
+        self.toolButtonWeb.setToolTip(fakestr(u"Opens link in Kitsu", None))
 #endif // QT_CONFIG(tooltip)
-        self.toolButtonWeb.setText(QCoreApplication.translate("CreateDialog", u"Web", None))
-        self.labelWorkingDir.setText(QCoreApplication.translate("CreateDialog", u"Root Folder", None))
-        self.toolButtonWorkingDir.setText(QCoreApplication.translate("CreateDialog", u"...", None))
-        self.labelSoftware.setText(QCoreApplication.translate("CreateDialog", u"Software", None))
-        self.labelFrames.setText(QCoreApplication.translate("CreateDialog", u"Frame", None))
-        self.labelFrameIn.setText(QCoreApplication.translate("CreateDialog", u"In", None))
-        self.labelFrameOut.setText(QCoreApplication.translate("CreateDialog", u"Out", None))
-        self.labelFrameCount.setText(QCoreApplication.translate("CreateDialog", u"Count", None))
-        self.label.setText(QCoreApplication.translate("CreateDialog", u"Notes and Comments", None))
-        self.labelFiles.setText(QCoreApplication.translate("CreateDialog", u"Status", None))
-        self.textEditStatus.setHtml(QCoreApplication.translate("CreateDialog", u"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+        self.toolButtonWeb.setText(fakestr(u"Web", None))
+        self.labelWorkingDir.setText(fakestr(u"Root Folder", None))
+        self.toolButtonWorkingDir.setText(fakestr(u"...", None))
+        self.labelSoftware.setText(fakestr(u"Software", None))
+        self.labelFrames.setText(fakestr(u"Frame", None))
+        self.labelFrameIn.setText(fakestr(u"In", None))
+        self.labelFrameOut.setText(fakestr(u"Out", None))
+        self.labelFrameCount.setText(fakestr(u"Count", None))
+        self.label.setText(fakestr(u"Notes and Comments", None))
+        self.labelFiles.setText(fakestr(u"Status", None))
+        self.textEditStatus.setHtml(fakestr(u"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
 "</style></head><body style=\" font-family:'MS Sans Serif'; font-size:8pt; font-weight:400; font-style:normal;\">\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p></body></html>", None))
-        self.pushButtonImport.setText(QCoreApplication.translate("CreateDialog", u"Go", None))
-        self.pushButtonCancel.setText(QCoreApplication.translate("CreateDialog", u"Close", None))
+        self.pushButtonImport.setText(fakestr(u"Go", None))
+        self.pushButtonCancel.setText(fakestr(u"Close", None))
     # retranslateUi
 

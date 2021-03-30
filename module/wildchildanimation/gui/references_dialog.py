@@ -12,6 +12,7 @@ from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
+from wildchildanimation.gui.swing_utils import fakestr
 
 class Ui_ReferencesDialog(object):
     def setupUi(self, ReferencesDialog):
@@ -104,13 +105,13 @@ class Ui_ReferencesDialog(object):
     # setupUi
 
     def retranslateUi(self, ReferencesDialog):
-        ReferencesDialog.setWindowTitle(QCoreApplication.translate("ReferencesDialog", u"Find references", None))
-        self.label.setText(QCoreApplication.translate("ReferencesDialog", u"Select files to find ... ", None))
-        self.toolButtonAll.setText(QCoreApplication.translate("ReferencesDialog", u"+", None))
-        self.toolButtonNone.setText(QCoreApplication.translate("ReferencesDialog", u"-", None))
+        ReferencesDialog.setWindowTitle(fakestr(u"Find references", None))
+        self.label.setText(fakestr(u"Select files to find ... ", None))
+        self.toolButtonAll.setText(fakestr(u"+", None))
+        self.toolButtonNone.setText(fakestr(u"-", None))
         ___qtablewidgetitem = self.tableWidget.horizontalHeaderItem(0)
-        ___qtablewidgetitem.setText(QCoreApplication.translate("ReferencesDialog", u"Name", None));
-        self.pushButtonDownload.setText(QCoreApplication.translate("ReferencesDialog", u"Search", None))
-        self.pushButtonCancel.setText(QCoreApplication.translate("ReferencesDialog", u"Close", None))
+        ___qtablewidgetitem.setText(fakestr(u"Name", None));
+        self.pushButtonDownload.setText(fakestr(u"Search", None))
+        self.pushButtonCancel.setText(fakestr(u"Close", None))
     # retranslateUi
 

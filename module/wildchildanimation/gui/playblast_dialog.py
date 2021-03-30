@@ -13,6 +13,8 @@ from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
 
+from wildchildanimation.gui.swing_utils import fakestr
+
 class Ui_PlayblastDialog(object):
     def setupUi(self, PlayblastDialog):
         if not PlayblastDialog.objectName():
@@ -387,39 +389,39 @@ class Ui_PlayblastDialog(object):
     # setupUi
 
     def retranslateUi(self, PlayblastDialog):
-        PlayblastDialog.setWindowTitle(QCoreApplication.translate("PlayblastDialog", u"Playblaster", None))
-        self.projectFileLabel.setText(QCoreApplication.translate("PlayblastDialog", u"Directory:", None))
+        PlayblastDialog.setWindowTitle(fakestr(u"Playblaster", None))
+        self.projectFileLabel.setText(fakestr(u"Directory:", None))
         self.output_dir_path_le.setText("")
-        self.output_dir_path_le.setPlaceholderText(QCoreApplication.translate("PlayblastDialog", u"{project}/movies", None))
+        self.output_dir_path_le.setPlaceholderText(fakestr(u"{project}/movies", None))
 #if QT_CONFIG(tooltip)
-        self.output_dir_path_select_btn.setToolTip(QCoreApplication.translate("PlayblastDialog", u"Select Output Directory", None))
+        self.output_dir_path_select_btn.setToolTip(fakestr(u"Select Output Directory", None))
 #endif // QT_CONFIG(tooltip)
-        self.output_dir_path_select_btn.setText(QCoreApplication.translate("PlayblastDialog", u"...", None))
+        self.output_dir_path_select_btn.setText(fakestr(u"...", None))
 #if QT_CONFIG(tooltip)
-        self.output_dir_path_show_folder_btn.setToolTip(QCoreApplication.translate("PlayblastDialog", u"Show in Folder", None))
+        self.output_dir_path_show_folder_btn.setToolTip(fakestr(u"Show in Folder", None))
 #endif // QT_CONFIG(tooltip)
-        self.output_dir_path_show_folder_btn.setText(QCoreApplication.translate("PlayblastDialog", u"Go", None))
-        self.filename_label.setText(QCoreApplication.translate("PlayblastDialog", u"Filename", None))
+        self.output_dir_path_show_folder_btn.setText(fakestr(u"Go", None))
+        self.filename_label.setText(fakestr(u"Filename", None))
         self.output_filename_le.setText("")
-        self.output_filename_le.setPlaceholderText(QCoreApplication.translate("PlayblastDialog", u"{scene}", None))
-        self.force_overwrite_cb.setText(QCoreApplication.translate("PlayblastDialog", u"Force overwrite", None))
-        self.label.setText(QCoreApplication.translate("PlayblastDialog", u"Options", None))
-        self.label_2.setText(QCoreApplication.translate("PlayblastDialog", u"Camera:", None))
-        self.camera_select_hide_defaults_cb.setText(QCoreApplication.translate("PlayblastDialog", u"Hide defaults", None))
-        self.label_3.setText(QCoreApplication.translate("PlayblastDialog", u"Resolution:", None))
-        self.label_7.setText(QCoreApplication.translate("PlayblastDialog", u" x ", None))
-        self.label_4.setText(QCoreApplication.translate("PlayblastDialog", u"Frame Range:", None))
-        self.label_8.setText(QCoreApplication.translate("PlayblastDialog", u" - ", None))
-        self.label_5.setText(QCoreApplication.translate("PlayblastDialog", u"Encoding:", None))
-        self.encoding_video_codec_settings_btn.setText(QCoreApplication.translate("PlayblastDialog", u"Settings ...", None))
-        self.label_6.setText(QCoreApplication.translate("PlayblastDialog", u"Visibility:", None))
-        self.visibility_customize_btn.setText(QCoreApplication.translate("PlayblastDialog", u"Customise ...", None))
-        self.ornaments_cb.setText(QCoreApplication.translate("PlayblastDialog", u"Ornaments", None))
-        self.viewer_cb.setText(QCoreApplication.translate("PlayblastDialog", u"Show in Viewer", None))
-        self.overscan_cb.setText(QCoreApplication.translate("PlayblastDialog", u"Overscan", None))
-        self.refresh_btn.setText(QCoreApplication.translate("PlayblastDialog", u"Refresh", None))
-        self.clear_btn.setText(QCoreApplication.translate("PlayblastDialog", u"Clear", None))
-        self.playblast_btn.setText(QCoreApplication.translate("PlayblastDialog", u"Playblast", None))
-        self.close_btn.setText(QCoreApplication.translate("PlayblastDialog", u"Close", None))
+        self.output_filename_le.setPlaceholderText(fakestr(u"{scene}", None))
+        self.force_overwrite_cb.setText(fakestr(u"Force overwrite", None))
+        self.label.setText(fakestr(u"Options", None))
+        self.label_2.setText(fakestr(u"Camera:", None))
+        self.camera_select_hide_defaults_cb.setText(fakestr(u"Hide defaults", None))
+        self.label_3.setText(fakestr(u"Resolution:", None))
+        self.label_7.setText(fakestr(u" x ", None))
+        self.label_4.setText(fakestr(u"Frame Range:", None))
+        self.label_8.setText(fakestr(u" - ", None))
+        self.label_5.setText(fakestr(u"Encoding:", None))
+        self.encoding_video_codec_settings_btn.setText(fakestr(u"Settings ...", None))
+        self.label_6.setText(fakestr(u"Visibility:", None))
+        self.visibility_customize_btn.setText(fakestr(u"Customise ...", None))
+        self.ornaments_cb.setText(fakestr(u"Ornaments", None))
+        self.viewer_cb.setText(fakestr(u"Show in Viewer", None))
+        self.overscan_cb.setText(fakestr(u"Overscan", None))
+        self.refresh_btn.setText(fakestr(u"Refresh", None))
+        self.clear_btn.setText(fakestr(u"Clear", None))
+        self.playblast_btn.setText(fakestr(u"Playblast", None))
+        self.close_btn.setText(fakestr(u"Close", None))
     # retranslateUi
 

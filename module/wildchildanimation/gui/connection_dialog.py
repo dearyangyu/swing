@@ -12,6 +12,8 @@ from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
+from wildchildanimation.gui.swing_utils import fakestr
+
 
 class Ui_ConnectionDialog(object):
     def setupUi(self, ConnectionDialog):
@@ -156,33 +158,33 @@ class Ui_ConnectionDialog(object):
     # setupUi
 
     def retranslateUi(self, ConnectionDialog):
-        ConnectionDialog.setWindowTitle(QCoreApplication.translate("ConnectionDialog", u"Dialog", None))
-        self.labelServer.setText(QCoreApplication.translate("ConnectionDialog", u"Server", None))
+        ConnectionDialog.setWindowTitle(fakestr(u"Dialog", None))
+        self.labelServer.setText(fakestr(u"Server", None))
 #if QT_CONFIG(tooltip)
-        self.lineEditServer.setToolTip(QCoreApplication.translate("ConnectionDialog", u"Server URL - https://production.wildchildanimation.com", None))
+        self.lineEditServer.setToolTip(fakestr(u"Server URL - https://production.wildchildanimation.com", None))
 #endif // QT_CONFIG(tooltip)
-        self.labelEmail.setText(QCoreApplication.translate("ConnectionDialog", u"Email", None))
+        self.labelEmail.setText(fakestr(u"Email", None))
 #if QT_CONFIG(tooltip)
-        self.lineEditEmail.setToolTip(QCoreApplication.translate("ConnectionDialog", u"Logon email address", None))
+        self.lineEditEmail.setToolTip(fakestr(u"Logon email address", None))
 #endif // QT_CONFIG(tooltip)
-        self.label_3.setText(QCoreApplication.translate("ConnectionDialog", u"Password", None))
+        self.label_3.setText(fakestr(u"Password", None))
 #if QT_CONFIG(tooltip)
-        self.lineEditPassword.setToolTip(QCoreApplication.translate("ConnectionDialog", u"Logon password", None))
+        self.lineEditPassword.setToolTip(fakestr(u"Logon password", None))
 #endif // QT_CONFIG(tooltip)
-        self.label.setText(QCoreApplication.translate("ConnectionDialog", u"Projects Folder", None))
+        self.label.setText(fakestr(u"Projects Folder", None))
 #if QT_CONFIG(tooltip)
-        self.lineEditProjectsFolder.setToolTip(QCoreApplication.translate("ConnectionDialog", u"<html><head/><body><p>Root directory for projects</p><p><br/></p><p>Shots will be downloaded to:</p><p><span style=\" font-weight:600;\">root/project/assets</span></p><p><br/></p><p>Assets will be downloaded to: </p><p><span style=\" font-weight:600;\">root/project/assets</span></p></body></html>", None))
+        self.lineEditProjectsFolder.setToolTip(fakestr(u"<html><head/><body><p>Root directory for projects</p><p><br/></p><p>Shots will be downloaded to:</p><p><span style=\" font-weight:600;\">root/project/assets</span></p><p><br/></p><p>Assets will be downloaded to: </p><p><span style=\" font-weight:600;\">root/project/assets</span></p></body></html>", None))
 #endif // QT_CONFIG(tooltip)
-        self.toolButtonProjectsFolder.setText(QCoreApplication.translate("ConnectionDialog", u"...", None))
-        self.label_2.setText(QCoreApplication.translate("ConnectionDialog", u"ffmpeg binary", None))
+        self.toolButtonProjectsFolder.setText(fakestr(u"...", None))
+        self.label_2.setText(fakestr(u"ffmpeg binary", None))
 #if QT_CONFIG(tooltip)
-        self.lineEditFfmpegBin.setToolTip(QCoreApplication.translate("ConnectionDialog", u"<html><head/><body><p>Location of ffmpeg executable, usually something like </p><p><br/></p><p>C:\\ffmpeg\\ffmpeg-20200831-4a11a6f-win64-static\\bin\\ffmpeg.exe</p></body></html>", None))
+        self.lineEditFfmpegBin.setToolTip(fakestr(u"<html><head/><body><p>Location of ffmpeg executable, usually something like </p><p><br/></p><p>C:\\ffmpeg\\ffmpeg-20200831-4a11a6f-win64-static\\bin\\ffmpeg.exe</p></body></html>", None))
 #endif // QT_CONFIG(tooltip)
-        self.toolButtonFfmpegBin.setText(QCoreApplication.translate("ConnectionDialog", u"...", None))
-        self.label_4.setText(QCoreApplication.translate("ConnectionDialog", u"ffprobe binary", None))
+        self.toolButtonFfmpegBin.setText(fakestr(u"...", None))
+        self.label_4.setText(fakestr(u"ffprobe binary", None))
 #if QT_CONFIG(tooltip)
-        self.lineEditFfprobeBin.setToolTip(QCoreApplication.translate("ConnectionDialog", u"<html><head/><body><p>Location of ffmpeg executable, usually something like </p><p><br/></p><p>C:\\ffmpeg\\ffmpeg-20200831-4a11a6f-win64-static\\bin\\ffmpeg.exe</p></body></html>", None))
+        self.lineEditFfprobeBin.setToolTip(fakestr(u"<html><head/><body><p>Location of ffmpeg executable, usually something like </p><p><br/></p><p>C:\\ffmpeg\\ffmpeg-20200831-4a11a6f-win64-static\\bin\\ffmpeg.exe</p></body></html>", None))
 #endif // QT_CONFIG(tooltip)
-        self.toolButtonFfprobeBin.setText(QCoreApplication.translate("ConnectionDialog", u"...", None))
+        self.toolButtonFfprobeBin.setText(fakestr(u"...", None))
     # retranslateUi
 
