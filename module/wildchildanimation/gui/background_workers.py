@@ -65,6 +65,10 @@ class ProjectHierarchyLoaderThread(QtCore.QRunnable):
         self.callback = LoadedSignal()        
 
     def run(self):
+        episodes = None
+
+        if not self.project:
+            return False
         try:
             try:
                 episodes = gazu.shot.all_episodes_for_project(self.project)
@@ -345,7 +349,7 @@ class FileDownloader(QtCore.QRunnable):
         if not os.path.exists(target_dir):
             try:
                 os.makedirs(target_dir)   
-                print("Made dir: {}".format(target_dir))     
+                # print("Made dir: {}".format(target_dir))     
             except:
                 pass
 
@@ -424,6 +428,7 @@ class FileDownloader(QtCore.QRunnable):
             "size": size            
         }
 
+        write_log("Download complete: {}".format(self.target))
         self.callback.done.emit(status)        
 
     def extract_zip(self, archive, directory):

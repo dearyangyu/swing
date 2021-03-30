@@ -6,7 +6,7 @@
 #
 #############################
 _APP_NAME = "treehouse: swing"
-_APP_VERSION = "0.0.9"
+_APP_VERSION = "0.0.10"
  
 import traceback
 import sys
@@ -294,8 +294,17 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         dialog.lineEditProjectsFolder.setText(load_settings('projects_root', os.path.expanduser("~")))
         dialog.lineEditPassword.setText(load_keyring('swing', 'password', 'Not A Password'))
 
-        dialog.exec_()
-        write_log("loading settings")
+        if dialog.exec_():
+            if not self.connected:
+                write_log("loading settings")
+                try:
+                    if self.connect_to_server():
+                        self.labelConnection.setText("Connected")
+                        self.projectNav.load_open_projects()
+                except:
+                    write_log("error connecting to server, please check settings")
+                #
+            #
 
     def connect_to_server(self): 
         if self.connected and self.gazu_client:

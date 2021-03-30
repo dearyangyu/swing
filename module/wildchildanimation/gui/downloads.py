@@ -43,6 +43,7 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
         super(DownloadDialogGUI, self).__init__(None) # Call the inherited classes __init__ method
         self.setupUi(self)
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
+        self.setMinimumWidth(600)
 
         self.entity = entity 
         self.threadpool = QtCore.QThreadPool.globalInstance()
@@ -300,7 +301,7 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
 
         row = 0
         for item in file_list:
-            write_log("Downloading {} to {}".format(item["name"], self.working_dir))
+            write_log("Downloading {}".format(item["name"]))
 
             if "WorkingFile" in item["type"]:
                 url = "{}/api/working_file/{}".format(edit_api, item["id"])
