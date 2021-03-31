@@ -209,7 +209,7 @@ class StudioHandler(StudioInterface):
             mel.eval('setProject "{}"'.format(working_dir))
             cmds.file(new=True, force=True)
             cmds.file(rename=source)
-            cmds.file(save=True)
+            cmds.file(save=True, type='mayaAscii')
             return True
         except:
             traceback.print_exc(file=sys.stdout)
