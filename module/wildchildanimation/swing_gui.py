@@ -873,10 +873,14 @@ class CreateDialogGUI(QtWidgets.QDialog, Ui_CreateDialog):
             sections.append(self.shot_name)
 
             if "task_type" in self.task:
+                if self.task["task_type"]["short_name"]:
+                    sections.append(self.task["task_type"]["short_name"])          
+                else:
+                    sections.append(self.task["task_type"]["name"])          
                 self.task_type_name = self.task["task_type"]["name"]
-                sections.append(self.task_type_name)
 
             self.lineEditEntity.setText(friendly_string("_".join(sections).lower()))
+            
             self.textEditShotInfo.setText(self.shot["description"])
             self.lineEditFrameIn.setText(self.shot["frame_in"])
             self.lineEditFrameIn.setEnabled(False)
@@ -903,16 +907,23 @@ class CreateDialogGUI(QtWidgets.QDialog, Ui_CreateDialog):
 
             if "asset_type_name" in self.asset:
                 self.asset_type_name = self.asset["asset_type_name"].strip()
-                sections.append(self.asset_type_name)                 
+                if self.asset_type_name in StudioInterface.ASSET_TYPE_LOOKUP:
+                    sections.append(StudioInterface.ASSET_TYPE_LOOKUP[self.asset_type_name])                     
+                else:
+                    sections.append(self.asset_type_name)                 
 
             self.asset_name = self.entity["name"].strip() 
             sections.append(self.asset_name)
 
             if "task_type" in self.task:
+                if self.task["task_type"]["short_name"]:
+                    sections.append(self.task["task_type"]["short_name"])          
+                else:
+                    sections.append(self.task["task_type"]["name"])          
                 self.task_type_name = self.task["task_type"]["name"]
-                sections.append(self.task_type_name)          
 
             self.lineEditEntity.setText(friendly_string("_".join(sections).lower()))
+
             self.textEditShotInfo.setText(self.asset["description"].strip())
             self.lineEditFrameIn.setText("")
             self.lineEditFrameIn.setEnabled(False)

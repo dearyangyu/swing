@@ -10,6 +10,21 @@ except ImportError:
 
 class StudioInterface(QtCore.QObject):
 
+    '''
+        Naming Lookups
+    '''
+    # ==== auto Qt load ====
+    ASSET_TYPE_LOOKUP = {
+        "Camera": "cam",
+        "Character": "chr",
+        "Environment": "env",
+        "Library": "lib",
+        "Model": "mod",
+        "Prop": "prp",
+        "Rig": "rig",
+        "Test": "test"
+    }
+
     FRAME_RANGE_PRESETS = [
         "Render",
         "Playback",
