@@ -6,7 +6,7 @@
 #
 #############################
 _APP_NAME = "treehouse: swing"
-_APP_VERSION = "0.0.11"
+_APP_VERSION = "0.0.12"
  
 import traceback
 import sys

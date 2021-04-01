@@ -176,9 +176,12 @@ class TaskTableModel(QtCore.QAbstractTableModel):
                 if "sequence_name" in item and item["sequence_name"]:
                     text = "{} {}".format(text, item["sequence_name"])
 
+                if item["entity_type_name"]:
+                    text = "{} {}".format(text, item["entity_type_name"])
+
                 return text.strip()
             elif col == 3:
-                text = "{} / {}".format(item["entity_description"], item["entity_name"])
+                text = item["entity_name"]
                 return text.strip()
             elif col == 4:
                 if item["due_date"]:
@@ -192,6 +195,8 @@ class TaskTableModel(QtCore.QAbstractTableModel):
             elif col == 6:
                 if item["description"]:
                     return item["description"].strip()
+                if item["entity_description"]:
+                    return item["entity_description"].strip()
                 if item["last_comment"]:
                     return item["last_comment"]["text"].strip()
 
