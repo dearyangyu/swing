@@ -13,8 +13,6 @@ from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
 from wildchildanimation.gui.swing_utils import fakestr
-
-
 class Ui_DCCToolsDialog(object):
     def setupUi(self, DCCToolsDialog):
         if not DCCToolsDialog.objectName():

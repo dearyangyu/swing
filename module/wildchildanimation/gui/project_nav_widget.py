@@ -13,8 +13,6 @@ from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
 from wildchildanimation.gui.swing_utils import fakestr
-
-
 class Ui_ProjectNavWidget(object):
     def setupUi(self, ProjectNavWidget):
         if not ProjectNavWidget.objectName():

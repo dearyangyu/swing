@@ -13,8 +13,6 @@ from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
 from wildchildanimation.gui.swing_utils import fakestr
-
-
 class Ui_PlaylistDialog(object):
     def setupUi(self, PlaylistDialog):
         if not PlaylistDialog.objectName():

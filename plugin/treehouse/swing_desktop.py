@@ -7,7 +7,7 @@
 # local import wildchildanimation module by adding to the path
 WCA_ROOT = "C:/DEV/github/wca-maya/"
 
-import sys
+import sys, os
 
 sys.path.append("{0}/{1}".format(WCA_ROOT, "/module"))
 from wildchildanimation.swing_gui import SwingGUI
@@ -29,6 +29,7 @@ except ImportError:
     qtMode = 1
 
 if __name__ == "__main__":
+
     try:
         swing_gui.close() # pylint: disable=E0601
         swing_gui.deleteLater()
@@ -41,6 +42,7 @@ if __name__ == "__main__":
         app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
         # or in new API
         app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))        
+    
 
     SwingGUI.show_dialog()
     sys.exit(app.exec_())

@@ -13,8 +13,6 @@ from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
 from wildchildanimation.gui.swing_utils import fakestr
-
-
 class Ui_WcaMayaDialog(object):
     def setupUi(self, WcaMayaDialog):
         if not WcaMayaDialog.objectName():

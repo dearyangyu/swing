@@ -96,7 +96,6 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
                 self.project_name = self.project["code"]
             else:
                 self.project_name = self.project["name"]
-            sections.append(self.project_name)
                 
             if "episode_name" in self.shot:
                 self.episode_name = self.shot["episode_name"]
@@ -138,7 +137,6 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
                 self.project_name = self.project["code"]
             else:
                 self.project_name = self.project["name"]
-            sections.append(self.project_name)  
 
             if "asset_type_name" in self.asset:
                 self.asset_type_name = self.asset["asset_type_name"].strip()

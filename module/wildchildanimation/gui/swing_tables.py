@@ -267,7 +267,7 @@ def load_file_table_widget(tableWidget, model):
 
     row = 0
     for file_item in model:
-        item = copy.copy(file_item)
+        item = copy.deepcopy(file_item)
 
         cell = QtWidgets.QTableWidgetItem(item["name"])
         cell.setData(QtCore.Qt.UserRole, item)

@@ -13,12 +13,11 @@ from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
 from wildchildanimation.gui.swing_utils import fakestr
-
 class Ui_EntityInfoDialog(object):
     def setupUi(self, EntityInfoDialog):
         if not EntityInfoDialog.objectName():
             EntityInfoDialog.setObjectName(u"EntityInfoDialog")
-        EntityInfoDialog.resize(1060, 809)
+        EntityInfoDialog.resize(958, 809)
         EntityInfoDialog.setSizeGripEnabled(True)
         self.verticalLayout = QVBoxLayout(EntityInfoDialog)
         self.verticalLayout.setObjectName(u"verticalLayout")
@@ -97,22 +96,6 @@ class Ui_EntityInfoDialog(object):
 
         self.verticalLayout.addLayout(self.horizontalLayoutEntity)
 
-        self.horizontalLayoutTask = QHBoxLayout()
-        self.horizontalLayoutTask.setObjectName(u"horizontalLayoutTask")
-        self.label = QLabel(EntityInfoDialog)
-        self.label.setObjectName(u"label")
-        self.label.setMinimumSize(QSize(100, 0))
-        self.label.setMaximumSize(QSize(100, 16777215))
-
-        self.horizontalLayoutTask.addWidget(self.label)
-
-        self.horizontalSpacer_2 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
-
-        self.horizontalLayoutTask.addItem(self.horizontalSpacer_2)
-
-
-        self.verticalLayout.addLayout(self.horizontalLayoutTask)
-
         self.lineTable = QFrame(EntityInfoDialog)
         self.lineTable.setObjectName(u"lineTable")
         self.lineTable.setFrameShape(QFrame.HLine)
@@ -120,14 +103,81 @@ class Ui_EntityInfoDialog(object):
 
         self.verticalLayout.addWidget(self.lineTable)
 
+        self.horizontalLayout = QHBoxLayout()
+        self.horizontalLayout.setObjectName(u"horizontalLayout")
+        self.toolButtonAll = QToolButton(EntityInfoDialog)
+        self.toolButtonAll.setObjectName(u"toolButtonAll")
+
+        self.horizontalLayout.addWidget(self.toolButtonAll)
+
+        self.toolButtonNone = QToolButton(EntityInfoDialog)
+        self.toolButtonNone.setObjectName(u"toolButtonNone")
+
+        self.horizontalLayout.addWidget(self.toolButtonNone)
+
+        self.labelWorkingDirectory = QLabel(EntityInfoDialog)
+        self.labelWorkingDirectory.setObjectName(u"labelWorkingDirectory")
+        self.labelWorkingDirectory.setMinimumSize(QSize(100, 0))
+
+        self.horizontalLayout.addWidget(self.labelWorkingDirectory)
+
+        self.lineEditWorkingDirectory = QLineEdit(EntityInfoDialog)
+        self.lineEditWorkingDirectory.setObjectName(u"lineEditWorkingDirectory")
+
+        self.horizontalLayout.addWidget(self.lineEditWorkingDirectory)
+
+        self.toolButtonWorkingDir = QToolButton(EntityInfoDialog)
+        self.toolButtonWorkingDir.setObjectName(u"toolButtonWorkingDir")
+
+        self.horizontalLayout.addWidget(self.toolButtonWorkingDir)
+
+        self.checkBoxSkipExisting = QCheckBox(EntityInfoDialog)
+        self.checkBoxSkipExisting.setObjectName(u"checkBoxSkipExisting")
+        self.checkBoxSkipExisting.setMinimumSize(QSize(100, 0))
+        self.checkBoxSkipExisting.setChecked(True)
+
+        self.horizontalLayout.addWidget(self.checkBoxSkipExisting)
+
+        self.checkBoxExtractZips = QCheckBox(EntityInfoDialog)
+        self.checkBoxExtractZips.setObjectName(u"checkBoxExtractZips")
+        self.checkBoxExtractZips.setChecked(True)
+
+        self.horizontalLayout.addWidget(self.checkBoxExtractZips)
+
+        self.horizontalSpacer_6 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.horizontalLayout.addItem(self.horizontalSpacer_6)
+
+
+        self.verticalLayout.addLayout(self.horizontalLayout)
+
         self.horizontalLayoutFiles = QHBoxLayout()
         self.horizontalLayoutFiles.setObjectName(u"horizontalLayoutFiles")
-        self.tableViewFiles = QTableView(EntityInfoDialog)
-        self.tableViewFiles.setObjectName(u"tableViewFiles")
-        self.tableViewFiles.setSizeIncrement(QSize(0, 10))
-        self.tableViewFiles.setBaseSize(QSize(0, 10))
+        self.tableWidget = QTableWidget(EntityInfoDialog)
+        if (self.tableWidget.columnCount() < 6):
+            self.tableWidget.setColumnCount(6)
+        __qtablewidgetitem = QTableWidgetItem()
+        self.tableWidget.setHorizontalHeaderItem(0, __qtablewidgetitem)
+        __qtablewidgetitem1 = QTableWidgetItem()
+        self.tableWidget.setHorizontalHeaderItem(1, __qtablewidgetitem1)
+        __qtablewidgetitem2 = QTableWidgetItem()
+        self.tableWidget.setHorizontalHeaderItem(2, __qtablewidgetitem2)
+        __qtablewidgetitem3 = QTableWidgetItem()
+        self.tableWidget.setHorizontalHeaderItem(3, __qtablewidgetitem3)
+        __qtablewidgetitem4 = QTableWidgetItem()
+        self.tableWidget.setHorizontalHeaderItem(4, __qtablewidgetitem4)
+        __qtablewidgetitem5 = QTableWidgetItem()
+        self.tableWidget.setHorizontalHeaderItem(5, __qtablewidgetitem5)
+        self.tableWidget.setObjectName(u"tableWidget")
+        font = QFont()
+        font.setPointSize(8)
+        self.tableWidget.setFont(font)
+        self.tableWidget.setProperty("showDropIndicator", False)
+        self.tableWidget.setAlternatingRowColors(True)
+        self.tableWidget.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.tableWidget.horizontalHeader().setStretchLastSection(True)
 
-        self.horizontalLayoutFiles.addWidget(self.tableViewFiles)
+        self.horizontalLayoutFiles.addWidget(self.tableWidget)
 
 
         self.verticalLayout.addLayout(self.horizontalLayoutFiles)
@@ -159,9 +209,12 @@ class Ui_EntityInfoDialog(object):
 
         self.horizontalLayoutButtons.addWidget(self.comboBoxTasks)
 
-        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.progressBar = QProgressBar(EntityInfoDialog)
+        self.progressBar.setObjectName(u"progressBar")
+        self.progressBar.setMaximum(1)
+        self.progressBar.setValue(-1)
 
-        self.horizontalLayoutButtons.addItem(self.horizontalSpacer)
+        self.horizontalLayoutButtons.addWidget(self.progressBar)
 
         self.pushButtonClose = QPushButton(EntityInfoDialog)
         self.pushButtonClose.setObjectName(u"pushButtonClose")
@@ -186,7 +239,24 @@ class Ui_EntityInfoDialog(object):
 #endif // QT_CONFIG(tooltip)
         self.toolButtonWeb.setText(fakestr(u"...", None))
         self.labelPreview.setText("")
-        self.label.setText(fakestr(u"File List", None))
+        self.toolButtonAll.setText(fakestr(u"+", None))
+        self.toolButtonNone.setText(fakestr(u"-", None))
+        self.labelWorkingDirectory.setText(fakestr(u"Root Folder", None))
+        self.toolButtonWorkingDir.setText(fakestr(u"...", None))
+        self.checkBoxSkipExisting.setText(fakestr(u"Skip Existing Files", None))
+        self.checkBoxExtractZips.setText(fakestr(u"Extract Zip Files", None))
+        ___qtablewidgetitem = self.tableWidget.horizontalHeaderItem(0)
+        ___qtablewidgetitem.setText(fakestr(u"File", None));
+        ___qtablewidgetitem1 = self.tableWidget.horizontalHeaderItem(1)
+        ___qtablewidgetitem1.setText(fakestr(u"Size", None));
+        ___qtablewidgetitem2 = self.tableWidget.horizontalHeaderItem(2)
+        ___qtablewidgetitem2.setText(fakestr(u"v", None));
+        ___qtablewidgetitem3 = self.tableWidget.horizontalHeaderItem(3)
+        ___qtablewidgetitem3.setText(fakestr(u"Task", None));
+        ___qtablewidgetitem4 = self.tableWidget.horizontalHeaderItem(4)
+        ___qtablewidgetitem4.setText(fakestr(u"Updated", None));
+        ___qtablewidgetitem5 = self.tableWidget.horizontalHeaderItem(5)
+        ___qtablewidgetitem5.setText(fakestr(u"Status", None));
         self.pushButtonDownload.setText(fakestr(u"Download", None))
         self.pushButtonPublish.setText(fakestr(u"Publish", None))
         self.pushButtonClose.setText(fakestr(u"Close", None))

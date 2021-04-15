@@ -190,41 +190,43 @@ class BreakoutUploadDialog(QtWidgets.QDialog, Ui_BreakoutUploadDialog):
 
         # scan for playblasts
         root_folder = self.lineEditPlayblastFolder.text()
-        for item in os.listdir(root_folder):
-            if ".mov" in item or ".mp4" in item:
-                shot_number = os.path.splitext(item)[0].split("_")[1]
-                if not shot_number in self.shot_list:
-                    shot = {
-                        "shot_number": shot_number,
-                        "in": None, "out" : None, "nb_frames": None, "status": None,
-                        "playblast_file_name": item,
-                        "playblast_file_path": os.path.normpath(os.path.join(root_folder, item))
-                    }
-                else:
-                    shot = self.shot_list[shot_number]
-                    shot["playblast_file_name"] = item,
-                    shot["playblast_file_path"] = os.path.normpath(os.path.join(root_folder, item))
+        if len(root_folder.strip()) > 0:
+            for item in os.listdir(root_folder):
+                if ".mov" in item or ".mp4" in item:
+                    shot_number = os.path.splitext(item)[0].split("_")[2]
+                    if not shot_number in self.shot_list:
+                        shot = {
+                            "shot_number": shot_number.strip(),
+                            "in": None, "out" : None, "nb_frames": None, "status": None,
+                            "playblast_file_name": item,
+                            "playblast_file_path": os.path.normpath(os.path.join(root_folder, item))
+                        }
+                    else:
+                        shot = self.shot_list[shot_number]
+                        shot["playblast_file_name"] = item,
+                        shot["playblast_file_path"] = os.path.normpath(os.path.join(root_folder, item))
 
-                self.shot_list[shot_number] = shot
+                    self.shot_list[shot_number] = shot
 
         # scan for project files
         root_folder = self.lineEditProjectsFolder.text()
-        for item in os.listdir(root_folder):
-            if ".ma" in item or ".mb" in item:
-                shot_number = os.path.splitext(item)[0].split("_")[1]
-                if not shot_number in self.shot_list:
-                    shot = {
-                        "shot_number": shot_number,
-                        "in": None, "out" : None, "nb_frames": None, "status": None,
-                        "project_file_name": item,                        
-                        "project_file_path": os.path.normpath(os.path.join(root_folder, item))
-                    }
-                else:
-                    shot = self.shot_list[shot_number]
-                    shot["project_file_name"] = item
-                    shot["project_file_path"] = os.path.normpath(os.path.join(root_folder, item))
+        if len(root_folder.strip()) > 0:        
+            for item in os.listdir(root_folder):
+                if ".ma" in item or ".mb" in item:
+                    shot_number = os.path.splitext(item)[0].split("_")[2]
+                    if not shot_number in self.shot_list:
+                        shot = {
+                            "shot_number": shot_number.strip(),
+                            "in": None, "out" : None, "nb_frames": None, "status": None,
+                            "project_file_name": item,                        
+                            "project_file_path": os.path.normpath(os.path.join(root_folder, item))
+                        }
+                    else:
+                        shot = self.shot_list[shot_number]
+                        shot["project_file_name"] = item
+                        shot["project_file_path"] = os.path.normpath(os.path.join(root_folder, item))
 
-                self.shot_list[shot_number] = shot
+                    self.shot_list[shot_number] = shot
 
         self.model = ShotlistModel(self, self.shot_list)
         self.tableView.setModel(self.model)

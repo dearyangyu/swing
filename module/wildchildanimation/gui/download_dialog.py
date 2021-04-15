@@ -13,8 +13,6 @@ from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
 from wildchildanimation.gui.swing_utils import fakestr
-
-
 class Ui_DownloadDialog(object):
     def setupUi(self, DownloadDialog):
         if not DownloadDialog.objectName():

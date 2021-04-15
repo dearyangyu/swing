@@ -13,8 +13,6 @@ from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
 from wildchildanimation.gui.swing_utils import fakestr
-
-
 class Ui_PublishDialog(object):
     def setupUi(self, PublishDialog):
         if not PublishDialog.objectName():

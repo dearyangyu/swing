@@ -27,6 +27,7 @@ import wildchildanimation.gui.background_workers as bg
 from wildchildanimation.gui.swing_utils import *
 
 from wildchildanimation.gui.publish_dialog import Ui_PublishDialog
+from wildchildanimation.gui.upload_monitor import UploadMonitorDialog
 
 from wildchildanimation.gui.swing_tables import human_size, load_file_table_widget
 

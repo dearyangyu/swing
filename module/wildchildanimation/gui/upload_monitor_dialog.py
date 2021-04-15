@@ -14,7 +14,6 @@ from PySide2.QtWidgets import *
 
 from wildchildanimation.gui.swing_utils import fakestr
 
-
 class Ui_UploadMonitorDialog(object):
     def setupUi(self, UploadMonitorDialog):
         if not UploadMonitorDialog.objectName():

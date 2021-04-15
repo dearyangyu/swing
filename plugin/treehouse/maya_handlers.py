@@ -3,6 +3,7 @@
 # Studio Handler callback methods from Treehouse Swing
 #
 import os
+import csv
 import sys
 import traceback
 
@@ -110,6 +111,38 @@ class StudioHandler(StudioInterface):
 
         self.log_output("searching for unresolved references {}".format(refs))
         return refs
+
+    #
+    #
+    # Exports the scene in layout format
+    #
+    # Source: Chainsaw002.py
+    # Author: Miruna D. Mateescu
+    # Last Modified: 2021/04/05
+    #
+    def export_to_csv(csv_filename, file_prefix = "hby_204_", shot_start = 10, shot_step = 10):
+        all_shots = cmds.ls(type="shot")
+        shot_no = shot_start        
+        with open(csv_filename, 'w') as csv_file:
+            writer = csv.writer(csv_file)            
+            for crt_shot in all_shots:
+                shot_start = cmds.getAttr(crt_shot+".startFrame")
+                shot_end = cmds.getAttr(crt_shot+".endFrame")
+                shot_cam = cmds.listConnections(crt_shot+".currentCamera")                
+                cmds.playbackOptions(animationStartTime=shot_start, minTime=shot_start, animationEndTime=shot_end, maxTime=shot_end)
+                cmds.lookThru(shot_cam)
+                cmds.currentTime(shot_start)                
+                if "shot_" in crt_shot:
+                    if shot_no < 100:
+                        padding = "0"
+                    else:
+                        padding = ""                    
+                    shot_name = "SH"+padding+str(shot_no)
+                    cmds.rename(crt_shot, shot_name)
+                    cmds.file(rn=file_prefix+shot_name+".ma")
+                    cmds.file(save=True)                    
+                    writer.writerow([shot_name, shot_start, shot_end, shot_cam])
+                    shot_no += shot_step
 
     # tries to import the file specified in source into the currently open scene
     def import_reference(self, **kwargs):

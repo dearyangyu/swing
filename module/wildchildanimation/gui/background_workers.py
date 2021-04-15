@@ -576,6 +576,8 @@ class ShotCreator(QtCore.QRunnable):
         self.shot_list = shot_list
         self.callback = ShotCreatorSignal()
 
+        self.force_preview = False
+
     def get_shot_task(self, shot, task_type_name, task_status):
         tasks = gazu.task.all_tasks_for_shot(shot)
         for t in tasks:
@@ -587,7 +589,9 @@ class ShotCreator(QtCore.QRunnable):
         email = load_settings('user', 'user@example.com')
         password = load_keyring('swing', 'password', 'Not A Password')        
         server = load_settings('server', 'https://production.wildchildanimation.com')
-        edit_api = "{}/edit".format(server)                                      
+        edit_api = "{}/edit".format(server)       
+
+        force_preview = True                               
 
         sequence = gazu.shot.get_sequence(self.sequence["id"])
         if not sequence:
@@ -638,7 +642,7 @@ class ShotCreator(QtCore.QRunnable):
 
         for item in self.shot_list:
             number = str(item["shot_number"])
-            shot_name = "sh{}".format(number.zfill(3))
+            shot_name = "{}".format(number.zfill(3))
 
             shot = gazu.shot.get_shot_by_name(sequence, shot_name)
             results = {
@@ -695,7 +699,8 @@ class ShotCreator(QtCore.QRunnable):
                     if not task:
                         task = gazu.task.new_task(shot, task_type, task_status = task_status, assigner = None, assignees = None)                    
                     previews = gazu.files.get_all_preview_files_for_task(task)
-                    if len(previews) == 0:
+
+                    if len(previews) == 0 or force_preview:
                         source = file_path
                         if os.path.exists(source):
                             file_base = os.path.basename(source)
