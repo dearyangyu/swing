@@ -6,7 +6,7 @@
 #
 #############################
 _APP_NAME = "treehouse: swing"
-_APP_VERSION = "0.0.14"
+_APP_VERSION = "0.0.15"
  
 import traceback
 import sys
@@ -765,7 +765,8 @@ class ConnectionDialogGUI(QtWidgets.QDialog, Ui_ConnectionDialog):
         save_settings("projects_root", self.lineEditProjectsFolder.text())                            
         save_settings("ffmpeg_bin", self.lineEditFfmpegBin.text())    
         save_settings("ffprobe_bin", self.lineEditFfprobeBin.text())    
-        keyring.set_password('swing', 'password', self.lineEditPassword.text())
+
+        save_password('swing', 'password', self.lineEditPassword.text())
 
         self.buttonBox.accepted.connect(self.save_settings)
         return True

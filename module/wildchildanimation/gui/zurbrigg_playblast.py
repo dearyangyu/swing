@@ -1,4 +1,5 @@
 import copy
+from module.wildchildanimation.gui.swing_utils import load_settings
 import os
 import sys
 import traceback
@@ -18,9 +19,9 @@ except:
 
 class ZurbriggPlayblast(QtCore.QObject):
 
-    VERSION = "0.0.1"
+    VERSION = "0.0.2"
 
-    DEFAULT_FFMPEG_PATH = ""
+    DEFAULT_FFMPEG_PATH = load_settings("ffmpeg_bin")
 
     RESOLUTION_LOOKUP = {
         "Render": (),
