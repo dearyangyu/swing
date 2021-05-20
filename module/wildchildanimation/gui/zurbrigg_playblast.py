@@ -14,6 +14,7 @@ try:
     import maya.OpenMaya as om
     import maya.OpenMayaUI as omui
     _stand_alone = False
+    _log_to_maya = True
 except:
     print("Maya not found")
     _stand_alone = True
