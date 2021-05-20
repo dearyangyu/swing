@@ -60,6 +60,9 @@ class PlaylistDialog(QtWidgets.QDialog, Ui_PlaylistDialog):
         self.threadpool = QtCore.QThreadPool.globalInstance()
 
         self.tableView.doubleClicked.connect(self.table_double_click)
+
+    def set_project(self, project):
+        self.project = project
         
     def close_dialog(self):
         self.close()        

@@ -1,5 +1,4 @@
 import copy
-from module.wildchildanimation.gui.swing_utils import load_settings
 import os
 import sys
 import traceback
@@ -14,14 +13,16 @@ try:
     import maya.mel as mel
     import maya.OpenMaya as om
     import maya.OpenMayaUI as omui
+    _stand_alone = False
 except:
     print("Maya not found")
+    _stand_alone = True
+    _log_to_maya = False
 
+from wildchildanimation.gui.swing_utils import load_settings, save_settings
 class ZurbriggPlayblast(QtCore.QObject):
 
     VERSION = "0.0.2"
-
-    DEFAULT_FFMPEG_PATH = load_settings("ffmpeg_bin")
 
     RESOLUTION_LOOKUP = {
         "Render": (),
@@ -122,7 +123,7 @@ class ZurbriggPlayblast(QtCore.QObject):
     output_logged = QtCore.Signal(str)
 
 
-    def __init__(self, ffmpeg_path=None, log_to_maya=True):
+    def __init__(self, ffmpeg_path=None, log_to_maya=_log_to_maya):
         super(ZurbriggPlayblast, self).__init__()
 
         self.set_ffmpeg_path(ffmpeg_path)
@@ -141,10 +142,7 @@ class ZurbriggPlayblast(QtCore.QObject):
         self.initialize_ffmpeg_process()
 
     def set_ffmpeg_path(self, ffmpeg_path):
-        if ffmpeg_path:
-            self._ffmpeg_path = ffmpeg_path
-        else:
-            self._ffmpeg_path = ZurbriggPlayblast.DEFAULT_FFMPEG_PATH
+        self._ffmpeg_path = ffmpeg_path
 
     def get_ffmpeg_path(self):
         return self._ffmpeg_path
@@ -682,63 +680,6 @@ class ZurbriggPlayblast(QtCore.QObject):
             om.MGlobal.displayInfo(text)
 
         self.output_logged.emit(text) # pylint: disable=E1101
-
-
-class ZurbriggPlayblastSettingsDialog(QtWidgets.QDialog):
-
-    def __init__(self, parent):
-        super(ZurbriggPlayblastSettingsDialog, self).__init__(parent)
-
-        self.setWindowTitle("Settings")
-        self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
-        self.setMinimumWidth(360)
-        self.setModal(True)
-
-        self.ffmpeg_path_le = QtWidgets.QLineEdit()
-        self.ffmpeg_path_select_btn = QtWidgets.QPushButton("...")
-        self.ffmpeg_path_select_btn.setFixedSize(24, 19)
-        self.ffmpeg_path_select_btn.clicked.connect(self.select_ffmpeg_executable)
-
-        ffmpeg_layout = QtWidgets.QHBoxLayout()
-        ffmpeg_layout.setSpacing(4)
-        ffmpeg_layout.addWidget(self.ffmpeg_path_le)
-        ffmpeg_layout.addWidget(self.ffmpeg_path_select_btn)
-
-        ffmpeg_grp = QtWidgets.QGroupBox("FFmpeg Path")
-        ffmpeg_grp.setLayout(ffmpeg_layout)
-
-        self.accept_btn = QtWidgets.QPushButton("Accept")
-        self.accept_btn.clicked.connect(self.accept)
-
-        self.cancel_btn = QtWidgets.QPushButton("Cancel")
-        self.cancel_btn.clicked.connect(self.close)
-
-        button_layout = QtWidgets.QHBoxLayout()
-        button_layout.addStretch()
-        button_layout.addWidget(self.accept_btn)
-        button_layout.addWidget(self.cancel_btn)
-
-        main_layout = QtWidgets.QVBoxLayout(self)
-        main_layout.setContentsMargins(4, 4, 4, 4)
-        main_layout.setSpacing(4)
-        main_layout.addWidget(ffmpeg_grp)
-        main_layout.addStretch()
-        main_layout.addLayout(button_layout)
-
-    def set_ffmpeg_path(self, path):
-        self.ffmpeg_path_le.setText(path)
-
-    def get_ffmpeg_path(self):
-        return self.ffmpeg_path_le.text()
-
-    def select_ffmpeg_executable(self):
-        current_path = self.ffmpeg_path_le.text()
-
-        new_path = QtWidgets.QFileDialog.getOpenFileName(self, "Select FFmpeg Executable", current_path)[0]
-        if new_path:
-            self.ffmpeg_path_le.setText(new_path)
-
-
 class ZurbriggPlayblastEncoderSettingsDialog(QtWidgets.QDialog):
 
     ENCODER_PAGES = {
@@ -941,12 +882,15 @@ class ZurbriggPlayblastUi(QtWidgets.QDialog):
 
 
     def __init__(self):
-        if sys.version_info.major < 3:
-            maya_main_window = wrapInstance(long(omui.MQtUtil.mainWindow()), QtWidgets.QWidget)
-        else:
-            maya_main_window = wrapInstance(int(omui.MQtUtil.mainWindow()), QtWidgets.QWidget)
+        try:
+            if sys.version_info.major < 3:
+                maya_main_window = wrapInstance(long(omui.MQtUtil.mainWindow()), QtWidgets.QWidget)
+            else:
+                maya_main_window = wrapInstance(int(omui.MQtUtil.mainWindow()), QtWidgets.QWidget)
 
-        super(ZurbriggPlayblastUi, self).__init__(maya_main_window)
+            super(ZurbriggPlayblastUi, self).__init__(maya_main_window)
+        except:
+            super(ZurbriggPlayblastUi, self).__init__()
 
         self.setWindowTitle(ZurbriggPlayblastUi.TITLE)
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
@@ -954,11 +898,10 @@ class ZurbriggPlayblastUi(QtWidgets.QDialog):
 
         self._playblast = ZurbriggPlayblast()
 
-        self._settings_dialog = None
         self._encoder_settings_dialog = None
         self._visibility_dialog = None
 
-        self.load_settings()
+        self.load_app_settings()
 
         self.create_actions()
         self.create_menus()
@@ -967,7 +910,6 @@ class ZurbriggPlayblastUi(QtWidgets.QDialog):
         self.create_connections()
 
         self.load_defaults()
-
         self.append_output("Zurbrigg Playblast v{0}".format(ZurbriggPlayblast.VERSION))
 
 
@@ -977,9 +919,6 @@ class ZurbriggPlayblastUi(QtWidgets.QDialog):
 
         self.load_defaults_action = QtWidgets.QAction("Load Defaults", self)
         self.load_defaults_action.triggered.connect(self.load_defaults)
-
-        self.show_settings_action = QtWidgets.QAction("Settings...", self)
-        self.show_settings_action.triggered.connect(self.show_settings_dialog)
 
         self.show_about_action = QtWidgets.QAction("About", self)
         self.show_about_action.triggered.connect(self.show_about_dialog)
@@ -991,7 +930,6 @@ class ZurbriggPlayblastUi(QtWidgets.QDialog):
         edit_menu.addAction(self.save_defaults_action)
         edit_menu.addAction(self.load_defaults_action)
         edit_menu.addSeparator()
-        edit_menu.addAction(self.show_settings_action)
 
         help_menu = self.main_menu.addMenu("Help")
         help_menu.addAction(self.show_about_action)
@@ -1192,10 +1130,13 @@ class ZurbriggPlayblastUi(QtWidgets.QDialog):
         self.refresh_btn.clicked.connect(self.refresh)
         self.clear_btn.clicked.connect(self.output_edit.clear)
         self.playblast_btn.clicked.connect(self.do_playblast)
-        self.close_btn.clicked.connect(self.close)
+        self.close_btn.clicked.connect(self.do_close)
 
         self._playblast.output_logged.connect(self.append_output) # pylint: disable=E1101
 
+    def do_close(self):
+        self.write_settings()
+        self.close()
 
     def do_playblast(self):
         output_dir_path = self.output_dir_path_le.text()
@@ -1244,12 +1185,18 @@ class ZurbriggPlayblastUi(QtWidgets.QDialog):
             self.append_output("[ERROR] Invalid directory path: {0}".format(output_dir_path))
 
     def refresh(self):
+        if _stand_alone:
+            return
+
         self.refresh_cameras()
         self.refresh_resolution()
         self.refresh_frame_range()
         self.refresh_video_encoders()
 
     def refresh_cameras(self):
+        if _stand_alone:
+            return 
+
         current_camera = self.camera_select_cmb.currentText()
         self.camera_select_cmb.clear()
 
@@ -1382,14 +1329,35 @@ class ZurbriggPlayblastUi(QtWidgets.QDialog):
         self.visibility_cmb.setCurrentText("Custom")
         self._playblast.set_visibility(self._visibility_dialog.get_visibility_data())
 
-    def save_settings(self):
-        cmds.optionVar(sv=("ZurbriggPlayblastUiFFmpegPath", self._playblast.get_ffmpeg_path()))
+    # save main dialog state
+    def write_settings(self):
+        self.settings = QtCore.QSettings()
+        self.settings.beginGroup("Playblast")
+        self.settings.setValue("size", self.size())
+        self.settings.setValue("pos", self.pos())
+        self.settings.endGroup()
 
-    def load_settings(self):
-        if cmds.optionVar(exists="ZurbriggPlayblastUiFFmpegPath"):
-            self._playblast.set_ffmpeg_path(cmds.optionVar(q="ZurbriggPlayblastUiFFmpegPath"))
+    # load main dialog state
+    def read_settings(self):
+        self.settings = QtCore.QSettings()
+        self.settings.beginGroup("Playblast")
+        self.resize(self.settings.value("size", QtCore.QSize(400, 400)))
+        self.move(self.settings.value("pos", QtCore.QPoint(200, 200)))
+        self.settings.endGroup()            
+
+    def save_settings(self):
+        save_settings("ffmpeg_bin", self._playblast.get_ffmpeg_path())   
+
+    def load_app_settings(self):
+        self.read_settings();
+        ffmpeg_path = load_settings("ffmpeg_bin", None)
+        if ffmpeg_path:
+            self._playblast.set_ffmpeg_path(ffmpeg_path)
 
     def save_defaults(self):
+        if _stand_alone:
+            return 
+
         cmds.optionVar(sv=("ZurbriggPlayblastUiOutputDir", self.output_dir_path_le.text()))
         cmds.optionVar(sv=("ZurbriggPlayblastUiOutputFilename", self.output_filename_le.text()))
         cmds.optionVar(iv=("ZurbriggPlayblastUiForceOverwrite", self.force_overwrite_cb.isChecked()))
@@ -1428,6 +1396,9 @@ class ZurbriggPlayblastUi(QtWidgets.QDialog):
         cmds.optionVar(iv=("ZurbriggPlayblastUiViewer", self.viewer_cb.isChecked()))
 
     def load_defaults(self):
+        if _stand_alone:
+            return 
+
         if cmds.optionVar(exists="ZurbriggPlayblastUiOutputDir"):
             self.output_dir_path_le.setText(cmds.optionVar(q="ZurbriggPlayblastUiOutputDir"))
         if cmds.optionVar(exists="ZurbriggPlayblastUiOutputFilename"):

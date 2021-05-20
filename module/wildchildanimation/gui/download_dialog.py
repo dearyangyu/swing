@@ -13,12 +13,13 @@ from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
 from wildchildanimation.gui.swing_utils import fakestr
+
 class Ui_DownloadDialog(object):
     def setupUi(self, DownloadDialog):
         if not DownloadDialog.objectName():
             DownloadDialog.setObjectName(u"DownloadDialog")
         DownloadDialog.setEnabled(True)
-        DownloadDialog.resize(640, 480)
+        DownloadDialog.resize(900, 480)
         DownloadDialog.setMinimumSize(QSize(640, 480))
         self.verticalLayout = QVBoxLayout(DownloadDialog)
         self.verticalLayout.setObjectName(u"verticalLayout")
@@ -123,8 +124,8 @@ class Ui_DownloadDialog(object):
         self.verticalLayout.addLayout(self.horizontalLayout_5)
 
         self.tableWidget = QTableWidget(DownloadDialog)
-        if (self.tableWidget.columnCount() < 6):
-            self.tableWidget.setColumnCount(6)
+        if (self.tableWidget.columnCount() < 7):
+            self.tableWidget.setColumnCount(7)
         __qtablewidgetitem = QTableWidgetItem()
         self.tableWidget.setHorizontalHeaderItem(0, __qtablewidgetitem)
         __qtablewidgetitem1 = QTableWidgetItem()
@@ -137,6 +138,8 @@ class Ui_DownloadDialog(object):
         self.tableWidget.setHorizontalHeaderItem(4, __qtablewidgetitem4)
         __qtablewidgetitem5 = QTableWidgetItem()
         self.tableWidget.setHorizontalHeaderItem(5, __qtablewidgetitem5)
+        __qtablewidgetitem6 = QTableWidgetItem()
+        self.tableWidget.setHorizontalHeaderItem(6, __qtablewidgetitem6)
         self.tableWidget.setObjectName(u"tableWidget")
         font = QFont()
         font.setPointSize(8)
@@ -202,6 +205,8 @@ class Ui_DownloadDialog(object):
         ___qtablewidgetitem4.setText(fakestr(u"Updated", None));
         ___qtablewidgetitem5 = self.tableWidget.horizontalHeaderItem(5)
         ___qtablewidgetitem5.setText(fakestr(u"Status", None));
+        ___qtablewidgetitem6 = self.tableWidget.horizontalHeaderItem(6)
+        ___qtablewidgetitem6.setText(fakestr(u"Path", None));
         self.pushButtonDownload.setText(fakestr(u"Download", None))
         self.pushButtonCancel.setText(fakestr(u"Close", None))
     # retranslateUi

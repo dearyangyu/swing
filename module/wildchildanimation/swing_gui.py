@@ -62,6 +62,8 @@ from wildchildanimation.gui.project_nav import ProjectNavWidget
 
 from wildchildanimation.studio_interface import StudioInterface
 
+from wildchildanimation.gui.zurbrigg_playblast import *
+
 
 '''
     SwingGUI Main class
@@ -464,6 +466,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
             loader = bg.EntityFileLoader(self, self.currentShot, working_dir = load_settings("projects_root", os.path.expanduser("~")))
             loader.callback.loaded.connect(self.files_loaded)
+            #loader.exec()
             self.threadpool.start(loader)
 
     def files_loaded(self, data):
@@ -492,20 +495,18 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         loader = bg.EntityFileLoader(self, self.currentAsset, working_dir = load_settings("projects_root", os.path.expanduser("~")))
         loader.callback.loaded.connect(self.files_loaded)
         self.threadpool.start(loader)       
+        ## loader.run()
+
 
     def load_files(self, output_files = None, working_files = None):
         self.files = []
 
         if output_files:
             for item in output_files:
-                item["task_type"] = self.get_item_task_type(item)
-                item["status"] = ""
                 self.files.append(item)
 
         if working_files:
             for item in working_files:
-                item["task_type"] = self.get_item_task_type(item)                
-                item["status"] = ""
                 self.files.append(item)
 
         self.tableModelFiles = FileTableModel(self, self.files)
@@ -514,6 +515,11 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         sorterModel = QtCore.QSortFilterProxyModel()
         sorterModel.setSourceModel(self.tableModelFiles)
         sorterModel.setFilterKeyColumn(0)
+
+        # filter proxy model
+        filter_proxy_model = QtCore.QSortFilterProxyModel()
+        filter_proxy_model.setSourceModel(self.tableModelFiles)
+        filter_proxy_model.setFilterKeyColumn(2) # third column        
 
         self.tableViewFiles.setModel(sorterModel)                
         self.tableViewFiles.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
@@ -571,13 +577,6 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
                 pass
 
         return True
-
-    def get_item_task_type(self, entity):
-        if "task_type_id" in entity:
-            for task_type in self.projectNav.get_task_types():
-                if task_type["id"] == entity["task_type_id"]:
-                    return task_type
-        return None
 
     def load_tasks(self, tasks = None):
         self.tasks = tasks
@@ -656,6 +655,8 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
     def playlist_dialog(self):
         if self.projectNav.get_project() and self.projectNav.get_episode():
             dialog = PlaylistDialog(self)
+            dialog.set_project(self.projectNav.get_project())
+
             dialog.set_selection(self.projectNav.get_project(), self.projectNav.get_episode())
             dialog.exec_()
         else:
@@ -664,11 +665,15 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
     def search_files_dialog(self):
         dialog = SearchFilesDialog(self, self.handler, self.get_current_selection(), self.task_types)
+        dialog.set_project(self.projectNav.get_project())
+
         dialog.exec_()
 
 
     def playblast_dialog(self):
-        self.handler.on_playblast()
+        zurbrigg_playblast_dialog = ZurbriggPlayblastUi()
+        zurbrigg_playblast_dialog.show()
+        # self.handler.on_playblast()
 
     def dcc_tools_dialog(self):
         dialog = DCCToolsDialog(self, self.handler, self.get_current_selection())

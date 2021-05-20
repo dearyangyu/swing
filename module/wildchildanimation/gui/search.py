@@ -47,6 +47,7 @@ class SearchFilesDialog(QtWidgets.QDialog, Ui_SearchFilesDialog):
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
         self.setMinimumWidth(640)
 
+        self.project = None
         self.handler = handler
         self.entity = entity
         self.task_types = task_types
@@ -55,6 +56,9 @@ class SearchFilesDialog(QtWidgets.QDialog, Ui_SearchFilesDialog):
 
         self.pushButtonSearch.clicked.connect(self.process)
         self.pushButtonCancel.clicked.connect(self.close_dialog)
+
+    def set_project(self, project):
+        self.project = project
 
     def process(self):
         #self.threadpool = QtCore.QThreadPool()
@@ -71,7 +75,7 @@ class SearchFilesDialog(QtWidgets.QDialog, Ui_SearchFilesDialog):
         for i in items:
             file_list.append(i)
 
-        worker = bg.SearchFn(self, edit_api, email, password, file_list)
+        worker = bg.SearchFn(self, edit_api, email, password, file_list, self.project)
         worker.callback.results.connect(self.search_results)
 
         self.threadpool.start(worker)

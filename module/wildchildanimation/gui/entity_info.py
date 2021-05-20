@@ -205,6 +205,7 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
         if not self.file_list:
             loader.callback.loaded.connect(self.files_loaded)
             self.threadpool.start(loader)
+            #loader.run()
 
         if "preview_file_id" in self.entity and self.entity["preview_file_id"]:
             preview_file_id = self.entity["preview_file_id"]
@@ -253,13 +254,11 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
         self.files = []
         if output_files:
             for item in output_files:
-                item["task_type"] = self.get_item_task_type(item)
                 item["status"] = ""
                 self.files.append(item)
 
         if working_files:
             for item in working_files:
-                item["task_type"] = self.get_item_task_type(item)                
                 item["status"] = ""
                 self.files.append(item)        
 
@@ -370,11 +369,8 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
             cell.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
             self.tableWidget.setItem(row, 2, cell)
 
-            if "task_type" in item and item["task_type"]:
-                cell = QtWidgets.QTableWidgetItem(item["task_type"]["name"])
-                cell.setBackgroundColor(QtGui.QColor(item["task_type"]["color"]))
-            else:
-                cell = QtWidgets.QTableWidgetItem("")
+            cell = QtWidgets.QTableWidgetItem(item["task_type"]["name"])
+            cell.setBackgroundColor(QtGui.QColor(item["task_type"]["color"]))
 
             cell.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
             self.tableWidget.setItem(row, 3, cell)

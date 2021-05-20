@@ -27,7 +27,7 @@ from wildchildanimation.gui.swing_utils import human_size, my_date_format
 class FileTableModel(QtCore.QAbstractTableModel):    
 
     columns = [
-        "File Name", "Size", "v", "Task", "Comment", "Description", "Updated"
+        "File Name", "Size", "v", "Task", "Comment", "Description", "Updated", "Path"
     ]
     files = []
 
@@ -82,9 +82,7 @@ class FileTableModel(QtCore.QAbstractTableModel):
             elif col == 2:
                 return item["revision"]
             elif col == 3:
-                if "task_type" in item and item["task_type"]:
-                    return item["task_type"]["name"]
-                return ""
+                return item["task_type"]["name"]
             elif col == 4:
                 return item["comment"]                
             elif col == 5:
@@ -98,11 +96,7 @@ class FileTableModel(QtCore.QAbstractTableModel):
 
             if col == 3:
                 item = self.items[row]
-                if "status" in item:
-                    col = index.column()
-                    row = index.row()
-                    if "task_type" in item and item["task_type"]:
-                        return QtGui.QColor(item["task_type"]["color"])
+                return QtGui.QColor(item["task_type"]["color"])
 
         return None
 ###########################################################################
@@ -258,12 +252,20 @@ class CastingTableModel(QtCore.QAbstractTableModel):
         return None
 ###########################################################################
 
-def load_file_table_widget(tableWidget, model):
-    #headers = [ "File Name", "Size", "Revision", "Task", "Updated", "Status" ]
+def load_file_table_widget(tableWidget, model, working_dir = "{ROOT}/"):
+    headers = [ "File Name", "Size", "Revision", "Task", "Updated", "Status", "Path" ]
     #tableWidget.setColumnCount(len(headers))
 
     tableWidget.clear()
     tableWidget.setRowCount(len(model))
+
+    font = QtGui.QFont()
+    font.setPointSize(8)
+    tableWidget.setFont(font)
+    tableWidget.setProperty("showDropIndicator", False)
+    tableWidget.setAlternatingRowColors(True)
+    tableWidget.horizontalHeader().setStretchLastSection(True)    
+    tableWidget.setHorizontalHeaderLabels(headers)
 
     row = 0
     for file_item in model:
@@ -289,11 +291,8 @@ def load_file_table_widget(tableWidget, model):
         cell.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
         tableWidget.setItem(row, 2, cell)
 
-        if "task_type" in item and item["task_type"]:
-            cell = QtWidgets.QTableWidgetItem(item["task_type"]["name"])
-            cell.setBackgroundColor(QtGui.QColor(item["task_type"]["color"]))
-        else:
-            cell = QtWidgets.QTableWidgetItem("")
+        cell = QtWidgets.QTableWidgetItem(item["task_type"]["name"])
+        cell.setBackgroundColor(QtGui.QColor(item["task_type"]["color"]))
 
         cell.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
         tableWidget.setItem(row, 3, cell)
@@ -305,6 +304,11 @@ def load_file_table_widget(tableWidget, model):
         cell = QtWidgets.QTableWidgetItem(str(""))
         cell.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
         tableWidget.setItem(row, 5, cell)
+
+        file_path = item["path"].replace("/mnt/content/productions", working_dir)
+        cell = QtWidgets.QTableWidgetItem(file_path)
+        cell.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
+        tableWidget.setItem(row, 6, cell)
 
         row += 1
 

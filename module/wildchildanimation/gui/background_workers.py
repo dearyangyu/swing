@@ -112,11 +112,24 @@ class EntityFileLoader(QtCore.QRunnable):
             }                        
 
             try:
+                task_types = gazu.task.all_task_types()
+                
                 if self.entity["type"] == "Shot":
                     casting = gazu.casting.get_shot_casting(self.entity)
+                    tasks = gazu.task.all_tasks_for_shot(self.entity)
+                    
                 else:
                     casting = gazu.casting.get_asset_casting(self.entity)
-                    
+                    tasks = gazu.task.all_tasks_for_asset(self.entity)
+
+                task_lookup = dict()
+                for i in tasks:
+                    task_lookup[i["id"]] = i
+
+                task_type_lookup = dict()
+                for i in task_types:
+                    task_type_lookup[i["id"]] = i                    
+
                 #for item in casting:
                 #    file_list += reportdata.load_working_files(item["asset_id"])            
                 
@@ -124,15 +137,26 @@ class EntityFileLoader(QtCore.QRunnable):
                 working_files = gazu.files.get_all_working_files_for_entity(self.entity)
 
                 # load casted files
-                for item in casting:
+                scan_cast = False
 
-                    for file_item in gazu.files.all_output_files_for_entity(item["asset_id"]):
-                        if file_item not in output_files:
-                            output_files.append(file_item)
+                if scan_cast:
+                    for item in casting:
+                        for file_item in gazu.files.all_output_files_for_entity(item["asset_id"]):
+                            if file_item not in output_files:
+                                output_files.append(file_item)
+                        for file_item in gazu.files.get_all_working_files_for_entity(item["asset_id"]):
+                            if file_item not in working_files:
+                                working_files.append(file_item)
 
-                    for file_item in gazu.files.get_all_working_files_for_entity(item["asset_id"]):
-                        if file_item not in working_files:
-                            working_files.append(file_item)
+                # check task types
+                for file_item in output_files:
+                    file_item["task_type"] = task_type_lookup[file_item["task_type_id"]]
+                    file_item["status"] = ""
+
+                for file_item in working_files:
+                    task = task_lookup[file_item["task_id"]]
+                    file_item["task_type"] = task_type_lookup[task["task_type_id"]]
+                    file_item["status"] = ""
 
                 results = {
                     "output_files": output_files,
@@ -755,13 +779,15 @@ class SearchResultSignal(QtCore.QObject):
 
 class SearchFn(QtCore.QRunnable):
 
-    def __init__(self, parent, edit_api, email, password, list_of_names):
+    def __init__(self, parent, edit_api, email, password, list_of_names, project, show_hidden = False):
         super(SearchFn, self).__init__(self, parent)
         self.parent = parent
         self.url = edit_api
         self.email = email
         self.password = password        
         self.search_list = list_of_names
+        self.project = project
+        self.show_hidden = show_hidden
         self.callback = SearchResultSignal()
 
     def run(self):
@@ -773,7 +799,9 @@ class SearchFn(QtCore.QRunnable):
             params = { 
                 "username": self.email,
                 "password": self.password,
-                "filename": "%{}%".format(item.strip())
+                "filename": "%{}%".format(item.strip()),
+                "project": self.project["id"],
+                "show_hidden": self.show_hidden
             }             
 
             rq = requests.post(search_url, data = params)

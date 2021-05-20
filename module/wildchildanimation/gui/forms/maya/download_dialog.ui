@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>640</width>
+    <width>900</width>
     <height>480</height>
    </rect>
   </property>
@@ -247,6 +247,11 @@
      <column>
       <property name="text">
        <string>Status</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Path</string>
       </property>
      </column>
     </widget>

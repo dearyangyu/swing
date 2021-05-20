@@ -143,6 +143,9 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
         if not self.file_list:
             loader.callback.loaded.connect(self.files_loaded)
             self.threadpool.start(loader)
+            #loader.run()
+
+
 
     def get_item_task_type(self, entity):
         if "task_type_id" in entity:
@@ -160,14 +163,11 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
         self.files = []
         if output_files:
             for item in output_files:
-                item["task_type"] = self.get_item_task_type(item)
                 item["status"] = ""
                 self.files.append(item)
 
         if working_files:
             for item in working_files:
-                item["task_type"] = self.get_item_task_type(item)                
-                item["status"] = ""
                 self.files.append(item)        
 
         self.load_files(self.files)        
@@ -253,12 +253,13 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
     def load_files(self, files):
         self.files = files
 
-        self.tableWidget = load_file_table_widget(self.tableWidget, files)
+        self.tableWidget = load_file_table_widget(self.tableWidget, files, self.working_dir)
         self.tableWidget.doubleClicked.connect(self.on_click) 
 
     def on_click(self, index):
         row = index.row()
-        column = index.column()
+        column = 0
+        # index.column()
 
         row_item = self.tableWidget.item(row, column)
         selected = row_item.data(QtCore.Qt.UserRole)
