@@ -9,6 +9,7 @@ try:
 except ImportError:
     from PyQt5 import QtCore, QtGui
 
+import sys
 import gazu
 import keyring
 import os
@@ -17,6 +18,17 @@ import re
 import zipfile
 
 from datetime import datetime
+
+def get_platform():
+    platforms = {
+        'linux': 'Linux',
+        'mac': 'OS X',
+        'win': 'Windows'
+    }
+    if sys.platform not in platforms:
+        return sys.platform
+    
+    return platforms[sys.platform]
 
 def fakestr(*args):
     return args[0]

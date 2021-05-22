@@ -92,25 +92,28 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
             self.load_sequence()
 
     def project_changed(self, index):
-        self.signal.selection_changed.emit("project_changed", { 
-            "project": self._projects[index],
-            "is_loaded": self.is_loaded()
-        } )
+        if index >= 0:
+            self.signal.selection_changed.emit("project_changed", { 
+                "project": self._projects[index],
+                "is_loaded": self.is_loaded()
+            } )
 
         ## write_log("project_changed", self._projects[index]["id"])
 
     def episode_changed(self, index):
-        self.signal.selection_changed.emit("episode_changed", { 
-            "episode": self._episodes[index] 
-        } )
+        if index >= 0:
+            self.signal.selection_changed.emit("episode_changed", { 
+                "episode": self._episodes[index] 
+            } )
 
         ## write_log("episode_changed", self._episodes[index]["id"])
 
     def sequence_changed(self, index):
-        self.signal.selection_changed.emit("sequence_changed", { 
-            "sequence": self._sequences[index]["id"],
-            "name": self._sequences[index]["name"]
-        })
+        if index >= 0:
+            self.signal.selection_changed.emit("sequence_changed", { 
+                "sequence": self._sequences[index]["id"],
+                "name": self._sequences[index]["name"]
+            })
 
         ## write_log("sequence_changed", self._sequences[index]["id"])
 
@@ -193,11 +196,17 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
         for item in self._episodes:
             self.comboBoxEpisode.addItem(item["name"])
 
-        if len(self._episodes) >= 0:
+        if len(self._episodes) > 0:
+            self.comboBoxEpisode.setEnabled(True)
             self.episode_changed(self.comboBoxEpisode.currentIndex())
+        else:
+            self.comboBoxEpisode.setEnabled(False)
 
-        if len(self._sequences) >= 0:
+        if len(self._sequences) > 0:
+            self.comboBoxSequence.setEnabled(True)
             self.sequence_changed(self.comboBoxSequence.currentIndex())            
+        else:
+            self.comboBoxSequence.setEnabled(True)
 
         self._status["episodes"] = True
         self.lock_ui(False)

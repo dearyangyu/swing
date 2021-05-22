@@ -351,8 +351,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             event.ignore()        
 
     def selection_changed(self, source, selection): 
-        #write_log("[selection_changed]", source)
-
+        ## write_log("[selection_changed]", source)
         if "project" in source and selection["is_loaded"]:
             self.project_changed(self.projectNav.comboBoxProject.currentIndex())
         #self.comboBoxProject.setEnabled(True)
@@ -363,6 +362,10 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
     def project_changed(self, index):
         #write_log("[project_changed]")
+        # reset file list and task list on project change
+        self.tableViewFiles.setModel(None)
+        self.tableViewTasks.setModel(None)
+
 
         self.currentProject = self.projectNav.get_project()
         if not self.currentProject:
