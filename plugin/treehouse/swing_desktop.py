@@ -5,6 +5,7 @@
 import os
 import sys
 
+sys.path.append("./module")
 from wildchildanimation.swing_gui import SwingGUI
 
 #
