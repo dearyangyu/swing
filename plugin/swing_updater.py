@@ -1,17 +1,15 @@
 # -*- coding: utf-8 -*-
+_VERSION = "1.00"
+
 import argparse
 import platform
 
 import os
 
-
-
-from github import Github
-
 from pprint import pprint
 
 github_api_key = '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'
-swing_repo = 'wildchild-animation/wca-maya'
+swing_repo = 'wildchild-animation/swing'
 
 # local import wildchildanimation module by adding to the path
 WCA_ROOT = "C:/WCA"
@@ -44,7 +42,7 @@ def check_or_create_dir(dir):
         print("Found directory {}".format(dir))
 
 def git_clone(install_dir):
-    cmd = 'cd {} && git clone https://github.com/wildchild-animation/wca-maya'.format(install_dir)
+    cmd = 'cd {} && git clone https://github.com/wildchild-animation/swing'.format(install_dir)
     #'security add-generic-password -U -a %s -s %s -p %s' % (account, service, password)
     p = os.popen(cmd)
     s = p.read()
@@ -66,34 +64,34 @@ def create_venv(venv):
     s = p.read()
     p.close()    
 
-    print(s)
+    pprintv(s)
 
 def update_requirements(dir):
-    cmd = 'cd {} && "env/Scripts/activate" && pip install -r wca-maya/requirements.txt'.format(dir)
+    cmd = 'cd {} && "env/Scripts/activate" && pip install -r swing/requirements.txt'.format(dir)
 
     #'security add-generic-password -U -a %s -s %s -p %s' % (account, service, password)
     p = os.popen(cmd)
     s = p.read()
     p.close()   
 
-    print(s)
+    pprint(s)
 
 def get_swing_version(dir):
-    cmd = 'cd {} && "env/Scripts/activate" && python wca-maya/plugin/treehouse/swing_desktop.py'.format(dir)
+    cmd = 'cd {} && "env/Scripts/activate" && python swing/plugin/treehouse/swing_desktop.py'.format(dir)
 
     #'security add-generic-password -U -a %s -s %s -p %s' % (account, service, password)
     p = os.popen(cmd)
     s = p.read()
     p.close()   
 
-    print(s)
+    pprint(s)
 
 def setup_windows(install_dir):
 
     # make sure we have default directories
     check_or_create_dir(install_dir)
 
-    repo = "{}/wca-maya".format(install_dir)
+    repo = "{}/swing".format(install_dir)
 
     if not os.path.exists(repo):
         print("{}: No repo found, creating".format(repo))
@@ -112,7 +110,7 @@ def setup_windows(install_dir):
     get_swing_version(install_dir)
 
 def main(args):
-    print("swing treehouse updater")
+    print("treehouse: swing updater v{}".format(_VERSION))
 
     git_version = get_git_version()
     if not git_version:

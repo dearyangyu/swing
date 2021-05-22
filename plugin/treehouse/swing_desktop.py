@@ -2,14 +2,9 @@
 #
 # Swing Standalone command line runner
 #
+import os
+import sys
 
-#
-# local import wildchildanimation module by adding to the path
-WCA_ROOT = "C:/DEV/github/wca-maya/"
-
-import sys, os
-
-sys.path.append("{0}/{1}".format(WCA_ROOT, "/module"))
 from wildchildanimation.swing_gui import SwingGUI
 
 #
