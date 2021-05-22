@@ -178,6 +178,13 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         if self.connect_to_server():
             self.labelConnection.setText("Connected")
             self.projectNav.load_open_projects()
+            self.version_check()
+
+    def self.version_check():
+
+        
+        pass
+            
 
     def set_handler(self, studio_handler):
         self.handler = studio_handler
