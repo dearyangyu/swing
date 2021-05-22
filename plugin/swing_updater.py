@@ -64,7 +64,7 @@ def create_venv(venv):
     s = p.read()
     p.close()    
 
-    pprintv(s)
+    pprint(s)
 
 def update_requirements(dir):
     cmd = 'cd {} && "env/Scripts/activate" && pip install -r swing/requirements.txt'.format(dir)
@@ -77,7 +77,9 @@ def update_requirements(dir):
     pprint(s)
 
 def get_swing_version(dir):
-    cmd = 'cd {} && "env/Scripts/activate" && python swing/plugin/treehouse/swing_desktop.py'.format(dir)
+    #  c:; cd 'c:\DEV\Github\wca-maya'; & 'c:\DEV\Github\wca-maya\venv\Scripts\python.exe' 'c:\Users\pniemandt\.vscode\extensions\ms-python.python-2021.5.842923320\pythonFiles\lib\python\debugpy\launcher' '1778' '--' 'c:\DEV\Github\wca-maya\plugin\treehouse\swing_desktop.py' 
+    cmd = 'cd {}/swing && "{}/env/Scripts/activate" && python {}/swing/plugin/treehouse/swing_desktop.py'.format(dir, dir, dir)
+    pprint(cmd)
 
     #'security add-generic-password -U -a %s -s %s -p %s' % (account, service, password)
     p = os.popen(cmd)
