@@ -6,7 +6,7 @@
 #
 #############################
 _APP_NAME = "treehouse: swing"
-_APP_VERSION = "0.0.16"
+_APP_VERSION = "0.0.0.17"
  
 import traceback
 import sys
@@ -31,6 +31,8 @@ except ImportError:
 import keyring
 import gazu
 import os.path
+
+
 from datetime import datetime
 
 import wildchildanimation.gui.background_workers as bg
@@ -180,11 +182,36 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             self.projectNav.load_open_projects()
             self.version_check()
 
-    def self.version_check():
+    def version_check(self):
+        version_check = bg.VersionCheck(self)
+        version_check.callback.loaded.connect(self.version_check_loaded)
+        #version_check.run()
+        self.threadpool.start(version_check)
 
-        
-        pass
+    def version_check_loaded(self, version):
+        print(version)
+        if version:
+            if _APP_VERSION == version:
+                self.labelConnection.setText("Connected - v{}".format(version))
+                self.labelConnection.mouseDoubleClickEvent = None
+                #self.labelConnection.setHint("")
+                #reply = QtWidgets.QMessageBox.question(self, 'Version', 'Thanks, you version is current !'.format(version), QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
+            else:
+                self.labelConnection.setText("New version available v{}".format(version))
+                #self.labelConnection.setHint("Double click to update")
+                self.labelConnection.setStyleSheet("color: green; font-weight: 600; ")
+                self.labelConnection.mouseDoubleClickEvent = self.update_version
+                self.update_version()
+
+    def update_version(self, sender = None):
+        reply = QtWidgets.QMessageBox.question(self, 'New Version found', 'Do you want to update ?', QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)        
+        if reply == QtWidgets.QMessageBox.Yes:
+            updater = bg.SwingUpdater(self)
             
+            #updater.callback.loaded.connect(self.version_check_loaded)
+            updater.run()
+            #self.threadpool.start(updater)
+
 
     def set_handler(self, studio_handler):
         self.handler = studio_handler
@@ -372,7 +399,6 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         # reset file list and task list on project change
         self.tableViewFiles.setModel(None)
         self.tableViewTasks.setModel(None)
-
 
         self.currentProject = self.projectNav.get_project()
         if not self.currentProject:

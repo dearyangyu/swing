@@ -8,7 +8,6 @@ import os
 
 from pprint import pprint
 
-github_api_key = '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'
 swing_repo = 'wildchild-animation/swing'
 
 # local import wildchildanimation module by adding to the path
@@ -42,7 +41,7 @@ def check_or_create_dir(dir):
         print("Found directory {}".format(dir))
 
 def git_clone(install_dir):
-    cmd = 'cd {} && git clone https://github.com/wildchild-animation/swing'.format(install_dir)
+    cmd = 'cd {} && git clone https://github.com/swing_repo'.format(install_dir, swing_repo)
     #'security add-generic-password -U -a %s -s %s -p %s' % (account, service, password)
     p = os.popen(cmd)
     s = p.read()
@@ -111,8 +110,14 @@ def setup_windows(install_dir):
     update_requirements(install_dir)
     get_swing_version(install_dir)
 
-def main(args):
+def update(working_dir):
     print("treehouse: swing updater v{}".format(_VERSION))
+
+    if working_dir is None:
+        install_dir = WCA_ROOT
+    else:
+        install_dir = working_dir
+    print("path: {}".format(install_dir))
 
     git_version = get_git_version()
     if not git_version:
@@ -128,11 +133,6 @@ def main(args):
     else:
         print("Found {}".format(python_version))        
 
-    if args.dir is None:
-        install_dir = WCA_ROOT
-    else:
-        install_dir = dir
-
     if "Windows" in platform.platform():
         setup_windows(install_dir)
 
@@ -140,4 +140,5 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--dir", help = "Target dir", default = None, action='store')
 
-    main(parser.parse_args())
+    args = parser.parse_args()
+    update(args.dir)

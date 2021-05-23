@@ -18,6 +18,8 @@ from requests_toolbelt import (
 
 import hashlib
 
+from six.moves import urllib
+
 # ==== auto Qt load ====
 try:
     from PySide2 import QtCore
@@ -28,12 +30,43 @@ except ImportError:
     from PyQt5.QtCore import pyqtSignal
 
 from datetime import datetime
+
 from wildchildanimation.gui.swing_utils import write_log, connect_to_server, load_settings, load_keyring
 
+import wildchildanimation.plugin.swing_updater
 import wildchildanimation.gui.swing_utils
 
 class LoadedSignal(QtCore.QObject):
     loaded = pyqtSignal(object)        
+
+class VersionCheck(QtCore.QRunnable):
+
+    def __init__(self, parent):
+        super(VersionCheck, self).__init__(self, parent)
+        self.callback = LoadedSignal()
+
+    def run(self):
+        try:
+            QtCore.QThread.sleep(5) 
+            req = urllib.request.urlopen('https://raw.githubusercontent.com/wildchild-animation/swing/main/module/swing.version')
+            version = req.read().decode("utf-8")
+            self.callback.loaded.emit(version)
+        except:
+            traceback.print_exc(file=sys.stdout)
+        # done
+
+class SwingUpdater(QtCore.QRunnable):
+
+    def __init__(self, parent):
+        super(SwingUpdater, self).__init__(self, parent)
+        self.callback = LoadedSignal()
+
+    def run(self):
+        try:
+            swing_updater.main()
+        except:
+            traceback.print_exc(file=sys.stdout)
+        # done        
 
 class ProjectLoaderThread(QtCore.QRunnable):
 
