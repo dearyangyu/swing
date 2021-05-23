@@ -165,7 +165,7 @@ def human_size(bytes):
     return "{:.2f}".format(bytes)   
 
 def connect_to_server(email, password): 
-    server = load_settings('server', 'https://production.wildchildanimation.com')
+    server = load_settings('server', 'https://example.wildchildanimation.com')
     gazu.set_host("{}/api".format(server))
     try:
         gazu.log_in(email, password)

@@ -161,7 +161,7 @@ class Ui_ConnectionDialog(object):
         ConnectionDialog.setWindowTitle(fakestr(u"Dialog", None))
         self.labelServer.setText(fakestr(u"Server", None))
 #if QT_CONFIG(tooltip)
-        self.lineEditServer.setToolTip(fakestr(u"Server URL - https://production.wildchildanimation.com", None))
+        self.lineEditServer.setToolTip(fakestr(u"Server URL - https://example.wildchildanimation.com", None))
 #endif // QT_CONFIG(tooltip)
         self.labelEmail.setText(fakestr(u"Email", None))
 #if QT_CONFIG(tooltip)

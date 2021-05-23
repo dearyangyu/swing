@@ -21,7 +21,8 @@ except:
     _log_to_maya = False
 
 from wildchildanimation.gui.swing_utils import load_settings, save_settings
-class ZurbriggPlayblast(QtCore.QObject):
+
+class SwingPlayblast(QtCore.QObject):
 
     VERSION = "0.0.2"
 
@@ -125,20 +126,20 @@ class ZurbriggPlayblast(QtCore.QObject):
 
 
     def __init__(self, ffmpeg_path=None, log_to_maya=_log_to_maya):
-        super(ZurbriggPlayblast, self).__init__()
+        super(SwingPlayblast, self).__init__()
 
         self.set_ffmpeg_path(ffmpeg_path)
         self.set_maya_logging_enabled(log_to_maya)
 
-        self.set_camera(ZurbriggPlayblast.DEFAULT_CAMERA)
-        self.set_resolution(ZurbriggPlayblast.DEFAULT_RESOLUTION)
-        self.set_frame_range(ZurbriggPlayblast.DEFAULT_FRAME_RANGE)
+        self.set_camera(SwingPlayblast.DEFAULT_CAMERA)
+        self.set_resolution(SwingPlayblast.DEFAULT_RESOLUTION)
+        self.set_frame_range(SwingPlayblast.DEFAULT_FRAME_RANGE)
 
-        self.set_encoding(ZurbriggPlayblast.DEFAULT_CONTAINER, ZurbriggPlayblast.DEFAULT_ENCODER)
-        self.set_h264_settings(ZurbriggPlayblast.DEFAULT_H264_QUALITY, ZurbriggPlayblast.DEFAULT_H264_PRESET)
-        self.set_image_settings(ZurbriggPlayblast.DEFAULT_IMAGE_QUALITY)
+        self.set_encoding(SwingPlayblast.DEFAULT_CONTAINER, SwingPlayblast.DEFAULT_ENCODER)
+        self.set_h264_settings(SwingPlayblast.DEFAULT_H264_QUALITY, SwingPlayblast.DEFAULT_H264_PRESET)
+        self.set_image_settings(SwingPlayblast.DEFAULT_IMAGE_QUALITY)
 
-        self.set_visibility(ZurbriggPlayblast.DEFAULT_VISIBILITY)
+        self.set_visibility(SwingPlayblast.DEFAULT_VISIBILITY)
 
         self.initialize_ffmpeg_process()
 
@@ -180,7 +181,7 @@ class ZurbriggPlayblast(QtCore.QObject):
                 return
         else:
             presets = []
-            for preset in ZurbriggPlayblast.RESOLUTION_LOOKUP.keys():
+            for preset in SwingPlayblast.RESOLUTION_LOOKUP.keys():
                 presets.append("'{0}'".format(preset))
 
             self.log_error("Invalid resoluton: {0}. Expected one of [int, int], {1}".format(widthHeight, ", ".join(presets)))
@@ -199,8 +200,8 @@ class ZurbriggPlayblast(QtCore.QObject):
             width = cmds.getAttr("defaultResolution.width")
             height = cmds.getAttr("defaultResolution.height")
             return (width, height)
-        elif resolution_preset in ZurbriggPlayblast.RESOLUTION_LOOKUP.keys():
-            return ZurbriggPlayblast.RESOLUTION_LOOKUP[resolution_preset]
+        elif resolution_preset in SwingPlayblast.RESOLUTION_LOOKUP.keys():
+            return SwingPlayblast.RESOLUTION_LOOKUP[resolution_preset]
         else:
             raise RuntimeError("Invalid resolution preset: {0}".format(resolution_preset))
 
@@ -210,7 +211,7 @@ class ZurbriggPlayblast(QtCore.QObject):
             return
 
         self._frame_range_preset = None
-        if frame_range in ZurbriggPlayblast.FRAME_RANGE_PRESETS:
+        if frame_range in SwingPlayblast.FRAME_RANGE_PRESETS:
             self._frame_range_preset = frame_range
 
         self._start_frame = resolved_frame_range[0]
@@ -234,7 +235,7 @@ class ZurbriggPlayblast(QtCore.QObject):
 
         except:
             presets = []
-            for preset in ZurbriggPlayblast.FRAME_RANGE_PRESETS:
+            for preset in SwingPlayblast.FRAME_RANGE_PRESETS:
                 presets.append("'{0}'".format(preset))
             self.log_error('Invalid frame range. Expected one of (start_frame, end_frame), {0}'.format(", ".join(presets)))
 
@@ -274,15 +275,15 @@ class ZurbriggPlayblast(QtCore.QObject):
         return self._visibility
 
     def preset_to_visibility(self, visibility_preset):
-        if not visibility_preset in ZurbriggPlayblast.VIEWPORT_VISIBILITY_PRESETS.keys():
+        if not visibility_preset in SwingPlayblast.VIEWPORT_VISIBILITY_PRESETS.keys():
             self.log_error("Invaild visibility preset: {0}".format(visibility_preset))
             return None
 
         visibility_data = []
 
-        preset_names = ZurbriggPlayblast.VIEWPORT_VISIBILITY_PRESETS[visibility_preset]
+        preset_names = SwingPlayblast.VIEWPORT_VISIBILITY_PRESETS[visibility_preset]
         if preset_names:
-            for lookup_item in ZurbriggPlayblast.VIEWPORT_VISIBILITY_LOOKUP:
+            for lookup_item in SwingPlayblast.VIEWPORT_VISIBILITY_LOOKUP:
                 visibility_data.append(lookup_item[0] in preset_names)
 
         return visibility_data
@@ -295,7 +296,7 @@ class ZurbriggPlayblast(QtCore.QObject):
 
         viewport_visibility = []
         try:
-            for item in ZurbriggPlayblast.VIEWPORT_VISIBILITY_LOOKUP:
+            for item in SwingPlayblast.VIEWPORT_VISIBILITY_LOOKUP:
                 kwargs = {item[1]: True}
                 viewport_visibility.append(cmds.modelEditor(model_panel, q=True, **kwargs))
         except:
@@ -312,31 +313,31 @@ class ZurbriggPlayblast(QtCore.QObject):
         visibility_flags = {}
 
         data_index = 0
-        for item in ZurbriggPlayblast.VIEWPORT_VISIBILITY_LOOKUP:
+        for item in SwingPlayblast.VIEWPORT_VISIBILITY_LOOKUP:
             visibility_flags[item[1]] = visibility_data[data_index]
             data_index += 1
 
         return visibility_flags
 
     def set_encoding(self, container_format, encoder):
-        if container_format not in ZurbriggPlayblast.VIDEO_ENCODER_LOOKUP.keys():
-            self.log_error("Invalid container: {0}. Expected one of {1}".format(container_format, ZurbriggPlayblast.VIDEO_ENCODER_LOOKUP.keys()))
+        if container_format not in SwingPlayblast.VIDEO_ENCODER_LOOKUP.keys():
+            self.log_error("Invalid container: {0}. Expected one of {1}".format(container_format, SwingPlayblast.VIDEO_ENCODER_LOOKUP.keys()))
             return
 
-        if encoder not in ZurbriggPlayblast.VIDEO_ENCODER_LOOKUP[container_format]:
-            self.log_error("Invalid encoder: {0}. Expected one of {1}".format(encoder, ZurbriggPlayblast.VIDEO_ENCODER_LOOKUP[container_format]))
+        if encoder not in SwingPlayblast.VIDEO_ENCODER_LOOKUP[container_format]:
+            self.log_error("Invalid encoder: {0}. Expected one of {1}".format(encoder, SwingPlayblast.VIDEO_ENCODER_LOOKUP[container_format]))
             return
 
         self._container_format = container_format
         self._encoder = encoder
 
     def set_h264_settings(self, quality, preset):
-        if not quality in ZurbriggPlayblast.H264_QUALITIES.keys():
-            self.log_error("Invalid h264 quality: {0}. Expected one of {1}".format(quality, ZurbriggPlayblast.H264_QUALITIES.keys()))
+        if not quality in SwingPlayblast.H264_QUALITIES.keys():
+            self.log_error("Invalid h264 quality: {0}. Expected one of {1}".format(quality, SwingPlayblast.H264_QUALITIES.keys()))
             return
 
-        if not preset in ZurbriggPlayblast.H264_PRESETS:
-            self.log_error("Invalid h264 preset: {0}. Expected one of {1}".format(preset, ZurbriggPlayblast.H264_PRESETS))
+        if not preset in SwingPlayblast.H264_PRESETS:
+            self.log_error("Invalid h264 preset: {0}. Expected one of {1}".format(preset, SwingPlayblast.H264_PRESETS))
             return
 
         self._h264_quality = quality
@@ -381,7 +382,7 @@ class ZurbriggPlayblast(QtCore.QObject):
         filename = self.resolve_output_filename(filename)
 
         if padding <= 0:
-            padding = ZurbriggPlayblast.DEFAULT_PADDING
+            padding = SwingPlayblast.DEFAULT_PADDING
 
         if self.requires_ffmpeg():
             output_path = os.path.normpath(os.path.join(output_dir, "{0}.{1}".format(filename, self._container_format)))
@@ -554,7 +555,7 @@ class ZurbriggPlayblast(QtCore.QObject):
         if audio_file_path:
             audio_offset = self.get_audio_offset_in_sec(start_frame, audio_frame_offset, framerate)
 
-        crf = ZurbriggPlayblast.H264_QUALITIES[self._h264_quality]
+        crf = SwingPlayblast.H264_QUALITIES[self._h264_quality]
         preset = self._h264_preset
 
         ffmpeg_cmd = self._ffmpeg_path
@@ -666,13 +667,13 @@ class ZurbriggPlayblast(QtCore.QObject):
 
     def log_error(self, text):
         if self._log_to_maya:
-            om.MGlobal.displayError("[ZurbriggPlayblast] {0}".format(text))
+            om.MGlobal.displayError("[SwingPlayblast] {0}".format(text))
 
         self.output_logged.emit("[ERROR] {0}".format(text)) # pylint: disable=E1101
 
     def log_warning(self, text):
         if self._log_to_maya:
-            om.MGlobal.displayWarning("[ZurbriggPlayblast] {0}".format(text))
+            om.MGlobal.displayWarning("[SwingPlayblast] {0}".format(text))
 
         self.output_logged.emit("[WARNING] {0}".format(text)) # pylint: disable=E1101
 
@@ -681,7 +682,7 @@ class ZurbriggPlayblast(QtCore.QObject):
             om.MGlobal.displayInfo(text)
 
         self.output_logged.emit(text) # pylint: disable=E1101
-class ZurbriggPlayblastEncoderSettingsDialog(QtWidgets.QDialog):
+class SwingPlayblastEncoderSettingsDialog(QtWidgets.QDialog):
 
     ENCODER_PAGES = {
         "h264": 0,
@@ -697,7 +698,7 @@ class ZurbriggPlayblastEncoderSettingsDialog(QtWidgets.QDialog):
 
 
     def __init__(self, parent):
-        super(ZurbriggPlayblastEncoderSettingsDialog, self).__init__(parent)
+        super(SwingPlayblastEncoderSettingsDialog, self).__init__(parent)
 
         self.setWindowTitle("Encoder Settings")
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
@@ -711,10 +712,10 @@ class ZurbriggPlayblastEncoderSettingsDialog(QtWidgets.QDialog):
     def create_widgets(self):
         # h264
         self.h264_quality_combo = QtWidgets.QComboBox()
-        self.h264_quality_combo.addItems(ZurbriggPlayblastEncoderSettingsDialog.H264_QUALITIES)
+        self.h264_quality_combo.addItems(SwingPlayblastEncoderSettingsDialog.H264_QUALITIES)
 
         self.h264_preset_combo = QtWidgets.QComboBox()
-        self.h264_preset_combo.addItems(ZurbriggPlayblast.H264_PRESETS)
+        self.h264_preset_combo.addItems(SwingPlayblast.H264_PRESETS)
 
         h264_layout = QtWidgets.QFormLayout()
         h264_layout.addRow("Quality:", self.h264_quality_combo)
@@ -761,10 +762,10 @@ class ZurbriggPlayblastEncoderSettingsDialog(QtWidgets.QDialog):
 
 
     def set_page(self, page):
-        if not page in ZurbriggPlayblastEncoderSettingsDialog.ENCODER_PAGES:
+        if not page in SwingPlayblastEncoderSettingsDialog.ENCODER_PAGES:
             return False
 
-        self.settings_stacked_wdg.setCurrentIndex(ZurbriggPlayblastEncoderSettingsDialog.ENCODER_PAGES[page])
+        self.settings_stacked_wdg.setCurrentIndex(SwingPlayblastEncoderSettingsDialog.ENCODER_PAGES[page])
         return True
 
     def set_h264_settings(self, quality, preset):
@@ -786,10 +787,10 @@ class ZurbriggPlayblastEncoderSettingsDialog(QtWidgets.QDialog):
         }
 
 
-class ZurbriggPlayblastVisibilityDialog(QtWidgets.QDialog):
+class SwingPlayblastVisibilityDialog(QtWidgets.QDialog):
 
     def __init__(self, parent):
-        super(ZurbriggPlayblastVisibilityDialog, self).__init__(parent)
+        super(SwingPlayblastVisibilityDialog, self).__init__(parent)
 
         self.setWindowTitle("Customize Visibility")
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
@@ -800,8 +801,8 @@ class ZurbriggPlayblastVisibilityDialog(QtWidgets.QDialog):
         index = 0
         self.visibility_checkboxes = []
 
-        for i in range(len(ZurbriggPlayblast.VIEWPORT_VISIBILITY_LOOKUP)):
-            checkbox = QtWidgets.QCheckBox(ZurbriggPlayblast.VIEWPORT_VISIBILITY_LOOKUP[i][0])
+        for i in range(len(SwingPlayblast.VIEWPORT_VISIBILITY_LOOKUP)):
+            checkbox = QtWidgets.QCheckBox(SwingPlayblast.VIEWPORT_VISIBILITY_LOOKUP[i][0])
 
             visibility_layout.addWidget(checkbox, index / 3, index % 3)
             self.visibility_checkboxes.append(checkbox)
@@ -844,7 +845,7 @@ class ZurbriggPlayblastVisibilityDialog(QtWidgets.QDialog):
             self.visibility_checkboxes[i].setChecked(data[i])
 
 
-class ZurbriggPlayblastUi(QtWidgets.QDialog):
+class SwingPlayblastUi(QtWidgets.QDialog):
 
     TITLE = "Zurbrigg Playblast"
 
@@ -873,7 +874,7 @@ class ZurbriggPlayblastUi(QtWidgets.QDialog):
     @classmethod
     def show_dialog(cls):
         if not cls.dlg_instance:
-            cls.dlg_instance = ZurbriggPlayblastUi()
+            cls.dlg_instance = SwingPlayblastUi()
 
         if cls.dlg_instance.isHidden():
             cls.dlg_instance.show()
@@ -889,15 +890,15 @@ class ZurbriggPlayblastUi(QtWidgets.QDialog):
             else:
                 maya_main_window = wrapInstance(int(omui.MQtUtil.mainWindow()), QtWidgets.QWidget)
 
-            super(ZurbriggPlayblastUi, self).__init__(maya_main_window)
+            super(SwingPlayblastUi, self).__init__(maya_main_window)
         except:
-            super(ZurbriggPlayblastUi, self).__init__()
+            super(SwingPlayblastUi, self).__init__()
 
-        self.setWindowTitle(ZurbriggPlayblastUi.TITLE)
+        self.setWindowTitle(SwingPlayblastUi.TITLE)
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
         self.setMinimumWidth(500)
 
-        self._playblast = ZurbriggPlayblast()
+        self._playblast = SwingPlayblast()
 
         self._encoder_settings_dialog = None
         self._visibility_dialog = None
@@ -911,7 +912,7 @@ class ZurbriggPlayblastUi(QtWidgets.QDialog):
         self.create_connections()
 
         self.load_defaults()
-        self.append_output("Zurbrigg Playblast v{0}".format(ZurbriggPlayblast.VERSION))
+        self.append_output("Zurbrigg Playblast v{0}".format(SwingPlayblast.VERSION))
 
 
     def create_actions(self):
@@ -950,12 +951,22 @@ class ZurbriggPlayblastUi(QtWidgets.QDialog):
         self.output_filename_le = QtWidgets.QLineEdit()
         self.output_filename_le.setPlaceholderText("{scene}")
         self.output_filename_le.setMaximumWidth(200)
+
+        self.output_filename_select_btn = QtWidgets.QPushButton("...")
+        self.output_filename_select_btn.setFixedSize(24, 19)
+        self.output_filename_select_btn.setToolTip("Select File")
+
+        self.output_filename_path_show_folder_btn = QtWidgets.QPushButton(QtGui.QIcon(":fileOpen.png"), "")
+        self.output_filename_path_show_folder_btn.setFixedSize(24, 19)
+        self.output_filename_path_show_folder_btn.setToolTip("Show in Folder")
+
+
         self.force_overwrite_cb = QtWidgets.QCheckBox("Force overwrite")
 
         self.resolution_select_cmb = QtWidgets.QComboBox()
-        self.resolution_select_cmb.addItems(ZurbriggPlayblastUi.RESOLUTION_PRESETS)
+        self.resolution_select_cmb.addItems(SwingPlayblastUi.RESOLUTION_PRESETS)
         self.resolution_select_cmb.addItem("Custom")
-        self.resolution_select_cmb.setCurrentText(ZurbriggPlayblast.DEFAULT_RESOLUTION)
+        self.resolution_select_cmb.setCurrentText(SwingPlayblast.DEFAULT_RESOLUTION)
 
         self.resolution_width_sb = QtWidgets.QSpinBox()
         self.resolution_width_sb.setButtonSymbols(QtWidgets.QSpinBox.NoButtons)
@@ -973,9 +984,9 @@ class ZurbriggPlayblastUi(QtWidgets.QDialog):
         self.refresh_cameras()
 
         self.frame_range_cmb = QtWidgets.QComboBox()
-        self.frame_range_cmb.addItems(ZurbriggPlayblast.FRAME_RANGE_PRESETS)
+        self.frame_range_cmb.addItems(SwingPlayblast.FRAME_RANGE_PRESETS)
         self.frame_range_cmb.addItem("Custom")
-        self.frame_range_cmb.setCurrentText(ZurbriggPlayblast.DEFAULT_FRAME_RANGE)
+        self.frame_range_cmb.setCurrentText(SwingPlayblast.DEFAULT_FRAME_RANGE)
 
         self.frame_range_start_sb = QtWidgets.QSpinBox()
         self.frame_range_start_sb.setButtonSymbols(QtWidgets.QSpinBox.NoButtons)
@@ -990,17 +1001,17 @@ class ZurbriggPlayblastUi(QtWidgets.QDialog):
         self.frame_range_end_sb.setAlignment(QtCore.Qt.AlignRight)
 
         self.encoding_container_cmb = QtWidgets.QComboBox()
-        self.encoding_container_cmb.addItems(ZurbriggPlayblastUi.CONTAINER_PRESETS)
-        self.encoding_container_cmb.setCurrentText(ZurbriggPlayblast.DEFAULT_CONTAINER)
+        self.encoding_container_cmb.addItems(SwingPlayblastUi.CONTAINER_PRESETS)
+        self.encoding_container_cmb.setCurrentText(SwingPlayblast.DEFAULT_CONTAINER)
 
         self.encoding_video_codec_cmb = QtWidgets.QComboBox()
         self.encoding_video_codec_settings_btn = QtWidgets.QPushButton("Settings...")
         self.encoding_video_codec_settings_btn.setFixedHeight(19)
 
         self.visibility_cmb = QtWidgets.QComboBox()
-        self.visibility_cmb.addItems(ZurbriggPlayblastUi.VISIBILITY_PRESETS)
+        self.visibility_cmb.addItems(SwingPlayblastUi.VISIBILITY_PRESETS)
         self.visibility_cmb.addItem("Custom")
-        self.visibility_cmb.setCurrentText(ZurbriggPlayblast.DEFAULT_VISIBILITY)
+        self.visibility_cmb.setCurrentText(SwingPlayblast.DEFAULT_VISIBILITY)
 
         self.visibility_customize_btn = QtWidgets.QPushButton("Customize...")
         self.visibility_customize_btn.setFixedHeight(19)
@@ -1033,6 +1044,7 @@ class ZurbriggPlayblastUi(QtWidgets.QDialog):
         output_file_layout = QtWidgets.QHBoxLayout()
         output_file_layout.setSpacing(4)
         output_file_layout.addWidget(self.output_filename_le)
+        output_file_layout.addWidget(self.output_filename_select_btn)
         output_file_layout.addWidget(self.force_overwrite_cb)
 
         output_layout = QtWidgets.QFormLayout()
@@ -1094,7 +1106,7 @@ class ZurbriggPlayblastUi(QtWidgets.QDialog):
 
         status_bar_layout = QtWidgets.QHBoxLayout()
         status_bar_layout.addStretch()
-        status_bar_layout.addWidget(QtWidgets.QLabel("v{0}".format(ZurbriggPlayblast.VERSION)))
+        status_bar_layout.addWidget(QtWidgets.QLabel("v{0}".format(SwingPlayblast.VERSION)))
 
         main_layout = QtWidgets.QVBoxLayout(self)
         main_layout.setContentsMargins(4, 4, 4, 4)
@@ -1109,6 +1121,8 @@ class ZurbriggPlayblastUi(QtWidgets.QDialog):
     def create_connections(self):
         self.output_dir_path_select_btn.clicked.connect(self.select_output_directory)
         self.output_dir_path_show_folder_btn.clicked.connect(self.open_output_directory)
+
+        self.output_filename_select_btn.clicked.connect(self.select_output_filename)
 
         self.camera_select_cmb.currentTextChanged.connect(self.on_camera_changed)
         self.camera_select_hide_defaults_cb.toggled.connect(self.refresh_cameras)
@@ -1148,7 +1162,7 @@ class ZurbriggPlayblastUi(QtWidgets.QDialog):
         if not filename:
             filename = self.output_filename_le.placeholderText()
 
-        padding = ZurbriggPlayblast.DEFAULT_PADDING
+        padding = SwingPlayblast.DEFAULT_PADDING
 
         overscan = self.overscan_cb.isChecked()
         show_ornaments = self.ornaments_cb.isChecked()
@@ -1171,6 +1185,28 @@ class ZurbriggPlayblastUi(QtWidgets.QDialog):
         new_dir_path = QtWidgets.QFileDialog.getExistingDirectory(self, "Select Directory", current_dir_path)
         if new_dir_path:
             self.output_dir_path_le.setText(new_dir_path)
+
+    def select_output_filename(self):
+        current_dir_path = self.output_dir_path_le.text()
+        if not current_dir_path:
+            current_dir_path = self.output_dir_path_le.placeholderText()
+
+        current_filename = self.output_filename_le.text()
+        if not current_filename:
+            current_filename = self.output_filename_le.placeholderText()
+
+        current_dir_path = self._playblast.resolve_output_directory_path(current_dir_path)
+        current_filename = self._playblast.resolve_output_filename(current_filename)
+
+        selected_file = os.path.join(current_dir_path, current_filename)
+
+        file_info = QtCore.QFileInfo(selected_file)
+        if not file_info.exists():
+            current_dir_path = self._playblast.get_project_dir_path()
+
+        new_filename = QtWidgets.QFileDialog.getSaveFileName(ExistingDirectory(self, "Select Directory", selected_file))
+        if new_filename:
+            self.output_file_name_le.setText(new_filename)            
 
     def open_output_directory(self):
         output_dir_path = self.output_dir_path_le.text()
@@ -1232,8 +1268,8 @@ class ZurbriggPlayblastUi(QtWidgets.QDialog):
     def on_resolution_changed(self):
         resolution = (self.resolution_width_sb.value(), self.resolution_height_sb.value())
 
-        for key in ZurbriggPlayblast.RESOLUTION_LOOKUP.keys():
-            if ZurbriggPlayblast.RESOLUTION_LOOKUP[key] == resolution:
+        for key in SwingPlayblast.RESOLUTION_LOOKUP.keys():
+            if SwingPlayblast.RESOLUTION_LOOKUP[key] == resolution:
                 self.resolution_select_cmb.setCurrentText(key)
                 return
 
@@ -1261,7 +1297,7 @@ class ZurbriggPlayblastUi(QtWidgets.QDialog):
         self.encoding_video_codec_cmb.clear()
 
         container = self.encoding_container_cmb.currentText()
-        self.encoding_video_codec_cmb.addItems(ZurbriggPlayblast.VIDEO_ENCODER_LOOKUP[container])
+        self.encoding_video_codec_cmb.addItems(SwingPlayblast.VIDEO_ENCODER_LOOKUP[container])
 
     def on_video_encoder_changed(self):
         container = self.encoding_container_cmb.currentText()
@@ -1272,7 +1308,7 @@ class ZurbriggPlayblastUi(QtWidgets.QDialog):
 
     def show_encoder_settings_dialog(self):
         if not self._encoder_settings_dialog:
-            self._encoder_settings_dialog = ZurbriggPlayblastEncoderSettingsDialog(self)
+            self._encoder_settings_dialog = SwingPlayblastEncoderSettingsDialog(self)
             self._encoder_settings_dialog.accepted.connect(self.on_encoder_settings_dialog_modified)
 
         if self.encoding_container_cmb.currentText() == "Image":
@@ -1319,7 +1355,7 @@ class ZurbriggPlayblastUi(QtWidgets.QDialog):
 
     def show_visibility_dialog(self):
         if not self._visibility_dialog:
-            self._visibility_dialog = ZurbriggPlayblastVisibilityDialog(self)
+            self._visibility_dialog = SwingPlayblastVisibilityDialog(self)
             self._visibility_dialog.accepted.connect(self.on_visibility_dialog_modified)
 
         self._visibility_dialog.set_visibility_data(self._playblast.get_visibility())
@@ -1350,102 +1386,104 @@ class ZurbriggPlayblastUi(QtWidgets.QDialog):
         save_settings("ffmpeg_bin", self._playblast.get_ffmpeg_path())   
 
     def load_app_settings(self):
-        self.read_settings();
+        self.read_settings()
         ffmpeg_path = load_settings("ffmpeg_bin", None)
         if ffmpeg_path:
             self._playblast.set_ffmpeg_path(ffmpeg_path)
+        else:
+            print("Error: ffmpeg not loaded")
 
     def save_defaults(self):
         if _stand_alone:
             return 
 
-        cmds.optionVar(sv=("ZurbriggPlayblastUiOutputDir", self.output_dir_path_le.text()))
-        cmds.optionVar(sv=("ZurbriggPlayblastUiOutputFilename", self.output_filename_le.text()))
-        cmds.optionVar(iv=("ZurbriggPlayblastUiForceOverwrite", self.force_overwrite_cb.isChecked()))
+        cmds.optionVar(sv=("SwingPlayblastUiOutputDir", self.output_dir_path_le.text()))
+        cmds.optionVar(sv=("SwingPlayblastUiOutputFilename", self.output_filename_le.text()))
+        cmds.optionVar(iv=("SwingPlayblastUiForceOverwrite", self.force_overwrite_cb.isChecked()))
 
-        cmds.optionVar(sv=("ZurbriggPlayblastUiCamera", self.camera_select_cmb.currentText()))
-        cmds.optionVar(iv=("ZurbriggPlayblastUiHideDefaultCameras", self.camera_select_hide_defaults_cb.isChecked()))
+        cmds.optionVar(sv=("SwingPlayblastUiCamera", self.camera_select_cmb.currentText()))
+        cmds.optionVar(iv=("SwingPlayblastUiHideDefaultCameras", self.camera_select_hide_defaults_cb.isChecked()))
 
-        cmds.optionVar(sv=("ZurbriggPlayblastUiResolutionPreset", self.resolution_select_cmb.currentText()))
-        cmds.optionVar(iv=("ZurbriggPlayblastUiResolutionWidth", self.resolution_width_sb.value()))
-        cmds.optionVar(iv=("ZurbriggPlayblastUiResolutionHeight", self.resolution_height_sb.value()))
+        cmds.optionVar(sv=("SwingPlayblastUiResolutionPreset", self.resolution_select_cmb.currentText()))
+        cmds.optionVar(iv=("SwingPlayblastUiResolutionWidth", self.resolution_width_sb.value()))
+        cmds.optionVar(iv=("SwingPlayblastUiResolutionHeight", self.resolution_height_sb.value()))
 
-        cmds.optionVar(sv=("ZurbriggPlayblastUiFrameRangePreset", self.frame_range_cmb.currentText()))
-        cmds.optionVar(iv=("ZurbriggPlayblastUiFrameRangeStart", self.frame_range_start_sb.value()))
-        cmds.optionVar(iv=("ZurbriggPlayblastUiFrameRangeEnd", self.frame_range_end_sb.value()))
+        cmds.optionVar(sv=("SwingPlayblastUiFrameRangePreset", self.frame_range_cmb.currentText()))
+        cmds.optionVar(iv=("SwingPlayblastUiFrameRangeStart", self.frame_range_start_sb.value()))
+        cmds.optionVar(iv=("SwingPlayblastUiFrameRangeEnd", self.frame_range_end_sb.value()))
 
-        cmds.optionVar(sv=("ZurbriggPlayblastUiEncodingContainer", self.encoding_container_cmb.currentText()))
-        cmds.optionVar(sv=("ZurbriggPlayblastUiEncodingVideoCodec", self.encoding_video_codec_cmb.currentText()))
+        cmds.optionVar(sv=("SwingPlayblastUiEncodingContainer", self.encoding_container_cmb.currentText()))
+        cmds.optionVar(sv=("SwingPlayblastUiEncodingVideoCodec", self.encoding_video_codec_cmb.currentText()))
 
         h264_settings = self._playblast.get_h264_settings()
-        cmds.optionVar(sv=("ZurbriggPlayblastUiH264Quality", h264_settings["quality"]))
-        cmds.optionVar(sv=("ZurbriggPlayblastUiH264Preset", h264_settings["preset"]))
+        cmds.optionVar(sv=("SwingPlayblastUiH264Quality", h264_settings["quality"]))
+        cmds.optionVar(sv=("SwingPlayblastUiH264Preset", h264_settings["preset"]))
 
         image_settings = self._playblast.get_image_settings()
-        cmds.optionVar(iv=("ZurbriggPlayblastUiImageQuality", image_settings["quality"]))
+        cmds.optionVar(iv=("SwingPlayblastUiImageQuality", image_settings["quality"]))
 
-        cmds.optionVar(sv=("ZurbriggPlayblastUiVisibilityPreset", self.visibility_cmb.currentText()))
+        cmds.optionVar(sv=("SwingPlayblastUiVisibilityPreset", self.visibility_cmb.currentText()))
 
         visibility_data = self._playblast.get_visibility()
         visibility_str = ""
         for item in visibility_data:
             visibility_str = "{0} {1}".format(visibility_str, int(item))
-        cmds.optionVar(sv=("ZurbriggPlayblastUiVisibilityData", visibility_str))
+        cmds.optionVar(sv=("SwingPlayblastUiVisibilityData", visibility_str))
 
-        cmds.optionVar(iv=("ZurbriggPlayblastUiOverscan", self.overscan_cb.isChecked()))
-        cmds.optionVar(iv=("ZurbriggPlayblastUiOrnaments", self.ornaments_cb.isChecked()))
-        cmds.optionVar(iv=("ZurbriggPlayblastUiViewer", self.viewer_cb.isChecked()))
+        cmds.optionVar(iv=("SwingPlayblastUiOverscan", self.overscan_cb.isChecked()))
+        cmds.optionVar(iv=("SwingPlayblastUiOrnaments", self.ornaments_cb.isChecked()))
+        cmds.optionVar(iv=("SwingPlayblastUiViewer", self.viewer_cb.isChecked()))
 
     def load_defaults(self):
         if _stand_alone:
             return 
 
-        if cmds.optionVar(exists="ZurbriggPlayblastUiOutputDir"):
-            self.output_dir_path_le.setText(cmds.optionVar(q="ZurbriggPlayblastUiOutputDir"))
-        if cmds.optionVar(exists="ZurbriggPlayblastUiOutputFilename"):
-            self.output_filename_le.setText(cmds.optionVar(q="ZurbriggPlayblastUiOutputFilename"))
-        if cmds.optionVar(exists="ZurbriggPlayblastUiForceOverwrite"):
-            self.force_overwrite_cb.setChecked(cmds.optionVar(q="ZurbriggPlayblastUiForceOverwrite"))
+        if cmds.optionVar(exists="SwingPlayblastUiOutputDir"):
+            self.output_dir_path_le.setText(cmds.optionVar(q="SwingPlayblastUiOutputDir"))
+        if cmds.optionVar(exists="SwingPlayblastUiOutputFilename"):
+            self.output_filename_le.setText(cmds.optionVar(q="SwingPlayblastUiOutputFilename"))
+        if cmds.optionVar(exists="SwingPlayblastUiForceOverwrite"):
+            self.force_overwrite_cb.setChecked(cmds.optionVar(q="SwingPlayblastUiForceOverwrite"))
 
-        if cmds.optionVar(exists="ZurbriggPlayblastUiCamera"):
-            self.camera_select_cmb.setCurrentText(cmds.optionVar(q="ZurbriggPlayblastUiCamera"))
-        if cmds.optionVar(exists="ZurbriggPlayblastUiHideDefaultCameras"):
-            self.camera_select_hide_defaults_cb.setChecked(cmds.optionVar(q="ZurbriggPlayblastUiHideDefaultCameras"))
+        if cmds.optionVar(exists="SwingPlayblastUiCamera"):
+            self.camera_select_cmb.setCurrentText(cmds.optionVar(q="SwingPlayblastUiCamera"))
+        if cmds.optionVar(exists="SwingPlayblastUiHideDefaultCameras"):
+            self.camera_select_hide_defaults_cb.setChecked(cmds.optionVar(q="SwingPlayblastUiHideDefaultCameras"))
 
-        if cmds.optionVar(exists="ZurbriggPlayblastUiResolutionPreset"):
-            self.resolution_select_cmb.setCurrentText(cmds.optionVar(q="ZurbriggPlayblastUiResolutionPreset"))
+        if cmds.optionVar(exists="SwingPlayblastUiResolutionPreset"):
+            self.resolution_select_cmb.setCurrentText(cmds.optionVar(q="SwingPlayblastUiResolutionPreset"))
         if self.resolution_select_cmb.currentText() == "Custom":
-            if cmds.optionVar(exists="ZurbriggPlayblastUiResolutionWidth"):
-                self.resolution_width_sb.setValue(cmds.optionVar(q="ZurbriggPlayblastUiResolutionWidth"))
-            if cmds.optionVar(exists="ZurbriggPlayblastUiResolutionHeight"):
-                self.resolution_height_sb.setValue(cmds.optionVar(q="ZurbriggPlayblastUiResolutionHeight"))
+            if cmds.optionVar(exists="SwingPlayblastUiResolutionWidth"):
+                self.resolution_width_sb.setValue(cmds.optionVar(q="SwingPlayblastUiResolutionWidth"))
+            if cmds.optionVar(exists="SwingPlayblastUiResolutionHeight"):
+                self.resolution_height_sb.setValue(cmds.optionVar(q="SwingPlayblastUiResolutionHeight"))
             self.on_resolution_changed()
 
-        if cmds.optionVar(exists="ZurbriggPlayblastUiFrameRangePreset"):
-            self.frame_range_cmb.setCurrentText(cmds.optionVar(q="ZurbriggPlayblastUiFrameRangePreset"))
+        if cmds.optionVar(exists="SwingPlayblastUiFrameRangePreset"):
+            self.frame_range_cmb.setCurrentText(cmds.optionVar(q="SwingPlayblastUiFrameRangePreset"))
         if self.frame_range_cmb.currentText() == "Custom":
-            if cmds.optionVar(exists="ZurbriggPlayblastUiFrameRangeStart"):
-                self.frame_range_start_sb.setValue(cmds.optionVar(q="ZurbriggPlayblastUiFrameRangeStart"))
-            if cmds.optionVar(exists="ZurbriggPlayblastUiFrameRangeEnd"):
-                self.frame_range_end_sb.setValue(cmds.optionVar(q="ZurbriggPlayblastUiFrameRangeEnd"))
+            if cmds.optionVar(exists="SwingPlayblastUiFrameRangeStart"):
+                self.frame_range_start_sb.setValue(cmds.optionVar(q="SwingPlayblastUiFrameRangeStart"))
+            if cmds.optionVar(exists="SwingPlayblastUiFrameRangeEnd"):
+                self.frame_range_end_sb.setValue(cmds.optionVar(q="SwingPlayblastUiFrameRangeEnd"))
             self.on_frame_range_changed()
 
-        if cmds.optionVar(exists="ZurbriggPlayblastUiEncodingContainer"):
-            self.encoding_container_cmb.setCurrentText(cmds.optionVar(q="ZurbriggPlayblastUiEncodingContainer"))
-        if cmds.optionVar(exists="ZurbriggPlayblastUiEncodingVideoCodec"):
-            self.encoding_video_codec_cmb.setCurrentText(cmds.optionVar(q="ZurbriggPlayblastUiEncodingVideoCodec"))
+        if cmds.optionVar(exists="SwingPlayblastUiEncodingContainer"):
+            self.encoding_container_cmb.setCurrentText(cmds.optionVar(q="SwingPlayblastUiEncodingContainer"))
+        if cmds.optionVar(exists="SwingPlayblastUiEncodingVideoCodec"):
+            self.encoding_video_codec_cmb.setCurrentText(cmds.optionVar(q="SwingPlayblastUiEncodingVideoCodec"))
 
-        if cmds.optionVar(exists="ZurbriggPlayblastUiH264Quality") and cmds.optionVar(exists="ZurbriggPlayblastUiH264Preset"):
-            self._playblast.set_h264_settings(cmds.optionVar(q="ZurbriggPlayblastUiH264Quality"), cmds.optionVar(q="ZurbriggPlayblastUiH264Preset"))
+        if cmds.optionVar(exists="SwingPlayblastUiH264Quality") and cmds.optionVar(exists="SwingPlayblastUiH264Preset"):
+            self._playblast.set_h264_settings(cmds.optionVar(q="SwingPlayblastUiH264Quality"), cmds.optionVar(q="SwingPlayblastUiH264Preset"))
 
-        if cmds.optionVar(exists="ZurbriggPlayblastUiImageQuality"):
-            self._playblast.set_image_settings(cmds.optionVar(q="ZurbriggPlayblastUiImageQuality"))
+        if cmds.optionVar(exists="SwingPlayblastUiImageQuality"):
+            self._playblast.set_image_settings(cmds.optionVar(q="SwingPlayblastUiImageQuality"))
 
-        if cmds.optionVar(exists="ZurbriggPlayblastUiVisibilityPreset"):
-            self.visibility_cmb.setCurrentText(cmds.optionVar(q="ZurbriggPlayblastUiVisibilityPreset"))
+        if cmds.optionVar(exists="SwingPlayblastUiVisibilityPreset"):
+            self.visibility_cmb.setCurrentText(cmds.optionVar(q="SwingPlayblastUiVisibilityPreset"))
         if self.visibility_cmb.currentText() == "Custom":
-            if cmds.optionVar(exists="ZurbriggPlayblastUiVisibilityData"):
-                visibility_str_list = cmds.optionVar(q="ZurbriggPlayblastUiVisibilityData").split()
+            if cmds.optionVar(exists="SwingPlayblastUiVisibilityData"):
+                visibility_str_list = cmds.optionVar(q="SwingPlayblastUiVisibilityData").split()
                 visibility_data = []
                 for item in visibility_str_list:
                     if item:
@@ -1453,16 +1491,16 @@ class ZurbriggPlayblastUi(QtWidgets.QDialog):
 
                 self._playblast.set_visibility(visibility_data)
 
-        if cmds.optionVar(exists="ZurbriggPlayblastUiOverscan"):
-            self.overscan_cb.setChecked(cmds.optionVar(q="ZurbriggPlayblastUiOverscan"))
-        if cmds.optionVar(exists="ZurbriggPlayblastUiOrnaments"):
-            self.ornaments_cb.setChecked(cmds.optionVar(q="ZurbriggPlayblastUiOrnaments"))
-        if cmds.optionVar(exists="ZurbriggPlayblastUiViewer"):
-            self.viewer_cb.setChecked(cmds.optionVar(q="ZurbriggPlayblastUiViewer"))
+        if cmds.optionVar(exists="SwingPlayblastUiOverscan"):
+            self.overscan_cb.setChecked(cmds.optionVar(q="SwingPlayblastUiOverscan"))
+        if cmds.optionVar(exists="SwingPlayblastUiOrnaments"):
+            self.ornaments_cb.setChecked(cmds.optionVar(q="SwingPlayblastUiOrnaments"))
+        if cmds.optionVar(exists="SwingPlayblastUiViewer"):
+            self.viewer_cb.setChecked(cmds.optionVar(q="SwingPlayblastUiViewer"))
 
     def show_settings_dialog(self):
         if not self._settings_dialog:
-            self._settings_dialog = ZurbriggPlayblastSettingsDialog(self)
+            self._settings_dialog = SwingPlayblastSettingsDialog(self)
             self._settings_dialog.accepted.connect(self.on_settings_dialog_modified)
 
         self._settings_dialog.set_ffmpeg_path(self._playblast.get_ffmpeg_path())
@@ -1476,10 +1514,8 @@ class ZurbriggPlayblastUi(QtWidgets.QDialog):
         self.save_settings()
 
     def show_about_dialog(self):
-        text = '<h2>{0}</h2>'.format(ZurbriggPlayblastUi.TITLE)
-        text += '<p>Version: {0}</p>'.format(ZurbriggPlayblast.VERSION)
-        text += '<p>Author: Chris Zurbrigg</p>'
-        text += '<p>Website: <a style="color:white;" href="http://zurbrigg.com">zurbrigg.com</a></p><br>'
+        text = '<h2>{0}</h2>'.format(SwingPlayblastUi.TITLE)
+        text += '<p>Version: {0}</p>'.format(SwingPlayblast.VERSION)
 
         QtWidgets.QMessageBox().about(self, "About", "{0}".format(text))
 
@@ -1487,7 +1523,7 @@ class ZurbriggPlayblastUi(QtWidgets.QDialog):
         self.output_edit.appendPlainText(text)
 
     def keyPressEvent(self, event):
-        super(ZurbriggPlayblastUi, self).keyPressEvent(event)
+        super(SwingPlayblastUi, self).keyPressEvent(event)
 
         event.accept()
 
@@ -1498,12 +1534,12 @@ class ZurbriggPlayblastUi(QtWidgets.QDialog):
 if __name__ == "__main__":
 
     try:
-        zurbrigg_playblast_dialog.close() # pylint: disable=E0601
-        zurbrigg_playblast_dialog.deleteLater()
+        swing_playblast_dialog.close() # pylint: disable=E0601
+        swing_playblast_dialog.deleteLater()
     except:
         pass
 
-    zurbrigg_playblast_dialog = ZurbriggPlayblastUi()
+    zurbrigg_playblast_dialog = SwingPlayblastUi()
     zurbrigg_playblast_dialog.show()
 
 

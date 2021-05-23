@@ -7,6 +7,6 @@ import sys
 sys.path.append("{0}/{1}".format(WCA_ROOT, "/module"))
 
 # Load Zurbrigg Playblaster
-from wildchildanimation.gui.zurbrigg_playblast import ZurbriggPlayblastUi
-ZurbriggPlayblastUi.show_dialog()
+from wildchildanimation.gui.swing_playblast import ZurbriggPlayblastUi
+SwingPlayblastUi.show_dialog()
 

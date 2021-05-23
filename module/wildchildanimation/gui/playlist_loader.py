@@ -31,7 +31,7 @@ class PlaylistLoader(QtCore.QRunnable):
 
         self.parent = parent
         self.password = load_keyring('swing', 'password', 'Not A Password')
-        self.server = load_settings('server', 'https://production.wildchildanimation.com')
+        self.server = load_settings('server', 'https://example.wildchildanimation.com')
         self.email = load_settings('user', 'user@example.com')            
 
         self.project = project

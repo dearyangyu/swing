@@ -23,7 +23,7 @@ except:
     print("Maya not found")
 
 from wildchildanimation.studio_interface import StudioInterface
-from wildchildanimation.gui.zurbrigg_playblast import *
+from wildchildanimation.gui.swing_playblast import *
 
 class StudioHandler(StudioInterface):
 
@@ -251,8 +251,8 @@ class StudioHandler(StudioInterface):
         self.log_output("on_create complete")
 
     def on_playblast(self, **kwargs):
-        zurbrigg_playblast_dialog = ZurbriggPlayblastUi()
-        zurbrigg_playblast_dialog.show()
+        dialog = SwingPlayblastUi()
+        dialog.show()
 
         self.log_output("open: playblast")
         return True

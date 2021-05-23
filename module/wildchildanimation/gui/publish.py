@@ -102,7 +102,7 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         email = load_settings('user', 'user@example.com')
         password = load_keyring('swing', 'password', 'Not A Password')        
 
-        server = load_settings('server', 'https://production.wildchildanimation.com')
+        server = load_settings('server', 'https://example.wildchildanimation.com')
         edit_api = "{}/edit".format(server)        
 
         #self, parent, task, source, software_name, comment, email, password

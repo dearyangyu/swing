@@ -15,6 +15,9 @@ swing_repo = 'wildchild-animation/swing'
 # local import wildchildanimation module by adding to the path
 WCA_ROOT = "C:/WCA"
 
+def split_path(path):
+     return os.path.splitdrive(path)
+
 def get_git_version(path = ''):
     cmd = '{}git --version'.format(path)
     try:
@@ -42,25 +45,33 @@ def check_or_create_dir(dir):
     else:
         print("Found directory {}".format(dir))
 
-def git_clone(install_dir):
-    cmd = 'cd {} && git clone https://github.com/swing_repo'.format(install_dir, swing_repo)
-    #'security add-generic-password -U -a %s -s %s -p %s' % (account, service, password)
+def git_clone(dir):
+    drive, tail = split_path(dir)
+    cmd = '{} && cd {} && git clone https://github.com/{}'.format(drive, dir, swing_repo)
+    print(cmd)
+
     p = os.popen(cmd)
     s = p.read()
     p.close()
 
-def git_pull(repo):
-    cmd = 'cd {} && git pull'.format(repo)
+    pprint(s)    
 
-    #'security add-generic-password -U -a %s -s %s -p %s' % (account, service, password)
+def git_pull(dir):
+    drive, tail = split_path(dir)    
+    cmd = '{} && cd {} && git pull'.format(drive, dir)
+    print(cmd)    
+
     p = os.popen(cmd)
     s = p.read()
     p.close()
 
-def create_venv(venv):
-    cmd = 'cd {} && python -m venv env'.format(venv)
+    pprint(s)    
 
-    #'security add-generic-password -U -a %s -s %s -p %s' % (account, service, password)
+def create_venv(dir):
+    drive, tail = split_path(dir)        
+    cmd = '{} && cd {} && python -m venv env'.format(drive, dir)
+    print(cmd)
+
     p = os.popen(cmd)
     s = p.read()
     p.close()    
@@ -68,9 +79,10 @@ def create_venv(venv):
     pprint(s)
 
 def update_requirements(dir):
-    cmd = 'cd {} && "env/Scripts/activate" && pip install -r swing/requirements.txt'.format(dir)
+    drive, tail = split_path(dir)        
+    cmd = '{} && cd {} && "env/Scripts/activate" && pip install -r swing/requirements.txt'.format(drive, dir)
+    print(cmd)    
 
-    #'security add-generic-password -U -a %s -s %s -p %s' % (account, service, password)
     p = os.popen(cmd)
     s = p.read()
     p.close()   
@@ -78,9 +90,10 @@ def update_requirements(dir):
     pprint(s)
 
 def get_swing_version(dir):
+    drive, tail = split_path(dir)        
     #  c:; cd 'c:\DEV\Github\wca-maya'; & 'c:\DEV\Github\wca-maya\venv\Scripts\python.exe' 'c:\Users\pniemandt\.vscode\extensions\ms-python.python-2021.5.842923320\pythonFiles\lib\python\debugpy\launcher' '1778' '--' 'c:\DEV\Github\wca-maya\plugin\treehouse\swing_desktop.py' 
-    cmd = 'cd {}/swing && "{}/env/Scripts/activate" && python {}/swing/plugin/treehouse/swing_desktop.py'.format(dir, dir, dir)
-    pprint(cmd)
+    cmd = '{} &&  cd {}/swing && "{}/env/Scripts/activate" && python {}/swing/plugin/treehouse/swing_desktop.py'.format(drive, dir, dir, dir)
+    print(cmd)
 
     #'security add-generic-password -U -a %s -s %s -p %s' % (account, service, password)
     p = os.popen(cmd)
@@ -90,9 +103,6 @@ def get_swing_version(dir):
     pprint(s)
 
 def setup_windows(install_dir):
-    get_swing_version(install_dir)
-    exit()
-
     # make sure we have default directories
     check_or_create_dir(install_dir)
 
@@ -103,7 +113,7 @@ def setup_windows(install_dir):
         git_clone(install_dir)
     else:
         print("{}: Repo found, updating".format(repo))
-        git_pull(repo)
+        git_pull(install_dir)
 
     venv = "{}/env".format(install_dir)
 
@@ -111,7 +121,7 @@ def setup_windows(install_dir):
         print("{}: Python virtual env not found, creating".format(install_dir))
         create_venv(install_dir)
 
-    ## update_requirements(install_dir)
+    update_requirements(install_dir)
     get_swing_version(install_dir)
 
 def update(working_dir):

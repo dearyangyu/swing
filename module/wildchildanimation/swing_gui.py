@@ -8,10 +8,10 @@
 _APP_NAME = "treehouse: swing"
 _APP_VERSION = "0.0.0.17"
  
+from module.wildchildanimation.gui.swing_playblast import SwingPlayblast
 import traceback
 import sys
 import os
-import re
 
 # ==== auto Qt load ====
 try:
@@ -28,7 +28,6 @@ except ImportError:
     import sip
     qtMode = 1
 
-import keyring
 import gazu
 import os.path
 
@@ -64,7 +63,7 @@ from wildchildanimation.gui.project_nav import ProjectNavWidget
 
 from wildchildanimation.studio_interface import StudioInterface
 
-from wildchildanimation.gui.zurbrigg_playblast import *
+from wildchildanimation.gui.swing_playblast import *
 
 
 '''
@@ -327,7 +326,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
     def open_connection_settings(self):
         dialog = ConnectionDialogGUI(self)
 
-        dialog.lineEditServer.setText(load_settings('server', 'https://production.wildchildanimation.com'))
+        dialog.lineEditServer.setText(load_settings('server', 'https://example.example.com'))
         dialog.lineEditEmail.setText(load_settings('user', 'user@example.com'))
         dialog.lineEditProjectsFolder.setText(load_settings('projects_root', os.path.expanduser("~")))
         dialog.lineEditPassword.setText(load_keyring('swing', 'password', 'Not A Password'))
@@ -351,7 +350,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
         password = load_keyring('swing', 'password', 'Not A Password')
 
-        server = load_settings('server', 'https://production.wildchildanimation.com')
+        server = load_settings('server', 'https://example.example.com')
         email = load_settings('user', 'user@example.com')
 
         gazu.set_host("{}/api".format(server))
@@ -708,8 +707,9 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
 
     def playblast_dialog(self):
-        zurbrigg_playblast_dialog = ZurbriggPlayblastUi()
-        zurbrigg_playblast_dialog.show()
+        dialog = SwingPlayblastUi()
+        dialog.show()
+        
         # self.handler.on_playblast()
 
     def dcc_tools_dialog(self):

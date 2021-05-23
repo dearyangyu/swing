@@ -234,7 +234,7 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
 
 if __name__ == "__main__":
     password = load_keyring('swing', 'password', 'Not A Password')
-    connect_to_server("showadmin@digitalevolution.co.za", password)
+    connect_to_server("user@example.com", password)
     
     app = QApplication(sys.argv)
     if darkStyle:
