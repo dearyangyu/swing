@@ -113,7 +113,7 @@ def setup_windows(install_dir):
         git_clone(install_dir)
     else:
         print("{}: Repo found, updating".format(repo))
-        git_pull(install_dir)
+        git_pull(repo)
 
     venv = "{}/env".format(install_dir)
 

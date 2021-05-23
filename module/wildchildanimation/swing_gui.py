@@ -8,7 +8,6 @@
 _APP_NAME = "treehouse: swing"
 _APP_VERSION = "0.0.0.17"
  
-from module.wildchildanimation.gui.swing_playblast import SwingPlayblast
 import traceback
 import sys
 import os
@@ -38,13 +37,8 @@ import wildchildanimation.gui.background_workers as bg
 
 from wildchildanimation.gui.swing_utils import *
 
-from wildchildanimation.gui.main_form import Ui_WcaMayaDialog
 from wildchildanimation.gui.connection_dialog import Ui_ConnectionDialog
-from wildchildanimation.gui.publish_dialog import Ui_PublishDialog
-
 from wildchildanimation.gui.create_dialog import Ui_CreateDialog
-
-from wildchildanimation.gui.playblast_dialog import Ui_PlayblastDialog
 
 from wildchildanimation.gui.loader import *
 from wildchildanimation.gui.references import *
@@ -56,7 +50,7 @@ from wildchildanimation.gui.breakout import *
 from wildchildanimation.gui.entity_info import *
 from wildchildanimation.gui.dcc_tools import *
 
-from wildchildanimation.gui.swing_tables import FileTableModel, TaskTableModel, CastingTableModel, load_file_table_widget, human_size
+from wildchildanimation.gui.swing_tables import FileTableModel, TaskTableModel
 
 from wildchildanimation.gui.swing_desktop import Ui_SwingMain
 from wildchildanimation.gui.project_nav import ProjectNavWidget
