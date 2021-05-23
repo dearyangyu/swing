@@ -206,8 +206,9 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
     def update_version(self, sender = None):
         reply = QtWidgets.QMessageBox.question(self, 'New Version found', 'Do you want to update ?', QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)        
         if reply == QtWidgets.QMessageBox.Yes:
-            updater = bg.SwingUpdater(self)
-            
+
+            updater = bg.SwingUpdater(self, os.getcwd())
+
             #updater.callback.loaded.connect(self.version_check_loaded)
             updater.run()
             #self.threadpool.start(updater)

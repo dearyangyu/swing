@@ -4,8 +4,10 @@ _VERSION = "1.00"
 import argparse
 import platform
 
-import os
+import sys
+sys.path.append("./module")
 
+import os
 from pprint import pprint
 
 swing_repo = 'wildchild-animation/swing'
@@ -88,6 +90,8 @@ def get_swing_version(dir):
     pprint(s)
 
 def setup_windows(install_dir):
+    get_swing_version(install_dir)
+    exit()
 
     # make sure we have default directories
     check_or_create_dir(install_dir)
@@ -107,7 +111,7 @@ def setup_windows(install_dir):
         print("{}: Python virtual env not found, creating".format(install_dir))
         create_venv(install_dir)
 
-    update_requirements(install_dir)
+    ## update_requirements(install_dir)
     get_swing_version(install_dir)
 
 def update(working_dir):

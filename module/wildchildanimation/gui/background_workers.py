@@ -32,8 +32,8 @@ except ImportError:
 from datetime import datetime
 
 from wildchildanimation.gui.swing_utils import write_log, connect_to_server, load_settings, load_keyring
+from wildchildanimation.util.swing_updater import update
 
-import wildchildanimation.plugin.swing_updater
 import wildchildanimation.gui.swing_utils
 
 class LoadedSignal(QtCore.QObject):
@@ -57,13 +57,14 @@ class VersionCheck(QtCore.QRunnable):
 
 class SwingUpdater(QtCore.QRunnable):
 
-    def __init__(self, parent):
+    def __init__(self, parent, install_dir):
         super(SwingUpdater, self).__init__(self, parent)
+        self.install_dir = install_dir
         self.callback = LoadedSignal()
 
     def run(self):
         try:
-            swing_updater.main()
+            update(self.install_dir)
         except:
             traceback.print_exc(file=sys.stdout)
         # done        
