@@ -241,7 +241,7 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayoutFiles">
      <item>
-      <widget class="QTableWidget" name="tableWidget">
+      <widget class="QTableView" name="tableView">
        <property name="font">
         <font>
          <pointsize>8</pointsize>
@@ -256,39 +256,9 @@
        <property name="selectionBehavior">
         <enum>QAbstractItemView::SelectRows</enum>
        </property>
-       <attribute name="horizontalHeaderStretchLastSection">
+       <attribute name="verticalHeaderCascadingSectionResizes">
         <bool>true</bool>
        </attribute>
-       <column>
-        <property name="text">
-         <string>File</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>Size</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>v</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>Task</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>Updated</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>Status</string>
-        </property>
-       </column>
       </widget>
      </item>
     </layout>

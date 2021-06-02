@@ -13,7 +13,6 @@ from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
 from wildchildanimation.gui.swing_utils import fakestr
-
 class Ui_DownloadDialog(object):
     def setupUi(self, DownloadDialog):
         if not DownloadDialog.objectName():
@@ -123,33 +122,17 @@ class Ui_DownloadDialog(object):
 
         self.verticalLayout.addLayout(self.horizontalLayout_5)
 
-        self.tableWidget = QTableWidget(DownloadDialog)
-        if (self.tableWidget.columnCount() < 7):
-            self.tableWidget.setColumnCount(7)
-        __qtablewidgetitem = QTableWidgetItem()
-        self.tableWidget.setHorizontalHeaderItem(0, __qtablewidgetitem)
-        __qtablewidgetitem1 = QTableWidgetItem()
-        self.tableWidget.setHorizontalHeaderItem(1, __qtablewidgetitem1)
-        __qtablewidgetitem2 = QTableWidgetItem()
-        self.tableWidget.setHorizontalHeaderItem(2, __qtablewidgetitem2)
-        __qtablewidgetitem3 = QTableWidgetItem()
-        self.tableWidget.setHorizontalHeaderItem(3, __qtablewidgetitem3)
-        __qtablewidgetitem4 = QTableWidgetItem()
-        self.tableWidget.setHorizontalHeaderItem(4, __qtablewidgetitem4)
-        __qtablewidgetitem5 = QTableWidgetItem()
-        self.tableWidget.setHorizontalHeaderItem(5, __qtablewidgetitem5)
-        __qtablewidgetitem6 = QTableWidgetItem()
-        self.tableWidget.setHorizontalHeaderItem(6, __qtablewidgetitem6)
-        self.tableWidget.setObjectName(u"tableWidget")
+        self.tableView = QTableView(DownloadDialog)
+        self.tableView.setObjectName(u"tableView")
         font = QFont()
         font.setPointSize(8)
-        self.tableWidget.setFont(font)
-        self.tableWidget.setProperty("showDropIndicator", False)
-        self.tableWidget.setAlternatingRowColors(True)
-        self.tableWidget.setSelectionBehavior(QAbstractItemView.SelectRows)
-        self.tableWidget.horizontalHeader().setStretchLastSection(True)
+        self.tableView.setFont(font)
+        self.tableView.setProperty("showDropIndicator", False)
+        self.tableView.setAlternatingRowColors(True)
+        self.tableView.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.tableView.verticalHeader().setCascadingSectionResizes(True)
 
-        self.verticalLayout.addWidget(self.tableWidget)
+        self.verticalLayout.addWidget(self.tableView)
 
         self.horizontalLayout_4 = QHBoxLayout()
         self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
@@ -193,20 +176,6 @@ class Ui_DownloadDialog(object):
         self.checkBoxExtractZips.setText(fakestr(u"Extract Zip Files", None))
         self.toolButtonAll.setText(fakestr(u"+", None))
         self.toolButtonNone.setText(fakestr(u"-", None))
-        ___qtablewidgetitem = self.tableWidget.horizontalHeaderItem(0)
-        ___qtablewidgetitem.setText(fakestr(u"File", None));
-        ___qtablewidgetitem1 = self.tableWidget.horizontalHeaderItem(1)
-        ___qtablewidgetitem1.setText(fakestr(u"Size", None));
-        ___qtablewidgetitem2 = self.tableWidget.horizontalHeaderItem(2)
-        ___qtablewidgetitem2.setText(fakestr(u"v", None));
-        ___qtablewidgetitem3 = self.tableWidget.horizontalHeaderItem(3)
-        ___qtablewidgetitem3.setText(fakestr(u"Task", None));
-        ___qtablewidgetitem4 = self.tableWidget.horizontalHeaderItem(4)
-        ___qtablewidgetitem4.setText(fakestr(u"Updated", None));
-        ___qtablewidgetitem5 = self.tableWidget.horizontalHeaderItem(5)
-        ___qtablewidgetitem5.setText(fakestr(u"Status", None));
-        ___qtablewidgetitem6 = self.tableWidget.horizontalHeaderItem(6)
-        ___qtablewidgetitem6.setText(fakestr(u"Path", None));
         self.pushButtonDownload.setText(fakestr(u"Download", None))
         self.pushButtonCancel.setText(fakestr(u"Close", None))
     # retranslateUi

@@ -153,31 +153,17 @@ class Ui_EntityInfoDialog(object):
 
         self.horizontalLayoutFiles = QHBoxLayout()
         self.horizontalLayoutFiles.setObjectName(u"horizontalLayoutFiles")
-        self.tableWidget = QTableWidget(EntityInfoDialog)
-        if (self.tableWidget.columnCount() < 6):
-            self.tableWidget.setColumnCount(6)
-        __qtablewidgetitem = QTableWidgetItem()
-        self.tableWidget.setHorizontalHeaderItem(0, __qtablewidgetitem)
-        __qtablewidgetitem1 = QTableWidgetItem()
-        self.tableWidget.setHorizontalHeaderItem(1, __qtablewidgetitem1)
-        __qtablewidgetitem2 = QTableWidgetItem()
-        self.tableWidget.setHorizontalHeaderItem(2, __qtablewidgetitem2)
-        __qtablewidgetitem3 = QTableWidgetItem()
-        self.tableWidget.setHorizontalHeaderItem(3, __qtablewidgetitem3)
-        __qtablewidgetitem4 = QTableWidgetItem()
-        self.tableWidget.setHorizontalHeaderItem(4, __qtablewidgetitem4)
-        __qtablewidgetitem5 = QTableWidgetItem()
-        self.tableWidget.setHorizontalHeaderItem(5, __qtablewidgetitem5)
-        self.tableWidget.setObjectName(u"tableWidget")
+        self.tableView = QTableView(EntityInfoDialog)
+        self.tableView.setObjectName(u"tableView")
         font = QFont()
         font.setPointSize(8)
-        self.tableWidget.setFont(font)
-        self.tableWidget.setProperty("showDropIndicator", False)
-        self.tableWidget.setAlternatingRowColors(True)
-        self.tableWidget.setSelectionBehavior(QAbstractItemView.SelectRows)
-        self.tableWidget.horizontalHeader().setStretchLastSection(True)
+        self.tableView.setFont(font)
+        self.tableView.setProperty("showDropIndicator", False)
+        self.tableView.setAlternatingRowColors(True)
+        self.tableView.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.tableView.verticalHeader().setCascadingSectionResizes(True)
 
-        self.horizontalLayoutFiles.addWidget(self.tableWidget)
+        self.horizontalLayoutFiles.addWidget(self.tableView)
 
 
         self.verticalLayout.addLayout(self.horizontalLayoutFiles)
@@ -245,18 +231,6 @@ class Ui_EntityInfoDialog(object):
         self.toolButtonWorkingDir.setText(fakestr(u"...", None))
         self.checkBoxSkipExisting.setText(fakestr(u"Skip Existing Files", None))
         self.checkBoxExtractZips.setText(fakestr(u"Extract Zip Files", None))
-        ___qtablewidgetitem = self.tableWidget.horizontalHeaderItem(0)
-        ___qtablewidgetitem.setText(fakestr(u"File", None));
-        ___qtablewidgetitem1 = self.tableWidget.horizontalHeaderItem(1)
-        ___qtablewidgetitem1.setText(fakestr(u"Size", None));
-        ___qtablewidgetitem2 = self.tableWidget.horizontalHeaderItem(2)
-        ___qtablewidgetitem2.setText(fakestr(u"v", None));
-        ___qtablewidgetitem3 = self.tableWidget.horizontalHeaderItem(3)
-        ___qtablewidgetitem3.setText(fakestr(u"Task", None));
-        ___qtablewidgetitem4 = self.tableWidget.horizontalHeaderItem(4)
-        ___qtablewidgetitem4.setText(fakestr(u"Updated", None));
-        ___qtablewidgetitem5 = self.tableWidget.horizontalHeaderItem(5)
-        ___qtablewidgetitem5.setText(fakestr(u"Status", None));
         self.pushButtonDownload.setText(fakestr(u"Download", None))
         self.pushButtonPublish.setText(fakestr(u"Publish", None))
         self.pushButtonClose.setText(fakestr(u"Close", None))

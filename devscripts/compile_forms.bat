@@ -45,3 +45,8 @@ c:\dev\github\wca-maya\venv\lib\site-packages\PySide2\uic --tr fakestr -g python
 
 echo "Compling playlist dialog"
 c:\dev\github\wca-maya\venv\lib\site-packages\PySide2\uic --tr fakestr -g python -o c:\dev\Github\wca-maya\module\wildchildanimation\gui\playlist_dialog.py c:\dev\Github\wca-maya\module\wildchildanimation\gui\forms\playlist_dialog.ui
+
+echo "Compling Swing Maya widget"
+c:\dev\github\wca-maya\venv\lib\site-packages\PySide2\uic --tr fakestr -g python -o c:\dev\Github\wca-maya\module\wildchildanimation\maya\swingcontrol.py c:\dev\Github\wca-maya\module\wildchildanimation\gui\forms\swingcontrol_widget.ui
+
+

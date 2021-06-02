@@ -28,7 +28,8 @@ from wildchildanimation.gui.swing_utils import *
 
 from wildchildanimation.gui.download_dialog import Ui_DownloadDialog
 
-from wildchildanimation.gui.swing_tables import human_size, load_file_table_widget
+from wildchildanimation.gui.swing_tables import human_size, setup_file_table
+from wildchildanimation.gui.swing_tables import FileTableModel, CheckBoxDelegate
 
 '''
     DownloadDialogGui class
@@ -73,18 +74,16 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
         self.setWorkingDir(load_settings("projects_root", os.path.expanduser("~")))
 
     def select_all(self):
-        index = 0
-        while index < self.tableWidget.rowCount():
-            row_item = self.tableWidget.item(index, 0)
-            row_item.setCheckState(QtCore.Qt.Checked)
-            index += 1
+        for row in range(self.tableView.model().rowCount()):
+            index = self.tableView.model().index(row, 0)
+            self.tableView.model().setData(index, True, QtCore.Qt.EditRole)
+        self.tableView.update()
 
     def select_none(self):
-        index = 0
-        while index < self.tableWidget.rowCount():
-            row_item = self.tableWidget.item(index, 0)
-            row_item.setCheckState(QtCore.Qt.Unchecked)
-            index += 1
+        for row in range(self.tableView.model().rowCount()):
+            index = self.tableView.model().index(row, 0)
+            self.tableView.model().setData(index, False, QtCore.Qt.EditRole)
+        self.tableView.update()
 
     def open_url(self, url):
         link = QtCore.QUrl(self.url)
@@ -143,9 +142,9 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
         if not self.file_list:
             loader.callback.loaded.connect(self.files_loaded)
             self.threadpool.start(loader)
+        else:
+            self.load_files(self.file_list)
             #loader.run()
-
-
 
     def get_item_task_type(self, entity):
         if "task_type_id" in entity:
@@ -203,23 +202,24 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
         file_name = results["target"]
         working_dir = results["working_dir"]
 
-        index = 0
-        while index < self.tableWidget.rowCount():
-            row_item = self.tableWidget.item(index, 0)
-            file_item = row_item.data(QtCore.Qt.UserRole)
-            if file_item and file_id == file_item["id"]:
-                status_item = self.tableWidget.item(self.tableWidget.row(row_item), 5)
-                status_item.setText("{} - {}".format(human_size(size), message))
+        for row in range(self.tableView.model().rowCount()):
+            index = self.tableView.model().index(row, 0)
+            item = self.tableView.model().data(index, QtCore.Qt.UserRole)
+            if file_id == item['id']:
+                index = self.tableView.model().index(row, 5)
+                download_status = {}
+                download_status["message"] = "{} - {}".format(human_size(size), message)
 
                 if "error" in status:
-                    status_item.setBackground(QtGui.QColor('darkRed'))
+                    download_status["color"] = QtGui.QColor('darkRed')
                 elif "skipped" in status:
-                    status_item.setBackground(QtGui.QColor('darkCyan'))
+                    download_status["color"] = QtGui.QColor('darkCyan')
                 else:
-                    status_item.setBackground(QtGui.QColor('darkGreen'))
-                break        
+                    download_status["color"] = QtGui.QColor('darkGreen')
 
-            index += 1
+                self.tableView.model().setData(index, download_status, QtCore.Qt.EditRole)     
+                self.tableView.model().dataChanged.emit(index, index, QtCore.Qt.DisplayRole)                 
+                self.tableView.viewport().update()
 
         self.downloads -= 1
         if self.downloads <= 0:
@@ -232,36 +232,89 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
         else:
             self.progressBar.setValue(self.progressBar.value() + 1)
 
-
     def file_loading(self, result):
         message = result["message"]
         size = result["size"]
         file_id = result["file_id"]
-        file_name = result["target"]        
+        file_name = result["target"]      
 
-        index = 0
-        while index < self.tableWidget.rowCount():
-            row_item = self.tableWidget.item(index, 0)
-            file_item = row_item.data(QtCore.Qt.UserRole)
-            if file_item and file_id == file_item["id"]:
-                status_item = self.tableWidget.item(self.tableWidget.row(row_item), 5)
-                status_item.setText("{}".format(human_size(size)))
-                status_item.setBackground(QtGui.QColor('darkCyan'))
-                break
-            index += 1        
+        for row in range(self.tableView.model().rowCount()):
+            index = self.tableView.model().index(row, 0)
+            item = self.tableView.model().data(index, QtCore.Qt.UserRole)
+            if file_id == item['id']:
 
-    def load_files(self, files):
-        self.files = files
+                index = self.tableView.model().index(row, 5)
+                download_status = {}
+                download_status["message"] = "{}".format(human_size(size))
+                download_status["color"] = QtGui.QColor('darkCyan')
+                self.tableView.model().setData(index, download_status, QtCore.Qt.EditRole) 
+                self.tableView.model().dataChanged.emit(index, index, QtCore.Qt.DisplayRole)           
+                self.tableView.viewport().update()      
 
-        self.tableWidget = load_file_table_widget(self.tableWidget, files, self.working_dir)
-        self.tableWidget.doubleClicked.connect(self.on_click) 
+    def load_files(self, file_list):
+        self.tableModelFiles = FileTableModel(self, working_dir = load_settings("projects_root", os.path.expanduser("~")), files = file_list)
+        setup_file_table(self.tableModelFiles, self.tableView)
+        
+        return
+        self.tableView.clicked.connect(self.select_row)   
+
+        # create the sorter model
+        self.sorterModel = QtCore.QSortFilterProxyModel()
+        self.sorterModel.setSourceModel(self.tableModelFiles)
+        self.sorterModel.setFilterKeyColumn(0)
+
+        # filter proxy model
+        filter_proxy_model = QtCore.QSortFilterProxyModel()
+        filter_proxy_model.setSourceModel(self.tableModelFiles)
+        filter_proxy_model.setFilterKeyColumn(2) # third column          
+
+        self.tableView.setModel(self.sorterModel)                
+        self.tableView.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
+
+        self.tableView.setSortingEnabled(True)
+        self.tableView.sortByColumn(1, QtCore.Qt.DescendingOrder)
+
+        self.tableView.setColumnWidth(0, 10)
+        self.tableView.setColumnWidth(1, 300)
+        self.tableView.setColumnWidth(2, 40)
+        self.tableView.setColumnWidth(3, 100)
+        self.tableView.setColumnWidth(4, 80)
+        self.tableView.setColumnWidth(5, 80)
+        self.tableView.setColumnWidth(6, 100)
+        self.tableView.setColumnWidth(7, 100)
+        self.tableView.resizeRowsToContents()
+
+        selectionModel = self.tableView.selectionModel()
+        #selectionModel.selectionChanged.connect(self.file_table_selection_changed)     
+
+        self.checkboxDelegate = CheckBoxDelegate()
+        self.tableView.setItemDelegateForColumn(0, self.checkboxDelegate)        
+
+        ## self.tableView.verticalHeader().setDefaultSectionSize(self.tableView.verticalHeader().minimumSectionSize())        
+
+        self.tableView.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+        self.tableView.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)        
+
+        ## self.tableView.horizontalHeader().setSectionResizeMode(8, QtWidgets.QHeaderView.Stretch)
+
+        self.tableView.clicked.connect(self.select_row)       
+
+    def select_row(self, index):
+        self.sorterModel.setData(index, QtCore.Qt.Checked, QtCore.Qt.EditRole)
+        self.sorterModel.layoutChanged.emit()    
+
+        #self.pushButtonDownload.setEnabled(len(self.files) > 0)    
+        #self.pushButtonImport.setEnabled(len(self.files) > 0)        
+        # FileTableModel
+        #self.tableWidget = load_file_table_widget(self.tableWidget, files, self.working_dir)
+        #self.tableWidget.doubleClicked.connect(self.on_click) 
 
     def on_click(self, index):
         row = index.row()
         column = 0
         # index.column()
 
-        row_item = self.tableWidget.item(row, column)
+        row_item = self.tableView.item(row, column)
         selected = row_item.data(QtCore.Qt.UserRole)
         working_dir = load_settings("projects_root", os.path.expanduser("~"))
         set_target(selected, working_dir)        
@@ -282,18 +335,17 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
         self.downloads = 0
 
         file_list = []
+        for row in range(self.tableView.model().rowCount()):
+            index = self.tableView.model().index(row, 0)
+            if self.tableView.model().data(index, QtCore.Qt.DisplayRole):
+                item = self.tableView.model().data(index, QtCore.Qt.UserRole)
+                file_list.append(item)        
 
-        index = 0
-        while index < self.tableWidget.rowCount():
-            row_item = self.tableWidget.item(index, 0)
-            if row_item.checkState():
-                file_list.append(row_item.data(QtCore.Qt.UserRole))
-            index += 1
 
         #write_log("Downloading {} files".format(len(file_list)))
         #write_log("Multithreading with maximum %d threads" % self.threadpool.maxThreadCount())
 
-        self.progressBar.setRange(0, index)
+        self.progressBar.setRange(0, len(file_list))
 
         email = load_settings('user', 'user@example.com')
         password = load_keyring('swing', 'password', 'Not A Password')

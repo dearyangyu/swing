@@ -108,6 +108,8 @@ def setup_windows(install_dir):
 
     repo = "{}/swing".format(install_dir)
 
+    # change to download as zip
+    return False
     if not os.path.exists(repo):
         print("{}: No repo found, creating".format(repo))
         git_clone(install_dir)

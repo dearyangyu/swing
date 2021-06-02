@@ -212,21 +212,24 @@ class BreakoutUploadDialog(QtWidgets.QDialog, Ui_BreakoutUploadDialog):
         root_folder = self.lineEditProjectsFolder.text()
         if len(root_folder.strip()) > 0:        
             for item in os.listdir(root_folder):
-                if ".ma" in item or ".mb" in item:
-                    shot_number = os.path.splitext(item)[0].split("_")[2]
-                    if not shot_number in self.shot_list:
-                        shot = {
-                            "shot_number": shot_number.strip(),
-                            "in": None, "out" : None, "nb_frames": None, "status": None,
-                            "project_file_name": item,                        
-                            "project_file_path": os.path.normpath(os.path.join(root_folder, item))
-                        }
-                    else:
-                        shot = self.shot_list[shot_number]
-                        shot["project_file_name"] = item
-                        shot["project_file_path"] = os.path.normpath(os.path.join(root_folder, item))
+                if ".ma" in item or ".mb" in item and item not in [ ".mayaSwatches"]:
+                    try:
+                        shot_number = os.path.splitext(item)[0].split("_")[2]
+                        if not shot_number in self.shot_list:
+                            shot = {
+                                "shot_number": shot_number.strip(),
+                                "in": None, "out" : None, "nb_frames": None, "status": None,
+                                "project_file_name": item,                        
+                                "project_file_path": os.path.normpath(os.path.join(root_folder, item))
+                            }
+                        else:
+                            shot = self.shot_list[shot_number]
+                            shot["project_file_name"] = item
+                            shot["project_file_path"] = os.path.normpath(os.path.join(root_folder, item))
 
-                    self.shot_list[shot_number] = shot
+                        self.shot_list[shot_number] = shot
+                    except:
+                        print("skipping {}".format(item[0]))
 
         self.model = ShotlistModel(self, self.shot_list)
         self.tableView.setModel(self.model)

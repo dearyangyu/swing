@@ -12,24 +12,37 @@ from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
+
 from wildchildanimation.gui.swing_utils import fakestr
-
-
 class Ui_SearchFilesDialog(object):
     def setupUi(self, SearchFilesDialog):
         if not SearchFilesDialog.objectName():
             SearchFilesDialog.setObjectName(u"SearchFilesDialog")
         SearchFilesDialog.setEnabled(True)
-        SearchFilesDialog.resize(609, 159)
+        SearchFilesDialog.resize(655, 226)
         SearchFilesDialog.setSizeGripEnabled(True)
         self.verticalLayout = QVBoxLayout(SearchFilesDialog)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.horizontalLayout_6 = QHBoxLayout()
         self.horizontalLayout_6.setObjectName(u"horizontalLayout_6")
-        self.label = QLabel(SearchFilesDialog)
-        self.label.setObjectName(u"label")
+        self.labelSearch = QLabel(SearchFilesDialog)
+        self.labelSearch.setObjectName(u"labelSearch")
 
-        self.horizontalLayout_6.addWidget(self.label)
+        self.horizontalLayout_6.addWidget(self.labelSearch)
+
+        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.horizontalLayout_6.addItem(self.horizontalSpacer)
+
+        self.labelTaskType = QLabel(SearchFilesDialog)
+        self.labelTaskType.setObjectName(u"labelTaskType")
+
+        self.horizontalLayout_6.addWidget(self.labelTaskType)
+
+        self.comboBoxTaskType = QComboBox(SearchFilesDialog)
+        self.comboBoxTaskType.setObjectName(u"comboBoxTaskType")
+
+        self.horizontalLayout_6.addWidget(self.comboBoxTaskType)
 
 
         self.verticalLayout.addLayout(self.horizontalLayout_6)
@@ -79,7 +92,8 @@ class Ui_SearchFilesDialog(object):
 
     def retranslateUi(self, SearchFilesDialog):
         SearchFilesDialog.setWindowTitle(fakestr(u"Search for files", None))
-        self.label.setText(fakestr(u"Enter a comma seperated list of file names or partial file names to search for ", None))
+        self.labelSearch.setText(fakestr(u"Enter a comma seperated list of file names or partial file names to search for ", None))
+        self.labelTaskType.setText(fakestr(u"Type", None))
         self.pushButtonSearch.setText(fakestr(u"Search", None))
 #if QT_CONFIG(shortcut)
         self.pushButtonSearch.setShortcut(fakestr(u"Ctrl+Return", None))

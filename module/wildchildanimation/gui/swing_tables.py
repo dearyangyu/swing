@@ -4,6 +4,8 @@ import sys
 import copy
 import os
 
+from PySide2.QtWidgets import QStyledItemDelegate
+
 # ==== auto Qt load ====
 try:
     from PySide2 import QtGui
@@ -22,19 +24,99 @@ except ImportError:
 from datetime import datetime
 
 from wildchildanimation.gui.swing_utils import human_size, my_date_format
- 
 
+class CheckBoxDelegate(QtWidgets.QStyledItemDelegate):
+
+    def __init__(self, parent = None):
+        QStyledItemDelegate.__init__(self, parent)
+        self.optns = QtWidgets.QStyleOptionButton()
+
+    def createEditor(self, parent, option, index):
+        return None
+
+    def paint(self, painter, option, index):
+        checked = bool(index.model().data(index, QtCore.Qt.DisplayRole))
+        optns = QtWidgets.QStyleOptionButton()
+        optns.state |= QtWidgets.QStyle.State_Active
+
+        if index.flags() & QtCore.Qt.ItemIsEditable:
+            optns.state |= QtWidgets.QStyle.State_Enabled
+        else:
+            optns.state |= QtWidgets.QStyle.State_ReadOnly
+
+        if checked:
+            optns.state |= QtWidgets.QStyle.State_On
+        else:
+            optns.state |= QtWidgets.QStyle.State_Off
+        
+        optns.rect = self.getCheckBoxRect(option)
+        QtWidgets.QApplication.style().drawControl(QtWidgets.QStyle.CE_CheckBox, optns, painter)
+
+    def editorEvent(self, event, model, option, index):
+        if not (index.flags() & QtCore.Qt.ItemIsEditable):
+            return False
+
+        if event.button() == QtCore.Qt.LeftButton:
+            if event.type() == QtCore.QEvent.MouseButtonRelease:
+                if self.getCheckBoxRect(option).contains(event.pos()):
+                    self.setModelData(None, model, index)
+                    return True
+            elif event.type() == QtCore.QEvent.MouseButtonDblClick:
+                if self.getCheckBoxRect(option).contains(event.pos()):
+                    return True
+
+        return False
+
+    def setModelData(self, editor, model, index):
+        col = index.column()
+        row = index.row()
+        checked = not index.model().data(index, QtCore.Qt.DisplayRole)
+        model.setData(index, checked, QtCore.Qt.EditRole)
+
+    def getCheckBoxRect(self, option):
+        checkBoxRect = QtWidgets.QApplication.style().subElementRect(QtWidgets.QStyle.SE_CheckBoxIndicator, self.optns, None)
+
+        x = option.rect.x()
+        y = option.rect.y()
+        w = option.rect.width()
+        h = option.rect.height()
+
+        checkBoxTopLeftCorner = QtCore.QPoint(x + w / 2 - checkBoxRect.width() / 2, y + h / 2 - checkBoxRect.height() / 2)
+        return QtCore.QRect(checkBoxTopLeftCorner, checkBoxRect.size())
+
+
+       
 class FileTableModel(QtCore.QAbstractTableModel):    
 
+    _COL_SELECT = 0
+    _COL_FILE_NAME = 1
+    _COL_VERSION = 2
+    _COL_TASK = 3
+    _COL_UPDATED = 4
+    _COL_SIZE = 5
+    _COL_COMMENT = 6
+    _COL_DESCRIPTION = 7
+    _COL_PATH = 8
+
     columns = [
-        "File Name", "Size", "v", "Task", "Comment", "Description", "Updated", "Path"
+        "", 
+        "File Name", 
+        "v", 
+        "Task",
+        "Updated", 
+        "Size", 
+        "Comment", 
+        "Description", 
+        "Path"
     ]
     files = []
+    selection = []
 
-    def __init__(self, parent = None, files = [], entity = None):
+    def __init__(self, parent, working_dir, files = [], entity = None):
         QtCore.QAbstractTableModel.__init__(self, parent) 
         self.items = files
         self.entity = entity
+        self.working_dir = working_dir
 
     def rowCount(self, parent = QtCore.QModelIndex()):
         return len(self.items)
@@ -42,11 +124,35 @@ class FileTableModel(QtCore.QAbstractTableModel):
     def columnCount(self, parent = QtCore.QModelIndex()):
         return len(self.columns)
 
+    def flags(self, index):
+        if index.column() == FileTableModel._COL_SELECT:
+            return QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsEnabled
+        return QtCore.Qt.ItemIsEnabled        
+
     def headerData(self, section, orientation, role):
         # section is the index of the column/row.
         if role == QtCore.Qt.DisplayRole:
             if orientation == QtCore.Qt.Horizontal:
                 return str(self.columns[section])
+
+    def setData(self, index, value, role):
+        if role == QtCore.Qt.EditRole:
+            col = index.column()
+            row = index.row()
+            item = self.items[row]   
+
+            if FileTableModel._COL_SELECT == col:
+                if type(value) is bool:
+                    if value and not item in FileTableModel.selection:
+                        FileTableModel.selection.append(item)
+                    elif not value and item in FileTableModel.selection:
+                        FileTableModel.selection.remove(item)
+                    return True
+
+            if FileTableModel._COL_SIZE == col:
+                item["download_status"] = value
+                return True                    
+        return False
 
     def data(self, index, role):
         #if role == QtCore.Qt.TextAlignmentRole:
@@ -55,9 +161,6 @@ class FileTableModel(QtCore.QAbstractTableModel):
         #        return QtCore.Qt.AlignLeft | QtCore.AlignTop
         #    else:
         #        return QtCore.Qt.AlignRight | QtCore.AlignBottom
-
-        if not index.isValid():
-            return
 
         col = index.column()
         row = index.row()
@@ -71,35 +174,98 @@ class FileTableModel(QtCore.QAbstractTableModel):
             # .row() indexes into the outer list,
             # .column() indexes into the sub-list
 
-            if col == 0:
+            if col == FileTableModel._COL_SELECT:
+                return item in FileTableModel.selection
+            elif col == FileTableModel._COL_FILE_NAME:
                 return item["name"]
-            elif col == 1:
+            elif col == FileTableModel._COL_SIZE:
+                if "download_status" in item:
+                    text = item["download_status"]["message"]
+                    return text
+
                 if item["size"]:
                     size = int(item["size"])
                     if (size):
                         return human_size(size)
                 #return item["size"]
-            elif col == 2:
+            elif col == FileTableModel._COL_VERSION:
                 return item["revision"]
-            elif col == 3:
-                return item["task_type"]["name"]
-            elif col == 4:
-                return item["comment"]                
-            elif col == 5:
-                return item["description"]
-            elif col == 6:
+            elif col == FileTableModel._COL_UPDATED:
                 return my_date_format(item["updated_at"])
+            elif col == FileTableModel._COL_TASK:
+                return item["task_type"]["name"]
+            elif col == FileTableModel._COL_COMMENT:
+                return item["comment"]                
+            elif col == FileTableModel._COL_DESCRIPTION:
+                return item["description"]
+            elif col == FileTableModel._COL_PATH:
+                test = "/mnt/content/productions"
+                if test in item["path"]:
+                    return item["path"].replace(test, self.working_dir)
+
+                test = "/productions"
+                if test in item["path"]:
+                    return item["path"].replace(test, self.working_dir)
+
+                return item["path"]
 
         if role == QtCore.Qt.BackgroundRole:
             col = index.column()
             row = index.row()
 
-            if col == 3:
+            if col == FileTableModel._COL_TASK:
                 item = self.items[row]
                 return QtGui.QColor(item["task_type"]["color"])
 
+            elif col == FileTableModel._COL_SIZE:
+                if "download_status" in item:
+                    return item["download_status"]["color"]
+
         return None
 ###########################################################################
+def setup_file_table(tableModelFiles, tableView):
+
+    # create the sorter model
+    sorterModel = QtCore.QSortFilterProxyModel()
+    sorterModel.setSourceModel(tableModelFiles)
+    sorterModel.setFilterKeyColumn(0)
+
+     # filter proxy model
+    filter_proxy_model = QtCore.QSortFilterProxyModel()
+    filter_proxy_model.setSourceModel(tableModelFiles)
+    filter_proxy_model.setFilterKeyColumn(2) # third column          
+
+    tableView.setModel(sorterModel)                
+    tableView.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
+
+    tableView.setSortingEnabled(True)
+    tableView.sortByColumn(1, QtCore.Qt.DescendingOrder)
+
+    tableView.setColumnWidth(FileTableModel._COL_SELECT, 10)
+    tableView.setColumnWidth(FileTableModel._COL_FILE_NAME, 300)
+    tableView.setColumnWidth(FileTableModel._COL_VERSION, 40)
+    tableView.setColumnWidth(FileTableModel._COL_TASK, 100)
+    tableView.setColumnWidth(FileTableModel._COL_UPDATED, 120)
+    tableView.setColumnWidth(FileTableModel._COL_SIZE, 80)
+    tableView.setColumnWidth(FileTableModel._COL_COMMENT, 200)
+    tableView.setColumnWidth(FileTableModel._COL_DESCRIPTION, 150)
+    tableView.setColumnWidth(FileTableModel._COL_PATH, 100)
+
+    #tableView.horizontalHeader().setSectionResizeMode(FileTableModel._COL_PATH, QtWidgets.QHeaderView.Stretch)
+
+    tableView.resizeRowsToContents()
+    tableView.horizontalHeader().setSectionResizeMode(8, QtWidgets.QHeaderView.Stretch)        
+
+    tableView.verticalHeader().setDefaultSectionSize(tableView.verticalHeader().minimumSectionSize())        
+    tableView.horizontalHeader().setSectionResizeMode(FileTableModel._COL_PATH, QtWidgets.QHeaderView.Stretch)
+
+    checkboxDelegate = CheckBoxDelegate()
+    tableView.setItemDelegateForColumn(FileTableModel._COL_SELECT, checkboxDelegate)        
+
+    ## self.tableView.verticalHeader().setDefaultSectionSize(self.tableView.verticalHeader().minimumSectionSize())        
+    tableView.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+    tableView.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)        
+    ## self.tableView.horizontalHeader().setSectionResizeMode(8, QtWidgets.QHeaderView.Stretch)
 
 class TaskTableModel(QtCore.QAbstractTableModel):    
 

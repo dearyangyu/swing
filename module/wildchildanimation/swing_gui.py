@@ -50,7 +50,7 @@ from wildchildanimation.gui.breakout import *
 from wildchildanimation.gui.entity_info import *
 from wildchildanimation.gui.dcc_tools import *
 
-from wildchildanimation.gui.swing_tables import FileTableModel, TaskTableModel
+from wildchildanimation.gui.swing_tables import FileTableModel, CheckBoxDelegate, TaskTableModel, setup_file_table
 
 from wildchildanimation.gui.swing_desktop import Ui_SwingMain
 from wildchildanimation.gui.project_nav import ProjectNavWidget
@@ -169,11 +169,38 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
         self.readSettings()
         self.threadpool = QtCore.QThreadPool.globalInstance()
+        self._createActions()
+        self._createContextMenu()
 
         if self.connect_to_server():
             self.labelConnection.setText("Connected")
             self.projectNav.load_open_projects()
             self.version_check()
+
+    def _createActions(self):
+            # File actions
+            self.newAction = QtWidgets.QAction(self)
+            self.newAction.setText("&New")
+            self.newAction.setIcon(QtGui.QIcon(":file-new.svg"))
+            self.openAction = QtWidgets.QAction(QtGui.QIcon(":file-open.svg"), "&Open...", self)
+            self.saveAction = QtWidgets.QAction(QtGui.QIcon(":file-save.svg"), "&Save", self)
+            self.exitAction = QtWidgets.QAction("&Exit", self)
+            # Edit actions
+            self.copyAction = QtWidgets.QAction(QtGui.QIcon(":edit-copy.svg"), "&Copy", self)
+            self.pasteAction = QtWidgets.QAction(QtGui.QIcon(":edit-paste.svg"), "&Paste", self)
+            self.cutAction = QtWidgets.QAction(QtGui.QIcon(":edit-cut.svg"), "C&ut", self)
+            # Snip...            
+
+    def _createContextMenu(self):
+            # Setting contextMenuPolicy
+            self.tableViewFiles.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
+            # Populating the widget with actions
+            self.tableViewFiles.addAction(self.newAction)
+            self.tableViewFiles.addAction(self.openAction)
+            self.tableViewFiles.addAction(self.saveAction)
+            self.tableViewFiles.addAction(self.copyAction)
+            self.tableViewFiles.addAction(self.pasteAction)
+            self.tableViewFiles.addAction(self.cutAction)            
 
     def version_check(self):
         version_check = bg.VersionCheck(self)
@@ -194,7 +221,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
                 #self.labelConnection.setHint("Double click to update")
                 self.labelConnection.setStyleSheet("color: green; font-weight: 600; ")
                 self.labelConnection.mouseDoubleClickEvent = self.update_version
-                self.update_version()
+                ## self.update_version()
 
     def update_version(self, sender = None):
         reply = QtWidgets.QMessageBox.question(self, 'New Version found', 'Do you want to update ?', QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)        
@@ -539,38 +566,23 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             for item in working_files:
                 self.files.append(item)
 
-        self.tableModelFiles = FileTableModel(self, self.files)
-
-        # create the sorter model
-        sorterModel = QtCore.QSortFilterProxyModel()
-        sorterModel.setSourceModel(self.tableModelFiles)
-        sorterModel.setFilterKeyColumn(0)
-
-        # filter proxy model
-        filter_proxy_model = QtCore.QSortFilterProxyModel()
-        filter_proxy_model.setSourceModel(self.tableModelFiles)
-        filter_proxy_model.setFilterKeyColumn(2) # third column        
-
-        self.tableViewFiles.setModel(sorterModel)                
-        self.tableViewFiles.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
-
-        self.tableViewFiles.setSortingEnabled(True)
-        self.tableViewFiles.sortByColumn(0, QtCore.Qt.DescendingOrder)
-
-        self.tableViewFiles.setColumnWidth(0, 300)
-        self.tableViewFiles.setColumnWidth(1, 150)
-        self.tableViewFiles.setColumnWidth(2, 75)
-        self.tableViewFiles.setColumnWidth(3, 150)
-        self.tableViewFiles.setColumnWidth(4, 350)
-        self.tableViewFiles.setColumnWidth(6, 200)
+        self.tableModelFiles = FileTableModel(self, working_dir = load_settings("projects_root", os.path.expanduser("~")), files = self.files)
+        setup_file_table(self.tableModelFiles, self.tableViewFiles)        
 
         selectionModel = self.tableViewFiles.selectionModel()
         selectionModel.selectionChanged.connect(self.file_table_selection_changed)     
-
-        self.tableViewFiles.verticalHeader().setDefaultSectionSize(self.tableViewFiles.verticalHeader().minimumSectionSize())        
+        
 
         self.pushButtonDownload.setEnabled(len(self.files) > 0)    
         self.pushButtonImport.setEnabled(len(self.files) > 0)
+
+        self.tableViewFiles.clicked.connect(self.select_row)       
+
+    def select_row(self, index):
+        self.sorterModel.setData(index, QtCore.Qt.Checked, QtCore.Qt.EditRole)
+        self.sorterModel.layoutChanged.emit()
+        # self.tableViewFiles.update()
+        # print("current row is %d", index.row())
 
     def file_table_double_click(self, index):
         #row_index = index.row()
@@ -712,9 +724,21 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         dialog.exec_()
 
     def download_files(self):
-        dialog = DownloadDialogGUI(self, self.get_current_selection(), self.projectNav.get_task_types())
-        dialog.resize(self.size())
-        dialog.exec_()
+        files = []
+        for row in range(self.tableViewFiles.model().rowCount()):
+            index = self.tableViewFiles.model().index(row, 0)
+            if self.tableViewFiles.model().data(index, QtCore.Qt.DisplayRole):
+                item = self.tableViewFiles.model().data(index, QtCore.Qt.UserRole)
+                files.append(item)
+
+        if len(files) == 0:
+            dialog = DownloadDialogGUI(self, self.get_current_selection(), self.projectNav.get_task_types())
+            dialog.resize(self.size())
+            dialog.exec_()
+        else:
+            dialog = DownloadDialogGUI(self, self.get_current_selection(), self.projectNav.get_task_types(), files)
+            dialog.resize(self.size())
+            dialog.exec_()
 
     def load_asset(self):
         dialog = LoaderDialogGUI(self, self.handler, self.get_current_selection())

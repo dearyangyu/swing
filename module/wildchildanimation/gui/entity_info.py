@@ -37,8 +37,7 @@ from wildchildanimation.gui.downloads import *
 from wildchildanimation.gui.entity_info_dialog import Ui_EntityInfoDialog
 from wildchildanimation.gui.publish_dialog import Ui_PublishDialog
 
-from wildchildanimation.gui.swing_tables import human_size, FileTableModel
-from wildchildanimation.gui.swing_tables import human_size, load_file_table_widget
+from wildchildanimation.gui.swing_tables import human_size, FileTableModel, setup_file_table
 
 '''
     EntityInfoDialog class
@@ -81,7 +80,7 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
         #self.toolButtonNone.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_DialogCancelButton))
         #self.toolButtonNone.clicked.connect(self.select_none)
 
-        self.tableWidget.doubleClicked.connect(self.file_table_double_click)
+        self.tableView.doubleClicked.connect(self.file_table_double_click)
         self.pushButtonPublish.clicked.connect(self.publish)
 
         #self.toolButtonAll.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_DialogApplyButton))
@@ -97,9 +96,58 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
         return None
 
     def download_files(self):
-        dialog = DownloadDialogGUI(self, self.entity, self.task_types)
-        dialog.resize(self.size())
-        dialog.exec_()        
+        self.threadpool = QtCore.QThreadPool.globalInstance()
+
+        self.pushButtonDownload.setText("Downloading")
+        self.pushButtonDownload.setEnabled(False)
+        
+        self.pushButtonClose.setText("Busy")
+        self.pushButtonClose.setEnabled(False)
+        self.downloads = 0
+
+        file_list = []
+        for row in range(self.tableView.model().rowCount()):
+            index = self.tableView.model().index(row, 0)
+            if self.tableView.model().data(index, QtCore.Qt.DisplayRole):
+                item = self.tableView.model().data(index, QtCore.Qt.UserRole)
+                file_list.append(item)       
+
+        self.progressBar.setRange(0, len(file_list))
+
+        email = load_settings('user', 'user@example.com')
+        password = load_keyring('swing', 'password', 'Not A Password')
+        server = load_settings('server', 'https://example.wildchildanimation.com')
+        edit_api = "{}/edit".format(server)
+
+        row = 0
+        for item in file_list:
+            write_log("Downloading {}".format(item["name"]))
+
+            if "WorkingFile" in item["type"]:
+                url = "{}/api/working_file/{}".format(edit_api, item["id"])
+                target = set_target(item, self.working_dir)
+
+                worker = bg.FileDownloader(self, self.working_dir, item["id"], url, item["target_path"], email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
+
+                worker.callback.progress.connect(self.file_loading)
+                worker.callback.done.connect(self.file_loaded)
+                self.threadpool.start(worker)
+                self.downloads += 1                
+                item["status"] = "Busy"
+            else:
+                url = "{}/api/output_file/{}".format(edit_api, item["id"])
+                target = set_target(item, self.working_dir)
+
+                worker = bg.FileDownloader(self, self.working_dir, item["id"], url, item["target_path"], email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
+
+                worker.callback.progress.connect(self.file_loading)
+                worker.callback.done.connect(self.file_loaded)
+                
+                self.threadpool.start(worker)
+                self.downloads += 1            
+
+                item["status"] = "Busy"
+            row = row + 1                     
 
     def publish(self):
         task = self.get_selected_task()
@@ -109,18 +157,16 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
             dialog.show()
 
     def select_all(self):
-        index = 0
-        while index < self.tableWidget.rowCount():
-            row_item = self.tableWidget.item(index, 0)
-            row_item.setCheckState(QtCore.Qt.Checked)
-            index += 1
+        for row in range(self.tableView.model().rowCount()):
+            index = self.tableView.model().index(row, 0)
+            self.tableView.model().setData(index, True, QtCore.Qt.EditRole)
+        self.tableView.update()
 
     def select_none(self):
-        index = 0
-        while index < self.tableWidget.rowCount():
-            row_item = self.tableWidget.item(index, 0)
-            row_item.setCheckState(QtCore.Qt.Unchecked)
-            index += 1
+        for row in range(self.tableView.model().rowCount()):
+            index = self.tableView.model().index(row, 0)
+            self.tableView.model().setData(index, False, QtCore.Qt.EditRole)
+        self.tableView.update()
 
     def open_url(self, url):
         link = QtCore.QUrl(self.url)
@@ -205,6 +251,8 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
         if not self.file_list:
             loader.callback.loaded.connect(self.files_loaded)
             self.threadpool.start(loader)
+        else:
+            self.load_files(self.file_list)
             #loader.run()
 
         if "preview_file_id" in self.entity and self.entity["preview_file_id"]:
@@ -294,23 +342,24 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
         file_name = results["target"]
         working_dir = results["working_dir"]
 
-        index = 0
-        while index < self.tableWidget.rowCount():
-            row_item = self.tableWidget.item(index, 0)
-            file_item = row_item.data(QtCore.Qt.UserRole)
-            if file_item and file_id == file_item["id"]:
-                status_item = self.tableWidget.item(self.tableWidget.row(row_item), 5)
-                status_item.setText("{} - {}".format(human_size(size), message))
+        for row in range(self.tableView.model().rowCount()):
+            index = self.tableView.model().index(row, 0)
+            item = self.tableView.model().data(index, QtCore.Qt.UserRole)
+            if file_id == item['id']:
+                index = self.tableView.model().index(row, 5)
+                download_status = {}
+                download_status["message"] = "{} - {}".format(human_size(size), message)
 
                 if "error" in status:
-                    status_item.setBackground(QtGui.QColor('darkRed'))
+                    download_status["color"] = QtGui.QColor('darkRed')
                 elif "skipped" in status:
-                    status_item.setBackground(QtGui.QColor('darkCyan'))
+                    download_status["color"] = QtGui.QColor('darkCyan')
                 else:
-                    status_item.setBackground(QtGui.QColor('darkGreen'))
-                break        
+                    download_status["color"] = QtGui.QColor('darkGreen')
 
-            index += 1
+                self.tableView.model().setData(index, download_status, QtCore.Qt.EditRole)     
+                self.tableView.model().dataChanged.emit(index, index, QtCore.Qt.DisplayRole)                 
+                self.tableView.viewport().update()
 
         self.downloads -= 1
         if self.downloads <= 0:
@@ -328,113 +377,23 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
         message = result["message"]
         size = result["size"]
         file_id = result["file_id"]
-        file_name = result["target"]        
+        file_name = result["target"]      
 
-        index = 0
-        while index < self.tableWidget.rowCount():
-            row_item = self.tableWidget.item(index, 0)
-            file_item = row_item.data(QtCore.Qt.UserRole)
-            if file_item and file_id == file_item["id"]:
-                status_item = self.tableWidget.item(self.tableWidget.row(row_item), 5)
-                status_item.setText("{}".format(human_size(size)))
-                status_item.setBackground(QtGui.QColor('darkCyan'))
-                break
-            index += 1        
+        for row in range(self.tableView.model().rowCount()):
+            index = self.tableView.model().index(row, 0)
+            item = self.tableView.model().data(index, QtCore.Qt.UserRole)
+            if file_id == item['id']:
 
-    def load_files(self, files):
-        self.files = files
+                index = self.tableView.model().index(row, 5)
+                download_status = {}
+                download_status["message"] = "{}".format(human_size(size))
+                download_status["color"] = QtGui.QColor('darkCyan')
+                self.tableView.model().setData(index, download_status, QtCore.Qt.EditRole) 
+                self.tableView.model().dataChanged.e 
 
-        self.tableWidget.clear()
-        self.tableWidget.setRowCount(len(self.files))        
-
-        row = 0
-        for item in self.files:
-            cell = QtWidgets.QTableWidgetItem(item["name"])
-            cell.setData(QtCore.Qt.UserRole, item)
-
-            cell.setFlags(QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
-            cell.setCheckState(QtCore.Qt.Checked)  
-            self.tableWidget.setItem(row, 0, cell)
-
-            if item["size"]:
-                size = int(item["size"])
-                if (size):
-                    cell = QtWidgets.QTableWidgetItem("{0}".format(size))
-                else:
-                    cell = QtWidgets.QTableWidgetItem("")
-            cell.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
-            self.tableWidget.setItem(row, 1, cell)
-
-            cell = QtWidgets.QTableWidgetItem("{}".format(item["revision"]))
-            cell.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
-            self.tableWidget.setItem(row, 2, cell)
-
-            cell = QtWidgets.QTableWidgetItem(item["task_type"]["name"])
-            cell.setBackgroundColor(QtGui.QColor(item["task_type"]["color"]))
-
-            cell.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
-            self.tableWidget.setItem(row, 3, cell)
-
-            cell = QtWidgets.QTableWidgetItem(my_date_format(item["updated_at"]))
-            cell.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
-            self.tableWidget.setItem(row, 4, cell)                                        
-
-            cell = QtWidgets.QTableWidgetItem(str(""))
-            cell.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
-            self.tableWidget.setItem(row, 5, cell)
-
-            row += 1
-
-        #tableWidget.setColumnWidth(0, 350)
-        #tableWidget.setColumnWidth(1, 100)
-        #tableWidget.setColumnWidth(2, 50)        
-        #tableWidget.setColumnWidth(3, 200)        
-        #tableWidget.setColumnWidth(4, 200)       
-        #tableWidget.setColumnWidth(5, 100)   
-
-        hh = self.tableWidget.horizontalHeader()
-        hh.setMinimumSectionSize(100)
-        hh.setDefaultSectionSize(hh.minimumSectionSize())
-        hh.setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)     
-
-        self.tableWidget.verticalHeader().setDefaultSectionSize(self.tableWidget.verticalHeader().minimumSectionSize())       
-        self.tableWidget.doubleClicked.connect(self.on_click)             
-
-    def load_files1(self, files):
-        self.files = files
-
-        tableModel = FileTableModel(self, self.files)
-
-        # create the sorter model
-        sorterModel = QtCore.QSortFilterProxyModel()
-        sorterModel.setSourceModel(tableModel)
-        sorterModel.setFilterKeyColumn(0)        
-
-        self.tableViewFiles.setModel(sorterModel)                
-        self.tableViewFiles.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
-
-        self.tableViewFiles.setSortingEnabled(True)
-        self.tableViewFiles.sortByColumn(0, QtCore.Qt.DescendingOrder)
-
-        #self.tableViewFiles.setColumnWidth(0, 300)
-        #self.tableViewFiles.setColumnWidth(1, 150)
-        #self.tableViewFiles.setColumnWidth(2, 75)
-        #self.tableViewFiles.setColumnWidth(3, 150)
-        #self.tableViewFiles.setColumnWidth(4, 350)
-        #self.tableViewFiles.setColumnWidth(6, 200)
-
-        hh = self.tableViewFiles.horizontalHeader()
-        hh.setMinimumSectionSize(100)
-        hh.setDefaultSectionSize(hh.minimumSectionSize())
-        hh.setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)          
-
-        #selectionModel = self.tableViewFiles.selectionModel()
-        #selectionModel.selectionChanged.connect(self.file_table_selection_changed)     
-
-        self.tableViewFiles.verticalHeader().setDefaultSectionSize(self.tableViewFiles.verticalHeader().minimumSectionSize())          
-
-        #selectionModel = self.tableViewFiles.selectionModel()
-        #selectionModel.selectionChanged.connect(self.file_table_selection_changed)           
+    def load_files(self, file_list):
+        self.tableModelFiles = FileTableModel(self, working_dir = load_settings("projects_root", os.path.expanduser("~")), files = file_list)
+        setup_file_table(self.tableModelFiles, self.tableView)
 
     def file_table_double_click(self, index):
         row_index = index.row()
@@ -480,18 +439,16 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
         self.downloads = 0
 
         file_list = []
-
-        index = 0
-        while index < self.tableWidget.rowCount():
-            row_item = self.tableWidget.item(index, 0)
-            if row_item.checkState():
-                file_list.append(row_item.data(QtCore.Qt.UserRole))
-            index += 1
+        for row in range(self.tableView.model().rowCount()):
+            index = self.tableView.model().index(row, 0)
+            if self.tableView.model().data(index, QtCore.Qt.DisplayRole):
+                item = self.tableView.model().data(index, QtCore.Qt.UserRole)
+                file_list.append(item)       
 
         #write_log("Downloading {} files".format(len(file_list)))
         #write_log("Multithreading with maximum %d threads" % self.threadpool.maxThreadCount())
 
-        self.progressBar.setRange(0, index)
+        self.progressBar.setRange(0, len(file_list))
 
         email = load_settings('user', 'user@example.com')
         password = load_keyring('swing', 'password', 'Not A Password')
