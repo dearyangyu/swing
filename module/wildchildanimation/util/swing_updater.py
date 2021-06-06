@@ -39,6 +39,7 @@ def check_or_create_dir(dir):
         print("Found directory {}".format(dir))
 
 def create_venv(dir):
+    print("creating python virtual env")
     drive, tail = split_path(dir)        
     cmd = '{} && cd {} && python -m venv env'.format(drive, dir)
     print(cmd)
@@ -50,15 +51,13 @@ def create_venv(dir):
     pprint(s)
 
 def update_requirements(dir):
+    print("updating requirements.txt")
     drive, tail = split_path(dir)        
     cmd = '{} && cd {} && "env/Scripts/activate" && pip install -r swing/swing-main/requirements.txt'.format(drive, dir)
-    print(cmd)    
 
     p = os.popen(cmd)
     s = p.read()
     p.close()   
-
-    pprint(s)
 
 def get_swing_release():
     req = requests.get('https://raw.githubusercontent.com/wildchild-animation/swing/main/module/swing.version')
@@ -66,18 +65,14 @@ def get_swing_release():
 
 def run_swing_standalone(dir):
     drive, tail = split_path(dir)        
-    #  c:; cd 'c:\DEV\Github\wca-maya'; & 'c:\DEV\Github\wca-maya\venv\Scripts\python.exe' 'c:\Users\pniemandt\.vscode\extensions\ms-python.python-2021.5.842923320\pythonFiles\lib\python\debugpy\launcher' '1778' '--' 'c:\DEV\Github\wca-maya\plugin\treehouse\swing_desktop.py' 
-    cmd = '{} &&  cd {}/swing && "{}/env/Scripts/activate" && python {}/swing/swing-main/plugin/treehouse/swing_desktop.py'.format(drive, dir, dir, dir)
-    print(cmd)
+    cmd = '{} &&  cd {}/swing/swing-main && "{}/env/Scripts/activate" && python {}/swing/swing-main/module/wildchildanimation/plugin/swing_desktop.py'.format(drive, dir, dir, dir)
 
-    #'security add-generic-password -U -a %s -s %s -p %s' % (account, service, password)
     p = os.popen(cmd)
     s = p.read()
     p.close()   
 
-    pprint(s)
-
 def download_latest(dir):
+    print("downloading latest release")
     check_or_create_dir(dir)
 
     req = requests.get(SWING_DOWNLOAD, stream = True)
@@ -87,6 +82,7 @@ def download_latest(dir):
     return True
 
 def extract_latest(download_dir, module_dir):
+    print("extrating latest release")
     check_or_create_dir(module_dir)
     with zipfile.ZipFile("{}/swing-main.zip".format(download_dir), 'r') as zf:
         zf.extractall(module_dir)
