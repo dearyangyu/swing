@@ -219,7 +219,8 @@ class FileTableModel(QtCore.QAbstractTableModel):
 
             elif col == FileTableModel._COL_SIZE:
                 if "download_status" in item:
-                    return item["download_status"]["color"]
+                    if "color" in item["download_status"]:
+                        return item["download_status"]["color"]
 
         return None
 ###########################################################################

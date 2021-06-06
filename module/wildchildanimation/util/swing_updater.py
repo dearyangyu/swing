@@ -10,23 +10,16 @@ sys.path.append("./module")
 import os
 from pprint import pprint
 
-swing_repo = 'wildchild-animation/swing'
+import requests
+import zipfile
+
+SWING_DOWNLOAD = "https://github.com/wildchild-animation/swing/archive/refs/heads/main.zip"
 
 # local import wildchildanimation module by adding to the path
 WCA_ROOT = "C:/WCA"
 
 def split_path(path):
      return os.path.splitdrive(path)
-
-def get_git_version(path = ''):
-    cmd = '{}git --version'.format(path)
-    try:
-        p = os.popen(cmd)
-        s = p.read()
-        p.close()    
-        return s
-    except:
-        return None
 
 def get_python_version(path = ''):
     cmd = '{}python --version'.format(path)
@@ -45,28 +38,6 @@ def check_or_create_dir(dir):
     else:
         print("Found directory {}".format(dir))
 
-def git_clone(dir):
-    drive, tail = split_path(dir)
-    cmd = '{} && cd {} && git clone https://github.com/{}'.format(drive, dir, swing_repo)
-    print(cmd)
-
-    p = os.popen(cmd)
-    s = p.read()
-    p.close()
-
-    pprint(s)    
-
-def git_pull(dir):
-    drive, tail = split_path(dir)    
-    cmd = '{} && cd {} && git pull'.format(drive, dir)
-    print(cmd)    
-
-    p = os.popen(cmd)
-    s = p.read()
-    p.close()
-
-    pprint(s)    
-
 def create_venv(dir):
     drive, tail = split_path(dir)        
     cmd = '{} && cd {} && python -m venv env'.format(drive, dir)
@@ -80,7 +51,7 @@ def create_venv(dir):
 
 def update_requirements(dir):
     drive, tail = split_path(dir)        
-    cmd = '{} && cd {} && "env/Scripts/activate" && pip install -r swing/requirements.txt'.format(drive, dir)
+    cmd = '{} && cd {} && "env/Scripts/activate" && pip install -r swing/swing-main/requirements.txt'.format(drive, dir)
     print(cmd)    
 
     p = os.popen(cmd)
@@ -89,10 +60,14 @@ def update_requirements(dir):
 
     pprint(s)
 
-def get_swing_version(dir):
+def get_swing_release():
+    req = requests.get('https://raw.githubusercontent.com/wildchild-animation/swing/main/module/swing.version')
+    return req.text
+
+def run_swing_standalone(dir):
     drive, tail = split_path(dir)        
     #  c:; cd 'c:\DEV\Github\wca-maya'; & 'c:\DEV\Github\wca-maya\venv\Scripts\python.exe' 'c:\Users\pniemandt\.vscode\extensions\ms-python.python-2021.5.842923320\pythonFiles\lib\python\debugpy\launcher' '1778' '--' 'c:\DEV\Github\wca-maya\plugin\treehouse\swing_desktop.py' 
-    cmd = '{} &&  cd {}/swing && "{}/env/Scripts/activate" && python {}/swing/plugin/treehouse/swing_desktop.py'.format(drive, dir, dir, dir)
+    cmd = '{} &&  cd {}/swing && "{}/env/Scripts/activate" && python {}/swing/swing-main/plugin/treehouse/swing_desktop.py'.format(drive, dir, dir, dir)
     print(cmd)
 
     #'security add-generic-password -U -a %s -s %s -p %s' % (account, service, password)
@@ -102,29 +77,51 @@ def get_swing_version(dir):
 
     pprint(s)
 
-def setup_windows(install_dir):
+def download_latest(dir):
+    check_or_create_dir(dir)
+
+    req = requests.get(SWING_DOWNLOAD, stream = True)
+    with open("{}/swing-main.zip".format(dir), 'wb') as fd:
+        for chunk in req.iter_content(chunk_size = 1024):
+            fd.write(chunk)
+    return True
+
+def extract_latest(download_dir, module_dir):
+    check_or_create_dir(module_dir)
+    with zipfile.ZipFile("{}/swing-main.zip".format(download_dir), 'r') as zf:
+        zf.extractall(module_dir)
+    
+    return True
+
+def setup_windows(working_dir):
     # make sure we have default directories
-    check_or_create_dir(install_dir)
+    check_or_create_dir(working_dir)
 
-    repo = "{}/swing".format(install_dir)
+    install_dir = "{}/installs".format(working_dir)
+    if not os.path.exists(install_dir):
+        download_latest(install_dir)
 
-    # change to download as zip
-    return False
-    if not os.path.exists(repo):
-        print("{}: No repo found, creating".format(repo))
-        git_clone(install_dir)
+    module_path = "{}/swing".format(working_dir)
+    if not os.path.exists(module_path):
+        check_or_create_dir(module_path)
+        extract_latest(install_dir, module_path)
+
+    version_path = "{}/swing/swing-main/module/swing.version".format(working_dir)
+    if not os.path.exists(module_path):
+        download_latest(install_dir)
+        extract_latest(install_dir, module_path)
+
+    local_version = open(version_path, 'r').read()
+    release_version = get_swing_release()
+
+    if not local_version == release_version:
+        download_latest(install_dir)
+        extract_latest(install_dir, module_path)
     else:
-        print("{}: Repo found, updating".format(repo))
-        git_pull(repo)
+        print("Swing up to date")
 
-    venv = "{}/env".format(install_dir)
-
-    if not os.path.exists(venv):
-        print("{}: Python virtual env not found, creating".format(install_dir))
-        create_venv(install_dir)
-
-    update_requirements(install_dir)
-    get_swing_version(install_dir)
+    update_requirements(working_dir)
+    run_swing_standalone(working_dir)
 
 def update(working_dir):
     print("treehouse: swing updater v{}".format(_VERSION))
@@ -135,15 +132,8 @@ def update(working_dir):
         install_dir = working_dir
     print("path: {}".format(install_dir))
 
-    git_version = get_git_version()
-    if not git_version:
-        print("Pleasure ensure git is installed and in your path")
-        exit(-1)
-    else:
-        print("Found {}".format(git_version))
-
     python_version = get_python_version()
-    if not git_version:
+    if not python_version:
         print("Pleasure ensure python is in your path")
         exit(-2)
     else:

@@ -41,17 +41,17 @@ class SearchFilesDialog(QtWidgets.QDialog, Ui_SearchFilesDialog):
 
     working_dir = None
     
-    def __init__(self, parent = None, handler = None, entity = None, task_types = None):
+    def __init__(self, project_nav, handler):
         super(SearchFilesDialog, self).__init__(None) # Call the inherited classes __init__ method
         self.setupUi(self)
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
         self.setMinimumWidth(640)
 
-        self.project = None
-        self.handler = handler
-        self.entity = entity
-        self.task_types = task_types
+        self.nav = project_nav
+        self.project = self.nav.get_project()
+        self.task_types = self.nav.get_task_types()
 
+        self.handler = handler
         self.threadpool = QtCore.QThreadPool.globalInstance()
 
         self.pushButtonSearch.clicked.connect(self.process)
@@ -61,7 +61,6 @@ class SearchFilesDialog(QtWidgets.QDialog, Ui_SearchFilesDialog):
         self.project = project
 
     def process(self):
-        #self.threadpool = QtCore.QThreadPool()
         self.threadpool = QtCore.QThreadPool.globalInstance()
 
         email = load_settings('user', 'user@example.com')

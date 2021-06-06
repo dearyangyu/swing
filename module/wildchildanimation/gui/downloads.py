@@ -25,6 +25,7 @@ from datetime import datetime
 import wildchildanimation.gui.background_workers as bg
 
 from wildchildanimation.gui.swing_utils import *
+from wildchildanimation.gui.loader import *
 
 from wildchildanimation.gui.download_dialog import Ui_DownloadDialog
 
@@ -40,12 +41,13 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
 
     working_dir = None
     
-    def __init__(self, parent = None, entity = None, task_types = None, file_list = None):
+    def __init__(self, project_nav = None, entity = None, task_types = None, file_list = None):
         super(DownloadDialogGUI, self).__init__(None) # Call the inherited classes __init__ method
         self.setupUi(self)
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
         self.setMinimumWidth(600)
 
+        self.nav = project_nav
         self.entity = entity 
         self.threadpool = QtCore.QThreadPool.globalInstance()
         self.task_types = task_types
@@ -71,6 +73,8 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
         #self.toolButtonNone.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_DialogCancelButton))
         self.toolButtonNone.clicked.connect(self.select_none)
 
+        self.tableView.doubleClicked.connect(self.file_table_double_click)
+
         self.setWorkingDir(load_settings("projects_root", os.path.expanduser("~")))
 
     def select_all(self):
@@ -84,6 +88,24 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
             index = self.tableView.model().index(row, 0)
             self.tableView.model().setData(index, False, QtCore.Qt.EditRole)
         self.tableView.update()
+
+    def file_table_double_click(self, index):
+        self.selected_file = self.tableView.model().data(index, QtCore.Qt.UserRole)        
+        if self.selected_file:
+            working_dir = load_settings("projects_root", os.path.expanduser("~"))
+            set_target(self.selected_file, working_dir)
+
+            if os.path.isfile(self.selected_file["target_path"]):
+                reply = QtWidgets.QMessageBox.question(self, 'File found:', 'Would you like to open the existing folder?', QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
+                if reply == QtWidgets.QMessageBox.Yes:
+                    open_folder(os.path.dirname(self.selected_file["target_path"]))
+                    return True
+
+            dialog = LoaderDialogGUI(self, self.handler, self.entity)
+            dialog.load_files(self.files)
+            dialog.set_selected(self.selected_file)
+            #dialog.exec_()
+            dialog.show()        
 
     def open_url(self, url):
         link = QtCore.QUrl(self.url)
@@ -101,7 +123,7 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
             self.shot = data["item"]
             self.url = data["url"]
             self.labelEntity.setText("Shot")
-            loader = bg.EntityFileLoader(self, self.shot, self.working_dir)
+            loader = bg.EntityFileLoader(self, self.nav, self.shot, self.working_dir)
 
             if "code" in self.project:
                 sections.append(self.project["code"])
@@ -121,7 +143,7 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
             self.asset = data["item"]
             self.url = data["url"]
             self.labelEntity.setText("Asset")
-            loader = bg.EntityFileLoader(self, self.asset, self.working_dir)
+            loader = bg.EntityFileLoader(self, self.nav, self.asset, self.working_dir)
 
             if "code" in self.project:
                 sections.append(self.project["code"])
@@ -254,6 +276,7 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
     def load_files(self, file_list):
         self.tableModelFiles = FileTableModel(self, working_dir = load_settings("projects_root", os.path.expanduser("~")), files = file_list)
         setup_file_table(self.tableModelFiles, self.tableView)
+        self.tableView.clicked.connect(self.select_row)   
         
         return
         self.tableView.clicked.connect(self.select_row)   
@@ -300,8 +323,8 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
         self.tableView.clicked.connect(self.select_row)       
 
     def select_row(self, index):
-        self.sorterModel.setData(index, QtCore.Qt.Checked, QtCore.Qt.EditRole)
-        self.sorterModel.layoutChanged.emit()    
+        self.tableView.model().setData(index, QtCore.Qt.Checked, QtCore.Qt.EditRole)
+        self.tableView.model().layoutChanged.emit()    
 
         #self.pushButtonDownload.setEnabled(len(self.files) > 0)    
         #self.pushButtonImport.setEnabled(len(self.files) > 0)        

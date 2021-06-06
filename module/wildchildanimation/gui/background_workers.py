@@ -99,44 +99,78 @@ class ProjectHierarchyLoaderThread(QtCore.QRunnable):
         self.callback = LoadedSignal()        
 
     def run(self):
-        episodes = None
+        results = {}
+
+        episodes = []
+        task_types = []
 
         if not self.project:
             return False
         try:
             try:
-                episodes = gazu.shot.all_episodes_for_project(self.project)
-                if len(episodes) == 0:
+                task_types = gazu.task.all_task_types()
+                status_codes = gazu.task.all_task_statuses()
+                
+                # find all episodes for selected project
+                episode_list = gazu.shot.all_episodes_for_project(self.project)
+
+                # if no eps, fake a default
+                if len(episode_list) == 0:
+
                     episode = {
                         "name": "All",
                         "id": 0,
                         "sequences": gazu.shot.all_sequences_for_project(self.project)
                     }
-                    episodes = [ episode ]
+                    episodes.append(episode)
+
+                    # and grab all task types
+                    #for item in gazu.task.all_task_types():
+                    #    task_types.append(item)
+                    
                 else:
-                    for ep in episodes:
+                    # else run through all eps
+                    for ep in episode_list:
+                        # grab all sequences for that ep
                         ep["sequences"] = gazu.shot.all_sequences_for_episode(ep)
 
-                for ep in episodes:
-                    for seq in ep["sequences"]:
-                        seq["shots"] = gazu.shot.all_shots_for_sequence(seq)
+                        # grab all shots
+                        for seq in ep["sequences"]:
+                            seq["shots"] = gazu.shot.all_shots_for_sequence(seq)
 
-                results = {
-                    "results": episodes
-                }                        
+                        # grab task types
+                        #ep["task_types"] = gazu.task.all_task_types_for_episode(ep)
+                        #for item in ep["task_types"]:
+                        #    # unique 
+                        #    if not item in task_types:
+                        #        task_types.append(item)
+
+                        episodes.append(ep)
+                    # scan eps for seq, shot and task type
+
+                results["episodes"] = episodes
+                results["task_types"] = task_types
+                results["status_codes"] = status_codes
             except:
                 traceback.print_exc(file=sys.stdout)
             # done
         finally:
-            self.callback.loaded.emit(episodes)
+            self.callback.loaded.emit(results)
 
 class EntityFileLoader(QtCore.QRunnable):
 
-    def __init__(self, parent, entity, working_dir):
+    def __init__(self, parent, project_nav, entity, working_dir):
         super(EntityFileLoader, self).__init__(self, parent)
+        self.nav = project_nav
         self.entity = entity
         self.working_dir = working_dir
-        self.callback = LoadedSignal()        
+        self.callback = LoadedSignal()    
+
+    def find_item(self, data_list, item):
+        for i in data_list:
+            if i["id"] == item:
+                return i
+        return None            
 
     def run(self):
         try:
@@ -146,29 +180,17 @@ class EntityFileLoader(QtCore.QRunnable):
             }                        
 
             try:
-                task_types = gazu.task.all_task_types()
+                task_types = self.nav.get_task_types()
+                print("Loading files for {}".format(self.entity["name"]))
                 
-                if self.entity["type"] == "Shot":
-                    casting = gazu.casting.get_shot_casting(self.entity)
-                    tasks = gazu.task.all_tasks_for_shot(self.entity)
-                    
-                else:
-                    casting = gazu.casting.get_asset_casting(self.entity)
-                    tasks = gazu.task.all_tasks_for_asset(self.entity)
-
-                task_lookup = dict()
-                for i in tasks:
-                    task_lookup[i["id"]] = i
-
-                task_type_lookup = dict()
-                for i in task_types:
-                    task_type_lookup[i["id"]] = i                    
-
                 #for item in casting:
                 #    file_list += reportdata.load_working_files(item["asset_id"])            
                 
-                output_files = gazu.files.all_output_files_for_entity(self.entity)
-                working_files = gazu.files.get_all_working_files_for_entity(self.entity)
+                output_files = []
+                output_file_list = gazu.files.all_output_files_for_entity(self.entity)
+
+                working_files = []
+                working_file_list = gazu.files.get_all_working_files_for_entity(self.entity)
 
                 # load casted files
                 scan_cast = False
@@ -183,14 +205,20 @@ class EntityFileLoader(QtCore.QRunnable):
                                 working_files.append(file_item)
 
                 # check task types
-                for file_item in output_files:
-                    file_item["task_type"] = task_type_lookup[file_item["task_type_id"]]
-                    file_item["status"] = ""
+                for file_item in output_file_list:
+                    task_type = self.find_item(task_types, file_item["task_type_id"])
+                    if task_type:
+                        file_item["task_type"] = task_type
+                        file_item["status"] = ""
+                        output_files.append(file_item)
 
                 for file_item in working_files:
-                    task = task_lookup[file_item["task_id"]]
-                    file_item["task_type"] = task_type_lookup[task["task_type_id"]]
-                    file_item["status"] = ""
+                    task = gazu.task.get_task[file_item["task_id"]]
+                    task_type = self.find_item(task_types, task["task_type"]["id"])
+                    if task_type:
+                        file_item["task_type"] = self.find_item(task_types, file_item["task_type_id"])
+                        file_item["status"] = ""
+                        working_files.append(file_item)
 
                 results = {
                     "output_files": output_files,
@@ -294,10 +322,12 @@ class TaskFileInfoThread(QtCore.QRunnable):
 
 class TaskLoaderThread(QtCore.QRunnable):
 
-    def __init__(self, parent, project, email):
+    ALL_TASKS = False
+
+    def __init__(self, parent, project_nav, email):
         super(TaskLoaderThread, self).__init__(self, parent)
         self.parent = parent
-        self.project = project
+        self.nav = project_nav
         self.email = email
         self.callback = LoadedSignal()        
 
@@ -306,12 +336,29 @@ class TaskLoaderThread(QtCore.QRunnable):
     #        return arrow.get(elem["due_date"], "YYYY-MM-DDTHH:mm:ss")
     #    return 0
 
+    def is_found(self, data_list, item):
+        for i in data_list:
+            if i["id"] == item:
+                return True
+        return False
+
     def run(self):
-        person = gazu.person.get_person_by_email(self.email)
-        tasks = gazu.task.all_tasks_for_person(person)
+        if TaskLoaderThread.ALL_TASKS:
+            person = gazu.person.get_person_by_email(self.email)
+            tasks = gazu.task.all_tasks_for_person(person)
+        else:
+            tasks = gazu.user.all_tasks_to_do()
+
         results = []
+
+        current_project = self.nav.get_project()
+        current_episode = self.nav.get_episode()
+        task_types = self.nav.get_task_types()
+        task_status = self.nav.get_task_status()
         for item in tasks:
-            if item["project_id"] == self.project["id"]:
+            if item["project_id"] == current_project["id"] and self.is_found(task_types, item["task_type_id"]) and self.is_found(task_status, item["task_status_id"]):
+                if current_episode and item["episode_id"] != current_episode["id"]:
+                    continue
                 item["task_url"] = gazu.task.get_task_url(item)
                 results.append(item)
         self.callback.loaded.emit(results)

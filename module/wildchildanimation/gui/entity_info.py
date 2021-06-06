@@ -48,11 +48,11 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
 
     working_dir = None
     
-    def __init__(self, parent = None, entity = None, task_types = None, handler = None):
+    def __init__(self, parent = None, project_nav = None, entity = None, task_types = None, handler = None):
         super(EntityInfoDialog, self).__init__(None) # Call the inherited classes __init__ method
         self.setupUi(self)
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
-
+        self.nav = project_nav
         self.entity = entity 
         self.threadpool = QtCore.QThreadPool.globalInstance()
         self.task_types = task_types
@@ -212,7 +212,7 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
             self.shot = data["item"]
             self.url = data["url"]
             self.labelEntity.setText("Shot")
-            loader = bg.EntityFileLoader(self, self.shot, self.working_dir)
+            loader = bg.EntityFileLoader(self, self.nav, self.shot, self.working_dir)
 
             if "code" in self.project:
                 sections.append(self.project["code"])
@@ -231,7 +231,7 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
             self.asset = data["item"]
             self.url = data["url"]
             self.labelEntity.setText("Asset")
-            loader = bg.EntityFileLoader(self, self.asset, self.working_dir)
+            loader = bg.EntityFileLoader(self, self.nav, self.asset, self.working_dir)
 
             if "code" in self.project:
                 sections.append(self.project["code"])
@@ -389,15 +389,16 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
                 download_status["message"] = "{}".format(human_size(size))
                 download_status["color"] = QtGui.QColor('darkCyan')
                 self.tableView.model().setData(index, download_status, QtCore.Qt.EditRole) 
-                self.tableView.model().dataChanged.e 
+                self.tableView.model().dataChanged.emit(index, index, QtCore.Qt.DisplayRole)           
+                self.tableView.viewport().update()      
+
 
     def load_files(self, file_list):
         self.tableModelFiles = FileTableModel(self, working_dir = load_settings("projects_root", os.path.expanduser("~")), files = file_list)
         setup_file_table(self.tableModelFiles, self.tableView)
 
     def file_table_double_click(self, index):
-        row_index = index.row()
-        self.selected_file = self.files[row_index]
+        self.selected_file = self.tableView.model().data(index, QtCore.Qt.UserRole)        
         if self.selected_file:
             working_dir = load_settings("projects_root", os.path.expanduser("~"))
             set_target(self.selected_file, working_dir)
@@ -415,11 +416,7 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
             dialog.show()
 
     def on_click(self, index):
-        row = index.row()
-        column = index.column()
-
-        row_item = self.tableWidget.item(row, column)
-        selected = row_item.data(QtCore.Qt.UserRole)
+        selected = self.tableView.model().data(index, QtCore.Qt.UserRole)      
         working_dir = load_settings("projects_root", os.path.expanduser("~"))
         set_target(selected, working_dir)        
 

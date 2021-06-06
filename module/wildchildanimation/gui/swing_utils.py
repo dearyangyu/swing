@@ -39,7 +39,7 @@ def current_time():
 def open_folder(directory):
     file_info = QtCore.QFileInfo(directory)
     if file_info.isDir():
-        QtGui.QDesktopServices.openUrl(directory)
+        QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromLocalFile(directory))
     else:
         write_log("[ERROR] Invalid directory path: {0}".format(directory))
 
@@ -162,8 +162,16 @@ def human_size(bytes):
     # really ?     
     return "{:.2f}".format(bytes)   
 
+def set_button_icon(button, resource_string):
+    pm = QtGui.QPixmap(resource_string)
+    pm = pm.scaledToHeight(18)        
+
+    icon = QtGui.QIcon(pm)
+    button.setIcon(icon)
+    return button
+
 def connect_to_server(email, password): 
-    server = load_settings('server', 'https://example.wildchildanimation.com')
+    server = load_settings('server', 'https://example.company.com')
     gazu.set_host("{}/api".format(server))
     try:
         gazu.log_in(email, password)

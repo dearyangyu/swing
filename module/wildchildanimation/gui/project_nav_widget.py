@@ -13,6 +13,8 @@ from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
 from wildchildanimation.gui.swing_utils import fakestr
+
+
 class Ui_ProjectNavWidget(object):
     def setupUi(self, ProjectNavWidget):
         if not ProjectNavWidget.objectName():
@@ -119,6 +121,25 @@ class Ui_ProjectNavWidget(object):
 
         self.horizontalLayoutEpisodeSequence.addWidget(self.comboBoxSequence)
 
+        self.toolButtonTaskTypes = QToolButton(ProjectNavWidget)
+        self.toolButtonTaskTypes.setObjectName(u"toolButtonTaskTypes")
+        self.toolButtonTaskTypes.setEnabled(False)
+        sizePolicy3 = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+        sizePolicy3.setHorizontalStretch(0)
+        sizePolicy3.setVerticalStretch(0)
+        sizePolicy3.setHeightForWidth(self.toolButtonTaskTypes.sizePolicy().hasHeightForWidth())
+        self.toolButtonTaskTypes.setSizePolicy(sizePolicy3)
+
+        self.horizontalLayoutEpisodeSequence.addWidget(self.toolButtonTaskTypes)
+
+        self.toolButtonStatusTypes = QToolButton(ProjectNavWidget)
+        self.toolButtonStatusTypes.setObjectName(u"toolButtonStatusTypes")
+        self.toolButtonStatusTypes.setEnabled(False)
+        sizePolicy3.setHeightForWidth(self.toolButtonStatusTypes.sizePolicy().hasHeightForWidth())
+        self.toolButtonStatusTypes.setSizePolicy(sizePolicy3)
+
+        self.horizontalLayoutEpisodeSequence.addWidget(self.toolButtonStatusTypes)
+
 
         self.verticalLayoutProject.addLayout(self.horizontalLayoutEpisodeSequence)
 
@@ -140,5 +161,7 @@ class Ui_ProjectNavWidget(object):
         self.toolButtonRefresh.setText(fakestr(u"...", None))
         self.labelShotEpisode.setText(fakestr(u"Episode", None))
         self.labelShotSequence.setText(fakestr(u"Sequence", None))
+        self.toolButtonTaskTypes.setText("")
+        self.toolButtonStatusTypes.setText("")
     # retranslateUi
 
