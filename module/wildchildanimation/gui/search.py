@@ -98,9 +98,9 @@ class SearchFilesDialog(QtWidgets.QDialog, Ui_SearchFilesDialog):
             QtWidgets.QMessageBox.information(self, 'File Search', 'No files found, sorry', QtWidgets.QMessageBox.Ok)            
             return                 
 
-        dialog = DownloadDialogGUI(self, self.entity, self.task_types, file_list)
-        dialog.load_files(file_list)
-        dialog.exec_()            
+        dialog = DownloadDialogGUI(self, self.nav, self.entity, file_list)
+        #dialog.load_files(file_list)
+        dialog.show()            
 
     def close_dialog(self):
         self.close()     

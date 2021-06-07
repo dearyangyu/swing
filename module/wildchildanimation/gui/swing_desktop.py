@@ -14,12 +14,12 @@ from PySide2.QtWidgets import *
 
 from wildchildanimation.gui.swing_utils import fakestr
 
-
 class Ui_SwingMain(object):
     def setupUi(self, SwingMain):
         if not SwingMain.objectName():
             SwingMain.setObjectName(u"SwingMain")
         SwingMain.resize(650, 491)
+        SwingMain.setSizeGripEnabled(True)
         self.verticalLayout = QVBoxLayout(SwingMain)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.connectionLayout = QHBoxLayout()
@@ -82,10 +82,6 @@ class Ui_SwingMain(object):
 
         self.horizontalLayoutAsset = QHBoxLayout()
         self.horizontalLayoutAsset.setObjectName(u"horizontalLayoutAsset")
-        self.horizontalSpacerAsset = QSpacerItem(10, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
-
-        self.horizontalLayoutAsset.addItem(self.horizontalSpacerAsset)
-
         self.radioButtonAsset = QRadioButton(SwingMain)
         self.radioButtonAsset.setObjectName(u"radioButtonAsset")
         self.radioButtonAsset.setMinimumSize(QSize(100, 0))
@@ -133,10 +129,6 @@ class Ui_SwingMain(object):
 
         self.horizontalLayoutShot = QHBoxLayout()
         self.horizontalLayoutShot.setObjectName(u"horizontalLayoutShot")
-        self.horizontalSpacerShot = QSpacerItem(10, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
-
-        self.horizontalLayoutShot.addItem(self.horizontalSpacerShot)
-
         self.radioButtonShot = QRadioButton(SwingMain)
         self.radioButtonShot.setObjectName(u"radioButtonShot")
         self.radioButtonShot.setMinimumSize(QSize(100, 0))
@@ -175,6 +167,29 @@ class Ui_SwingMain(object):
         self.tabTasks.setObjectName(u"tabTasks")
         self.verticalLayout_5 = QVBoxLayout(self.tabTasks)
         self.verticalLayout_5.setObjectName(u"verticalLayout_5")
+        self.horizontalLayout_2 = QHBoxLayout()
+        self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
+        self.labelTaskTableSelection = QLabel(self.tabTasks)
+        self.labelTaskTableSelection.setObjectName(u"labelTaskTableSelection")
+
+        self.horizontalLayout_2.addWidget(self.labelTaskTableSelection)
+
+        self.horizontalSpacer_6 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.horizontalLayout_2.addItem(self.horizontalSpacer_6)
+
+        self.progressBarTaskTable = QProgressBar(self.tabTasks)
+        self.progressBarTaskTable.setObjectName(u"progressBarTaskTable")
+        self.progressBarTaskTable.setMaximumSize(QSize(50, 16777215))
+        self.progressBarTaskTable.setMaximum(1)
+        self.progressBarTaskTable.setValue(-1)
+        self.progressBarTaskTable.setTextVisible(False)
+
+        self.horizontalLayout_2.addWidget(self.progressBarTaskTable)
+
+
+        self.verticalLayout_5.addLayout(self.horizontalLayout_2)
+
         self.verticalLayout_3 = QVBoxLayout()
         self.verticalLayout_3.setObjectName(u"verticalLayout_3")
         self.tableViewTasks = QTableView(self.tabTasks)
@@ -213,6 +228,29 @@ class Ui_SwingMain(object):
         self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.verticalLayout_2 = QVBoxLayout()
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
+        self.horizontalLayout_3 = QHBoxLayout()
+        self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
+        self.labelFileTableSelection = QLabel(self.tabFiles)
+        self.labelFileTableSelection.setObjectName(u"labelFileTableSelection")
+
+        self.horizontalLayout_3.addWidget(self.labelFileTableSelection)
+
+        self.horizontalSpacer_7 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.horizontalLayout_3.addItem(self.horizontalSpacer_7)
+
+        self.progressBarFileTable = QProgressBar(self.tabFiles)
+        self.progressBarFileTable.setObjectName(u"progressBarFileTable")
+        self.progressBarFileTable.setMaximumSize(QSize(50, 16777215))
+        self.progressBarFileTable.setMaximum(1)
+        self.progressBarFileTable.setValue(-1)
+        self.progressBarFileTable.setTextVisible(False)
+
+        self.horizontalLayout_3.addWidget(self.progressBarFileTable)
+
+
+        self.verticalLayout_2.addLayout(self.horizontalLayout_3)
+
         self.tableViewFiles = QTableView(self.tabFiles)
         self.tableViewFiles.setObjectName(u"tableViewFiles")
 
@@ -220,6 +258,18 @@ class Ui_SwingMain(object):
 
         self.horizontalLayout_5 = QHBoxLayout()
         self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
+        self.toolButtonFileTableSelectAll = QToolButton(self.tabFiles)
+        self.toolButtonFileTableSelectAll.setObjectName(u"toolButtonFileTableSelectAll")
+        self.toolButtonFileTableSelectAll.setEnabled(False)
+
+        self.horizontalLayout_5.addWidget(self.toolButtonFileTableSelectAll)
+
+        self.toolButtonFileSelectNone = QToolButton(self.tabFiles)
+        self.toolButtonFileSelectNone.setObjectName(u"toolButtonFileSelectNone")
+        self.toolButtonFileSelectNone.setEnabled(False)
+
+        self.horizontalLayout_5.addWidget(self.toolButtonFileSelectNone)
+
         self.pushButtonImport = QPushButton(self.tabFiles)
         self.pushButtonImport.setObjectName(u"pushButtonImport")
         self.pushButtonImport.setEnabled(False)
@@ -345,6 +395,7 @@ class Ui_SwingMain(object):
         self.toolButtonShotInfo.setToolTip(fakestr(u"Open Shot Information", None))
 #endif // QT_CONFIG(tooltip)
         self.toolButtonShotInfo.setText(fakestr(u"...", None))
+        self.labelTaskTableSelection.setText(fakestr(u"Tasks for selection:", None))
 #if QT_CONFIG(tooltip)
         self.pushButtonNew.setToolTip(fakestr(u"Create a new scene", None))
 #endif // QT_CONFIG(tooltip)
@@ -357,6 +408,9 @@ class Ui_SwingMain(object):
         self.pushButtonPublish.setShortcut(fakestr(u"Alt+P", None))
 #endif // QT_CONFIG(shortcut)
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabTasks), fakestr(u"Tasks", None))
+        self.labelFileTableSelection.setText(fakestr(u"Files for selection", None))
+        self.toolButtonFileTableSelectAll.setText(fakestr(u"Select All", None))
+        self.toolButtonFileSelectNone.setText(fakestr(u"Select None", None))
         self.pushButtonImport.setText(fakestr(u"Import", None))
 #if QT_CONFIG(shortcut)
         self.pushButtonImport.setShortcut(fakestr(u"Alt+I", None))

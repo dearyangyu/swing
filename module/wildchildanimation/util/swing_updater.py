@@ -9,8 +9,7 @@ sys.path.append("./module")
 
 import os
 from pprint import pprint
-
-import requests
+import urllib.request as request
 import zipfile
 
 SWING_DOWNLOAD = "https://github.com/wildchild-animation/swing/archive/refs/heads/main.zip"
@@ -39,10 +38,9 @@ def check_or_create_dir(dir):
         print("Found directory {}".format(dir))
 
 def create_venv(dir):
-    print("creating python virtual env")
+    print("Creating python virtual env")
     drive, tail = split_path(dir)        
     cmd = '{} && cd {} && python -m venv env'.format(drive, dir)
-    print(cmd)
 
     p = os.popen(cmd)
     s = p.read()
@@ -51,7 +49,7 @@ def create_venv(dir):
     pprint(s)
 
 def update_requirements(dir):
-    print("updating requirements.txt")
+    print("Updating requirements.txt")
     drive, tail = split_path(dir)        
     cmd = '{} && cd {} && "env/Scripts/activate" && pip install -r swing/swing-main/requirements.txt'.format(drive, dir)
 
@@ -60,8 +58,11 @@ def update_requirements(dir):
     p.close()   
 
 def get_swing_release():
-    req = requests.get('https://raw.githubusercontent.com/wildchild-animation/swing/main/module/swing.version')
-    return req.text
+    url = 'https://raw.githubusercontent.com/wildchild-animation/swing/main/module/swing.version'
+    res = request.urlopen(url)
+    dat = res.read()
+    tex = dat.decode('utf-8')
+    return tex
 
 def run_swing_standalone(dir):
     drive, tail = split_path(dir)        
@@ -72,17 +73,16 @@ def run_swing_standalone(dir):
     p.close()   
 
 def download_latest(dir):
-    print("downloading latest release")
+    print("Downloading release")
     check_or_create_dir(dir)
 
-    req = requests.get(SWING_DOWNLOAD, stream = True)
-    with open("{}/swing-main.zip".format(dir), 'wb') as fd:
-        for chunk in req.iter_content(chunk_size = 1024):
-            fd.write(chunk)
+    target = "{}/swing-main.zip".format(dir)
+    request.urlretrieve(SWING_DOWNLOAD, target)
+
     return True
 
 def extract_latest(download_dir, module_dir):
-    print("extrating latest release")
+    print("Extracting release")
     check_or_create_dir(module_dir)
     with zipfile.ZipFile("{}/swing-main.zip".format(download_dir), 'r') as zf:
         zf.extractall(module_dir)
@@ -92,6 +92,11 @@ def extract_latest(download_dir, module_dir):
 def setup_windows(working_dir):
     # make sure we have default directories
     check_or_create_dir(working_dir)
+
+    venv_dir = "{}/env".format(working_dir)
+
+    if not os.path.exists(venv_dir):
+        create_venv(working_dir)
 
     install_dir = "{}/installs".format(working_dir)
     if not os.path.exists(install_dir):
@@ -137,6 +142,8 @@ def update(working_dir):
 
     if "Windows" in platform.platform():
         setup_windows(install_dir)
+    else:
+        print("Not implemented yet")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

@@ -41,8 +41,8 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
 
     working_dir = None
     
-    def __init__(self, project_nav = None, entity = None, task_types = None, file_list = None):
-        super(DownloadDialogGUI, self).__init__(None) # Call the inherited classes __init__ method
+    def __init__(self, parent, project_nav = None, entity = None, file_list = None):
+        super(DownloadDialogGUI, self).__init__(parent) # Call the inherited classes __init__ method
         self.setupUi(self)
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
         self.setMinimumWidth(600)
@@ -50,7 +50,7 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
         self.nav = project_nav
         self.entity = entity 
         self.threadpool = QtCore.QThreadPool.globalInstance()
-        self.task_types = task_types
+        self.task_types = self.nav._task_types
         self.file_list = file_list
 
         if self.entity:

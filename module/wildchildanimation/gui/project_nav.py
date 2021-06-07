@@ -62,6 +62,7 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
 
         self.setupUi(self)
         self.readSettings()
+        self.locked = True
 
         self.toolButtonRefresh.setIcon(self.style().standardIcon(QStyle.SP_BrowserReload))
 
@@ -80,6 +81,7 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
         self.comboBoxEpisode.currentIndexChanged.connect(self.episode_changed)
         self.comboBoxSequence.currentIndexChanged.connect(self.sequence_changed)
 
+        self.toggle_filter_buttons()
 
     # load main dialog state
     def readSettings(self):
@@ -95,6 +97,16 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
         #self.last_shot = self.settings.value("last_project")
         #self.settings.endGroup()          
 
+    def toggle_filter_buttons(self):
+        if len(self._user_task_types) > 0 and len(self._user_task_types) != len(self._task_types):
+            self.toolButtonTaskTypes.setStyleSheet("background-color: #505569;")            
+        else:
+            self.toolButtonTaskTypes.setStyleSheet(None)
+
+        if len(self._user_task_status) > 0 and len(self._user_task_status) != len(self._task_status):
+            self.toolButtonStatusTypes.setStyleSheet("background-color: #505569;")            
+        else:
+            self.toolButtonStatusTypes.setStyleSheet(None)
 
     def select_task_types(self):
         dialog = EntitySelectDialog(self, "Select Task Types")
@@ -102,11 +114,8 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
         if dialog.exec_():
             self._user_task_types = dialog.get_selection()
             self.task_types_changed(self._user_task_types)
+        self.toggle_filter_buttons()
 
-            if len(self._user_task_types) > 0 and len(self._user_task_types) != len(self._task_types):
-                self.toolButtonTaskTypes.setStyleSheet("background-color: #505569;")            
-            else:
-                self.toolButtonTaskTypes.setStyleSheet(None)
 
     def select_status_types(self):
         dialog = EntitySelectDialog(self, "Select Status Codes")
@@ -114,11 +123,7 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
         if dialog.exec_():
             self._user_task_status = dialog.get_selection()
             self.status_codes_changed(self._user_task_status)
-
-            if len(self._user_task_status) > 0 and len(self._user_task_status) != len(self._task_status):
-                self.toolButtonStatusTypes.setStyleSheet("background-color: #505569;")            
-            else:
-                self.toolButtonStatusTypes.setStyleSheet(None)
+        self.toggle_filter_buttons()
 
     def is_loaded(self):
         return self._status["projects"] and self._status["episodes"] and self._status["sequences"]
@@ -198,8 +203,7 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
         ## write_log("sequence_changed", self._sequences[index]["id"])
 
     def lock_ui(self, enabled):
-        if not self.is_loaded():
-            return False
+        ## print("projectNav is_locked {} should_lock {} is_loaded {}".format(self.locked, enabled, self.is_loaded()))
 
         if enabled:
             self.comboBoxProject.setEnabled(False)
@@ -215,6 +219,7 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
             self.toolButtonStatusTypes.setEnabled(False)
 
             self.progressBar.setMaximum(0)
+            self.locked = False
         else:
             self.comboBoxProject.setEnabled(True)
             self.comboBoxProject.blockSignals(False)
@@ -229,6 +234,7 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
             self.toolButtonStatusTypes.setEnabled(True)
 
             self.progressBar.setMaximum(1)
+            self.locked = True
 
     def load_open_projects(self):
         self.lock_ui(True)
@@ -308,6 +314,7 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
 
         self._status["episodes"] = True
         self.lock_ui(False)
+        
 
     def projects_loaded(self, results): 
         ## write_log("[projects_loaded]")

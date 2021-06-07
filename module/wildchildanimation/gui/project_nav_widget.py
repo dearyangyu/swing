@@ -14,12 +14,11 @@ from PySide2.QtWidgets import *
 
 from wildchildanimation.gui.swing_utils import fakestr
 
-
 class Ui_ProjectNavWidget(object):
     def setupUi(self, ProjectNavWidget):
         if not ProjectNavWidget.objectName():
             ProjectNavWidget.setObjectName(u"ProjectNavWidget")
-        ProjectNavWidget.resize(831, 76)
+        ProjectNavWidget.resize(831, 77)
         self.verticalLayout = QVBoxLayout(ProjectNavWidget)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.horizontalLayoutProject = QHBoxLayout()
@@ -35,7 +34,7 @@ class Ui_ProjectNavWidget(object):
         font.setBold(True)
         font.setWeight(75)
         self.labelProject.setFont(font)
-        self.labelProject.setAlignment(Qt.AlignCenter)
+        self.labelProject.setAlignment(Qt.AlignLeading|Qt.AlignLeft|Qt.AlignVCenter)
 
         self.horizontalLayoutProjectTitle.addWidget(self.labelProject)
 
@@ -63,11 +62,11 @@ class Ui_ProjectNavWidget(object):
         sizePolicy1.setVerticalStretch(0)
         sizePolicy1.setHeightForWidth(self.progressBar.sizePolicy().hasHeightForWidth())
         self.progressBar.setSizePolicy(sizePolicy1)
-        self.progressBar.setMaximumSize(QSize(50, 16777215))
+        self.progressBar.setMaximumSize(QSize(52, 16777215))
         self.progressBar.setMaximum(1)
         self.progressBar.setValue(-1)
         self.progressBar.setTextVisible(False)
-        self.progressBar.setInvertedAppearance(True)
+        self.progressBar.setInvertedAppearance(False)
 
         self.horizontalLayoutProjectTitle.addWidget(self.progressBar)
 
@@ -83,7 +82,7 @@ class Ui_ProjectNavWidget(object):
         self.labelShotEpisode.setMinimumSize(QSize(100, 0))
         self.labelShotEpisode.setMaximumSize(QSize(60, 16777215))
         self.labelShotEpisode.setFont(font)
-        self.labelShotEpisode.setAlignment(Qt.AlignCenter)
+        self.labelShotEpisode.setAlignment(Qt.AlignLeading|Qt.AlignLeft|Qt.AlignVCenter)
 
         self.horizontalLayoutEpisodeSequence.addWidget(self.labelShotEpisode)
 

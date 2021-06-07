@@ -78,10 +78,8 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
     currentEpisode = None
     currentSequences = None
     currentSequencesIndex = None
-    currentShot = None
     currentTask = None
     currentAssetType = None
-    currentAsset = None
     gazu_client = None
     connected = False
     project_root = None
@@ -163,6 +161,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         #self.treeWidgetFiles.doubleClicked.connect(self.open_file_item)
         self.tableViewFiles.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.tableViewFiles.doubleClicked.connect(self.file_table_double_click)
+        self.tableViewFiles.clicked.connect(self.select_row)       
 
         self.tableViewTasks.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.tableViewTasks.doubleClicked.connect(self.task_table_double_click)        
@@ -183,6 +182,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             self.projectNav.load_open_projects()
             self.version_check()
 
+
     def _loadActionIcon(self,  action_text, resource_string):
         action = QtWidgets.QAction(self)
         action.setText(action_text)
@@ -196,39 +196,39 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         return action
 
     def _createActions(self):
-            # File actions
-            self.loadAction = self._loadActionIcon("&Load File", ":/swing/gui/fontawesome/solid/load")
-            self.downloadAction = self._loadActionIcon("&Download", ":/swing/gui/fontawesome/solid/download")
-            self.openExplorerAction = self._loadActionIcon("Open E&xplorer", ":/swing/gui/fontawesome/solid/folder-open")
-            self.selectAllAction = self._loadActionIcon("Select &None", ":/swing/gui/fontawesome/solid/minus")
-            self.selectNoneAction = self._loadActionIcon("Select &All", ":/swing/gui/fontawesome/solid/plus")
+        # File actions
+        self.loadAction = self._loadActionIcon("&Load File", ":/swing/gui/fontawesome/solid/load")
+        self.downloadAction = self._loadActionIcon("&Download", ":/swing/gui/fontawesome/solid/download")
+        self.openExplorerAction = self._loadActionIcon("Open E&xplorer", ":/swing/gui/fontawesome/solid/folder-open")
+        self.selectAllAction = self._loadActionIcon("Select &None", ":/swing/gui/fontawesome/solid/minus")
+        self.selectNoneAction = self._loadActionIcon("Select &All", ":/swing/gui/fontawesome/solid/plus")
 
-            # Snip...            
+        # Snip...            
 
-            # Task actions
-            self.createTaskDirAction = self._loadActionIcon("&Create Task Folder", ":/swing/gui/fontawesome/solid/new")
-            self.openTaskDirAction = self._loadActionIcon("&Open E&xplorer", ":/swing/gui/fontawesome/solid/folder-open")
-            self.reviewTaskAction = self._loadActionIcon("&Publish for Review", ":/swing/gui/fontawesome/solid/share")
-            self.openEntitInfoAction = self._loadActionIcon("Open &Entity Info", ":/swing/gui/fontawesome/solid/info")
+        # Task actions
+        self.createTaskDirAction = self._loadActionIcon("&Create Task Folder", ":/swing/gui/fontawesome/solid/new")
+        self.openTaskDirAction = self._loadActionIcon("&Open E&xplorer", ":/swing/gui/fontawesome/solid/folder-open")
+        self.reviewTaskAction = self._loadActionIcon("&Publish for Review", ":/swing/gui/fontawesome/solid/share")
+        self.openEntitInfoAction = self._loadActionIcon("Open &Entity Info", ":/swing/gui/fontawesome/solid/info")
 
     def _createContextMenu(self):
-            # Setting contextMenuPolicy
-            self.tableViewFiles.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
-            # Populating the widget with actions
-            self.tableViewFiles.addAction(self.loadAction)
-            self.tableViewFiles.addAction(self.downloadAction)
-            self.tableViewFiles.addAction(self.openExplorerAction)
-            self.tableViewFiles.addAction(self.selectAllAction)
-            self.tableViewFiles.addAction(self.selectNoneAction)
+        # Setting contextMenuPolicy
+        self.tableViewFiles.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
+        # Populating the widget with actions
+        self.tableViewFiles.addAction(self.loadAction)
+        self.tableViewFiles.addAction(self.downloadAction)
+        self.tableViewFiles.addAction(self.openExplorerAction)
+        self.tableViewFiles.addAction(self.selectAllAction)
+        self.tableViewFiles.addAction(self.selectNoneAction)
 
-            # same for task table
-            self.tableViewTasks.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
+        # same for task table
+        self.tableViewTasks.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
 
-            # Populating the widget with actions
-            self.tableViewTasks.addAction(self.createTaskDirAction)
-            self.tableViewTasks.addAction(self.openTaskDirAction)
-            self.tableViewTasks.addAction(self.reviewTaskAction)
-            self.tableViewTasks.addAction(self.openEntitInfoAction)
+        # Populating the widget with actions
+        self.tableViewTasks.addAction(self.createTaskDirAction)
+        self.tableViewTasks.addAction(self.openTaskDirAction)
+        self.tableViewTasks.addAction(self.reviewTaskAction)
+        self.tableViewTasks.addAction(self.openEntitInfoAction)
 
     def version_check(self):
         version_check = bg.VersionCheck(self)
@@ -277,6 +277,12 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
         event.accept()
 
+    def selected_asset(self):
+        return self.comboBoxAsset.currentData(QtCore.Qt.UserRole)
+
+    def selected_shot(self):
+        return self.comboBoxShot.currentData(QtCore.Qt.UserRole)
+
     def finished(self, code):
         write_log('we are finished %s\n' % str(code))            
 
@@ -302,11 +308,11 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.loading = is_loading
 
     def set_to_shot(self):
-        self.comboBoxShot.setEnabled(self.radioButtonShot.isChecked())
-        self.radioButtonAsset.setChecked(False)
+        self.comboBoxShot.setEnabled(True)
 
-        if self.radioButtonShot.isChecked() and (self.currentSequencesIndex is not None) and len(self.currentSequences[self.currentSequencesIndex]["shots"]) > 0:
-            self.load_shot_files(0)
+        if self.radioButtonShot.isChecked() and (self.projectNav.get_sequence() is not None):
+            self.load_shot_files(self.comboBoxShot.currentIndex())
+            ## self.tasks_changed()
 
     def set_to_asset(self):
         self.comboBoxAsset.setEnabled(self.radioButtonAsset.isChecked())
@@ -314,8 +320,9 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.comboBoxShot.setEnabled(False)
 
         if self.radioButtonAsset.isChecked():
-            if self.currentAsset:
-                self.load_asset_files(0)
+            if self.selected_asset():
+                self.load_asset_files(self.comboBoxAsset.currentIndex())
+                ## self.tasks_changed()
             else:
                 if self.currentAssetType:
                     self.asset_type_changed(self.comboBoxAssetType.currentIndex())
@@ -327,9 +334,9 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
     def get_current_selection(self):
         if self.radioButtonAsset.isChecked():
-            return self.currentAsset
+            return self.selected_asset()
         else:
-            return self.currentShot
+            return self.selected_shot()
 
     # save main dialog state
     def writeSettings(self):
@@ -347,9 +354,10 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         if self.currentSequencesIndex and len(self.currentSequences) > 0 and self.currentSequences[self.currentSequencesIndex]:
             self.settings.setValue("last_sequences", self.currentSequences[self.currentSequencesIndex]["id"])
 
-        if self.currentShot:
-            self.settings.setValue("last_shot", self.currentShot["id"])
-
+        selected = self.selected_shot()
+        if selected:
+            self.settings.setValue("last_shot", selected["name"])
+        
         self.settings.endGroup()    
 
         self.settings.beginGroup("ProjectNav")
@@ -439,25 +447,39 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             event.ignore()        
 
     def selection_changed(self, source, selection): 
-        if not self.projectNav.is_loaded():
-            return 
+        ## print("{} {}".format(source, selection))
+
+        #if not self.projectNav.is_loaded():
+        #    return 
 
         ## write_log("[selection_changed]", source)
         if "project" in source and selection["is_loaded"]:
-            self.projectNav.lock_ui(True)
+            ## self.projectNav.lock_ui(True)
             self.project_changed(self.projectNav.comboBoxProject.currentIndex())
-        elif "episode" in source:
-            self.projectNav.lock_ui(True)
+        elif "episode_changed" in source:
+            ## self.projectNav.lock_ui(True)
             self.episode_changed(self.projectNav.comboBoxEpisode.currentIndex())
-        elif ("task_types" in source or "task_status" in source):
-            self.projectNav.lock_ui(True)
+        elif "sequence_changed" in source:
+            self.sequence_changed(self.projectNav.comboBoxSequence.currentIndex())
+            
+        elif source in [ "task_types_changed", "status_codes_changed"]:
+            ## self.projectNav.lock_ui(True)
             self.tasks_changed()
+
             if self.radioButtonAsset.isChecked():
-                self.load_asset_files(0)            
+                index = self.comboBoxAsset.currentIndex()
+                if index >= 0:
+                    self.load_asset_files(index)            
             else:
-                self.load_shot_files(0)
-        else:
-            self.projectNav.lock_ui(False)
+                index = self.comboBoxShot.currentIndex()
+                if index >= 0:
+                    self.load_shot_files(index)
+
+        #elif source in ["sequence_changed"]:
+            # self.sequence_changed(self.projectNav.comboBoxSequence.currentIndex())
+
+        #if self.projectNav.is_loaded():
+        #    self.projectNav.lock_ui(False)
 
         #self.comboBoxProject.setEnabled(True)
 
@@ -500,7 +522,14 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
     def tasks_changed(self):
         task_loader = bg.TaskLoaderThread(self, self.projectNav, self.user_email)
-        task_loader.callback.loaded.connect(self.tasks_loaded)
+        task_loader.callback.loaded.connect(self.load_tasks)
+
+        self.labelTaskTableSelection.setText("Loading tasks")
+        self.progressBarTaskTable.setMaximum(0)
+        self.tableViewTasks.setEnabled(False)
+        self.pushButtonNew.setEnabled(False)
+        self.pushButtonPublish.setEnabled(False)
+
         self.threadpool.start(task_loader)
         ##task_loader.run()        
 
@@ -519,6 +548,11 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
         self.tasks_changed()
 
+        if self.projectNav.get_project():
+            asset_loader = bg.AssetTypeLoaderThread(self, self.projectNav.get_project())
+            asset_loader.callback.loaded.connect(self.asset_types_loaded)
+            self.threadpool.start(asset_loader)     
+
     def asset_types_loaded(self, data): 
         #write_log("[asset_types_loaded]")
         self.asset_types = data
@@ -534,12 +568,6 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         if len(self.asset_types) > 0:
             self.asset_type_changed(0)
 
-    def tasks_loaded(self, data):
-        #write_log("[tasks_loaded]")
-
-        self.tasks = data
-        self.load_tasks(self.tasks)
-
     def sequence_changed(self, index):
         #write_log("[sequence_changed]")
         
@@ -553,11 +581,11 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
         for item in sequence["shots"]:
             name = "{} {}".format(item["sequence_name"],  item["name"])
-            self.comboBoxShot.addItem(item["name"]) 
+            self.comboBoxShot.addItem(item["name"], userData = item) 
             have_shots  = True
 
         self.comboBoxShot.blockSignals(False)                 
-        self.load_shot_files(0)
+        ## self.load_shot_files(0)
 
     def asset_type_changed(self, index):
         #write_log("[asset_type_changed]")
@@ -581,20 +609,23 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             #write_log("load shot files {}".format(index))
 
             loader = bg.EntityFileLoader(self, self.projectNav, self.currentShot, working_dir = load_settings("projects_root", os.path.expanduser("~")))
-            loader.callback.loaded.connect(self.files_loaded)
+            loader.callback.loaded.connect(self.load_files)
+
+            self.labelFileTableSelection.setText("Loading files for {}".format(self.currentShot["name"]))
+            self.progressBarFileTable.setMaximum(0)
+            self.tableViewFiles.setEnabled(False)
+            self.toolButtonFileTableSelectAll.setEnabled(False)
+            self.toolButtonFileSelectNone.setEnabled(False)
+            self.pushButtonImport.setEnabled(False)
+            self.pushButtonDownload.setEnabled(False)
 
             self.threadpool.start(loader)
             ## loader.run()
 
-    def files_loaded(self, data):
-        output_files = data["output_files"]
-        working_files = data["working_files"]
-
-        self.load_files(output_files, working_files)        
-        #write_log("Loaded {} output files, {} working files".format(len(output_files), len(working_files)))
-
     def asset_loaded(self, data): 
         #write_log("[asset_loaded]")
+
+        self.comboBoxAsset.blockSignals(True)
 
         self.assets = data
         self.comboBoxAsset.clear()
@@ -602,27 +633,43 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         last = self.comboBoxAsset.currentIndex()
         for p in self.assets:
             name = "{}".format(p["name"]).strip()
-            self.comboBoxAsset.addItem(name)     
+            self.comboBoxAsset.addItem(name, userData = p)     
+
+        self.comboBoxAsset.blockSignals(False)            
         self.comboBoxAsset.setEnabled(True)       
 
     def load_asset_files(self, index):
         if not self.projectNav.is_loaded():
             return 
 
+        asset = self.selected_asset()
+        if not asset:
+            return
+
         ## write_log("[selection_changed]", source)
 
-        self.currentAsset = self.assets[index]
-
         #write_log("load asset files {}".format(index))
-        loader = bg.EntityFileLoader(self, self.projectNav, self.currentAsset, working_dir = load_settings("projects_root", os.path.expanduser("~")))
-        loader.callback.loaded.connect(self.files_loaded)
+        loader = bg.EntityFileLoader(self, self.projectNav, asset, working_dir = load_settings("projects_root", os.path.expanduser("~")))
+        loader.callback.loaded.connect(self.load_files)
+
+        self.labelFileTableSelection.setText("Loading files for {}".format(asset["name"]))
+        self.progressBarFileTable.setMaximum(0)
+        self.tableViewFiles.setEnabled(False)
+        self.toolButtonFileTableSelectAll.setEnabled(False)
+        self.toolButtonFileSelectNone.setEnabled(False)
+        self.pushButtonImport.setEnabled(False)
+        self.pushButtonDownload.setEnabled(False)
+
         self.threadpool.start(loader)       
         ##loader.run()
 
 
-    def load_files(self, output_files = None, working_files = None):
-        self.files = []
+    def load_files(self, data):
+        entity = data["entity"]
+        output_files = data["output_files"]
+        working_files = data["working_files"]
 
+        self.files = []
         if output_files:
             for item in output_files:
                 self.files.append(item)
@@ -635,12 +682,22 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         setup_file_table(self.tableModelFiles, self.tableViewFiles)        
 
         selectionModel = self.tableViewFiles.selectionModel()
-        selectionModel.selectionChanged.connect(self.file_table_selection_changed)     
+        selectionModel.selectionChanged.connect(self.file_table_selection_changed)   
 
-        self.pushButtonDownload.setEnabled(len(self.files) > 0)    
-        self.pushButtonImport.setEnabled(len(self.files) > 0)
+        self.labelFileTableSelection.setText("")
+        self.progressBarFileTable.setMaximum(1)
 
-        self.tableViewFiles.clicked.connect(self.select_row)       
+        if len(self.files) > 0:
+            self.labelFileTableSelection.setText("Files: {}".format(entity["name"]))
+
+            self.tableViewFiles.setEnabled(True)
+            self.toolButtonFileTableSelectAll.setEnabled(True)
+            self.toolButtonFileSelectNone.setEnabled(True)
+            self.pushButtonImport.setEnabled(True)
+            self.pushButtonDownload.setEnabled(True)          
+        else:
+            self.labelFileTableSelection.setText("No files found: {}".format(entity["name"]))
+
 
     def select_row(self, index):
         self.tableViewFiles.model().setData(index, QtCore.Qt.Checked, QtCore.Qt.EditRole)
@@ -685,9 +742,10 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
         return True
 
-    def load_tasks(self, tasks = None):
-        self.tasks = tasks
-        tableModel = TaskTableModel(self, tasks)
+    def load_tasks(self, data):
+        self.tasks = data["tasks"]
+
+        tableModel = TaskTableModel(self, self.tasks)
 
         # create the sorter model
         sorterModel = QtCore.QSortFilterProxyModel()
@@ -722,6 +780,18 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
         #tableViewPowerDegree->verticalHeader()->setDefaultSectionSize(tableViewPowerDegree->verticalHeader()->minimumSectionSize()); 
         # self.pushButtonPublish.setEnabled(len(tasks) > 0)
+
+        #self.labelTaskTableSelection.setText("Tasks: {}".format(self.get_current_selection()["name"]))
+        
+        self.progressBarTaskTable.setMaximum(1)
+
+        if len(self.tasks) > 0:
+            self.labelTaskTableSelection.setText("Tasks: {} {}".format(data["project"]["name"], data["episode"]["name"]))
+            self.tableViewTasks.setEnabled(True)
+            self.pushButtonNew.setEnabled(True)
+            self.pushButtonPublish.setEnabled(True)        
+        else:
+            self.labelTaskTableSelection.setText("No tasks found for {} {}".format(data["project"]["name"], data["episode"]["name"]))
 
     def task_table_selection_changed(self):
         if not (self.tableViewTasks.selectedIndexes()):
@@ -798,13 +868,13 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
                 files.append(item)
 
         if len(files) == 0:
-            dialog = DownloadDialogGUI(self, self.projectNav, self.get_current_selection(), self.projectNav.get_task_types())
-            dialog.resize(self.size())
-            dialog.exec_()
+            #def __init__(self, parent, project_nav = None, entity = None, file_list = None):
+            dialog = DownloadDialogGUI(self, self.projectNav, self.get_current_selection())
         else:
-            dialog = DownloadDialogGUI(self, self.projectNav, self.get_current_selection(), self.projectNav.get_task_types(), files)
-            dialog.resize(self.size())
-            dialog.exec_()
+            dialog = DownloadDialogGUI(self, self.projectNav, self.get_current_selection(), files)
+
+        dialog.resize(self.size())
+        dialog.show()
 
     def load_asset(self):
         dialog = LoaderDialogGUI(self, self.handler, self.get_current_selection())
@@ -817,16 +887,18 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         dialog.show()
 
     def load_shot_info(self):
-        if self.currentShot:
-            dialog = EntityInfoDialog(self, self.projectNav, self.currentShot, self.projectNav.get_task_types(), self.handler)
+        self.set_to_shot()
+        if self.selected_shot():
+            dialog = EntityInfoDialog(self, self.projectNav, self.selected_shot(),  self.handler)
             dialog.resize(self.size())
-            dialog.exec_()
+            dialog.show()
 
     def load_asset_info(self):
-        if self.currentAsset:
-            dialog = EntityInfoDialog(self, self.projectNav, self.currentAsset, self.projectNav.get_task_types(), self.handler)
+        self.set_to_asset()
+        if self.selected_asset():
+            dialog = EntityInfoDialog(self, self.projectNav, self.selected_asset(), self.handler)
             dialog.resize(self.size())
-            dialog.exec_()
+            dialog.show()
 
     def publish_scene(self):
         if self.selected_task:        

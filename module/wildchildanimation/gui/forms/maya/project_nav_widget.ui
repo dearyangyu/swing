@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>831</width>
-    <height>76</height>
+    <height>77</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -38,7 +38,7 @@
             <string>Project</string>
            </property>
            <property name="alignment">
-            <set>Qt::AlignCenter</set>
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
@@ -75,7 +75,7 @@
            </property>
            <property name="maximumSize">
             <size>
-             <width>50</width>
+             <width>52</width>
              <height>16777215</height>
             </size>
            </property>
@@ -89,7 +89,7 @@
             <bool>false</bool>
            </property>
            <property name="invertedAppearance">
-            <bool>true</bool>
+            <bool>false</bool>
            </property>
           </widget>
          </item>
@@ -127,7 +127,7 @@
             <string>Episode</string>
            </property>
            <property name="alignment">
-            <set>Qt::AlignCenter</set>
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>

@@ -5,12 +5,10 @@
 import os
 import sys
 
-#sys.path.append("C:/WCA/swing/swing-main/module")
-print(os.path.dirname(os.path.realpath(__file__)))
 module_path = "{}/../../".format(__file__)
 module_path = os.path.dirname(os.path.realpath(module_path))
-print(module_path)
 sys.path.append(module_path)
+
 from wildchildanimation.swing_gui import SwingGUI
 
 #

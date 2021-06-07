@@ -48,20 +48,20 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
 
     working_dir = None
     
-    def __init__(self, parent = None, project_nav = None, entity = None, task_types = None, handler = None):
-        super(EntityInfoDialog, self).__init__(None) # Call the inherited classes __init__ method
+    def __init__(self, parent = None, project_nav = None, entity = None, handler = None):
+        super(EntityInfoDialog, self).__init__(parent) # Call the inherited classes __init__ method
         self.setupUi(self)
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
         self.nav = project_nav
         self.entity = entity 
         self.threadpool = QtCore.QThreadPool.globalInstance()
-        self.task_types = task_types
+        self.task_types = self.nav._task_types
         self.file_list = None
         self.handler = handler
         self.tasks = None
 
         if self.entity:
-            loader = bg.EntityLoaderThread(self, self.entity["id"], load_tasks = True)
+            loader = bg.EntityLoaderThread(self, self.entity["id"])
             loader.callback.loaded.connect(self.entity_loaded)
             self.threadpool.start(loader)
 
@@ -226,7 +226,11 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
                 sections.append(self.shot["sequence_name"])
 
             sections.append(self.shot["name"])
-            self.lineEditEntity.setText(" / ".join(sections))
+
+            caption = " / ".join(sections)
+            self.lineEditEntity.setText(caption)
+
+            self.setWindowTitle("Shot Info: " + caption.upper())
         else:
             self.asset = data["item"]
             self.url = data["url"]
@@ -243,7 +247,10 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
 
             sections.append(self.entity["name"].strip())
 
-            self.lineEditEntity.setText(" / ".join(sections))
+            caption = " / ".join(sections)
+            self.lineEditEntity.setText(caption)
+
+            self.setWindowTitle("Asset Info: " + caption.upper())
 
         self.toolButtonWeb.setEnabled(self.url is not None)
         self.setEnabled(True)
