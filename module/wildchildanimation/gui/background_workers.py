@@ -32,7 +32,7 @@ except ImportError:
 from datetime import datetime
 
 from wildchildanimation.gui.swing_utils import write_log, connect_to_server, load_settings, load_keyring
-from wildchildanimation.util.swing_updater import update
+from wildchildanimation.gui.swing_updater import update
 
 import wildchildanimation.gui.swing_utils
 
