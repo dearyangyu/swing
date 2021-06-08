@@ -59,7 +59,7 @@ from wildchildanimation.studio_interface import StudioInterface
 
 from wildchildanimation.gui.swing_playblast import *
 
-import wildchildanimation.gui.swing_resources
+from wildchildanimation.gui.swing_resources import *
 
 
 '''

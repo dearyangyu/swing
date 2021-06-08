@@ -74,7 +74,7 @@ class SearchFilesDialog(QtWidgets.QDialog, Ui_SearchFilesDialog):
         for i in items:
             file_list.append(i)
 
-        worker = SearchFn(self, edit_api, email, password, file_list, self.project)
+        worker = SearchFn(self, edit_api, email, password, file_list, self.nav)
         worker.callback.results.connect(self.search_results)
 
         self.threadpool.start(worker)
@@ -91,14 +91,14 @@ class SearchFilesDialog(QtWidgets.QDialog, Ui_SearchFilesDialog):
             # set progressbar to busy
             self.progressBar.setRange(0, 0)
 
-    def search_results(self, file_list):
+    def search_results(self, results):
         self.enable_ui(True)
 
-        if len(file_list) == 0:
+        if len(results) == 0:
             QtWidgets.QMessageBox.information(self, 'File Search', 'No files found, sorry', QtWidgets.QMessageBox.Ok)            
             return                 
 
-        dialog = DownloadDialogGUI(self, self.nav, self.entity, file_list)
+        dialog = DownloadDialogGUI(self, self.nav, entity = None, file_list = results)
         #dialog.load_files(file_list)
         dialog.show()            
 

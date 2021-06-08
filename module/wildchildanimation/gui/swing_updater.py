@@ -13,7 +13,7 @@ from pprint import pprint
 import zipfile
 
 # python 3
-if sys.version_info[0] >= 3:
+if sys.version_info.major >= 3:
     import urllib.request as request    
 else:
     import urllib as request

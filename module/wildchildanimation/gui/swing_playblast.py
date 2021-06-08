@@ -847,7 +847,7 @@ class SwingPlayblastVisibilityDialog(QtWidgets.QDialog):
 
 class SwingPlayblastUi(QtWidgets.QDialog):
 
-    TITLE = "Zurbrigg Playblast"
+    TITLE = "Swing Playblast"
 
     CONTAINER_PRESETS = [
         "mov",
@@ -869,7 +869,6 @@ class SwingPlayblastUi(QtWidgets.QDialog):
     ]
 
     dlg_instance = None
-
 
     @classmethod
     def show_dialog(cls):
@@ -960,7 +959,6 @@ class SwingPlayblastUi(QtWidgets.QDialog):
         self.output_filename_path_show_folder_btn = QtWidgets.QPushButton(QtGui.QIcon(":fileOpen.png"), "")
         self.output_filename_path_show_folder_btn.setFixedSize(24, 19)
         self.output_filename_path_show_folder_btn.setToolTip("Show in Folder")
-
 
         self.force_overwrite_cb = QtWidgets.QCheckBox("Force overwrite")
 
@@ -1205,9 +1203,22 @@ class SwingPlayblastUi(QtWidgets.QDialog):
         if not file_info.exists():
             current_dir_path = self._playblast.get_project_dir_path()
 
-        new_filename = QtWidgets.QFileDialog.getSaveFileName(self, "Select Directory", selected_file)
+        format = self.encoding_container_cmb.currentText()
+        filter = ""
+        if "Image" in format:
+            filter = "images (*.png);;All files (*.*)"
+        elif "mov" in format:
+            filter = "mov (*.mov);;All files (*.*)"
+        else:
+            filter = "mp4 (*.mov);;All files (*.*)"
+
+        new_filename = QtWidgets.QFileDialog.getSaveFileName(self, "Select file name", selected_file, filter)
         if new_filename:
-            self.output_filename_le.setText("{}".format(new_filename[0]))
+            file_name = os.path.basename(new_filename[0])
+            self.output_filename_le.setText(file_name)
+
+            new_dir_path = os.path.dirname(new_filename[0])
+            self.output_dir_path_le.setText(new_dir_path)
 
     def open_output_directory(self):
         output_dir_path = self.output_dir_path_le.text()
@@ -1541,7 +1552,4 @@ if __name__ == "__main__":
 
     swing_playblast_dialog = SwingPlayblastUi()
     swing_playblast_dialog.show()
-
-
-
-
+    

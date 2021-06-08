@@ -30,9 +30,7 @@ from wildchildanimation.gui.swing_utils import connect_to_server, write_log, loa
 from wildchildanimation.gui.background_workers import ProjectLoaderThread, ProjectHierarchyLoaderThread
 from wildchildanimation.gui.project_nav_widget import Ui_ProjectNavWidget
 from wildchildanimation.gui.entity_select import *
-
-import wildchildanimation.gui.swing_resources
-
+from wildchildanimation.gui.swing_resources import *
 
 class NavigationChangedSignal(QObject):
 
@@ -96,15 +94,21 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
         #self.last_project = self.settings.value("last_project")
         #self.last_sequences = self.settings.value("last_project")
         #self.last_shot = self.settings.value("last_project")
-        #self.settings.endGroup()          
+        #self.settings.endGroup()   
+
+    def is_task_types_filtered(self):
+        return len(self._user_task_types) > 0 and len(self._user_task_types) != len(self._task_types)
+
+    def is_status_types_filtered(self):
+        return len(self._user_task_status) > 0 and len(self._user_task_status) != len(self._task_status)
 
     def toggle_filter_buttons(self):
-        if len(self._user_task_types) > 0 and len(self._user_task_types) != len(self._task_types):
+        if self.is_task_types_filtered():
             self.toolButtonTaskTypes.setStyleSheet("background-color: #505569;")            
         else:
             self.toolButtonTaskTypes.setStyleSheet(None)
 
-        if len(self._user_task_status) > 0 and len(self._user_task_status) != len(self._task_status):
+        if self.is_status_types_filtered():
             self.toolButtonStatusTypes.setStyleSheet("background-color: #505569;")            
         else:
             self.toolButtonStatusTypes.setStyleSheet(None)

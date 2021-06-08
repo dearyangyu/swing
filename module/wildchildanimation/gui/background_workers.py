@@ -874,14 +874,14 @@ class SearchResultSignal(QtCore.QObject):
 
 class SearchFn(QtCore.QRunnable):
 
-    def __init__(self, parent, edit_api, email, password, list_of_names, project, show_hidden = False):
+    def __init__(self, parent, edit_api, email, password, list_of_names, project_nav, show_hidden = False):
         super(SearchFn, self).__init__(self, parent)
         self.parent = parent
+        self.nav = project_nav
         self.url = edit_api
         self.email = email
         self.password = password        
         self.search_list = list_of_names
-        self.project = project
         self.show_hidden = show_hidden
         self.callback = SearchResultSignal()
 
@@ -889,13 +889,26 @@ class SearchFn(QtCore.QRunnable):
         search_url = "{}/{}".format(self.url, "api/search/fn")
         results = []
 
+        task_types = []
+        if self.nav.is_task_types_filtered():
+            for item in self.nav.get_task_types():
+                task_types.append(item["id"])
+
+        status_types = []
+        if self.nav.is_status_types_filtered():
+            for item in self.nav.get_task_status():
+                status_types.append(item["id"])
+
         count = 0
         for item in self.search_list:
+            
             params = { 
                 "username": self.email,
                 "password": self.password,
                 "filename": "%{}%".format(item.strip()),
-                "project": self.project["id"],
+                "project": self.nav.get_project()["id"],
+                "task_types": task_types, 
+                "task_status": status_types,
                 "show_hidden": self.show_hidden
             }             
 

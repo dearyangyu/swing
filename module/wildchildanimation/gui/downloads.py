@@ -54,9 +54,11 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
         self.file_list = file_list
 
         if self.entity:
-            loader = bg.EntityLoaderThread(self, self.entity["id"])
+            loader = EntityLoaderThread(self, self.entity["id"])
             loader.callback.loaded.connect(self.entity_loaded)
             self.threadpool.start(loader)
+        else:
+            self.load_files(file_list)
 
         self.toolButtonWeb.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_CommandLink))
         self.toolButtonWeb.clicked.connect(self.open_url)

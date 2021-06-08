@@ -42,16 +42,6 @@
        </property>
       </spacer>
      </item>
-     <item>
-      <widget class="QLabel" name="labelTaskType">
-       <property name="text">
-        <string>Type</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QComboBox" name="comboBoxTaskType"/>
-     </item>
     </layout>
    </item>
    <item>
