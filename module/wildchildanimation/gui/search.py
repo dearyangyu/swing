@@ -74,7 +74,7 @@ class SearchFilesDialog(QtWidgets.QDialog, Ui_SearchFilesDialog):
         for i in items:
             file_list.append(i)
 
-        worker = bg.SearchFn(self, edit_api, email, password, file_list, self.project)
+        worker = SearchFn(self, edit_api, email, password, file_list, self.project)
         worker.callback.results.connect(self.search_results)
 
         self.threadpool.start(worker)

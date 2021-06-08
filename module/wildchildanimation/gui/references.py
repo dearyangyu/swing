@@ -144,7 +144,7 @@ class ReferencesDialogGUI(QtWidgets.QDialog, Ui_ReferencesDialog):
 
         self.threadpool = QtCore.QThreadPool.globalInstance()
 
-        loader = bg.EntityLoaderThread(self, self.entity["id"])
+        loader = EntityLoaderThread(self, self.entity["id"])
         loader.callback.loaded.connect(self.entity_loaded)
         self.threadpool.start(loader)        
 
@@ -175,7 +175,7 @@ class ReferencesDialogGUI(QtWidgets.QDialog, Ui_ReferencesDialog):
 
             self.counter += 1
 
-        worker = bg.SearchFn(self, edit_api, email, password, file_list)
+        worker = SearchFn(self, edit_api, email, password, file_list)
         worker.callback.results.connect(self.search_results)
 
         self.threadpool.start(worker)

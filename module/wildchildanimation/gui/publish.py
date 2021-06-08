@@ -117,7 +117,7 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
                 file_path = os.path.dirname(source)
                 file_name, file_ext = os.path.splitext(file_base)                
 
-                worker = bg.WorkingFileUploader(self, edit_api, self.task, source, file_name, "Maya 2020", self.commentEdit.toPlainText().strip(), email, password)
+                worker = WorkingFileUploader(self, edit_api, self.task, source, file_name, "Maya 2020", self.commentEdit.toPlainText().strip(), email, password)
                 worker.callback.progress.connect(dialog.file_loading)
                 worker.callback.done.connect(dialog.file_loaded)
                 dialog.add_item(source, "Pending")
@@ -133,7 +133,7 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
                 file_path = os.path.dirname(source)
                 file_name, file_ext = os.path.splitext(file_base)
 
-                worker = bg.WorkingFileUploader(self, edit_api, self.task, source, file_name, "fbx", self.commentEdit.toPlainText().strip(), email, password)
+                worker = WorkingFileUploader(self, edit_api, self.task, source, file_name, "fbx", self.commentEdit.toPlainText().strip(), email, password)
                 worker.callback.progress.connect(dialog.file_loading)
                 worker.callback.done.connect(dialog.file_loaded)
                 dialog.add_item(source, "Pending")    
@@ -148,7 +148,7 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
                 file_path = os.path.dirname(source)
                 file_name, file_ext = os.path.splitext(file_base)
 
-                worker = bg.WorkingFileUploader(self, edit_api, self.task, source, file_name, "wip", self.commentEdit.toPlainText().strip(), email, password, mode = "preview")
+                worker = WorkingFileUploader(self, edit_api, self.task, source, file_name, "wip", self.commentEdit.toPlainText().strip(), email, password, mode = "preview")
                 worker.callback.progress.connect(dialog.file_loading)
                 worker.callback.done.connect(dialog.file_loaded)
                 dialog.add_item(source, "Pending")    
@@ -168,7 +168,7 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
                     file_path = os.path.dirname(source)
                     file_name, file_ext = os.path.splitext(file_base)
 
-                    worker = bg.WorkingFileUploader(self, edit_api, self.task, source, file_name, "working", self.commentEdit.toPlainText().strip(), email, password)
+                    worker = WorkingFileUploader(self, edit_api, self.task, source, file_name, "working", self.commentEdit.toPlainText().strip(), email, password)
                     worker.callback.progress.connect(dialog.file_loading)
                     worker.callback.done.connect(dialog.file_loaded)
                     dialog.add_item(source, "Pending")   

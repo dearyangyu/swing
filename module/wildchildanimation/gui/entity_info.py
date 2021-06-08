@@ -61,7 +61,7 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
         self.tasks = None
 
         if self.entity:
-            loader = bg.EntityLoaderThread(self, self.entity["id"])
+            loader = EntityLoaderThread(self, self.entity["id"])
             loader.callback.loaded.connect(self.entity_loaded)
             self.threadpool.start(loader)
 
@@ -127,7 +127,7 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
                 url = "{}/api/working_file/{}".format(edit_api, item["id"])
                 target = set_target(item, self.working_dir)
 
-                worker = bg.FileDownloader(self, self.working_dir, item["id"], url, item["target_path"], email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
+                worker = FileDownloader(self, self.working_dir, item["id"], url, item["target_path"], email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
 
                 worker.callback.progress.connect(self.file_loading)
                 worker.callback.done.connect(self.file_loaded)
@@ -138,7 +138,7 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
                 url = "{}/api/output_file/{}".format(edit_api, item["id"])
                 target = set_target(item, self.working_dir)
 
-                worker = bg.FileDownloader(self, self.working_dir, item["id"], url, item["target_path"], email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
+                worker = FileDownloader(self, self.working_dir, item["id"], url, item["target_path"], email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
 
                 worker.callback.progress.connect(self.file_loading)
                 worker.callback.done.connect(self.file_loaded)
@@ -212,7 +212,7 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
             self.shot = data["item"]
             self.url = data["url"]
             self.labelEntity.setText("Shot")
-            loader = bg.EntityFileLoader(self, self.nav, self.shot, self.working_dir)
+            loader = EntityFileLoader(self, self.nav, self.shot, self.working_dir)
 
             if "code" in self.project:
                 sections.append(self.project["code"])
@@ -235,7 +235,7 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
             self.asset = data["item"]
             self.url = data["url"]
             self.labelEntity.setText("Asset")
-            loader = bg.EntityFileLoader(self, self.nav, self.asset, self.working_dir)
+            loader = EntityFileLoader(self, self.nav, self.asset, self.working_dir)
 
             if "code" in self.project:
                 sections.append(self.project["code"])
@@ -467,7 +467,7 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
                 url = "{}/api/working_file/{}".format(edit_api, item["id"])
                 target = set_target(item, self.working_dir)
 
-                worker = bg.FileDownloader(self, self.working_dir, item["id"], url, item["target_path"], email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
+                worker = FileDownloader(self, self.working_dir, item["id"], url, item["target_path"], email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
 
                 worker.callback.progress.connect(self.file_loading)
                 worker.callback.done.connect(self.file_loaded)
@@ -478,7 +478,7 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
                 url = "{}/api/output_file/{}".format(edit_api, item["id"])
                 target = set_target(item, self.working_dir)
 
-                worker = bg.FileDownloader(self, self.working_dir, item["id"], url, item["target_path"], email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
+                worker = FileDownloader(self, self.working_dir, item["id"], url, item["target_path"], email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
 
                 worker.callback.progress.connect(self.file_loading)
                 worker.callback.done.connect(self.file_loaded)

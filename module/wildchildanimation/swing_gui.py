@@ -231,7 +231,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.tableViewTasks.addAction(self.openEntitInfoAction)
 
     def version_check(self):
-        version_check = bg.VersionCheck(self)
+        version_check = VersionCheck(self)
         version_check.callback.loaded.connect(self.version_check_loaded)
         #version_check.run()
         self.threadpool.start(version_check)
@@ -255,7 +255,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         reply = QtWidgets.QMessageBox.question(self, 'New Version found', 'Do you want to update ?', QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)        
         if reply == QtWidgets.QMessageBox.Yes:
 
-            updater = bg.SwingUpdater(self, os.getcwd())
+            updater = SwingUpdater(self, os.getcwd())
 
             #updater.callback.loaded.connect(self.version_check_loaded)
             updater.run()
@@ -328,7 +328,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
                     self.asset_type_changed(self.comboBoxAssetType.currentIndex())
                 else:
                     if self.projectNav.get_project():
-                        asset_loader = bg.AssetTypeLoaderThread(self, self.projectNav.get_project())
+                        asset_loader = AssetTypeLoaderThread(self, self.projectNav.get_project())
                         asset_loader.callback.loaded.connect(self.asset_types_loaded)
                         self.threadpool.start(asset_loader)
 
@@ -507,7 +507,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             self.comboBoxAsset.clear()
             self.comboBoxShot.clear()
 
-            asset_loader = bg.AssetTypeLoaderThread(self, self.currentProject)
+            asset_loader = AssetTypeLoaderThread(self, self.currentProject)
             asset_loader.callback.loaded.connect(self.asset_types_loaded)
             self.threadpool.start(asset_loader)
 
@@ -521,7 +521,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             self.tasks_changed()
 
     def tasks_changed(self):
-        task_loader = bg.TaskLoaderThread(self, self.projectNav, self.user_email)
+        task_loader = TaskLoaderThread(self, self.projectNav, self.user_email)
         task_loader.callback.loaded.connect(self.load_tasks)
 
         self.labelTaskTableSelection.setText("Loading tasks")
@@ -549,7 +549,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.tasks_changed()
 
         if self.projectNav.get_project():
-            asset_loader = bg.AssetTypeLoaderThread(self, self.projectNav.get_project())
+            asset_loader = AssetTypeLoaderThread(self, self.projectNav.get_project())
             asset_loader.callback.loaded.connect(self.asset_types_loaded)
             self.threadpool.start(asset_loader)     
 
@@ -593,7 +593,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
         project = self.projectNav.get_project()
         if project:
-            loader = bg.AssetLoaderThread(self, project, self.currentAssetType)
+            loader = AssetLoaderThread(self, project, self.currentAssetType)
             loader.callback.loaded.connect(self.asset_loaded)
             self.threadpool.start(loader)
 
@@ -608,7 +608,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             self.currentShot = sequence["shots"][index]
             #write_log("load shot files {}".format(index))
 
-            loader = bg.EntityFileLoader(self, self.projectNav, self.currentShot, working_dir = load_settings("projects_root", os.path.expanduser("~")))
+            loader = EntityFileLoader(self, self.projectNav, self.currentShot, working_dir = load_settings("projects_root", os.path.expanduser("~")))
             loader.callback.loaded.connect(self.load_files)
 
             self.labelFileTableSelection.setText("Loading files for {}".format(self.currentShot["name"]))
@@ -649,7 +649,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         ## write_log("[selection_changed]", source)
 
         #write_log("load asset files {}".format(index))
-        loader = bg.EntityFileLoader(self, self.projectNav, asset, working_dir = load_settings("projects_root", os.path.expanduser("~")))
+        loader = EntityFileLoader(self, self.projectNav, asset, working_dir = load_settings("projects_root", os.path.expanduser("~")))
         loader.callback.loaded.connect(self.load_files)
 
         self.labelFileTableSelection.setText("Loading files for {}".format(asset["name"]))
@@ -989,15 +989,15 @@ class CreateDialogGUI(QtWidgets.QDialog, Ui_CreateDialog):
         self.task = task
         self.threadpool = QtCore.QThreadPool.globalInstance()
 
-        loader = bg.EntityLoaderThread(self, self.task["entity_id"])
+        loader = EntityLoaderThread(self, self.task["entity_id"])
         loader.callback.loaded.connect(self.entity_loaded)
         self.threadpool.start(loader)
 
-        loader = bg.TaskFileInfoThread(self, self.task, load_settings("projects_root", os.path.expanduser("~")))
+        loader = TaskFileInfoThread(self, self.task, load_settings("projects_root", os.path.expanduser("~")))
         loader.callback.loaded.connect(self.task_loaded)
         self.threadpool.start(loader)
 
-        loader = bg.SoftwareLoader(self)            
+        loader = SoftwareLoader(self)            
         loader.callback.loaded.connect(self.software_loaded)
         self.threadpool.start(loader)
 

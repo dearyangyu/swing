@@ -50,7 +50,7 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
         self.url = None
         self.threadpool = QtCore.QThreadPool.globalInstance()
 
-        loader = bg.EntityLoaderThread(self, self.entity["id"])
+        loader = EntityLoaderThread(self, self.entity["id"])
         loader.callback.loaded.connect(self.entity_loaded)
         self.threadpool.start(loader)
 
@@ -314,7 +314,7 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
             url = "{}/api/working_file/{}".format(edit_api, item["id"])
             target = set_target(item, self.working_dir)
 
-            worker = bg.FileDownloader(self, self.working_dir, item["id"], url, item["target_path"], email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
+            worker = FileDownloader(self, self.working_dir, item["id"], url, item["target_path"], email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
 
             worker.callback.progress.connect(self.file_loading)
             worker.callback.done.connect(self.file_loaded)
@@ -328,7 +328,7 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
             url = "{}/api/output_file/{}".format(edit_api, item["id"])
             target = set_target(item, self.working_dir)
 
-            worker = bg.FileDownloader(self, self.working_dir, item["id"], url,  item["target_path"], email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
+            worker = FileDownloader(self, self.working_dir, item["id"], url,  item["target_path"], email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
 
             worker.callback.progress.connect(self.file_loading)
             worker.callback.done.connect(self.file_loaded)

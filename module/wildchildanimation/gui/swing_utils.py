@@ -130,8 +130,12 @@ def my_date_format(date):
         if len(date) == 19: # YYYY-MM-DDTHH:MM:SS
             dt = datetime.strptime(date, "%Y-%m-%dT%H:%M:%S")
             return dt.strftime("%Y-%m-%d %H:%M:%S")
+    try:
+        result = date.strftime("%Y-%m-%d %H:%M:%S")    
+    except:
+        result = date
 
-    return date.strftime("%Y-%m-%d %H:%M:%S")    
+    return result
 
 def human_size(bytes):
     if bytes < 1024:

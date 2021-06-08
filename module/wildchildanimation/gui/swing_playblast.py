@@ -912,7 +912,8 @@ class SwingPlayblastUi(QtWidgets.QDialog):
         self.create_connections()
 
         self.load_defaults()
-        self.append_output("Zurbrigg Playblast v{0}".format(SwingPlayblast.VERSION))
+        self.load_user_settings()
+        self.append_output("Playblast v{0}".format(SwingPlayblast.VERSION))
 
 
     def create_actions(self):
@@ -1204,9 +1205,9 @@ class SwingPlayblastUi(QtWidgets.QDialog):
         if not file_info.exists():
             current_dir_path = self._playblast.get_project_dir_path()
 
-        new_filename = QtWidgets.QFileDialog.getSaveFileName(ExistingDirectory(self, "Select Directory", selected_file))
+        new_filename = QtWidgets.QFileDialog.getSaveFileName(self, "Select Directory", selected_file)
         if new_filename:
-            self.output_file_name_le.setText(new_filename)            
+            self.output_filename_le.setText("{}".format(new_filename[0]))
 
     def open_output_directory(self):
         output_dir_path = self.output_dir_path_le.text()
@@ -1370,17 +1371,30 @@ class SwingPlayblastUi(QtWidgets.QDialog):
     def write_settings(self):
         self.settings = QtCore.QSettings()
         self.settings.beginGroup("Playblast")
+
         self.settings.setValue("size", self.size())
         self.settings.setValue("pos", self.pos())
+
+        self.settings.setValue("output_dir_path_le", self.output_dir_path_le.text())
+        self.settings.setValue("output_filename_le", self.output_filename_le.text())
+        
         self.settings.endGroup()
 
     # load main dialog state
     def read_settings(self):
         self.settings = QtCore.QSettings()
         self.settings.beginGroup("Playblast")
+
         self.resize(self.settings.value("size", QtCore.QSize(400, 400)))
         self.move(self.settings.value("pos", QtCore.QPoint(200, 200)))
-        self.settings.endGroup()            
+        self.settings.endGroup()          
+
+    def load_user_settings(self):
+        self.settings = QtCore.QSettings()
+        self.settings.beginGroup("Playblast")
+        self.output_dir_path_le.setText(self.settings.value("output_dir_path_le", self.output_dir_path_le.placeholderText()))
+        self.output_filename_le.setText(self.settings.value("output_filename_le", self.output_filename_le.placeholderText()))
+        self.settings.endGroup()          
 
     def save_settings(self):
         save_settings("ffmpeg_bin", self._playblast.get_ffmpeg_path())   
@@ -1498,20 +1512,7 @@ class SwingPlayblastUi(QtWidgets.QDialog):
         if cmds.optionVar(exists="SwingPlayblastUiViewer"):
             self.viewer_cb.setChecked(cmds.optionVar(q="SwingPlayblastUiViewer"))
 
-    def show_settings_dialog(self):
-        if not self._settings_dialog:
-            self._settings_dialog = SwingPlayblastSettingsDialog(self)
-            self._settings_dialog.accepted.connect(self.on_settings_dialog_modified)
 
-        self._settings_dialog.set_ffmpeg_path(self._playblast.get_ffmpeg_path())
-
-        self._settings_dialog.show()
-
-    def on_settings_dialog_modified(self):
-        ffmpeg_path = self._settings_dialog.get_ffmpeg_path()
-        self._playblast.set_ffmpeg_path(ffmpeg_path)
-
-        self.save_settings()
 
     def show_about_dialog(self):
         text = '<h2>{0}</h2>'.format(SwingPlayblastUi.TITLE)
@@ -1532,15 +1533,14 @@ class SwingPlayblastUi(QtWidgets.QDialog):
 
 
 if __name__ == "__main__":
-
     try:
         swing_playblast_dialog.close() # pylint: disable=E0601
         swing_playblast_dialog.deleteLater()
     except:
         pass
 
-    zurbrigg_playblast_dialog = SwingPlayblastUi()
-    zurbrigg_playblast_dialog.show()
+    swing_playblast_dialog = SwingPlayblastUi()
+    swing_playblast_dialog.show()
 
 
 

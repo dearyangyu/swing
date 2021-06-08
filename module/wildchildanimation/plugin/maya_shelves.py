@@ -29,6 +29,7 @@ handler = StudioHandler()
 
 if __name__ == '__main__':
 #    app = QApplication(sys.argv)
+    SwingGUI.show_dialog(handler)
     ex = SwingGUI(handler)
     ex.show()
     sys.exit(app.exec_())
