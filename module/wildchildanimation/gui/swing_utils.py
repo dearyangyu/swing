@@ -160,7 +160,14 @@ def human_size(bytes):
     # really ?     
     return "{:.2f}".format(bytes)   
 
+def resource_path(resource):
+    base_path = os.path.dirname(os.path.realpath(__file__))
+    return os.path.join(base_path, resource)    
+
+
 def set_button_icon(button, resource_string):
+    resource_string = resource_path(resource_string)
+
     pm = QtGui.QPixmap(resource_string)
     pm = pm.scaledToHeight(18)        
 

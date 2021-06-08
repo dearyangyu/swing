@@ -59,8 +59,6 @@ from wildchildanimation.studio_interface import StudioInterface
 
 from wildchildanimation.gui.swing_playblast import *
 
-from wildchildanimation.gui.swing_resources import *
-
 
 '''
     SwingGUI Main class
@@ -167,15 +165,15 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.tableViewTasks.doubleClicked.connect(self.task_table_double_click)        
 
         self.toolButtonShotInfo.clicked.connect(self.load_shot_info)
-        set_button_icon(self.toolButtonShotInfo, ":/swing/gui/fontawesome/solid/video")        
+        set_button_icon(self.toolButtonShotInfo, "../resources/fa-free/solid/video.svg")        
 
         self.toolButtonAssetInfo.clicked.connect(self.load_asset_info)
-        set_button_icon(self.toolButtonAssetInfo, ":/swing/gui/fontawesome/solid/boxes")        
+        set_button_icon(self.toolButtonAssetInfo, "../resources/fa-free/solid/boxes.svg")        
 
         self.readSettings()
         self.threadpool = QtCore.QThreadPool.globalInstance()
-        self._createActions()
-        self._createContextMenu()
+        ## TODO: self._createActions()
+        ## self._createContextMenu()
 
         if self.connect_to_server():
             self.labelConnection.setText("Connected")
@@ -197,19 +195,19 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
     def _createActions(self):
         # File actions
-        self.loadAction = self._loadActionIcon("&Load File", ":/swing/gui/fontawesome/solid/load")
-        self.downloadAction = self._loadActionIcon("&Download", ":/swing/gui/fontawesome/solid/download")
-        self.openExplorerAction = self._loadActionIcon("Open E&xplorer", ":/swing/gui/fontawesome/solid/folder-open")
-        self.selectAllAction = self._loadActionIcon("Select &None", ":/swing/gui/fontawesome/solid/minus")
-        self.selectNoneAction = self._loadActionIcon("Select &All", ":/swing/gui/fontawesome/solid/plus")
+        self.loadAction = self._loadActionIcon("&Load File", "../resources/fa-free/solid/folder-open.svg")
+        self.downloadAction = self._loadActionIcon("&Download", "../resources/fa-free/solid/download.svg")
+        self.openExplorerAction = self._loadActionIcon("Open E&xplorer", "../resources/fa-free/solid/folder.svg")
+        self.selectAllAction = self._loadActionIcon("Select &None", "../resources/fa-free/solid/minus.svg")
+        self.selectNoneAction = self._loadActionIcon("Select &All", "../resources/fa-free/solid/plus.svg")
 
         # Snip...            
 
         # Task actions
-        self.createTaskDirAction = self._loadActionIcon("&Create Task Folder", ":/swing/gui/fontawesome/solid/new")
-        self.openTaskDirAction = self._loadActionIcon("&Open E&xplorer", ":/swing/gui/fontawesome/solid/folder-open")
-        self.reviewTaskAction = self._loadActionIcon("&Publish for Review", ":/swing/gui/fontawesome/solid/share")
-        self.openEntitInfoAction = self._loadActionIcon("Open &Entity Info", ":/swing/gui/fontawesome/solid/info")
+        self.createTaskDirAction = self._loadActionIcon("&Create Task Folder", "../resources/fa-free/solid/folder_plus.vg")
+        self.openTaskDirAction = self._loadActionIcon("&Open E&xplorer", "../resources/fa-free/solid/folder.svg")
+        self.reviewTaskAction = self._loadActionIcon("&Publish for Review", "../resources/fa-free/solid/share.svg")
+        self.openEntitInfoAction = self._loadActionIcon("Open &Entity Info", "../resources/fa-free/solid/info.svg")
 
     def _createContextMenu(self):
         # Setting contextMenuPolicy

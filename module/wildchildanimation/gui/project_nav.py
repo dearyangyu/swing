@@ -30,7 +30,6 @@ from wildchildanimation.gui.swing_utils import connect_to_server, write_log, loa
 from wildchildanimation.gui.background_workers import ProjectLoaderThread, ProjectHierarchyLoaderThread
 from wildchildanimation.gui.project_nav_widget import Ui_ProjectNavWidget
 from wildchildanimation.gui.entity_select import *
-from wildchildanimation.gui.swing_resources import *
 
 class NavigationChangedSignal(QObject):
 
@@ -68,10 +67,10 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
         self.toolButtonRefresh.clicked.connect(self.load_project_hierarchy)
 
         self.toolButtonTaskTypes.clicked.connect(self.select_task_types)
-        set_button_icon(self.toolButtonTaskTypes, ":/swing/gui/fontawesome/solid/lines")
+        set_button_icon(self.toolButtonTaskTypes, "../resources/fa-free/solid/list.svg")
 
         self.toolButtonStatusTypes.clicked.connect(self.select_status_types)
-        set_button_icon(self.toolButtonStatusTypes, ":/swing/gui/fontawesome/solid/task")        
+        set_button_icon(self.toolButtonStatusTypes, "../resources/fa-free/solid/tasks.svg")        
 
         self.signal = NavigationChangedSignal()
         self.signal.selection_changed.connect(self.selection_changed)
