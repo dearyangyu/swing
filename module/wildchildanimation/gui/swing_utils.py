@@ -126,12 +126,6 @@ def resource_path(resource):
     return os.path.join(base_path, resource)
 
 def my_date_format(date):
-    if len(date) == 19: # YYYY-MM-DDTHH:MM:SS
-        dt = datetime.strptime(date, "%Y-%m-%dT%H:%M:%S")
-        return dt.strftime("%Y-%m-%d %H:%M:%S")
-    return date.strftime("%Y-%m-%d %H:%M:%S")
-
-def my_date_format(date):
     if isinstance(date, str):
         if len(date) == 19: # YYYY-MM-DDTHH:MM:SS
             dt = datetime.strptime(date, "%Y-%m-%dT%H:%M:%S")
