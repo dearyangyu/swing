@@ -53,4 +53,4 @@ echo "Compling Swing Maya widget"
 c:\dev\github\wca-maya\venv\lib\site-packages\PySide2\uic --tr fakestr -g python -o c:\dev\Github\wca-maya\module\wildchildanimation\maya\swingcontrol.py c:\dev\Github\wca-maya\module\wildchildanimation\gui\forms\swingcontrol_widget.ui
 
 echo "Compiling resources"
-c:\dev\github\wca-maya\venv\lib\site-packages\PySide2\rcc -g python C:\DEV\Github\wca-maya\module\wildchildanimation\gui\forms\resources\swing_resources.qrc -o c:\dev\Github\wca-maya\module\wildchildanimation\gui\resources\swing_resources.py
+c:\dev\github\wca-maya\venv\lib\site-packages\PySide2\rcc -g python C:\DEV\Github\wca-maya\module\wildchildanimation\gui\forms\resources\swing_resources.qrc -o c:\dev\Github\wca-maya\module\wildchildanimation\gui\swing_resources.py

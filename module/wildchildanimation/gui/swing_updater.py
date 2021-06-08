@@ -9,8 +9,14 @@ sys.path.append("./module")
 
 import os
 from pprint import pprint
-import urllib.request as request
+
 import zipfile
+
+# python 3
+if sys.version_info[0] >= 3:
+    import urllib.request as request    
+else:
+    import urllib as request
 
 SWING_DOWNLOAD = "https://github.com/wildchild-animation/swing/archive/refs/heads/main.zip"
 

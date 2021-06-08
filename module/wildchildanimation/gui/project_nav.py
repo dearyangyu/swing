@@ -31,7 +31,8 @@ from wildchildanimation.gui.background_workers import ProjectLoaderThread, Proje
 from wildchildanimation.gui.project_nav_widget import Ui_ProjectNavWidget
 from wildchildanimation.gui.entity_select import *
 
-import wildchildanimation.gui.resources.swing_resources
+import wildchildanimation.gui.swing_resources
+
 
 class NavigationChangedSignal(QObject):
 
