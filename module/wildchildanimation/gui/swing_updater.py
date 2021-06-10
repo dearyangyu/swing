@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-_VERSION = "1.01"
+_VERSION = "1.02"
 
 import argparse
 import platform
@@ -107,28 +107,25 @@ def setup_windows(working_dir):
         print("Found virtual environment {}".format(venv_dir))
 
     install_dir = "{}/installs".format(working_dir)
-    if not os.path.exists(install_dir):
-        download_latest(install_dir)
-
-    module_path = "{}/swing".format(working_dir)
-    if not os.path.exists(module_path):
-        check_or_create_dir(module_path)
-        extract_latest(install_dir, module_path)
 
     release_version = get_swing_release()
     release_dir = "{}/v{}".format(install_dir, release_version)
 
+    if not os.path.exists(release_dir):    
+        download_latest(release_dir)
+
     version_path = "{}/swing/swing-main/module/swing.version".format(working_dir)
+    module_path = "{}/swing".format(working_dir)
+
     if not os.path.exists(module_path):
-        download_latest(install_dir)
+        check_or_create_dir(module_path)        
         extract_latest(release_dir, module_path)
+
 
     local_version = open(version_path, 'r').read()
     if not local_version == release_version:
-        download_latest(release_dir)
+        check_or_create_dir(module_path)        
         extract_latest(release_dir, module_path)
-    else:
-        print("Swing up to date")
 
     update_requirements(working_dir)
     run_swing_standalone(working_dir)
