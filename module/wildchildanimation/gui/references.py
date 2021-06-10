@@ -205,7 +205,7 @@ class ReferencesDialogGUI(QtWidgets.QDialog, Ui_ReferencesDialog):
             for result in sr:
                 file_list.append(result)
 
-        dialog = DownloadDialogGUI(self, self.entity, self.task_types, file_list)
+        dialog = DownloadDialogGUI(self, self.handler, self.entity, self.task_types, file_list)
         dialog.load_files(file_list)
         dialog.resize(self.size())
         dialog.exec_()            

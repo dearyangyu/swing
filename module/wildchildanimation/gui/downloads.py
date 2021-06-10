@@ -41,13 +41,13 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
 
     working_dir = None
     
-    def __init__(self, parent, project_nav = None, entity = None, file_list = None):
+    def __init__(self, parent, handler = None, project_nav = None, entity = None, file_list = None):
         super(DownloadDialogGUI, self).__init__(parent) # Call the inherited classes __init__ method
         self.setupUi(self)
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
         self.setMinimumWidth(600)
-
         self.nav = project_nav
+        self.handler = handler
         self.entity = entity 
         self.threadpool = QtCore.QThreadPool.globalInstance()
         self.task_types = self.nav._task_types
@@ -104,7 +104,7 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
                     return True
 
             dialog = LoaderDialogGUI(self, self.handler, self.entity)
-            dialog.load_files(self.files)
+            dialog.load_files(self.file_list)
             dialog.set_selected(self.selected_file)
             #dialog.exec_()
             dialog.show()        
@@ -279,50 +279,6 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
         self.tableModelFiles = FileTableModel(self, working_dir = load_settings("projects_root", os.path.expanduser("~")), files = file_list)
         setup_file_table(self.tableModelFiles, self.tableView)
         self.tableView.clicked.connect(self.select_row)   
-        
-        return
-        self.tableView.clicked.connect(self.select_row)   
-
-        # create the sorter model
-        self.sorterModel = QtCore.QSortFilterProxyModel()
-        self.sorterModel.setSourceModel(self.tableModelFiles)
-        self.sorterModel.setFilterKeyColumn(0)
-
-        # filter proxy model
-        filter_proxy_model = QtCore.QSortFilterProxyModel()
-        filter_proxy_model.setSourceModel(self.tableModelFiles)
-        filter_proxy_model.setFilterKeyColumn(2) # third column          
-
-        self.tableView.setModel(self.sorterModel)                
-        self.tableView.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
-
-        self.tableView.setSortingEnabled(True)
-        self.tableView.sortByColumn(1, QtCore.Qt.DescendingOrder)
-
-        self.tableView.setColumnWidth(0, 10)
-        self.tableView.setColumnWidth(1, 300)
-        self.tableView.setColumnWidth(2, 40)
-        self.tableView.setColumnWidth(3, 100)
-        self.tableView.setColumnWidth(4, 80)
-        self.tableView.setColumnWidth(5, 80)
-        self.tableView.setColumnWidth(6, 100)
-        self.tableView.setColumnWidth(7, 100)
-        self.tableView.resizeRowsToContents()
-
-        selectionModel = self.tableView.selectionModel()
-        #selectionModel.selectionChanged.connect(self.file_table_selection_changed)     
-
-        self.checkboxDelegate = CheckBoxDelegate()
-        self.tableView.setItemDelegateForColumn(0, self.checkboxDelegate)        
-
-        ## self.tableView.verticalHeader().setDefaultSectionSize(self.tableView.verticalHeader().minimumSectionSize())        
-
-        self.tableView.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
-        self.tableView.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)        
-
-        ## self.tableView.horizontalHeader().setSectionResizeMode(8, QtWidgets.QHeaderView.Stretch)
-
-        self.tableView.clicked.connect(self.select_row)       
 
     def select_row(self, index):
         self.tableView.model().setData(index, QtCore.Qt.Checked, QtCore.Qt.EditRole)

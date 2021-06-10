@@ -234,19 +234,19 @@ def setup_file_table(tableModelFiles, tableView):
      # filter proxy model
     filter_proxy_model = QtCore.QSortFilterProxyModel()
     filter_proxy_model.setSourceModel(tableModelFiles)
-    filter_proxy_model.setFilterKeyColumn(2) # third column          
+    filter_proxy_model.setFilterKeyColumn(FileTableModel._COL_FILE_NAME) # third column          
 
     tableView.setModel(sorterModel)                
     tableView.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
 
     tableView.setSortingEnabled(True)
-    tableView.sortByColumn(1, QtCore.Qt.DescendingOrder)
+    tableView.sortByColumn(FileTableModel._COL_UPDATED, QtCore.Qt.DescendingOrder)
 
     tableView.setColumnWidth(FileTableModel._COL_SELECT, 10)
     tableView.setColumnWidth(FileTableModel._COL_FILE_NAME, 300)
-    tableView.setColumnWidth(FileTableModel._COL_VERSION, 40)
+    tableView.setColumnWidth(FileTableModel._COL_VERSION, 20)
     tableView.setColumnWidth(FileTableModel._COL_TASK, 100)
-    tableView.setColumnWidth(FileTableModel._COL_UPDATED, 120)
+    tableView.setColumnWidth(FileTableModel._COL_UPDATED, 160)
     tableView.setColumnWidth(FileTableModel._COL_SIZE, 80)
     tableView.setColumnWidth(FileTableModel._COL_COMMENT, 200)
     tableView.setColumnWidth(FileTableModel._COL_DESCRIPTION, 150)

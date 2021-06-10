@@ -839,10 +839,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
 
     def search_files_dialog(self):
-            # def __init__(self, project_nav = None, handler = None, entity = None):
-        dialog = SearchFilesDialog(self.projectNav, self.handler)
-        dialog.set_project(self.projectNav.get_project())
-
+        dialog = SearchFilesDialog(self.projectNav, self.handler, self.get_current_selection())
         dialog.exec_()
 
 
@@ -867,16 +864,16 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
         if len(files) == 0:
             #def __init__(self, parent, project_nav = None, entity = None, file_list = None):
-            dialog = DownloadDialogGUI(self, self.projectNav, self.get_current_selection())
+            dialog = DownloadDialogGUI(self, self.handler, self.projectNav, self.get_current_selection())
         else:
-            dialog = DownloadDialogGUI(self, self.projectNav, self.get_current_selection(), files)
+            dialog = DownloadDialogGUI(self, self.handler, self.projectNav, self.get_current_selection(), files)
 
         dialog.resize(self.size())
         dialog.show()
 
     def load_asset(self):
         dialog = LoaderDialogGUI(self, self.handler, self.get_current_selection())
-        dialog.resize(self.size())    
+        #dialog.resize(self.size())    
 
         dialog.load_files(self.tableModelFiles.items)
         if self.selected_file:

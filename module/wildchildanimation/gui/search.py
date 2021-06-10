@@ -41,7 +41,7 @@ class SearchFilesDialog(QtWidgets.QDialog, Ui_SearchFilesDialog):
 
     working_dir = None
     
-    def __init__(self, project_nav, handler):
+    def __init__(self, project_nav, handler, entity = None):
         super(SearchFilesDialog, self).__init__(None) # Call the inherited classes __init__ method
         self.setupUi(self)
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
@@ -52,6 +52,7 @@ class SearchFilesDialog(QtWidgets.QDialog, Ui_SearchFilesDialog):
         self.task_types = self.nav.get_task_types()
 
         self.handler = handler
+        self.entity = entity
         self.threadpool = QtCore.QThreadPool.globalInstance()
 
         self.pushButtonSearch.clicked.connect(self.process)
@@ -98,7 +99,7 @@ class SearchFilesDialog(QtWidgets.QDialog, Ui_SearchFilesDialog):
             QtWidgets.QMessageBox.information(self, 'File Search', 'No files found, sorry', QtWidgets.QMessageBox.Ok)            
             return                 
 
-        dialog = DownloadDialogGUI(self, self.nav, entity = None, file_list = results)
+        dialog = DownloadDialogGUI(self, self.handler, self.nav, self.entity, file_list = results)
         #dialog.load_files(file_list)
         dialog.show()            
 
