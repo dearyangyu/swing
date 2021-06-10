@@ -30,13 +30,6 @@ from wildchildanimation.gui.search_files_dialog import Ui_SearchFilesDialog
 from wildchildanimation.gui.swing_tables import human_size
 from wildchildanimation.gui.downloads import *
 
-TEST_MISSING = [
-    'sq00_sh00_layout/hby_e00_sq00_sh00_layout.mb',
-    'hby_launchpad_mastermesh_02',
-    'hby_character_flower_small_rig_v003.ma{13}',
-    'C:/Users/Saloni/Desktop/HB2/season_02/layout_main/assets/props/hby_prop_cloud_proxy_v001.ma{4}'
-]
-
 class SearchFilesDialog(QtWidgets.QDialog, Ui_SearchFilesDialog):
 
     working_dir = None
@@ -66,7 +59,7 @@ class SearchFilesDialog(QtWidgets.QDialog, Ui_SearchFilesDialog):
 
         email = load_settings('user', 'user@example.com')
         password = load_keyring('swing', 'password', 'Not A Password')
-        server = load_settings('server', 'https://example.wildchildanimation.com')
+        server = load_settings('server', 'https://example.company.com')
         edit_api = "{}/edit".format(server)
 
         file_list = []

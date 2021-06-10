@@ -224,6 +224,13 @@
       </widget>
      </item>
      <item>
+      <widget class="QCheckBox" name="checkBoxCasted">
+       <property name="text">
+        <string>Include casted</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <spacer name="horizontalSpacer_6">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>

@@ -38,6 +38,7 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
 
         self.setupUi(self)
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
+        self.read_settings()
 
         self.handler = handler
         self.task = task
@@ -68,8 +69,8 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         self.lineEditTask.setText(name)
 
         self.projectFileToolButton.clicked.connect(self.select_project_file)
-        self.fbxFileToolButton.clicked.connect(self.select_fbx_file)
-        self.reviewFileToolButton.clicked.connect(self.select_review_file)
+        #self.fbxFileToolButton.clicked.connect(self.select_fbx_file)
+        #self.reviewFileToolButton.clicked.connect(self.select_review_file)
         self.referencesAddPushButton.clicked.connect(self.select_references)
 
         model = QtGui.QStandardItemModel(self.referencesListView)
@@ -86,7 +87,67 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         if self.request:
             self.projectFileEdit.setText(self.request["file_path"])
 
+        self.groupBox.setAcceptDrops(True)
+
+    # The following three methods set up dragging and dropping for the app
+    def dragEnterEvent(self, e):
+        if e.mimeData().hasUrls:
+            e.accept()
+        else:
+            e.ignore()
+
+    def dragMoveEvent(self, e):
+        if e.mimeData().hasUrls:
+            e.accept()
+        else:
+            e.ignore()
+
+    def dropEvent(self, e):
+        """
+        Drop files directly onto the widget
+        File locations are stored in fname
+        :param e:
+        :return:
+        """
+        if e.mimeData().hasUrls:
+            e.setDropAction(QtCore.Qt.CopyAction)
+            e.accept()
+            # Workaround for OSx dragging and dropping
+            #for url in e.mimeData().urls():
+            #    if op_sys == 'Darwin':
+            #        fname = str(NSURL.URLWithString_(str(url.toString())).filePathURL().path())
+            #    else:
+            #        fname = str(url.toLocalFile())
+            #self.fname = fname
+            #self.load_image()
+        else:
+            e.ignore()
+
+
+    # save main dialog state
+    def write_settings(self):
+        self.settings = QtCore.QSettings()
+        self.settings.beginGroup("Publish")
+
+        self.settings.setValue("size", self.size())
+        self.settings.setValue("pos", self.pos())
+
+        #self.settings.setValue("output_dir_path_le", self.output_dir_path_le.text())
+        #self.settings.setValue("output_filename_le", self.output_filename_le.text())
+        
+        self.settings.endGroup()
+
+    # load main dialog state
+    def read_settings(self):
+        self.settings = QtCore.QSettings()
+        self.settings.beginGroup("Publish")
+
+        self.resize(self.settings.value("size", QtCore.QSize(600, 800)))
+        self.move(self.settings.value("pos", QtCore.QPoint(0, 200)))
+        self.settings.endGroup()              
+
     def close_dialog(self):
+        self.write_settings()
         self.close()
 
     def file_loaded(self, status):

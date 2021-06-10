@@ -14,7 +14,6 @@ from PySide2.QtWidgets import *
 
 from wildchildanimation.gui.swing_utils import fakestr
 
-
 class Ui_SearchFilesDialog(object):
     def setupUi(self, SearchFilesDialog):
         if not SearchFilesDialog.objectName():
@@ -83,7 +82,7 @@ class Ui_SearchFilesDialog(object):
 
     def retranslateUi(self, SearchFilesDialog):
         SearchFilesDialog.setWindowTitle(fakestr(u"Search for files", None))
-        self.labelSearch.setText(fakestr(u"Enter a comma seperated list of file names or partial file names to search for ", None))
+        self.labelSearch.setText(fakestr(u"Enter a comma separated list of file names or partial file names to search for ", None))
         self.pushButtonSearch.setText(fakestr(u"Search", None))
 #if QT_CONFIG(shortcut)
         self.pushButtonSearch.setShortcut(fakestr(u"Ctrl+Return", None))

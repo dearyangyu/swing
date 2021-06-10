@@ -159,12 +159,13 @@ class ProjectHierarchyLoaderThread(QtCore.QRunnable):
 
 class EntityFileLoader(QtCore.QRunnable):
 
-    def __init__(self, parent, project_nav, entity, working_dir):
+    def __init__(self, parent, project_nav, entity, working_dir, scan_cast = False):
         super(EntityFileLoader, self).__init__(self, parent)
         self.nav = project_nav
         self.entity = entity
         self.working_dir = working_dir
         self.callback = LoadedSignal()    
+        self.scan_cast = scan_cast
 
     def find_item(self, data_list, item):
         for i in data_list:
@@ -192,17 +193,21 @@ class EntityFileLoader(QtCore.QRunnable):
                 working_files = []
                 working_file_list = gazu.files.get_all_working_files_for_entity(self.entity)
 
-                # load casted files
-                scan_cast = False
+                if self.scan_cast:
+                    if "Shot" in self.entity["type"]:
+                        shot = gazu.shot.get_shot(self.entity["id"])
+                        casting = gazu.casting.get_shot_casting(shot)
+                    else:
+                        asset = gazu.asset.get_asset(self.entity["id"])
+                        casting = gazu.casting.get_asset_casting(asset)
 
-                if scan_cast:
                     for item in casting:
                         for file_item in gazu.files.all_output_files_for_entity(item["asset_id"]):
-                            if file_item not in output_files:
-                                output_files.append(file_item)
+                            if file_item not in output_file_list:
+                                output_file_list.append(file_item)
                         for file_item in gazu.files.get_all_working_files_for_entity(item["asset_id"]):
-                            if file_item not in working_files:
-                                working_files.append(file_item)
+                            if file_item not in working_file_list:
+                                working_file_list.append(file_item)
 
                 # check task types
                 for file_item in output_file_list:

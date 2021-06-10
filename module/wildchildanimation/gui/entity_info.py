@@ -90,64 +90,20 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
 
         self.setWorkingDir(load_settings("projects_root", os.path.expanduser("~")))        
 
+        self.checkBoxCasted.clicked.connect(self.check_casted)
+
+    def check_casted(self):
+        if self.entity:
+            loader = EntityFileLoader(self, self.nav, self.entity, self.working_dir, self.checkBoxCasted.isChecked())
+            loader.callback.loaded.connect(self.files_loaded)
+            self.tableView.setEnabled(False)
+            self.threadpool.start(loader)        
+            ##loader.run()
+
     def get_selected_task(self):
         if self.tasks:
             return self.tasks[self.comboBoxTasks.currentIndex()]
         return None
-
-    def download_files(self):
-        self.threadpool = QtCore.QThreadPool.globalInstance()
-
-        self.pushButtonDownload.setText("Downloading")
-        self.pushButtonDownload.setEnabled(False)
-        
-        self.pushButtonClose.setText("Busy")
-        self.pushButtonClose.setEnabled(False)
-        self.downloads = 0
-
-        file_list = []
-        for row in range(self.tableView.model().rowCount()):
-            index = self.tableView.model().index(row, 0)
-            if self.tableView.model().data(index, QtCore.Qt.DisplayRole):
-                item = self.tableView.model().data(index, QtCore.Qt.UserRole)
-                file_list.append(item)       
-
-        self.progressBar.setRange(0, len(file_list))
-
-        email = load_settings('user', 'user@example.com')
-        password = load_keyring('swing', 'password', 'Not A Password')
-        server = load_settings('server', 'https://example.wildchildanimation.com')
-        edit_api = "{}/edit".format(server)
-
-        row = 0
-        for item in file_list:
-            write_log("Downloading {}".format(item["name"]))
-
-            if "WorkingFile" in item["type"]:
-                url = "{}/api/working_file/{}".format(edit_api, item["id"])
-                target = set_target(item, self.working_dir)
-
-                worker = FileDownloader(self, self.working_dir, item["id"], url, item["target_path"], email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
-
-                worker.callback.progress.connect(self.file_loading)
-                worker.callback.done.connect(self.file_loaded)
-                self.threadpool.start(worker)
-                self.downloads += 1                
-                item["status"] = "Busy"
-            else:
-                url = "{}/api/output_file/{}".format(edit_api, item["id"])
-                target = set_target(item, self.working_dir)
-
-                worker = FileDownloader(self, self.working_dir, item["id"], url, item["target_path"], email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
-
-                worker.callback.progress.connect(self.file_loading)
-                worker.callback.done.connect(self.file_loaded)
-                
-                self.threadpool.start(worker)
-                self.downloads += 1            
-
-                item["status"] = "Busy"
-            row = row + 1                     
 
     def publish(self):
         task = self.get_selected_task()
@@ -155,6 +111,14 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
             dialog = PublishDialogGUI(self, self.handler, gazu.task.get_task(task))
             dialog.setMinimumWidth(640)
             dialog.show()
+
+    def select_count(self):
+        count = 0
+        for row in range(self.tableView.model().rowCount()):
+            index = self.tableView.model().index(row, 0)
+            if self.tableView.model().data(index):
+                count += 1
+        return count
 
     def select_all(self):
         for row in range(self.tableView.model().rowCount()):
@@ -302,6 +266,7 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
 
     def files_loaded(self, data):
         self.file_list = data
+        self.tableView.setEnabled(True)        
 
         output_files = data["output_files"]
         working_files = data["working_files"]
@@ -433,6 +398,9 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
                 open_folder(os.path.dirname(selected["target_path"]))
 
     def download_files(self):
+        if self.select_count() == 0:
+            self.select_all()
+             
         self.threadpool = QtCore.QThreadPool.globalInstance()
 
         self.pushButtonDownload.setText("Downloading")

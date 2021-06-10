@@ -17,7 +17,7 @@ class Ui_EntityInfoDialog(object):
     def setupUi(self, EntityInfoDialog):
         if not EntityInfoDialog.objectName():
             EntityInfoDialog.setObjectName(u"EntityInfoDialog")
-        EntityInfoDialog.resize(958, 809)
+        EntityInfoDialog.resize(571, 523)
         EntityInfoDialog.setSizeGripEnabled(True)
         self.verticalLayout = QVBoxLayout(EntityInfoDialog)
         self.verticalLayout.setObjectName(u"verticalLayout")
@@ -144,6 +144,11 @@ class Ui_EntityInfoDialog(object):
 
         self.horizontalLayout.addWidget(self.checkBoxExtractZips)
 
+        self.checkBoxCasted = QCheckBox(EntityInfoDialog)
+        self.checkBoxCasted.setObjectName(u"checkBoxCasted")
+
+        self.horizontalLayout.addWidget(self.checkBoxCasted)
+
         self.horizontalSpacer_6 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
         self.horizontalLayout.addItem(self.horizontalSpacer_6)
@@ -231,6 +236,7 @@ class Ui_EntityInfoDialog(object):
         self.toolButtonWorkingDir.setText(fakestr(u"...", None))
         self.checkBoxSkipExisting.setText(fakestr(u"Skip Existing Files", None))
         self.checkBoxExtractZips.setText(fakestr(u"Extract Zip Files", None))
+        self.checkBoxCasted.setText(fakestr(u"Include casted", None))
         self.pushButtonDownload.setText(fakestr(u"Download", None))
         self.pushButtonPublish.setText(fakestr(u"Publish", None))
         self.pushButtonClose.setText(fakestr(u"Close", None))

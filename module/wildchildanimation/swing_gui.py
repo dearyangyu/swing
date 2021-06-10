@@ -898,7 +898,6 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
     def publish_scene(self):
         if self.selected_task:        
             dialog = PublishDialogGUI(self, self.handler, self.selected_task)
-            dialog.resize(self.size())
             dialog.show()
 
     def new_scene(self):

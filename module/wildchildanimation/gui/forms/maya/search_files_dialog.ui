@@ -25,7 +25,7 @@
      <item>
       <widget class="QLabel" name="labelSearch">
        <property name="text">
-        <string>Enter a comma seperated list of file names or partial file names to search for </string>
+        <string>Enter a comma separated list of file names or partial file names to search for </string>
        </property>
       </widget>
      </item>
