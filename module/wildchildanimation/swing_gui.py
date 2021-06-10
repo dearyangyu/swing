@@ -659,7 +659,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.pushButtonDownload.setEnabled(False)
 
         self.threadpool.start(loader)       
-        ##loader.run()
+        #loader.run()
 
 
     def load_files(self, data):

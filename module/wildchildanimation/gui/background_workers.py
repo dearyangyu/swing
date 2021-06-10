@@ -212,11 +212,11 @@ class EntityFileLoader(QtCore.QRunnable):
                         file_item["status"] = ""
                         output_files.append(file_item)
 
-                for file_item in working_files:
-                    task = gazu.task.get_task[file_item["task_id"]]
+                for file_item in working_file_list:
+                    task = gazu.task.get_task(file_item["task_id"])
                     task_type = self.find_item(task_types, task["task_type"]["id"])
                     if task_type:
-                        file_item["task_type"] = self.find_item(task_types, file_item["task_type_id"])
+                        file_item["task_type"] = task_type
                         file_item["status"] = ""
                         working_files.append(file_item)
 
