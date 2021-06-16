@@ -178,23 +178,10 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
         return None        
 
     def files_loaded(self, data):
-        self.file_list = data
+        self.file_list = data[0]
+        self.entity = data[1]
 
-        output_files = data["output_files"]
-        working_files = data["working_files"]
-
-        self.files = []
-        if output_files:
-            for item in output_files:
-                item["status"] = ""
-                self.files.append(item)
-
-        if working_files:
-            for item in working_files:
-                self.files.append(item)        
-
-        self.load_files(self.files)        
-
+        self.load_files(self.file_list)        
 
     def setWorkingDir(self, working_dir):
         self.working_dir = working_dir
@@ -229,7 +216,7 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
         for row in range(self.tableView.model().rowCount()):
             index = self.tableView.model().index(row, 0)
             item = self.tableView.model().data(index, QtCore.Qt.UserRole)
-            if file_id == item['id']:
+            if file_id == item['file_id']:
                 index = self.tableView.model().index(row, 5)
                 download_status = {}
                 download_status["message"] = "{} - {}".format(human_size(size), message)
@@ -284,12 +271,6 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
         self.tableView.model().setData(index, QtCore.Qt.Checked, QtCore.Qt.EditRole)
         self.tableView.model().layoutChanged.emit()    
 
-        #self.pushButtonDownload.setEnabled(len(self.files) > 0)    
-        #self.pushButtonImport.setEnabled(len(self.files) > 0)        
-        # FileTableModel
-        #self.tableWidget = load_file_table_widget(self.tableWidget, files, self.working_dir)
-        #self.tableWidget.doubleClicked.connect(self.on_click) 
-
     def on_click(self, index):
         row = index.row()
         column = 0
@@ -335,10 +316,10 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
 
         row = 0
         for item in file_list:
-            write_log("Downloading {}".format(item["name"]))
+            write_log("Downloading {}".format(item["file_name"]))
 
             if "WorkingFile" in item["type"]:
-                url = "{}/api/working_file/{}".format(edit_api, item["id"])
+                url = "{}/api/working_file/{}".format(edit_api, item["file_id"])
                 target = set_target(item, self.working_dir)
 
                 worker = FileDownloader(self, self.working_dir, item["id"], url, item["target_path"], email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
@@ -348,11 +329,11 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
                 self.threadpool.start(worker)
                 self.downloads += 1                
                 item["status"] = "Busy"
-            else:
-                url = "{}/api/output_file/{}".format(edit_api, item["id"])
+            elif "OutputFile" in item["type"]:
+                url = "{}/api/output_file/{}".format(edit_api, item["file_id"])
                 target = set_target(item, self.working_dir)
 
-                worker = FileDownloader(self, self.working_dir, item["id"], url, item["target_path"], email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
+                worker = FileDownloader(self, self.working_dir, item["file_id"], url, item["target_path"], email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
 
                 worker.callback.progress.connect(self.file_loading)
                 worker.callback.done.connect(self.file_loaded)
@@ -361,4 +342,18 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
                 self.downloads += 1            
 
                 item["status"] = "Busy"
+            elif "Library" in item["type"]:
+                url = "{}/api/library_file/{}".format(edit_api, item["file_id"])
+                target = set_target(item, self.working_dir)
+
+                worker = FileDownloader(self, self.working_dir, item["file_id"], url, item["target_path"], email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
+
+                worker.callback.progress.connect(self.file_loading)
+                worker.callback.done.connect(self.file_loaded)
+                
+                self.threadpool.start(worker)
+                self.downloads += 1            
+
+                item["status"] = "Busy"
+
             row = row + 1        

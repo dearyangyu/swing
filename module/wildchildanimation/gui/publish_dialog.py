@@ -18,176 +18,192 @@ class Ui_PublishDialog(object):
     def setupUi(self, PublishDialog):
         if not PublishDialog.objectName():
             PublishDialog.setObjectName(u"PublishDialog")
-        PublishDialog.resize(577, 665)
+        PublishDialog.resize(511, 580)
         self.verticalLayout_6 = QVBoxLayout(PublishDialog)
         self.verticalLayout_6.setObjectName(u"verticalLayout_6")
-        self.horizontalLayout_7 = QHBoxLayout()
-        self.horizontalLayout_7.setObjectName(u"horizontalLayout_7")
+        self.horizontalLayout_9 = QHBoxLayout()
+        self.horizontalLayout_9.setObjectName(u"horizontalLayout_9")
         self.verticalLayout_2 = QVBoxLayout()
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
         self.horizontalLayout_3 = QHBoxLayout()
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
-        self.label_3 = QLabel(PublishDialog)
-        self.label_3.setObjectName(u"label_3")
-        self.label_3.setMinimumSize(QSize(100, 0))
+        self.labelProject = QLabel(PublishDialog)
+        self.labelProject.setObjectName(u"labelProject")
+        self.labelProject.setMinimumSize(QSize(100, 0))
         font = QFont()
         font.setBold(True)
         font.setWeight(75)
-        self.label_3.setFont(font)
+        self.labelProject.setFont(font)
 
-        self.horizontalLayout_3.addWidget(self.label_3)
+        self.horizontalLayout_3.addWidget(self.labelProject)
 
-        self.lineEdit = QLineEdit(PublishDialog)
-        self.lineEdit.setObjectName(u"lineEdit")
+        self.lineEditProject = QLineEdit(PublishDialog)
+        self.lineEditProject.setObjectName(u"lineEditProject")
 
-        self.horizontalLayout_3.addWidget(self.lineEdit)
+        self.horizontalLayout_3.addWidget(self.lineEditProject)
 
 
         self.verticalLayout_2.addLayout(self.horizontalLayout_3)
 
         self.horizontalLayout_5 = QHBoxLayout()
         self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
-        self.label_4 = QLabel(PublishDialog)
-        self.label_4.setObjectName(u"label_4")
-        self.label_4.setMinimumSize(QSize(100, 0))
-        self.label_4.setFont(font)
+        self.labelEpisode = QLabel(PublishDialog)
+        self.labelEpisode.setObjectName(u"labelEpisode")
+        self.labelEpisode.setMinimumSize(QSize(100, 0))
+        self.labelEpisode.setFont(font)
 
-        self.horizontalLayout_5.addWidget(self.label_4)
+        self.horizontalLayout_5.addWidget(self.labelEpisode)
 
-        self.lineEdit_2 = QLineEdit(PublishDialog)
-        self.lineEdit_2.setObjectName(u"lineEdit_2")
+        self.lineEditFor = QLineEdit(PublishDialog)
+        self.lineEditFor.setObjectName(u"lineEditFor")
 
-        self.horizontalLayout_5.addWidget(self.lineEdit_2)
+        self.horizontalLayout_5.addWidget(self.lineEditFor)
 
 
         self.verticalLayout_2.addLayout(self.horizontalLayout_5)
 
         self.horizontalLayout_6 = QHBoxLayout()
         self.horizontalLayout_6.setObjectName(u"horizontalLayout_6")
-        self.label_5 = QLabel(PublishDialog)
-        self.label_5.setObjectName(u"label_5")
-        self.label_5.setMinimumSize(QSize(100, 0))
-        self.label_5.setFont(font)
+        self.labelSelection = QLabel(PublishDialog)
+        self.labelSelection.setObjectName(u"labelSelection")
+        self.labelSelection.setMinimumSize(QSize(100, 0))
+        self.labelSelection.setFont(font)
 
-        self.horizontalLayout_6.addWidget(self.label_5)
+        self.horizontalLayout_6.addWidget(self.labelSelection)
 
-        self.lineEdit_3 = QLineEdit(PublishDialog)
-        self.lineEdit_3.setObjectName(u"lineEdit_3")
+        self.lineEditSelection = QLineEdit(PublishDialog)
+        self.lineEditSelection.setObjectName(u"lineEditSelection")
 
-        self.horizontalLayout_6.addWidget(self.lineEdit_3)
+        self.horizontalLayout_6.addWidget(self.lineEditSelection)
 
 
         self.verticalLayout_2.addLayout(self.horizontalLayout_6)
 
 
-        self.horizontalLayout_7.addLayout(self.verticalLayout_2)
+        self.horizontalLayout_9.addLayout(self.verticalLayout_2)
 
         self.labelIcon = QLabel(PublishDialog)
         self.labelIcon.setObjectName(u"labelIcon")
         self.labelIcon.setMinimumSize(QSize(120, 0))
         self.labelIcon.setFrameShape(QFrame.Box)
+        self.labelIcon.setFrameShadow(QFrame.Sunken)
+        self.labelIcon.setAlignment(Qt.AlignCenter)
 
-        self.horizontalLayout_7.addWidget(self.labelIcon)
-
-
-        self.verticalLayout_6.addLayout(self.horizontalLayout_7)
-
-        self.horizontalLayout_2 = QHBoxLayout()
-        self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
-        self.label_2 = QLabel(PublishDialog)
-        self.label_2.setObjectName(u"label_2")
-        self.label_2.setMinimumSize(QSize(100, 0))
-        self.label_2.setFont(font)
-
-        self.horizontalLayout_2.addWidget(self.label_2)
-
-        self.lineEditTask = QLineEdit(PublishDialog)
-        self.lineEditTask.setObjectName(u"lineEditTask")
-        self.lineEditTask.setReadOnly(True)
-
-        self.horizontalLayout_2.addWidget(self.lineEditTask)
-
-        self.comboBoxTaskStatus = QComboBox(PublishDialog)
-        self.comboBoxTaskStatus.setObjectName(u"comboBoxTaskStatus")
-
-        self.horizontalLayout_2.addWidget(self.comboBoxTaskStatus)
-
-        self.toolButtonWeb = QToolButton(PublishDialog)
-        self.toolButtonWeb.setObjectName(u"toolButtonWeb")
-
-        self.horizontalLayout_2.addWidget(self.toolButtonWeb)
+        self.horizontalLayout_9.addWidget(self.labelIcon)
 
 
-        self.verticalLayout_6.addLayout(self.horizontalLayout_2)
+        self.verticalLayout_6.addLayout(self.horizontalLayout_9)
 
-        self.groupBox = QGroupBox(PublishDialog)
-        self.groupBox.setObjectName(u"groupBox")
-        self.groupBox.setFont(font)
-        self.groupBox.setFlat(False)
-        self.verticalLayout_5 = QVBoxLayout(self.groupBox)
+        self.tabWidget = QTabWidget(PublishDialog)
+        self.tabWidget.setObjectName(u"tabWidget")
+        self.tab = QWidget()
+        self.tab.setObjectName(u"tab")
+        self.verticalLayout_5 = QVBoxLayout(self.tab)
         self.verticalLayout_5.setObjectName(u"verticalLayout_5")
+        self.horizontalLayout_10 = QHBoxLayout()
+        self.horizontalLayout_10.setObjectName(u"horizontalLayout_10")
+        self.labelSoftware = QLabel(self.tab)
+        self.labelSoftware.setObjectName(u"labelSoftware")
+        self.labelSoftware.setMinimumSize(QSize(100, 0))
+        self.labelSoftware.setFont(font)
+
+        self.horizontalLayout_10.addWidget(self.labelSoftware)
+
+        self.comboBoxSoftware = QComboBox(self.tab)
+        self.comboBoxSoftware.setObjectName(u"comboBoxSoftware")
+        sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.comboBoxSoftware.sizePolicy().hasHeightForWidth())
+        self.comboBoxSoftware.setSizePolicy(sizePolicy)
+
+        self.horizontalLayout_10.addWidget(self.comboBoxSoftware)
+
+
+        self.verticalLayout_5.addLayout(self.horizontalLayout_10)
+
         self.horizontalLayoutProjectFile = QHBoxLayout()
         self.horizontalLayoutProjectFile.setObjectName(u"horizontalLayoutProjectFile")
-        self.radioButton = QRadioButton(self.groupBox)
-        self.radioButton.setObjectName(u"radioButton")
-        self.radioButton.setMinimumSize(QSize(100, 0))
+        self.radioButtonWorkingFile = QRadioButton(self.tab)
+        self.radioButtonWorkingFile.setObjectName(u"radioButtonWorkingFile")
+        self.radioButtonWorkingFile.setMinimumSize(QSize(100, 0))
         font1 = QFont()
         font1.setBold(False)
         font1.setWeight(50)
-        self.radioButton.setFont(font1)
+        self.radioButtonWorkingFile.setFont(font1)
+        self.radioButtonWorkingFile.setChecked(True)
 
-        self.horizontalLayoutProjectFile.addWidget(self.radioButton)
+        self.horizontalLayoutProjectFile.addWidget(self.radioButtonWorkingFile)
 
-        self.projectFileEdit = QLineEdit(self.groupBox)
-        self.projectFileEdit.setObjectName(u"projectFileEdit")
+        self.workingFileEdit = QLineEdit(self.tab)
+        self.workingFileEdit.setObjectName(u"workingFileEdit")
 
-        self.horizontalLayoutProjectFile.addWidget(self.projectFileEdit)
+        self.horizontalLayoutProjectFile.addWidget(self.workingFileEdit)
 
-        self.projectFileToolButton = QToolButton(self.groupBox)
-        self.projectFileToolButton.setObjectName(u"projectFileToolButton")
-        self.projectFileToolButton.setMinimumSize(QSize(40, 0))
-        self.projectFileToolButton.setMaximumSize(QSize(40, 16777215))
+        self.workingFileSelectButton = QToolButton(self.tab)
+        self.workingFileSelectButton.setObjectName(u"workingFileSelectButton")
+        self.workingFileSelectButton.setMinimumSize(QSize(40, 0))
+        self.workingFileSelectButton.setMaximumSize(QSize(40, 16777215))
 
-        self.horizontalLayoutProjectFile.addWidget(self.projectFileToolButton)
+        self.horizontalLayoutProjectFile.addWidget(self.workingFileSelectButton)
 
 
         self.verticalLayout_5.addLayout(self.horizontalLayoutProjectFile)
 
         self.horizontalLayoutProjectFile_4 = QHBoxLayout()
         self.horizontalLayoutProjectFile_4.setObjectName(u"horizontalLayoutProjectFile_4")
-        self.radioButton_2 = QRadioButton(self.groupBox)
-        self.radioButton_2.setObjectName(u"radioButton_2")
-        self.radioButton_2.setMinimumSize(QSize(100, 0))
-        self.radioButton_2.setFont(font1)
+        self.radioButtonWorkingDir = QRadioButton(self.tab)
+        self.radioButtonWorkingDir.setObjectName(u"radioButtonWorkingDir")
+        self.radioButtonWorkingDir.setMinimumSize(QSize(100, 0))
+        self.radioButtonWorkingDir.setFont(font1)
 
-        self.horizontalLayoutProjectFile_4.addWidget(self.radioButton_2)
+        self.horizontalLayoutProjectFile_4.addWidget(self.radioButtonWorkingDir)
 
-        self.projectFileEdit_2 = QLineEdit(self.groupBox)
-        self.projectFileEdit_2.setObjectName(u"projectFileEdit_2")
+        self.workingDirEdit = QLineEdit(self.tab)
+        self.workingDirEdit.setObjectName(u"workingDirEdit")
 
-        self.horizontalLayoutProjectFile_4.addWidget(self.projectFileEdit_2)
+        self.horizontalLayoutProjectFile_4.addWidget(self.workingDirEdit)
 
-        self.projectFileToolButton_2 = QToolButton(self.groupBox)
-        self.projectFileToolButton_2.setObjectName(u"projectFileToolButton_2")
-        self.projectFileToolButton_2.setMinimumSize(QSize(40, 0))
-        self.projectFileToolButton_2.setMaximumSize(QSize(40, 16777215))
+        self.workingDirSelectButton = QToolButton(self.tab)
+        self.workingDirSelectButton.setObjectName(u"workingDirSelectButton")
+        self.workingDirSelectButton.setMinimumSize(QSize(40, 0))
+        self.workingDirSelectButton.setMaximumSize(QSize(40, 16777215))
 
-        self.horizontalLayoutProjectFile_4.addWidget(self.projectFileToolButton_2)
+        self.horizontalLayoutProjectFile_4.addWidget(self.workingDirSelectButton)
 
 
         self.verticalLayout_5.addLayout(self.horizontalLayoutProjectFile_4)
 
+        self.labelReviewFile = QLabel(self.tab)
+        self.labelReviewFile.setObjectName(u"labelReviewFile")
+        self.labelReviewFile.setAutoFillBackground(True)
+        self.labelReviewFile.setStyleSheet(u"color: rgb(0, 170, 0)")
+        self.labelReviewFile.setFrameShape(QFrame.NoFrame)
+
+        self.verticalLayout_5.addWidget(self.labelReviewFile)
+
+        self.labelZipMessage = QLabel(self.tab)
+        self.labelZipMessage.setObjectName(u"labelZipMessage")
+        self.labelZipMessage.setAutoFillBackground(True)
+        self.labelZipMessage.setStyleSheet(u"color: rgb(0, 170, 0)")
+        self.labelZipMessage.setFrameShape(QFrame.NoFrame)
+
+        self.verticalLayout_5.addWidget(self.labelZipMessage)
+
+        self.verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+
+        self.verticalLayout_5.addItem(self.verticalSpacer)
+
+        self.tabWidget.addTab(self.tab, "")
+        self.tab_2 = QWidget()
+        self.tab_2.setObjectName(u"tab_2")
+        self.verticalLayout_7 = QVBoxLayout(self.tab_2)
+        self.verticalLayout_7.setObjectName(u"verticalLayout_7")
         self.verticalLayout_3 = QVBoxLayout()
         self.verticalLayout_3.setObjectName(u"verticalLayout_3")
-        self.referencesLabel = QLabel(self.groupBox)
-        self.referencesLabel.setObjectName(u"referencesLabel")
-        self.referencesLabel.setMinimumSize(QSize(100, 0))
-        self.referencesLabel.setFont(font)
-
-        self.verticalLayout_3.addWidget(self.referencesLabel)
-
-        self.referencesListView = QListView(self.groupBox)
+        self.referencesListView = QListView(self.tab_2)
         self.referencesListView.setObjectName(u"referencesListView")
+        self.referencesListView.setMinimumSize(QSize(0, 20))
 
         self.verticalLayout_3.addWidget(self.referencesListView)
 
@@ -197,14 +213,14 @@ class Ui_PublishDialog(object):
 
         self.horizontalLayout_8.addItem(self.horizontalSpacer)
 
-        self.referencesAddPushButton = QPushButton(self.groupBox)
+        self.referencesAddPushButton = QPushButton(self.tab_2)
         self.referencesAddPushButton.setObjectName(u"referencesAddPushButton")
         self.referencesAddPushButton.setEnabled(True)
         self.referencesAddPushButton.setFont(font1)
 
         self.horizontalLayout_8.addWidget(self.referencesAddPushButton)
 
-        self.referencesRemovePushButton = QPushButton(self.groupBox)
+        self.referencesRemovePushButton = QPushButton(self.tab_2)
         self.referencesRemovePushButton.setObjectName(u"referencesRemovePushButton")
         self.referencesRemovePushButton.setEnabled(True)
         self.referencesRemovePushButton.setFont(font1)
@@ -215,82 +231,112 @@ class Ui_PublishDialog(object):
         self.verticalLayout_3.addLayout(self.horizontalLayout_8)
 
 
-        self.verticalLayout_5.addLayout(self.verticalLayout_3)
+        self.verticalLayout_7.addLayout(self.verticalLayout_3)
 
+        self.tabWidget.addTab(self.tab_2, "")
 
-        self.verticalLayout_6.addWidget(self.groupBox)
+        self.verticalLayout_6.addWidget(self.tabWidget)
 
-        self.groupBox_2 = QGroupBox(PublishDialog)
-        self.groupBox_2.setObjectName(u"groupBox_2")
-        self.groupBox_2.setFont(font)
-        self.verticalLayout = QVBoxLayout(self.groupBox_2)
+        self.groupBoxOutputFiles = QGroupBox(PublishDialog)
+        self.groupBoxOutputFiles.setObjectName(u"groupBoxOutputFiles")
+        self.groupBoxOutputFiles.setFont(font)
+        self.groupBoxOutputFiles.setAcceptDrops(True)
+        self.groupBoxOutputFiles.setFlat(False)
+        self.groupBoxOutputFiles.setCheckable(True)
+        self.verticalLayout = QVBoxLayout(self.groupBoxOutputFiles)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.horizontalLayout_4 = QHBoxLayout()
         self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
-        self.label = QLabel(self.groupBox_2)
-        self.label.setObjectName(u"label")
-        self.label.setMinimumSize(QSize(100, 0))
+        self.labelReviewTile = QLabel(self.groupBoxOutputFiles)
+        self.labelReviewTile.setObjectName(u"labelReviewTile")
+        self.labelReviewTile.setMinimumSize(QSize(100, 0))
 
-        self.horizontalLayout_4.addWidget(self.label)
+        self.horizontalLayout_4.addWidget(self.labelReviewTile)
 
-        self.reviewTitleLineEdit = QLineEdit(self.groupBox_2)
+        self.reviewTitleLineEdit = QLineEdit(self.groupBoxOutputFiles)
         self.reviewTitleLineEdit.setObjectName(u"reviewTitleLineEdit")
 
         self.horizontalLayout_4.addWidget(self.reviewTitleLineEdit)
+
+        self.horizontalLayout_7 = QHBoxLayout()
+        self.horizontalLayout_7.setObjectName(u"horizontalLayout_7")
+        self.labelTask = QLabel(self.groupBoxOutputFiles)
+        self.labelTask.setObjectName(u"labelTask")
+        sizePolicy1 = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Preferred)
+        sizePolicy1.setHorizontalStretch(0)
+        sizePolicy1.setVerticalStretch(0)
+        sizePolicy1.setHeightForWidth(self.labelTask.sizePolicy().hasHeightForWidth())
+        self.labelTask.setSizePolicy(sizePolicy1)
+        self.labelTask.setMinimumSize(QSize(100, 0))
+        self.labelTask.setFont(font)
+        self.labelTask.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+
+        self.horizontalLayout_7.addWidget(self.labelTask)
+
+        self.comboBoxTaskStatus = QComboBox(self.groupBoxOutputFiles)
+        self.comboBoxTaskStatus.setObjectName(u"comboBoxTaskStatus")
+        sizePolicy.setHeightForWidth(self.comboBoxTaskStatus.sizePolicy().hasHeightForWidth())
+        self.comboBoxTaskStatus.setSizePolicy(sizePolicy)
+
+        self.horizontalLayout_7.addWidget(self.comboBoxTaskStatus)
+
+
+        self.horizontalLayout_4.addLayout(self.horizontalLayout_7)
 
 
         self.verticalLayout.addLayout(self.horizontalLayout_4)
 
         self.horizontalLayoutProjectFile_6 = QHBoxLayout()
         self.horizontalLayoutProjectFile_6.setObjectName(u"horizontalLayoutProjectFile_6")
-        self.radioButton_4 = QRadioButton(self.groupBox_2)
-        self.radioButton_4.setObjectName(u"radioButton_4")
-        self.radioButton_4.setMinimumSize(QSize(100, 0))
-        self.radioButton_4.setFont(font1)
+        self.radioButtonOutputFile = QRadioButton(self.groupBoxOutputFiles)
+        self.radioButtonOutputFile.setObjectName(u"radioButtonOutputFile")
+        self.radioButtonOutputFile.setMinimumSize(QSize(100, 0))
+        self.radioButtonOutputFile.setFont(font1)
+        self.radioButtonOutputFile.setChecked(True)
 
-        self.horizontalLayoutProjectFile_6.addWidget(self.radioButton_4)
+        self.horizontalLayoutProjectFile_6.addWidget(self.radioButtonOutputFile)
 
-        self.projectFileEdit_4 = QLineEdit(self.groupBox_2)
-        self.projectFileEdit_4.setObjectName(u"projectFileEdit_4")
+        self.outputFileEdit = QLineEdit(self.groupBoxOutputFiles)
+        self.outputFileEdit.setObjectName(u"outputFileEdit")
 
-        self.horizontalLayoutProjectFile_6.addWidget(self.projectFileEdit_4)
+        self.horizontalLayoutProjectFile_6.addWidget(self.outputFileEdit)
 
-        self.projectFileToolButton_4 = QToolButton(self.groupBox_2)
-        self.projectFileToolButton_4.setObjectName(u"projectFileToolButton_4")
-        self.projectFileToolButton_4.setMinimumSize(QSize(40, 0))
-        self.projectFileToolButton_4.setMaximumSize(QSize(40, 16777215))
+        self.outputFileSelectButton = QToolButton(self.groupBoxOutputFiles)
+        self.outputFileSelectButton.setObjectName(u"outputFileSelectButton")
+        self.outputFileSelectButton.setMinimumSize(QSize(40, 0))
+        self.outputFileSelectButton.setMaximumSize(QSize(40, 16777215))
 
-        self.horizontalLayoutProjectFile_6.addWidget(self.projectFileToolButton_4)
+        self.horizontalLayoutProjectFile_6.addWidget(self.outputFileSelectButton)
 
 
         self.verticalLayout.addLayout(self.horizontalLayoutProjectFile_6)
 
         self.horizontalLayoutProjectFile_5 = QHBoxLayout()
         self.horizontalLayoutProjectFile_5.setObjectName(u"horizontalLayoutProjectFile_5")
-        self.radioButton_3 = QRadioButton(self.groupBox_2)
-        self.radioButton_3.setObjectName(u"radioButton_3")
-        self.radioButton_3.setMinimumSize(QSize(100, 0))
-        self.radioButton_3.setFont(font1)
+        self.radioButtonOutputDir = QRadioButton(self.groupBoxOutputFiles)
+        self.radioButtonOutputDir.setObjectName(u"radioButtonOutputDir")
+        self.radioButtonOutputDir.setMinimumSize(QSize(100, 0))
+        self.radioButtonOutputDir.setFont(font1)
 
-        self.horizontalLayoutProjectFile_5.addWidget(self.radioButton_3)
+        self.horizontalLayoutProjectFile_5.addWidget(self.radioButtonOutputDir)
 
-        self.projectFileEdit_3 = QLineEdit(self.groupBox_2)
-        self.projectFileEdit_3.setObjectName(u"projectFileEdit_3")
+        self.outputDirEdit = QLineEdit(self.groupBoxOutputFiles)
+        self.outputDirEdit.setObjectName(u"outputDirEdit")
 
-        self.horizontalLayoutProjectFile_5.addWidget(self.projectFileEdit_3)
+        self.horizontalLayoutProjectFile_5.addWidget(self.outputDirEdit)
 
-        self.projectFileToolButton_3 = QToolButton(self.groupBox_2)
-        self.projectFileToolButton_3.setObjectName(u"projectFileToolButton_3")
-        self.projectFileToolButton_3.setMinimumSize(QSize(40, 0))
-        self.projectFileToolButton_3.setMaximumSize(QSize(40, 16777215))
+        self.outputDirSelectButton = QToolButton(self.groupBoxOutputFiles)
+        self.outputDirSelectButton.setObjectName(u"outputDirSelectButton")
+        self.outputDirSelectButton.setMinimumSize(QSize(40, 0))
+        self.outputDirSelectButton.setMaximumSize(QSize(40, 16777215))
 
-        self.horizontalLayoutProjectFile_5.addWidget(self.projectFileToolButton_3)
+        self.horizontalLayoutProjectFile_5.addWidget(self.outputDirSelectButton)
 
 
         self.verticalLayout.addLayout(self.horizontalLayoutProjectFile_5)
 
 
-        self.verticalLayout_6.addWidget(self.groupBox_2)
+        self.verticalLayout_6.addWidget(self.groupBoxOutputFiles)
 
         self.verticalLayout_4 = QVBoxLayout()
         self.verticalLayout_4.setObjectName(u"verticalLayout_4")
@@ -303,6 +349,7 @@ class Ui_PublishDialog(object):
 
         self.commentEdit = QPlainTextEdit(PublishDialog)
         self.commentEdit.setObjectName(u"commentEdit")
+        self.commentEdit.setMinimumSize(QSize(0, 60))
 
         self.verticalLayout_4.addWidget(self.commentEdit)
 
@@ -331,6 +378,7 @@ class Ui_PublishDialog(object):
 
         self.retranslateUi(PublishDialog)
 
+        self.tabWidget.setCurrentIndex(0)
         self.pushButtonOK.setDefault(True)
 
 
@@ -339,31 +387,30 @@ class Ui_PublishDialog(object):
 
     def retranslateUi(self, PublishDialog):
         PublishDialog.setWindowTitle(fakestr(u"Publish Asset for Task", None))
-        self.label_3.setText(fakestr(u"Project:", None))
-        self.label_4.setText(fakestr(u"Episode", None))
-        self.label_5.setText(fakestr(u"Selection", None))
-        self.labelIcon.setText(fakestr(u"Preview", None))
-        self.label_2.setText(fakestr(u"Task", None))
-#if QT_CONFIG(tooltip)
-        self.toolButtonWeb.setToolTip(fakestr(u"Open in Kitsu", None))
-#endif // QT_CONFIG(tooltip)
-        self.toolButtonWeb.setText(fakestr(u"...", None))
-        self.groupBox.setTitle(fakestr(u"Working Files", None))
-        self.radioButton.setText(fakestr(u"Working File", None))
-        self.projectFileToolButton.setText(fakestr(u"...", None))
-        self.radioButton_2.setText(fakestr(u"Working Dir", None))
-        self.projectFileToolButton_2.setText(fakestr(u"...", None))
-        self.referencesLabel.setText(fakestr(u"Secondary Assets", None))
+        self.labelProject.setText(fakestr(u"Project:", None))
+        self.labelEpisode.setText(fakestr(u"For", None))
+        self.labelSelection.setText(fakestr(u"Task", None))
+        self.labelIcon.setText("")
+        self.labelSoftware.setText(fakestr(u"Software", None))
+        self.radioButtonWorkingFile.setText(fakestr(u"Working File", None))
+        self.workingFileSelectButton.setText(fakestr(u"...", None))
+        self.radioButtonWorkingDir.setText(fakestr(u"Working Dir", None))
+        self.workingDirSelectButton.setText(fakestr(u"...", None))
+        self.labelReviewFile.setText("")
+        self.labelZipMessage.setText("")
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), fakestr(u"Working Files", None))
         self.referencesAddPushButton.setText(fakestr(u"&Add", None))
         self.referencesRemovePushButton.setText(fakestr(u"&Remove", None))
-        self.groupBox_2.setTitle(fakestr(u"Output Files", None))
-        self.label.setText(fakestr(u"Review Title", None))
-        self.radioButton_4.setText(fakestr(u"Output File", None))
-        self.projectFileToolButton_4.setText(fakestr(u"...", None))
-        self.radioButton_3.setText(fakestr(u"Output Dir", None))
-        self.projectFileToolButton_3.setText(fakestr(u"...", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), fakestr(u"Secondary Assets", None))
+        self.groupBoxOutputFiles.setTitle(fakestr(u"Media for Review ", None))
+        self.labelReviewTile.setText(fakestr(u"Title", None))
+        self.labelTask.setText(fakestr(u"Status", None))
+        self.radioButtonOutputFile.setText(fakestr(u"File", None))
+        self.outputFileSelectButton.setText(fakestr(u"...", None))
+        self.radioButtonOutputDir.setText(fakestr(u"Directory", None))
+        self.outputDirSelectButton.setText(fakestr(u"...", None))
         self.commentLabel.setText(fakestr(u"Comments", None))
-        self.pushButtonOK.setText(fakestr(u"OK", None))
-        self.pushButtonCancel.setText(fakestr(u"Close", None))
+        self.pushButtonOK.setText(fakestr(u"Publish", None))
+        self.pushButtonCancel.setText(fakestr(u"Cancel", None))
     # retranslateUi
 

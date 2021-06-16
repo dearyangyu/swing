@@ -26,7 +26,7 @@ class ImageLoaderSignal(QtCore.QObject):
 
 class PreviewImageLoader(QtCore.QRunnable):
 
-    def __init__(self, parent, preview_file):
+    def __init__(self, parent, file_id):
         super(PreviewImageLoader, self).__init__(self, parent)
 
         self.parent = parent
@@ -34,14 +34,15 @@ class PreviewImageLoader(QtCore.QRunnable):
         self.server = load_settings('server', 'https://example.wildchildanimation.com')
         self.email = load_settings('user', 'user@example.com')            
 
-        self.preview_file = preview_file
-
+        self.file_id = file_id
         self.callback = ImageLoaderSignal()
 
     def run(self):
-        fp = tempfile.mkstemp(".{0}".format(self.preview_file["extension"]))
+        preview_file = gazu.files.get_preview_file(self.file_id)
+
+        fp = tempfile.mkstemp(".{0}".format(preview_file["extension"]))
         target = fp[1]
-        gazu.files.download_preview_file_thumbnail(self.preview_file, target)
+        gazu.files.download_preview_file_thumbnail(preview_file, target)
 
         pixmap = QtGui.QPixmap(target)
         self.callback.results.emit(pixmap)

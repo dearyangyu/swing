@@ -59,6 +59,7 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
         self.file_list = None
         self.handler = handler
         self.tasks = None
+        self.file_list = []
 
         if self.entity:
             loader = EntityLoaderThread(self, self.entity["id"])
@@ -94,22 +95,22 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
 
     def check_casted(self):
         if self.entity:
-            loader = EntityFileLoader(self, self.nav, self.entity, self.working_dir, self.checkBoxCasted.isChecked())
+            loader = EntityFileLoader(self, self.nav, self.entity, self.working_dir, show_hidden = False, scan_cast = self.checkBoxCasted.isChecked())
             loader.callback.loaded.connect(self.files_loaded)
             self.tableView.setEnabled(False)
-            self.threadpool.start(loader)        
-            ##loader.run()
+            ##self.threadpool.start(loader)        
+            loader.run()
 
     def get_selected_task(self):
-        if self.tasks:
-            return self.tasks[self.comboBoxTasks.currentIndex()]
-        return None
+        return self.comboBoxTasks.currentData(QtCore.Qt.UserRole)
 
     def publish(self):
         task = self.get_selected_task()
         if task:        
-            dialog = PublishDialogGUI(self, self.handler, gazu.task.get_task(task))
-            dialog.setMinimumWidth(640)
+            dialog = PublishDialogGUI(self, self.nav, self.handler, task)
+
+            #dialog = PublishDialogGUI(self, self.handler, gazu.task.get_task(task))
+            #dialog.setMinimumWidth(640)
             dialog.show()
 
     def select_count(self):
@@ -149,12 +150,11 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
         self.comboBoxTasks.setEnabled(True)
         self.pushButtonPublish.setEnabled(True)
 
-        self.tasks = None
         if "tasks" in data["item"]:
             self.tasks = data["item"]["tasks"] 
             for task in self.tasks:
-                task_type = self.get_item_task_type(task)
-                self.comboBoxTasks.addItem(task_type["name"])
+                task["task_type"] = self.get_item_task_type(task)
+                self.comboBoxTasks.addItem(task["task_type"]["name"], userData = task)
         self.comboBoxTasks.setEnabled(self.tasks is not None)
 
         ## ToDo: fix broken / missing history items
@@ -176,7 +176,7 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
             self.shot = data["item"]
             self.url = data["url"]
             self.labelEntity.setText("Shot")
-            loader = EntityFileLoader(self, self.nav, self.shot, self.working_dir)
+            loader = EntityFileLoader(self, self.nav, self.shot, self.working_dir, show_hidden = False, scan_cast = self.checkBoxCasted.isChecked())
 
             if "code" in self.project:
                 sections.append(self.project["code"])
@@ -199,7 +199,7 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
             self.asset = data["item"]
             self.url = data["url"]
             self.labelEntity.setText("Asset")
-            loader = EntityFileLoader(self, self.nav, self.asset, self.working_dir)
+            loader = EntityFileLoader(self, self.nav, self.asset, self.working_dir, show_hidden = False, scan_cast = self.checkBoxCasted.isChecked())
 
             if "code" in self.project:
                 sections.append(self.project["code"])
@@ -228,12 +228,11 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
 
         if "preview_file_id" in self.entity and self.entity["preview_file_id"]:
             preview_file_id = self.entity["preview_file_id"]
-            preview_file = gazu.files.get_preview_file(preview_file_id)
 
             #def __init__(self, parent, preview_file):
             #ef __init__(self, parent, server_api, email, password, preview_file):
 
-            imageLoader = PreviewImageLoader(self, preview_file)
+            imageLoader = PreviewImageLoader(self, preview_file_id)
             imageLoader.callback.results.connect(self.load_preview_image)
             #imageLoader.run()
             self.threadpool.start(imageLoader)
@@ -242,21 +241,8 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
             #self.load_preview_image(preview_url)
 
     def load_preview_image(self, pixmap):
-        """
-        Set the image to the pixmap
-        :return:
-        <img data-v-024ea0ea="" data-v-168620aa="" 
-        class="thumbnail-picture asset-thumbnail flexrow-item" 
-        data-src="/api/pictures/thumbnails/preview-files/1cc254f6-3381-4ac7-b3ec-a99dadd4c098.png" src="/api/pictures/thumbnails/preview-files/1cc254f6-3381-4ac7-b3ec-a99dadd4c098.png" lazy="loaded">
-        """
-        #response = requests.get(image_url)
-        #data = response.content
-        #pixmap = QtGui.QPixmap()
-        #pixmap.loadFromData(data)
-        #pixmap = pixmap.scaled(aspectMode=self.graphicsView.size().width, self.graphicsView.size().height,  QtCore.Qt.KeepAspectRatio)
         self.labelPreview.setPixmap(pixmap)            
         
-
     def get_item_task_type(self, entity):
         if "task_type_id" in entity:
             for task_type in self.task_types:
@@ -265,24 +251,12 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
         return None        
 
     def files_loaded(self, data):
-        self.file_list = data
-        self.tableView.setEnabled(True)        
-
-        output_files = data["output_files"]
-        working_files = data["working_files"]
-
-        self.files = []
-        if output_files:
-            for item in output_files:
-                item["status"] = ""
-                self.files.append(item)
-
-        if working_files:
-            for item in working_files:
-                item["status"] = ""
-                self.files.append(item)        
-
-        self.load_files(self.files)        
+        self.file_list = data[0]
+        if len(self.file_list) > 0:
+            self.tableView.setEnabled(True)        
+            self.load_files(self.file_list)        
+        else:
+            self.tableView.setEnabled(False)        
 
     def setWorkingDir(self, working_dir):
         self.working_dir = working_dir
@@ -293,7 +267,7 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
             return
         
         index = 0
-        while index < len(self.files):
+        while index < len(self.file_list):
             if file_item["id"] == self.files[index]["id"]:
                 break
             index += 1        
@@ -435,18 +409,18 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
                 url = "{}/api/working_file/{}".format(edit_api, item["id"])
                 target = set_target(item, self.working_dir)
 
-                worker = FileDownloader(self, self.working_dir, item["id"], url, item["target_path"], email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
+                worker = FileDownloader(self, self.working_dir, item["file_id"], url, item["target_path"], email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
 
                 worker.callback.progress.connect(self.file_loading)
                 worker.callback.done.connect(self.file_loaded)
                 self.threadpool.start(worker)
                 self.downloads += 1                
                 item["status"] = "Busy"
-            else:
+            elif "OutputFile" in item["type"]:
                 url = "{}/api/output_file/{}".format(edit_api, item["id"])
                 target = set_target(item, self.working_dir)
 
-                worker = FileDownloader(self, self.working_dir, item["id"], url, item["target_path"], email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
+                worker = FileDownloader(self, self.working_dir, item["file_id"], url, item["target_path"], email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
 
                 worker.callback.progress.connect(self.file_loading)
                 worker.callback.done.connect(self.file_loaded)
@@ -455,5 +429,18 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
                 self.downloads += 1            
 
                 item["status"] = "Busy"
+            elif "Library" in item['type']:
+                url = "{}/api/library_file/{}".format(edit_api, item["file_id"])
+                target = set_target(item, self.working_dir)
+
+                worker = FileDownloader(self, self.working_dir, item["file_id"], url, item["target_path"], email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
+
+                worker.callback.progress.connect(self.file_loading)
+                worker.callback.done.connect(self.file_loaded)
+                
+                self.threadpool.start(worker)
+                self.downloads += 1            
+
+                item["status"] = "Busy"                
             row = row + 1                    
 

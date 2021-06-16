@@ -177,37 +177,42 @@ class FileTableModel(QtCore.QAbstractTableModel):
             if col == FileTableModel._COL_SELECT:
                 return item in FileTableModel.selection
             elif col == FileTableModel._COL_FILE_NAME:
-                return item["name"]
+                return item["file_name"]
             elif col == FileTableModel._COL_SIZE:
                 if "download_status" in item:
                     text = item["download_status"]["message"]
                     return text
 
-                if item["size"]:
-                    size = int(item["size"])
+                if item["file_size"]:
+                    size = int(item["file_size"])
                     if (size):
                         return human_size(size)
                 #return item["size"]
             elif col == FileTableModel._COL_VERSION:
-                return item["revision"]
+                return item["file_revision"]
             elif col == FileTableModel._COL_UPDATED:
-                return my_date_format(item["updated_at"])
+                return my_date_format(item["file_updated_at"])
             elif col == FileTableModel._COL_TASK:
-                return item["task_type"]["name"]
+                if "task_type" in item and item["task_type"]:
+                    return item["task_type"]["name"]
+                else:
+                    if "type" in item:
+                        return item["type"]
+                    return ""
             elif col == FileTableModel._COL_COMMENT:
-                return item["comment"]                
+                return item["file_comment"]                
             elif col == FileTableModel._COL_DESCRIPTION:
-                return item["description"]
+                return item["file_description"]
             elif col == FileTableModel._COL_PATH:
                 test = "/mnt/content/productions"
-                if test in item["path"]:
-                    return item["path"].replace(test, self.working_dir)
+                if test in item["file_path"]:
+                    return item["file_path"].replace(test, self.working_dir)
 
                 test = "/productions"
-                if test in item["path"]:
-                    return item["path"].replace(test, self.working_dir)
+                if test in item["file_path"]:
+                    return item["file_path"].replace(test, self.working_dir)
 
-                return item["path"]
+                return item["file_path"]
 
         if role == QtCore.Qt.BackgroundRole:
             col = index.column()
@@ -215,10 +220,11 @@ class FileTableModel(QtCore.QAbstractTableModel):
 
             if col == FileTableModel._COL_TASK:
                 item = self.items[row]
-                return QtGui.QColor(item["task_type"]["color"])
+                if "task_type" in item and item["task_type"]:
+                        return QtGui.QColor(item["task_type"]["color"])
 
             elif col == FileTableModel._COL_SIZE:
-                if "download_status" in item:
+                if "download_status" in item and item["download_status"] != 2:
                     if "color" in item["download_status"]:
                         return item["download_status"]["color"]
 

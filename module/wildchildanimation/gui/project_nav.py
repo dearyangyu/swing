@@ -44,6 +44,7 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
 
     _task_types = []
     _user_task_types = []
+    _software = []
 
     _task_status = []
     _user_task_status = []
@@ -120,7 +121,6 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
             self.task_types_changed(self._user_task_types)
         self.toggle_filter_buttons()
 
-
     def select_status_types(self):
         dialog = EntitySelectDialog(self, "Select Status Codes")
         dialog.load(self._task_status, self._user_task_status)
@@ -156,6 +156,16 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
         if len(self._user_task_status) > 0 and len(self._user_task_status) != len(self._task_status):
             return self._user_task_status
         return self._task_status
+
+    def get_user_task_status(self):
+        items = []
+        for item in self._task_status:
+            if item["is_artist_allowed"]:
+                items.append(item)
+        return items
+
+    def get_software(self):
+        return self._software
 
     def selection_changed(self, source, object):
         if "project_changed" in source:
@@ -333,9 +343,11 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
             for item in results["task_types"]:
                 self._task_types.append(copy.copy(item))
 
-            index = 0
             for item in self._projects:
                 self.comboBoxProject.addItem(item["name"])
+
+            for item in results["software"]:
+                self._software.append(copy.copy(item))
 
         self._status["projects"] = True
         self.load_project_hierarchy()

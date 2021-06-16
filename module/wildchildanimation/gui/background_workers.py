@@ -3,10 +3,11 @@
 from __future__ import print_function
 import traceback
 import gazu
+import json
 import sys
 import os
 import requests
-import shutil
+import zipfile
 
 from zipfile import ZipFile
 
@@ -35,6 +36,8 @@ from wildchildanimation.gui.swing_utils import write_log, connect_to_server, loa
 from wildchildanimation.gui.swing_updater import update
 
 import wildchildanimation.gui.swing_utils
+
+_DEBUG = True
 
 class LoadedSignal(QtCore.QObject):
     loaded = pyqtSignal(object)        
@@ -81,9 +84,11 @@ class ProjectLoaderThread(QtCore.QRunnable):
             try:
                 projects = gazu.project.all_open_projects()
                 task_types = gazu.task.all_task_types()
+                software = gazu.files.all_softwares()
 
                 results["projects"] = projects
                 results["task_types"] = task_types
+                results["software"] = software
 
             except:
                 traceback.print_exc(file=sys.stdout)
@@ -157,7 +162,7 @@ class ProjectHierarchyLoaderThread(QtCore.QRunnable):
         finally:
             self.callback.loaded.emit(results)
 
-class EntityFileLoader(QtCore.QRunnable):
+class EntityFileLoaderOld(QtCore.QRunnable):
 
     def __init__(self, parent, project_nav, entity, working_dir, scan_cast = False):
         super(EntityFileLoader, self).__init__(self, parent)
@@ -311,7 +316,7 @@ class TaskFileInfoThread(QtCore.QRunnable):
     
     def run(self):
         task = gazu.task.get_task(self.task)
-        project = gazu.project.get_project(self.task["project_id"])
+        project = task["project_id"]
         task_dir = gazu.files.build_working_file_path(task)
 
         results = {
@@ -607,7 +612,7 @@ def create_callback(encoder, upload_signal, source):
 
 class WorkingFileUploader(QtCore.QRunnable):
 
-    def __init__(self, parent, edit_api, task, source, file_name, software_name, comment, email, password, mode = "working"):
+    def __init__(self, parent, edit_api, task, source, file_name, software_name, comment, email, password, mode = "working", filter = []):
         super(WorkingFileUploader, self).__init__(self, parent)
         self.parent = parent
         self.url = edit_api
@@ -619,9 +624,10 @@ class WorkingFileUploader(QtCore.QRunnable):
         self.comment = comment
         self.email = email
         self.password = password
+        self.filter = filter
         self.callback = UploadSignal()
 
-    def run(self):
+    def process_upload(self):
         source_name, source_ext = os.path.splitext(self.source)
 
         # /edit/logon 
@@ -629,10 +635,9 @@ class WorkingFileUploader(QtCore.QRunnable):
         client = requests.session()
 
         # Retrieve the CSRF token first
-        res = client.get(logon_url).cookies
+        client.get(logon_url).cookies
         csrf = client.get(logon_url).cookies['csrftoken']
 
-        # http://10.147.19.55:8202/edit/login/   
         login_data = dict(username=self.email, password=self.password, csrfmiddlewaretoken=csrf, next='/')
         r = client.post(logon_url, data=login_data, headers=dict(Referer=logon_url))
 
@@ -675,8 +680,44 @@ class WorkingFileUploader(QtCore.QRunnable):
                 "source": self.source,
                 "message": "error uploading {}".format(e)
             })            
+        return True
 
-        return True        
+    def compress_dir(self):
+        #v = 0
+        #target = "{}_v{}".format(os.path.dirname(self.source), '{}'.format(v).zfill(3))
+        #while os.path.exists(target):
+        #    v += 1
+        #    target = "{}_v{}".format(os.path.dirname(self.source), '{}'.format(v).zfill(3))
+        baseline = os.path.basename(self.source)
+        target = "{}/{}.zip".format(os.path.dirname(self.source), baseline)
+
+        with zipfile.ZipFile(target, 'w') as zip:
+            for folder, sub, files in os.walk(self.source):
+                for filename in files:
+                    if not filename in self.filter:
+                        #file_path = os.path.join(folder, filename)
+                        zip.write(os.path.join(folder, filename), arcname=os.path.join(folder.replace(self.source, ""), filename))
+
+                        # zip.write(file_path, os.path.basename(file_path))
+                        #ziph.write(os.path.join(root, file), arcname=os.path.join(root.replace(src, ""), file))                        
+                        #print("added {}".format(filename))  
+                    else:
+                        print("skipped {}".format(filename))
+            zip.close()
+
+        self.callback.done.emit({
+            "status": "new",
+            "source": self.source,
+            "message": "created {}".format(target)
+        })                            
+
+        self.source = target
+
+    def run(self):
+        if os.path.isdir(self.source):
+            self.compress_dir()
+
+        return self.process_upload()
 
 class ShotCreatorSignal(QtCore.QObject):
 
@@ -892,6 +933,8 @@ class SearchFn(QtCore.QRunnable):
 
     def run(self):
         search_url = "{}/{}".format(self.url, "api/search/fn")
+        if _DEBUG:
+            search_url = "http://10.147.19.55:8202/edit/api/search/fn"
         results = []
 
         task_types = []
@@ -927,3 +970,55 @@ class SearchFn(QtCore.QRunnable):
         self.callback.results.emit(results)
         return True        
 
+class EntityFileLoader(QtCore.QRunnable):
+
+    def __init__(self, parent, project_nav, entity, working_dir, show_hidden = False, scan_cast = False):
+        super(EntityFileLoader, self).__init__(self, parent)
+        self.nav = project_nav
+        self.entity = entity
+        self.working_dir = working_dir
+        self.callback = LoadedSignal()    
+        self.scan_cast = scan_cast
+        self.show_hidden = show_hidden
+
+        self.email = load_settings('user', 'user@example.com')
+        self.password = load_keyring('swing', 'password', 'Not A Password')
+        self.server = load_settings('server', 'https://example.company.com')
+        self.edit_api = "{}/edit".format(self.server)
+
+
+    def run(self):
+        url = "{}/{}/{}".format(self.edit_api, "entity_info", self.entity['id'])
+        if _DEBUG:
+            url = "{}/{}/{}".format("http://10.147.19.55:8202/edit", "entity_info", self.entity['id']) 
+
+        task_types = []
+        if self.nav.is_task_types_filtered():
+            for item in self.nav.get_task_types():
+                task_types.append(item["id"])
+
+        status_types = []
+        if self.nav.is_status_types_filtered():
+            for item in self.nav.get_task_status():
+                status_types.append(item["id"])            
+
+        params = { 
+            "username": self.email,
+            "password": self.password,
+            "project": self.nav.get_project()["id"],
+            "task_types": json.dumps(task_types), 
+            "task_status": json.dumps(status_types),            
+            "output": "json",
+            "show_casted": self.scan_cast,
+            "show_hidden": self.show_hidden
+        }             
+
+        results = []
+        rq = requests.post(url, data = params)
+        if rq.status_code == 200:
+            found = rq.json()
+            for item in found:
+                results.append(item)
+
+        self.callback.loaded.emit(results)                        
+        return True               

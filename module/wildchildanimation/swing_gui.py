@@ -8,6 +8,7 @@
 _APP_NAME = "treehouse: swing"
 _APP_VERSION = "0.0.0.17"
  
+from genericpath import exists
 import traceback
 import sys
 import os
@@ -106,7 +107,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         super(SwingGUI, self).__init__(None) # Call the inherited classes __init__ method
 
         self.setupUi(self)
-        self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
+        self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint ^ QtCore.Qt.WindowMinMaxButtonsHint)
 
         # setup to hide in a dcc
         self.set_handler(studio_handler)
@@ -134,14 +135,14 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.pushButtonSettings.clicked.connect(self.open_connection_settings)
         self.pushButtonConnect.clicked.connect(self.connect_to_server)
 
-        self.pushButtonImport.clicked.connect(self.load_asset)
-        self.pushButtonDownload.clicked.connect(self.download_files)
-        self.pushButtonPublish.clicked.connect(self.publish_scene)
+        self.toolButtonImport.clicked.connect(self.load_asset)
+        self.toolButtonDownload.clicked.connect(self.download_files)
+        self.toolButtonPublish.clicked.connect(self.publish_scene)
 
         self.pushButtonPlayblast.clicked.connect(self.playblast_dialog)
         self.pushButtonExport.clicked.connect(self.dcc_tools_dialog)
 
-        self.pushButtonNew.clicked.connect(self.new_scene)
+        self.toolButtonNew.clicked.connect(self.new_scene)
         
         self.pushButtonBreakout.clicked.connect(self.breakout_dialog)
         ##self.pushButtonPlaylists.clicked.connect(self.playlist_dialog)
@@ -168,18 +169,33 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         set_button_icon(self.toolButtonShotInfo, "../resources/fa-free/solid/video.svg")        
 
         self.toolButtonAssetInfo.clicked.connect(self.load_asset_info)
-        set_button_icon(self.toolButtonAssetInfo, "../resources/fa-free/solid/boxes.svg")        
+        set_button_icon(self.toolButtonAssetInfo, "../resources/fa-free/solid/boxes.svg")    
+
+        self.toolButtonFileTableSelectAll.clicked.connect(self.select_all_files)
+        self.toolButtonFileSelectNone.clicked.connect(self.select_no_files)
 
         self.readSettings()
+        self._createActions()
+        self._createContextMenu()
+
         self.threadpool = QtCore.QThreadPool.globalInstance()
-        ## TODO: self._createActions()
-        ## self._createContextMenu()
 
         if self.connect_to_server():
             self.labelConnection.setText("Connected")
             self.projectNav.load_open_projects()
             self.version_check()
 
+    def select_all_files(self):
+        for row in range(self.tableViewFiles.model().rowCount()):
+            index = self.tableViewFiles.model().index(row, 0)
+            self.tableViewFiles.model().setData(index, True, QtCore.Qt.EditRole)
+        self.tableViewFiles.update()
+
+    def select_no_files(self):
+        for row in range(self.tableViewFiles.model().rowCount()):
+            index = self.tableViewFiles.model().index(row, 0)
+            self.tableViewFiles.model().setData(index, False, QtCore.Qt.EditRole)
+        self.tableViewFiles.update()    
 
     def _loadActionIcon(self,  action_text, resource_string):
         action = QtWidgets.QAction(self)
@@ -195,38 +211,45 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
     def _createActions(self):
         # File actions
-        self.loadAction = self._loadActionIcon("&Load File", "../resources/fa-free/solid/folder-open.svg")
-        self.downloadAction = self._loadActionIcon("&Download", "../resources/fa-free/solid/download.svg")
-        self.openExplorerAction = self._loadActionIcon("Open E&xplorer", "../resources/fa-free/solid/folder.svg")
-        self.selectAllAction = self._loadActionIcon("Select &None", "../resources/fa-free/solid/minus.svg")
-        self.selectNoneAction = self._loadActionIcon("Select &All", "../resources/fa-free/solid/plus.svg")
+        #self.loadAction = self._loadActionIcon("&Load File", "../resources/fa-free/solid/folder-open.svg")
+        #self.downloadAction = self._loadActionIcon("&Download", "../resources/fa-free/solid/download.svg")
+        #self.openExplorerAction = self._loadActionIcon("Open E&xplorer", "../resources/fa-free/solid/folder.svg")
+        #self.selectAllAction = self._loadActionIcon("Select &None", "../resources/fa-free/solid/minus.svg")
+        #self.selectNoneAction = self._loadActionIcon("Select &All", "../resources/fa-free/solid/plus.svg")
 
         # Snip...            
 
         # Task actions
-        self.createTaskDirAction = self._loadActionIcon("&Create Task Folder", "../resources/fa-free/solid/folder_plus.vg")
-        self.openTaskDirAction = self._loadActionIcon("&Open E&xplorer", "../resources/fa-free/solid/folder.svg")
-        self.reviewTaskAction = self._loadActionIcon("&Publish for Review", "../resources/fa-free/solid/share.svg")
-        self.openEntitInfoAction = self._loadActionIcon("Open &Entity Info", "../resources/fa-free/solid/info.svg")
+        self.newTaskDirAction = self._loadActionIcon("&New", "../resources/fa-free/solid/folder_plus.svg")
+        self.newTaskDirAction.setStatusTip("Creates the directory structure for a new scene")
+        self.newTaskDirAction.triggered.connect(self.new_scene)
+
+        self.publishTaskAction = self._loadActionIcon("&Publish", "../resources/fa-free/solid/share.svg")
+        self.publishTaskAction.setStatusTip("Publish for review")
+        self.publishTaskAction.triggered.connect(self.publish_scene)
+
+        #self.openTaskDirAction = self._loadActionIcon("&Open E&xplorer", "../resources/fa-free/solid/folder.svg")
+        #self.reviewTaskAction = self._loadActionIcon("&Publish for Review", "../resources/fa-free/solid/share.svg")
+        #self.openEntitInfoAction = self._loadActionIcon("Open &Entity Info", "../resources/fa-free/solid/info.svg")
 
     def _createContextMenu(self):
         # Setting contextMenuPolicy
         self.tableViewFiles.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
         # Populating the widget with actions
-        self.tableViewFiles.addAction(self.loadAction)
-        self.tableViewFiles.addAction(self.downloadAction)
-        self.tableViewFiles.addAction(self.openExplorerAction)
-        self.tableViewFiles.addAction(self.selectAllAction)
-        self.tableViewFiles.addAction(self.selectNoneAction)
+        #self.tableViewFiles.addAction(self.loadAction)
+        #self.tableViewFiles.addAction(self.downloadAction)
+        #self.tableViewFiles.addAction(self.openExplorerAction)
+        #self.tableViewFiles.addAction(self.selectAllAction)
+        #self.tableViewFiles.addAction(self.selectNoneAction)
 
         # same for task table
         self.tableViewTasks.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
 
         # Populating the widget with actions
-        self.tableViewTasks.addAction(self.createTaskDirAction)
-        self.tableViewTasks.addAction(self.openTaskDirAction)
-        self.tableViewTasks.addAction(self.reviewTaskAction)
-        self.tableViewTasks.addAction(self.openEntitInfoAction)
+        self.tableViewTasks.addAction(self.newTaskDirAction)
+        self.tableViewTasks.addAction(self.publishTaskAction)
+        #self.tableViewTasks.addAction(self.reviewTaskAction)
+        #self.tableViewTasks.addAction(self.openEntitInfoAction)
 
     def version_check(self):
         version_check = VersionCheck(self)
@@ -525,8 +548,8 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.labelTaskTableSelection.setText("Loading tasks")
         self.progressBarTaskTable.setMaximum(0)
         self.tableViewTasks.setEnabled(False)
-        self.pushButtonNew.setEnabled(False)
-        self.pushButtonPublish.setEnabled(False)
+        self.toolButtonNew.setEnabled(False)
+        self.toolButtonPublish.setEnabled(False)
 
         self.threadpool.start(task_loader)
         ##task_loader.run()        
@@ -614,8 +637,8 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             self.tableViewFiles.setEnabled(False)
             self.toolButtonFileTableSelectAll.setEnabled(False)
             self.toolButtonFileSelectNone.setEnabled(False)
-            self.pushButtonImport.setEnabled(False)
-            self.pushButtonDownload.setEnabled(False)
+            self.toolButtonImport.setEnabled(False)
+            self.toolButtonDownload.setEnabled(False)
 
             self.threadpool.start(loader)
             ## loader.run()
@@ -655,26 +678,23 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.tableViewFiles.setEnabled(False)
         self.toolButtonFileTableSelectAll.setEnabled(False)
         self.toolButtonFileSelectNone.setEnabled(False)
-        self.pushButtonImport.setEnabled(False)
-        self.pushButtonDownload.setEnabled(False)
+        self.toolButtonImport.setEnabled(False)
+        self.toolButtonDownload.setEnabled(False)
 
-        self.threadpool.start(loader)       
-        #loader.run()
+        ##self.threadpool.start(loader)       
+        loader.run()
 
 
     def load_files(self, data):
-        entity = data["entity"]
-        output_files = data["output_files"]
-        working_files = data["working_files"]
+        if len(data) == 0:
+            self.tableViewFiles.setEnabled(False)
+            self.files = []
+            self.labelFileTableSelection.setText("")
+            self.progressBarFileTable.setMaximum(1)            
+            return 
 
-        self.files = []
-        if output_files:
-            for item in output_files:
-                self.files.append(item)
-
-        if working_files:
-            for item in working_files:
-                self.files.append(item)
+        self.files = data[0]
+        self.entity = data[1]
 
         self.tableModelFiles = FileTableModel(self, working_dir = load_settings("projects_root", os.path.expanduser("~")), files = self.files)
         setup_file_table(self.tableModelFiles, self.tableViewFiles)        
@@ -686,15 +706,15 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.progressBarFileTable.setMaximum(1)
 
         if len(self.files) > 0:
-            self.labelFileTableSelection.setText("Files: {}".format(entity["name"]))
+            self.labelFileTableSelection.setText("Files: {}".format(self.entity["name"]))
 
             self.tableViewFiles.setEnabled(True)
             self.toolButtonFileTableSelectAll.setEnabled(True)
             self.toolButtonFileSelectNone.setEnabled(True)
-            self.pushButtonImport.setEnabled(True)
-            self.pushButtonDownload.setEnabled(True)          
+            self.toolButtonImport.setEnabled(True)
+            self.toolButtonDownload.setEnabled(True)          
         else:
-            self.labelFileTableSelection.setText("No files found: {}".format(entity["name"]))
+            self.labelFileTableSelection.setText("No files found: {}".format(self.entity["name"]))
 
 
     def select_row(self, index):
@@ -732,8 +752,8 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             row_index = index.row()
             try:
                 self.selected_file = self.tableViewFiles.model().files[row_index]
-                self.pushButtonLoad.setEnabled(self.selected_file is not None)
-                self.pushButtonImport.setEnabled(self.selected_file is not None)
+                self.toolButtonLoad.setEnabled(self.selected_file is not None)
+                self.toolButtonImport.setEnabled(self.selected_file is not None)
 
             except:
                 pass
@@ -777,7 +797,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         #self.tableViewTasks.verticalHeader().setDefaultSectionSize(self.tableViewTasks.verticalHeader().minimumSectionSize())
 
         #tableViewPowerDegree->verticalHeader()->setDefaultSectionSize(tableViewPowerDegree->verticalHeader()->minimumSectionSize()); 
-        # self.pushButtonPublish.setEnabled(len(tasks) > 0)
+        # self.toolButtonPublish.setEnabled(len(tasks) > 0)
 
         #self.labelTaskTableSelection.setText("Tasks: {}".format(self.get_current_selection()["name"]))
         
@@ -786,8 +806,8 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         if len(self.tasks) > 0:
             self.labelTaskTableSelection.setText("Tasks: {} {}".format(data["project"]["name"], data["episode"]["name"]))
             self.tableViewTasks.setEnabled(True)
-            self.pushButtonNew.setEnabled(True)
-            self.pushButtonPublish.setEnabled(True)        
+            self.toolButtonNew.setEnabled(True)
+            self.toolButtonPublish.setEnabled(True)        
         else:
             self.labelTaskTableSelection.setText("No tasks found for {} {}".format(data["project"]["name"], data["episode"]["name"]))
 
@@ -800,8 +820,8 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             try:
                 self.selected_task = self.tableViewTasks.model().data(index, QtCore.Qt.UserRole)
 
-                self.pushButtonNew.setEnabled(self.selected_task is not None)
-                self.pushButtonPublish.setEnabled(self.selected_task is not None)
+                self.toolButtonNew.setEnabled(self.selected_task is not None)
+                self.toolButtonPublish.setEnabled(self.selected_task is not None)
                 self.pushButtonPlayblast.setEnabled(self.selected_task is not None)
                 break
             except:
@@ -897,7 +917,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
     def publish_scene(self):
         if self.selected_task:        
-            dialog = PublishDialogGUI(self, self.handler, self.selected_task)
+            dialog = PublishDialogGUI(self, self.projectNav, self.handler, self.selected_task)
             dialog.show()
 
     def new_scene(self):
@@ -976,11 +996,14 @@ class CreateDialogGUI(QtWidgets.QDialog, Ui_CreateDialog):
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
 
         self.handler = handler
+        self.handler.on_create = self.on_create
 
         self.shot = None
         self.asset = None
         self.url = None
         self.task = task
+        self.set_ui_enabled(False)
+
         self.threadpool = QtCore.QThreadPool.globalInstance()
 
         loader = EntityLoaderThread(self, self.task["entity_id"])
@@ -1006,6 +1029,7 @@ class CreateDialogGUI(QtWidgets.QDialog, Ui_CreateDialog):
         self.pushButtonImport.clicked.connect(self.process)
 
         self.setWorkingDir(load_settings("projects_root", os.path.expanduser("~")))
+        
 
     def open_url(self, url):
         link = QtCore.QUrl(self.url)
@@ -1123,6 +1147,7 @@ class CreateDialogGUI(QtWidgets.QDialog, Ui_CreateDialog):
             self.lineEditFrameCount.setEnabled(False)         
 
         self.toolButtonWeb.setEnabled(self.url is not None)
+        self.set_ui_enabled(True)
         self.setEnabled(True)
 
     def task_loaded(self, results):
@@ -1165,8 +1190,10 @@ class CreateDialogGUI(QtWidgets.QDialog, Ui_CreateDialog):
         self.lineEditEntity.setEnabled(status)
         self.lineEditFrameIn.setEnabled(status)
         self.lineEditFrameOut.setEnabled(status)
+        self.lineEditFrameCount.setEnabled(status)
         self.lineEditWorkingDir.setEnabled(status)
         self.toolButtonWorkingDir.setEnabled(status)
+        self.comboBoxSoftware.setEnabled(status)
 
         self.pushButtonImport.setEnabled(status)
         self.pushButtonCancel.setEnabled(status)
@@ -1191,9 +1218,9 @@ class CreateDialogGUI(QtWidgets.QDialog, Ui_CreateDialog):
             self.append_status("Create new project: {} {} {}".format(name, workingDir, software['name']))
 
             if (self.handler.on_create(source = name, working_dir = workingDir, software = software)):
-                self.append_status("created scene")
+                QtWidgets.QMessageBox.information(self, 'Swing: Create', 'Created folder {}'.format(workingDir), QtWidgets.QMessageBox.Ok)                        
             else:
-                self.append_status("Error creating scene", True)
+                self.append_status("Error creating new scene")
 
             if self.type == "Shot":
                 self.handler.set_globals(project = self.project_name, episode = self.episode_name, sequence = self.sequence_name, task = self.task_type_name, shot = self.shot_name, frame_in = self.lineEditFrameIn.text(), frame_out = self.lineEditFrameOut.text(), frame_count = self.lineEditFrameCount.text())
@@ -1206,4 +1233,21 @@ class CreateDialogGUI(QtWidgets.QDialog, Ui_CreateDialog):
 
         self.close()
     # process
+
+    def on_create(self, **kwargs):
+        source = kwargs["source"]
+        directory = kwargs["working_dir"]
+        software = kwargs["software"]
+
+        try:
+            os.makedirs(directory, exist_ok = True)
+            os.startfile(directory)
+            print("Created working directory for {} {}".format(source, directory))
+        except:
+            print("Error creating directory for {} {}".format(source, directory))
+            return False
+
+        return True
+
+
 

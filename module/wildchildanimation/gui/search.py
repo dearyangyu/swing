@@ -72,6 +72,7 @@ class SearchFilesDialog(QtWidgets.QDialog, Ui_SearchFilesDialog):
         worker.callback.results.connect(self.search_results)
 
         self.threadpool.start(worker)
+        ##worker.run()
         self.enable_ui(False)
     # process        
 

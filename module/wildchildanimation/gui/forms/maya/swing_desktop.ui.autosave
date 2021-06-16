@@ -358,7 +358,7 @@
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_4">
              <item>
-              <widget class="QPushButton" name="pushButtonNew">
+              <widget class="QToolButton" name="toolButtonNew">
                <property name="enabled">
                 <bool>false</bool>
                </property>
@@ -371,7 +371,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="pushButtonPublish">
+              <widget class="QToolButton" name="toolButtonPublish">
                <property name="enabled">
                 <bool>false</bool>
                </property>
@@ -481,7 +481,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="pushButtonImport">
+              <widget class="QToolButton" name="toolButtonImport">
                <property name="enabled">
                 <bool>false</bool>
                </property>
@@ -494,7 +494,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="pushButtonDownload">
+              <widget class="QToolButton" name="toolButtonDownload">
                <property name="enabled">
                 <bool>false</bool>
                </property>

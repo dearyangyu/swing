@@ -20,6 +20,8 @@ except ImportError:
     import sip
     qtMode = 1
 
+import gazu    
+
 from wildchildanimation.gui.upload_monitor_dialog import Ui_UploadMonitorDialog    
 
 '''
@@ -79,20 +81,26 @@ class UploadMonitorDialog(QtWidgets.QDialog, Ui_UploadMonitorDialog):
     def close_dialog(self):
         self.hide()
 
-    def file_loading(self, status):
-        message = status["message"]
-        source = status["source"]     
+    def file_loading(self, results):
+        message = results["message"]
+        source = results["source"]     
+        status = results["status"]
 
-        self.model.set_item_text(source, message)
+        if "new" in status:
+            self.model.add_item(source, "Pending")
+        else:
+            self.model.set_item_text(source, message)
 
-    def file_loaded(self, status):
-        print("file_loaded completed {0} files".format(self.progressBar.value()))
+    def file_loaded(self, results):
+        status = results["status"]
+        if "ok" in status:
+            print("file_loaded completed {0} files".format(self.progressBar.value()))
 
-        message = status["message"]
-        source = status["source"]     
+            message = results["message"]
+            source = results["source"]     
 
-        self.model.set_item_text(source, message)        
-        self.progressBar.setValue(self.progressBar.value() + 1)
+            self.model.set_item_text(source, message)        
+            self.progressBar.setValue(self.progressBar.value() + 1)
 
         if self.progressBar.value() >= len(self.model.files):
             QtWidgets.QMessageBox.question(self, 'Publishing complete', 'All files uploaded, thank you', QtWidgets.QMessageBox.Ok)

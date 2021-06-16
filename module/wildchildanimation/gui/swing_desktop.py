@@ -13,7 +13,6 @@ from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
 from wildchildanimation.gui.swing_utils import fakestr
-
 class Ui_SwingMain(object):
     def setupUi(self, SwingMain):
         if not SwingMain.objectName():
@@ -199,17 +198,17 @@ class Ui_SwingMain(object):
 
         self.horizontalLayout_4 = QHBoxLayout()
         self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
-        self.pushButtonNew = QPushButton(self.tabTasks)
-        self.pushButtonNew.setObjectName(u"pushButtonNew")
-        self.pushButtonNew.setEnabled(False)
+        self.toolButtonNew = QToolButton(self.tabTasks)
+        self.toolButtonNew.setObjectName(u"toolButtonNew")
+        self.toolButtonNew.setEnabled(False)
 
-        self.horizontalLayout_4.addWidget(self.pushButtonNew)
+        self.horizontalLayout_4.addWidget(self.toolButtonNew)
 
-        self.pushButtonPublish = QPushButton(self.tabTasks)
-        self.pushButtonPublish.setObjectName(u"pushButtonPublish")
-        self.pushButtonPublish.setEnabled(False)
+        self.toolButtonPublish = QToolButton(self.tabTasks)
+        self.toolButtonPublish.setObjectName(u"toolButtonPublish")
+        self.toolButtonPublish.setEnabled(False)
 
-        self.horizontalLayout_4.addWidget(self.pushButtonPublish)
+        self.horizontalLayout_4.addWidget(self.toolButtonPublish)
 
         self.horizontalSpacer_2 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
@@ -270,17 +269,17 @@ class Ui_SwingMain(object):
 
         self.horizontalLayout_5.addWidget(self.toolButtonFileSelectNone)
 
-        self.pushButtonImport = QPushButton(self.tabFiles)
-        self.pushButtonImport.setObjectName(u"pushButtonImport")
-        self.pushButtonImport.setEnabled(False)
+        self.toolButtonImport = QToolButton(self.tabFiles)
+        self.toolButtonImport.setObjectName(u"toolButtonImport")
+        self.toolButtonImport.setEnabled(False)
 
-        self.horizontalLayout_5.addWidget(self.pushButtonImport)
+        self.horizontalLayout_5.addWidget(self.toolButtonImport)
 
-        self.pushButtonDownload = QPushButton(self.tabFiles)
-        self.pushButtonDownload.setObjectName(u"pushButtonDownload")
-        self.pushButtonDownload.setEnabled(False)
+        self.toolButtonDownload = QToolButton(self.tabFiles)
+        self.toolButtonDownload.setObjectName(u"toolButtonDownload")
+        self.toolButtonDownload.setEnabled(False)
 
-        self.horizontalLayout_5.addWidget(self.pushButtonDownload)
+        self.horizontalLayout_5.addWidget(self.toolButtonDownload)
 
         self.horizontalSpacer_3 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
@@ -397,27 +396,27 @@ class Ui_SwingMain(object):
         self.toolButtonShotInfo.setText(fakestr(u"...", None))
         self.labelTaskTableSelection.setText(fakestr(u"Tasks for selection:", None))
 #if QT_CONFIG(tooltip)
-        self.pushButtonNew.setToolTip(fakestr(u"Create a new scene", None))
+        self.toolButtonNew.setToolTip(fakestr(u"Create a new scene", None))
 #endif // QT_CONFIG(tooltip)
-        self.pushButtonNew.setText(fakestr(u"New", None))
+        self.toolButtonNew.setText(fakestr(u"New", None))
 #if QT_CONFIG(tooltip)
-        self.pushButtonPublish.setToolTip(fakestr(u"Publish current scene to Treehouse", None))
+        self.toolButtonPublish.setToolTip(fakestr(u"Publish current scene to Treehouse", None))
 #endif // QT_CONFIG(tooltip)
-        self.pushButtonPublish.setText(fakestr(u"Publish", None))
+        self.toolButtonPublish.setText(fakestr(u"Publish", None))
 #if QT_CONFIG(shortcut)
-        self.pushButtonPublish.setShortcut(fakestr(u"Alt+P", None))
+        self.toolButtonPublish.setShortcut(fakestr(u"Alt+P", None))
 #endif // QT_CONFIG(shortcut)
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabTasks), fakestr(u"Tasks", None))
         self.labelFileTableSelection.setText(fakestr(u"Files for selection", None))
         self.toolButtonFileTableSelectAll.setText(fakestr(u"Select All", None))
         self.toolButtonFileSelectNone.setText(fakestr(u"Select None", None))
-        self.pushButtonImport.setText(fakestr(u"Import", None))
+        self.toolButtonImport.setText(fakestr(u"Import", None))
 #if QT_CONFIG(shortcut)
-        self.pushButtonImport.setShortcut(fakestr(u"Alt+I", None))
+        self.toolButtonImport.setShortcut(fakestr(u"Alt+I", None))
 #endif // QT_CONFIG(shortcut)
-        self.pushButtonDownload.setText(fakestr(u"Download", None))
+        self.toolButtonDownload.setText(fakestr(u"Download", None))
 #if QT_CONFIG(shortcut)
-        self.pushButtonDownload.setShortcut(fakestr(u"Alt+D", None))
+        self.toolButtonDownload.setShortcut(fakestr(u"Alt+D", None))
 #endif // QT_CONFIG(shortcut)
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabFiles), fakestr(u"Files", None))
         self.labelConnection.setText(fakestr(u"Offline", None))

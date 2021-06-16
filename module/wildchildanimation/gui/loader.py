@@ -187,7 +187,7 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
         self.comboBoxWorkingFile.clear()
         for item in file_list:
             self.files.append(copy.copy(item))
-            self.comboBoxWorkingFile.addItem(item["name"])
+            self.comboBoxWorkingFile.addItem(item["file_name"])
             
             if selected_file and selected_file == item:
                 selected_index = index

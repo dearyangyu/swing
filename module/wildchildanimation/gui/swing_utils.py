@@ -44,11 +44,15 @@ def open_folder(directory):
         write_log("[ERROR] Invalid directory path: {0}".format(directory))
 
 def set_target(file_item, local_root):
-    path = file_item["path"]
+    if "file_path" in file_item:
+        path = file_item["file_path"]
+    else:
+        path = file_item["path"]
+
     path = path.replace("/mnt/content/productions", local_root)
 
-    if not path.endswith(file_item["name"]):
-        path = "{}/{}".format(path, file_item["name"])
+    if not path.endswith(file_item["file_name"]):
+        path = "{}/{}".format(path, file_item["file_name"])
 
     file_item["target_path"] = path
     return file_item
