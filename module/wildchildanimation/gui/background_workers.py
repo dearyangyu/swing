@@ -37,8 +37,6 @@ from wildchildanimation.gui.swing_updater import update
 
 import wildchildanimation.gui.swing_utils
 
-_DEBUG = True
-
 class LoadedSignal(QtCore.QObject):
     loaded = pyqtSignal(object)        
 
@@ -840,10 +838,9 @@ class ShotCreator(QtCore.QRunnable):
                         if os.path.exists(source):
                             file_base = os.path.basename(source)
                             file_path = os.path.dirname(source)
-                            file_name, file_ext = os.path.splitext(file_base)                
 
-                            # self.threadpool.start(worker)                        
                             worker = WorkingFileUploader(self, edit_api, task, source, file_base, software["name"], "Breakout file", email, password, mode = "working")
+                            ##self.threadpool.start(worker)                        
                             worker.run()
 
                             results = {
@@ -874,6 +871,7 @@ class ShotCreator(QtCore.QRunnable):
 
                             # self.threadpool.start(worker)                        
                             worker = WorkingFileUploader(self, edit_api, task, source, file_base, software["name"], "Breakout file", email, password,  mode = "preview")
+                            ##self.threadpool.start(worker)                                                    
                             worker.run()
 
                             results = {
@@ -933,8 +931,6 @@ class SearchFn(QtCore.QRunnable):
 
     def run(self):
         search_url = "{}/{}".format(self.url, "api/search/fn")
-        if _DEBUG:
-            search_url = "http://10.147.19.55:8202/edit/api/search/fn"
         results = []
 
         task_types = []
@@ -989,8 +985,6 @@ class EntityFileLoader(QtCore.QRunnable):
 
     def run(self):
         url = "{}/{}/{}".format(self.edit_api, "entity_info", self.entity['id'])
-        if _DEBUG:
-            url = "{}/{}/{}".format("http://10.147.19.55:8202/edit", "entity_info", self.entity['id']) 
 
         task_types = []
         if self.nav.is_task_types_filtered():

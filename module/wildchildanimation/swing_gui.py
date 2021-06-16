@@ -626,22 +626,24 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
         sequence = self.projectNav.get_sequence()
         if sequence:
-            self.currentShot = sequence["shots"][index]
-            #write_log("load shot files {}".format(index))
+            shots = sequence["shots"]
+            if len(shots) > index:
+                self.currentShot = shots[index]
+                #write_log("load shot files {}".format(index))
 
-            loader = EntityFileLoader(self, self.projectNav, self.currentShot, working_dir = load_settings("projects_root", os.path.expanduser("~")))
-            loader.callback.loaded.connect(self.load_files)
+                loader = EntityFileLoader(self, self.projectNav, self.currentShot, working_dir = load_settings("projects_root", os.path.expanduser("~")))
+                loader.callback.loaded.connect(self.load_files)
 
-            self.labelFileTableSelection.setText("Loading files for {}".format(self.currentShot["name"]))
-            self.progressBarFileTable.setMaximum(0)
-            self.tableViewFiles.setEnabled(False)
-            self.toolButtonFileTableSelectAll.setEnabled(False)
-            self.toolButtonFileSelectNone.setEnabled(False)
-            self.toolButtonImport.setEnabled(False)
-            self.toolButtonDownload.setEnabled(False)
+                self.labelFileTableSelection.setText("Loading files for {}".format(self.currentShot["name"]))
+                self.progressBarFileTable.setMaximum(0)
+                self.tableViewFiles.setEnabled(False)
+                self.toolButtonFileTableSelectAll.setEnabled(False)
+                self.toolButtonFileSelectNone.setEnabled(False)
+                self.toolButtonImport.setEnabled(False)
+                self.toolButtonDownload.setEnabled(False)
 
-            self.threadpool.start(loader)
-            ## loader.run()
+                self.threadpool.start(loader)
+                ## loader.run()
 
     def asset_loaded(self, data): 
         #write_log("[asset_loaded]")
@@ -843,6 +845,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             dialog = BreakoutUploadDialog(self)
             dialog.set_project(self.projectNav.get_project())
             dialog.set_episode(self.projectNav.get_episode())
+            dialog.set_sequence_index(self.projectNav.comboBoxSequence.currentIndex())
             dialog.exec_()
         else:
             QtWidgets.QMessageBox.information(self, 'Break Out', 'Please select a project and an episode first')  

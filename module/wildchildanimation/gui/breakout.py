@@ -141,8 +141,8 @@ class BreakoutUploadDialog(QtWidgets.QDialog, Ui_BreakoutUploadDialog):
             worker = ShotCreator(self, self.project, self.episode, sequence, shot_list)
             worker.callback.results.connect(self.results)
 
-            self.threadpool.start(worker)
-            #worker.run()
+            ##self.threadpool.start(worker)
+            worker.run()
         else:
             QtWidgets.QMessageBox.info(self, 'Break Out', 'Please select a sequence')               
             #worker.run()
@@ -252,7 +252,10 @@ class BreakoutUploadDialog(QtWidgets.QDialog, Ui_BreakoutUploadDialog):
 
         self.comboBoxSequence.clear()
         for item in self.sequences:
-            self.comboBoxSequence.addItem(item["name"])
+            self.comboBoxSequence.addItem(item["name"], userData = item) 
+
+    def set_sequence_index(self, index):
+        self.comboBoxSequence.setCurrentIndex(index)
 
 class ShotlistModel(QtCore.QAbstractTableModel):
 
