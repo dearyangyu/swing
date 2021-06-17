@@ -44,7 +44,7 @@ class BreakoutUploadDialog(QtWidgets.QDialog, Ui_BreakoutUploadDialog):
     def __init__(self, parent = None):
         super(BreakoutUploadDialog, self).__init__(None) # Call the inherited classes __init__ method
         self.setupUi(self)
-        self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
+        self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint ^ QtCore.Qt.WindowMinMaxButtonsHint)
 
         self.toolButtonSelectPlayblasts.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_DirOpenIcon))
         self.toolButtonSelectProjects.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_DirOpenIcon))

@@ -51,7 +51,7 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
     def __init__(self, parent = None, project_nav = None, entity = None, handler = None):
         super(EntityInfoDialog, self).__init__(parent) # Call the inherited classes __init__ method
         self.setupUi(self)
-        self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
+        self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint ^ QtCore.Qt.WindowMinMaxButtonsHint)
         self.nav = project_nav
         self.entity = entity 
         self.threadpool = QtCore.QThreadPool.globalInstance()

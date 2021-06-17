@@ -44,7 +44,7 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
     def __init__(self, parent, handler = None, project_nav = None, entity = None, file_list = None):
         super(DownloadDialogGUI, self).__init__(parent) # Call the inherited classes __init__ method
         self.setupUi(self)
-        self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
+        self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint ^ QtCore.Qt.WindowMinMaxButtonsHint)
         self.setMinimumWidth(600)
         self.nav = project_nav
         self.handler = handler
