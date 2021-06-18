@@ -391,7 +391,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.settings = QtCore.QSettings()
         self.settings.beginGroup("MainWindow")
         self.resize(self.settings.value("size", QtCore.QSize(400, 400)))
-        self.move(self.settings.value("pos", QtCore.QPoint(200, 200)))
+        #self.move(self.settings.value("pos", QtCore.QPoint(200, 200)))
         self.settings.endGroup()            
 
         self.settings.beginGroup("Selection")

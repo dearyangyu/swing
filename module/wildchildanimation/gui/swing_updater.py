@@ -95,7 +95,7 @@ def extract_latest(download_dir, module_dir):
     
     return True
 
-def setup_windows(working_dir):
+def setup_windows(working_dir, force_update = False):
     # make sure we have default directories
     check_or_create_dir(working_dir)
 
@@ -111,27 +111,29 @@ def setup_windows(working_dir):
     release_version = get_swing_release()
     release_dir = "{}/v{}".format(install_dir, release_version)
 
-    if not os.path.exists(release_dir):    
+    if not os.path.exists(release_dir) or force_update:    
         download_latest(release_dir)
 
     version_path = "{}/swing/swing-main/module/swing.version".format(working_dir)
     module_path = "{}/swing".format(working_dir)
 
-    if not os.path.exists(module_path):
+    if not os.path.exists(module_path) or force_update:
         check_or_create_dir(module_path)        
         extract_latest(release_dir, module_path)
 
-
-    local_version = open(version_path, 'r').read()
-    if not local_version == release_version:
-        check_or_create_dir(module_path)        
-        extract_latest(release_dir, module_path)
+    if not force_update:
+        local_version = open(version_path, 'r').read()
+        if not local_version == release_version:
+            check_or_create_dir(module_path)        
+            extract_latest(release_dir, module_path)
 
     update_requirements(working_dir)
     run_swing_standalone(working_dir)
 
-def update(working_dir):
-    print("treehouse: swing updater v{}".format(_VERSION))
+def update(working_dir, force_update = False):
+    print("Treehouse: Swing Updater v{}".format(_VERSION))
+    if force_update:
+        print("Forcing update")
 
     if working_dir is None:
         install_dir = WCA_ROOT
@@ -147,13 +149,14 @@ def update(working_dir):
         print("Found {}".format(python_version))        
 
     if "Windows" in platform.platform():
-        setup_windows(install_dir)
+        setup_windows(install_dir, force_update)
     else:
         print("Not implemented yet")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--dir", help = "Target dir", default = None, action='store')
+    parser.add_argument("-f", "--force", help = "Force update", default = None, action='store_true')
 
     args = parser.parse_args()
-    update(args.dir)
+    update(args.dir, args.force)

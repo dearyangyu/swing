@@ -5,7 +5,7 @@ import argparse
 import sys
 
 sys.path.append("./module")
-from wildchildanimation.util.swing_updater import update
+from wildchildanimation.gui.swing_updater import update
 
 import os
 

@@ -833,7 +833,7 @@ class ShotCreator(QtCore.QRunnable):
                         task = gazu.task.new_task(shot, task_type, task_status = task_status, assigner = None, assignees = None)
                     working_files = gazu.files.get_working_files_for_task(task)
 
-                    if len(working_files) == 0:
+                    if len(working_files) == 0 or True:
                         source = file_path
                         if os.path.exists(source):
                             file_base = os.path.basename(source)
