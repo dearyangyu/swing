@@ -84,8 +84,6 @@ class CheckBoxDelegate(QtWidgets.QStyledItemDelegate):
         checkBoxTopLeftCorner = QtCore.QPoint(x + w / 2 - checkBoxRect.width() / 2, y + h / 2 - checkBoxRect.height() / 2)
         return QtCore.QRect(checkBoxTopLeftCorner, checkBoxRect.size())
 
-
-       
 class FileTableModel(QtCore.QAbstractTableModel):    
 
     _COL_SELECT = 0
@@ -109,12 +107,12 @@ class FileTableModel(QtCore.QAbstractTableModel):
         "Description", 
         "Path"
     ]
-    files = []
+    items = []
     selection = []
 
-    def __init__(self, parent, working_dir, files = [], entity = None):
+    def __init__(self, parent, working_dir, items = [], entity = None):
         QtCore.QAbstractTableModel.__init__(self, parent) 
-        self.items = files
+        self.items = items
         self.entity = entity
         self.working_dir = working_dir
 

@@ -21,9 +21,7 @@ except ImportError:
     from PyQt5 import QtGui, QtCore, QtWidgets
     import sip
     qtMode = 1
-
-import gazu
-
+    
 from datetime import datetime
 
 import wildchildanimation.gui.background_workers as bg
@@ -291,7 +289,7 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
         for row in range(self.tableView.model().rowCount()):
             index = self.tableView.model().index(row, 0)
             item = self.tableView.model().data(index, QtCore.Qt.UserRole)
-            if file_id == item['id']:
+            if file_id == item['file_id']:
                 index = self.tableView.model().index(row, 5)
                 download_status = {}
                 download_status["message"] = "{} - {}".format(human_size(size), message)
@@ -328,7 +326,7 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
         for row in range(self.tableView.model().rowCount()):
             index = self.tableView.model().index(row, 0)
             item = self.tableView.model().data(index, QtCore.Qt.UserRole)
-            if file_id == item['id']:
+            if file_id == item['file_id']:
 
                 index = self.tableView.model().index(row, 5)
                 download_status = {}
@@ -340,7 +338,7 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
 
 
     def load_files(self, file_list):
-        self.tableModelFiles = FileTableModel(self, working_dir = load_settings("projects_root", os.path.expanduser("~")), files = file_list)
+        self.tableModelFiles = FileTableModel(self, working_dir = load_settings("projects_root", os.path.expanduser("~")), items = file_list)
         setup_file_table(self.tableModelFiles, self.tableView)
 
     def file_table_double_click(self, index):
@@ -391,56 +389,14 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
                 item = self.tableView.model().data(index, QtCore.Qt.UserRole)
                 file_list.append(item)       
 
-        #write_log("Downloading {} files".format(len(file_list)))
-        #write_log("Multithreading with maximum %d threads" % self.threadpool.maxThreadCount())
-
-        self.progressBar.setRange(0, len(file_list))
-
         email = load_settings('user', 'user@example.com')
         password = load_keyring('swing', 'password', 'Not A Password')
         server = load_settings('server', 'https://example.wildchildanimation.com')
-        edit_api = "{}/edit".format(server)
 
-        row = 0
-        for item in file_list:
-            write_log("Downloading {}".format(item["name"]))
+        skip_existing = self.checkBoxSkipExisting.isChecked()
+        extract_zips = self.checkBoxExtractZips.isChecked()
 
-            if "WorkingFile" in item["type"]:
-                url = "{}/api/working_file/{}".format(edit_api, item["id"])
-                target = set_target(item, self.working_dir)
+        process_downloads(self, self.threadpool, file_list, self.progressBar, self.file_loading, self.file_loaded, email, password, server, self.working_dir, skip_existing, extract_zips) 
 
-                worker = FileDownloader(self, self.working_dir, item["file_id"], url, item["target_path"], email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
 
-                worker.callback.progress.connect(self.file_loading)
-                worker.callback.done.connect(self.file_loaded)
-                self.threadpool.start(worker)
-                self.downloads += 1                
-                item["status"] = "Busy"
-            elif "OutputFile" in item["type"]:
-                url = "{}/api/output_file/{}".format(edit_api, item["id"])
-                target = set_target(item, self.working_dir)
-
-                worker = FileDownloader(self, self.working_dir, item["file_id"], url, item["target_path"], email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
-
-                worker.callback.progress.connect(self.file_loading)
-                worker.callback.done.connect(self.file_loaded)
-                
-                self.threadpool.start(worker)
-                self.downloads += 1            
-
-                item["status"] = "Busy"
-            elif "Library" in item['type']:
-                url = "{}/api/library_file/{}".format(edit_api, item["file_id"])
-                target = set_target(item, self.working_dir)
-
-                worker = FileDownloader(self, self.working_dir, item["file_id"], url, item["target_path"], email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
-
-                worker.callback.progress.connect(self.file_loading)
-                worker.callback.done.connect(self.file_loaded)
-                
-                self.threadpool.start(worker)
-                self.downloads += 1            
-
-                item["status"] = "Busy"                
-            row = row + 1                    
 

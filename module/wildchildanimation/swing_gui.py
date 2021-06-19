@@ -698,7 +698,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.files = data[0]
         self.entity = data[1]
 
-        self.tableModelFiles = FileTableModel(self, working_dir = load_settings("projects_root", os.path.expanduser("~")), files = self.files)
+        self.tableModelFiles = FileTableModel(self, working_dir = load_settings("projects_root", os.path.expanduser("~")), items = self.files)
         setup_file_table(self.tableModelFiles, self.tableViewFiles)        
 
         selectionModel = self.tableViewFiles.selectionModel()
@@ -1251,6 +1251,3 @@ class CreateDialogGUI(QtWidgets.QDialog, Ui_CreateDialog):
             return False
 
         return True
-
-
-

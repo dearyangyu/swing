@@ -54,13 +54,13 @@ class StudioHandler(StudioInterface):
         ### runs a custom value request against the local dcc
         if option == "frame_range":
 
-            if param == "Render":
+            if value == "Render":
                 start_frame = int(cmds.getAttr("defaultRenderGlobals.startFrame"))
                 end_frame = int(cmds.getAttr("defaultRenderGlobals.endFrame"))
-            elif param == "Playback":
+            elif value == "Playback":
                 start_frame = int(cmds.playbackOptions(q=True, minTime=True))
                 end_frame = int(cmds.playbackOptions(q=True, maxTime=True))
-            elif param == "Animation":
+            elif value == "Animation":
                 start_frame = int(cmds.playbackOptions(q=True, animationStartTime=True))
                 end_frame = int(cmds.playbackOptions(q=True, animationEndTime=True))
             else:

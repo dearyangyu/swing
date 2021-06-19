@@ -408,7 +408,7 @@ class DownloadSignal(QtCore.QObject):
 
 class FileDownloader(QtCore.QRunnable):
 
-    def __init__(self, parent, working_dir, file_id, url, target, email, password, skip_existing = True, extract_zips = False):
+    def __init__(self, parent, working_dir, file_id, url, target, email, password, skip_existing = True, extract_zips = False, params = {}):
         super(FileDownloader, self).__init__(self, parent)
         self.parent = parent
         self.working_dir = working_dir
@@ -419,6 +419,7 @@ class FileDownloader(QtCore.QRunnable):
         self.password = password
         self.skip_existing = skip_existing
         self.extract_zips = extract_zips
+        self.params = params
         self.callback = DownloadSignal()
 
     def progress(self, count):
@@ -467,10 +468,9 @@ class FileDownloader(QtCore.QRunnable):
                 self.callback.done.emit(status)
                 return                
 
-        params = { 
-            "username": self.email,
-            "password": self.password
-        } 
+        self.params["username"] = self.email,
+        self.params["password"] = self.password
+
 
         target_dir = os.path.dirname(self.target)
         if not os.path.exists(target_dir):
@@ -481,7 +481,7 @@ class FileDownloader(QtCore.QRunnable):
                 pass
 
         count = 0
-        rq = requests.post(self.url, data = params, stream = True)
+        rq = requests.post(self.url, data = self.params, stream = True)
         if rq.status_code == 200:
             with open(self.target, 'wb') as out:
                 for bits in rq.iter_content(1024 * 1024):
@@ -742,6 +742,7 @@ class ShotCreator(QtCore.QRunnable):
         self.force_preview = False
 
     def get_shot_task(self, shot, task_type_name, task_status):
+        
         tasks = gazu.task.all_tasks_for_shot(shot)
         for t in tasks:
             if t["task_type_name"] == task_type_name and t["task_status_name"] == task_status["name"]:
