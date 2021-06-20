@@ -50,7 +50,12 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
         self.url = None
         self.threadpool = QtCore.QThreadPool.globalInstance()
 
-        loader = EntityLoaderThread(self, self.entity["id"])
+        if self.entity:
+            if isinstance(entity, dict):
+                loader = EntityLoaderThread(self, self.entity["id"])
+            else:
+                loader = EntityLoaderThread(self, self.entity)        
+
         loader.callback.loaded.connect(self.entity_loaded)
         self.threadpool.start(loader)
 

@@ -32,7 +32,7 @@ except ImportError:
 
 from datetime import datetime
 
-from wildchildanimation.gui.swing_utils import write_log, connect_to_server, load_settings, load_keyring
+from wildchildanimation.gui.swing_utils import write_log, connect_to_server, load_settings, load_keyring, resolve_content_path
 from wildchildanimation.gui.swing_updater import update
 
 import wildchildanimation.gui.swing_utils
@@ -320,6 +320,7 @@ class TaskFileInfoThread(QtCore.QRunnable):
         results = {
             "task": task,
             "task_dir": task_dir,
+            "project_dir": resolve_content_path(task_dir, self.project_root),
             "project": project
         }
 
@@ -329,11 +330,12 @@ class TaskLoaderThread(QtCore.QRunnable):
 
     ALL_TASKS = False
 
-    def __init__(self, parent, project_nav, email):
+    def __init__(self, parent, project_nav, email, project_root):
         super(TaskLoaderThread, self).__init__(self, parent)
         self.parent = parent
         self.nav = project_nav
         self.email = email
+        self.project_root = project_root
         self.callback = LoadedSignal()        
 
     #def due_date(self, elem):
@@ -378,6 +380,10 @@ class TaskLoaderThread(QtCore.QRunnable):
                         continue
                     ##item["task_url"] = gazu.task.get_task_url(item)
                     tasks.append(item)
+
+        for item in tasks:
+            item["task_dir"] = gazu.files.build_working_file_path(item)
+            item["project_dir"] = resolve_content_path(item["task_dir"], self.project_root)
 
         results["project"] = current_project
         results["episode"] = current_episode

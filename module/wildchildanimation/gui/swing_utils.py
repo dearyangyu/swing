@@ -36,6 +36,21 @@ def fakestr(*args):
 def current_time():
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
+def fcount(path):
+    """ Counts the number of files in a directory """
+    count = 0
+    if not os.path.exists(path):
+        return count
+
+    for f in os.listdir(path):
+        if os.path.isfile(os.path.join(path, f)): 
+            count += 1
+        if os.path.isdir(os.path.join(path, f)): 
+            if not f in [ ".source", ".history"]:
+                count += 1
+
+    return count        
+
 def open_folder(directory):
     file_info = QtCore.QFileInfo(directory)
     if file_info.isDir():
@@ -43,13 +58,19 @@ def open_folder(directory):
     else:
         write_log("[ERROR] Invalid directory path: {0}".format(directory))
 
+def resolve_content_path(path, local):
+    if path:
+        if "/mnt/content/productions" in path:
+            return path.replace("/mnt/content/productions", local)
+    return local
+
 def set_target(file_item, local_root):
     if "file_path" in file_item:
         path = file_item["file_path"]
     else:
         path = file_item["path"]
 
-    path = path.replace("/mnt/content/productions", local_root)
+    path = resolve_content_path(path, local_root)
 
     if not path.endswith(file_item["file_name"]):
         path = "{}/{}".format(path, file_item["file_name"])

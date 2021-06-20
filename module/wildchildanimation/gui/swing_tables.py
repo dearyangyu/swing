@@ -23,7 +23,7 @@ except ImportError:
 
 from datetime import datetime
 
-from wildchildanimation.gui.swing_utils import human_size, my_date_format
+from wildchildanimation.gui.swing_utils import human_size, my_date_format, resolve_content_path
 
 class CheckBoxDelegate(QtWidgets.QStyledItemDelegate):
 
@@ -202,15 +202,9 @@ class FileTableModel(QtCore.QAbstractTableModel):
             elif col == FileTableModel._COL_DESCRIPTION:
                 return item["file_description"]
             elif col == FileTableModel._COL_PATH:
-                test = "/mnt/content/productions"
-                if test in item["file_path"]:
-                    return item["file_path"].replace(test, self.working_dir)
-
-                test = "/productions"
-                if test in item["file_path"]:
-                    return item["file_path"].replace(test, self.working_dir)
-
-                return item["file_path"]
+                if item["file_path"] and len(item["file_path"]) > 0:
+                    return resolve_content_path(item["file_path"], "$/")
+                return ""
 
         if role == QtCore.Qt.BackgroundRole:
             col = index.column()

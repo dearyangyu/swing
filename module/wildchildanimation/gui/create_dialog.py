@@ -13,7 +13,6 @@ from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
 from wildchildanimation.gui.swing_utils import fakestr
-
 class Ui_CreateDialog(object):
     def setupUi(self, CreateDialog):
         if not CreateDialog.objectName():
@@ -222,7 +221,7 @@ class Ui_CreateDialog(object):
         self.toolButtonWeb.setToolTip(fakestr(u"Opens link in Kitsu", None))
 #endif // QT_CONFIG(tooltip)
         self.toolButtonWeb.setText(fakestr(u"Web", None))
-        self.labelWorkingDir.setText(fakestr(u"Root Folder", None))
+        self.labelWorkingDir.setText(fakestr(u"Working Dir", None))
         self.toolButtonWorkingDir.setText(fakestr(u"...", None))
         self.labelSoftware.setText(fakestr(u"Software", None))
         self.labelFrames.setText(fakestr(u"Frame", None))

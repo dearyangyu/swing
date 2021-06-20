@@ -325,7 +325,7 @@ def process_downloads(parent, threadpool, file_list, progressBar = None, on_load
     for item in file_list:
         write_log("Downloading {}".format(item["file_name"]))
 
-        if "Library" in item['type']:
+        if "library-file" in item['file_type']:
             url = "{}/api/library_file/{}".format(edit_api, item["entity_id"])
             set_target(item, working_dir)
             worker = FileDownloader(parent, working_dir, item["file_id"], url, item["target_path"], email, password, skip_existing, extract_zips, { "fn": item['file_name'] } )

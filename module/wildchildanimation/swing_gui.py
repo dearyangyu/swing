@@ -6,7 +6,7 @@
 #
 #############################
 _APP_NAME = "treehouse: swing"
-_APP_VERSION = "0.0.0.17"
+_APP_VERSION = "0.0.0.18"
  
 from genericpath import exists
 import traceback
@@ -30,7 +30,6 @@ except ImportError:
 
 import gazu
 import os.path
-
 
 from datetime import datetime
 
@@ -201,26 +200,40 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         action = QtWidgets.QAction(self)
         action.setText(action_text)
 
-        pm = QtGui.QPixmap(resource_string)
-        pm = pm.scaledToHeight(14)
+        resource_file = resource_path(resource_string)
+        if os.path.exists(resource_file):
+            pm = QtGui.QPixmap(resource_file)
+            pm = pm.scaledToHeight(14)
 
-        icon = QtGui.QIcon(pm)
-        action.setIcon(icon)
+            icon = QtGui.QIcon(pm)            
+            action.setIcon(icon)
 
         return action
 
     def _createActions(self):
         # File actions
-        #self.loadAction = self._loadActionIcon("&Load File", "../resources/fa-free/solid/folder-open.svg")
-        #self.downloadAction = self._loadActionIcon("&Download", "../resources/fa-free/solid/download.svg")
-        #self.openExplorerAction = self._loadActionIcon("Open E&xplorer", "../resources/fa-free/solid/folder.svg")
-        #self.selectAllAction = self._loadActionIcon("Select &None", "../resources/fa-free/solid/minus.svg")
-        #self.selectNoneAction = self._loadActionIcon("Select &All", "../resources/fa-free/solid/plus.svg")
+        self.filesSelectAllAction = self._loadActionIcon("&Select All", "../resources/fa-free/solid/plus.svg")
+        self.filesSelectAllAction.setStatusTip("Select all")
+        self.filesSelectAllAction.triggered.connect(self.select_all_files)
 
-        # Snip...            
+        self.filesSelectNoneAction = self._loadActionIcon("&Select None", "../resources/fa-free/solid/minus.svg")
+        self.filesSelectNoneAction.setStatusTip("Select none")
+        self.filesSelectNoneAction.triggered.connect(self.select_no_files)
+
+        self.filesImportAction = self._loadActionIcon("&Import Files", "../resources/fa-free/solid/download.svg")
+        self.filesImportAction.setStatusTip("Open Loader")
+        self.filesImportAction.triggered.connect(self.load_asset)
+
+        self.filesDownloadAction = self._loadActionIcon("&Download Files", "../resources/fa-free/solid/download.svg")
+        self.filesDownloadAction.setStatusTip("Open Downloader")
+        self.filesDownloadAction.triggered.connect(self.download_files)   
+
+        self.filesOpenLocationAction = self._loadActionIcon("&Open Folder", "../resources/fa-free/solid/folder.svg")
+        self.filesOpenLocationAction.setStatusTip("Open Folder")
+        self.filesOpenLocationAction.triggered.connect(self.open_file_folder)
 
         # Task actions
-        self.newTaskDirAction = self._loadActionIcon("&New", "../resources/fa-free/solid/folder_plus.svg")
+        self.newTaskDirAction = self._loadActionIcon("&New", "../resources/fa-free/solid/folder-plus.svg")
         self.newTaskDirAction.setStatusTip("Creates the directory structure for a new scene")
         self.newTaskDirAction.triggered.connect(self.new_scene)
 
@@ -228,28 +241,47 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.publishTaskAction.setStatusTip("Publish for review")
         self.publishTaskAction.triggered.connect(self.publish_scene)
 
-        #self.openTaskDirAction = self._loadActionIcon("&Open E&xplorer", "../resources/fa-free/solid/folder.svg")
-        #self.reviewTaskAction = self._loadActionIcon("&Publish for Review", "../resources/fa-free/solid/share.svg")
-        #self.openEntitInfoAction = self._loadActionIcon("Open &Entity Info", "../resources/fa-free/solid/info.svg")
+        self.taskInfoAction = self._loadActionIcon("&Entity Info", "../resources/fa-free/solid/info-circle.svg")
+        self.taskInfoAction.setStatusTip("View Entity Entity")
+        self.taskInfoAction.triggered.connect(self.task_info) 
+
+        self.openTaskFolderAction = self._loadActionIcon("&Open Folder", "../resources/fa-free/solid/folder.svg")
+        self.openTaskFolderAction.setStatusTip("Open Task Folder")
+        self.openTaskFolderAction.triggered.connect(self.open_task_folder)                  
+
 
     def _createContextMenu(self):
         # Setting contextMenuPolicy
         self.tableViewFiles.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
-        # Populating the widget with actions
-        #self.tableViewFiles.addAction(self.loadAction)
-        #self.tableViewFiles.addAction(self.downloadAction)
-        #self.tableViewFiles.addAction(self.openExplorerAction)
-        #self.tableViewFiles.addAction(self.selectAllAction)
-        #self.tableViewFiles.addAction(self.selectNoneAction)
+        self.tableViewFiles.addAction(self.filesSelectAllAction)
+        self.tableViewFiles.addAction(self.filesSelectNoneAction)
+        self.tableViewFiles.addAction(self.filesImportAction)
+        self.tableViewFiles.addAction(self.filesDownloadAction)
+        # self.tableViewFiles.addAction(self.filesOpenLocationAction)
+
 
         # same for task table
         self.tableViewTasks.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
 
-        # Populating the widget with actions
         self.tableViewTasks.addAction(self.newTaskDirAction)
         self.tableViewTasks.addAction(self.publishTaskAction)
+        self.tableViewTasks.addAction(self.taskInfoAction)
+        self.tableViewTasks.addAction(self.openTaskFolderAction)
         #self.tableViewTasks.addAction(self.reviewTaskAction)
         #self.tableViewTasks.addAction(self.openEntitInfoAction)
+
+    def open_file_folder(self):
+        self.file_table_selection_changed()
+        if self.selected_file:
+            working_dir = load_settings("projects_root", os.path.expanduser("~"))
+            open_folder(resolve_content_path(self.selected_file["target_path"], working_dir))
+
+    def open_task_folder(self):
+        if self.selected_task:
+            if "project_dir" in self.selected_task:
+                project_dir = self.selected_task["project_dir"]
+                if os.path.exists(project_dir) and os.path.isdir(project_dir):
+                    open_folder(project_dir)        
 
     def version_check(self):
         version_check = VersionCheck(self)
@@ -314,10 +346,6 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             return False
 
         file_name = item.data(index.row(), 0)
-        
-        working_dir = load_settings("projects_root", os.path.expanduser("~"))
-        file_item = os.path.join(os.path.join(file_name, working_dir))
-
         file_list = self.get_file_selection_list()
 
         dialog = LoaderDialogGUI(self)
@@ -542,7 +570,9 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             self.tasks_changed()
 
     def tasks_changed(self):
-        task_loader = TaskLoaderThread(self, self.projectNav, self.user_email)
+        working_dir = load_settings("projects_root", os.path.expanduser("~"))
+
+        task_loader = TaskLoaderThread(self, self.projectNav, self.user_email, working_dir)
         task_loader.callback.loaded.connect(self.load_tasks)
 
         self.labelTaskTableSelection.setText("Loading tasks")
@@ -683,8 +713,8 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.toolButtonImport.setEnabled(False)
         self.toolButtonDownload.setEnabled(False)
 
-        ##self.threadpool.start(loader)       
-        loader.run()
+        self.threadpool.start(loader)       
+        ## loader.run()
 
 
     def load_files(self, data):
@@ -778,14 +808,6 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.tableViewTasks.setSortingEnabled(True)
         self.tableViewTasks.sortByColumn(4, QtCore.Qt.AscendingOrder)
 
-        #self.tableViewTasks.setColumnWidth(0, 250)
-        #self.tableViewTasks.setColumnWidth(1, 200)
-        #self.tableViewTasks.setColumnWidth(2, 200)
-        #self.tableViewTasks.setColumnWidth(3, 350)
-        #self.tableViewTasks.setColumnWidth(4, 120)
-        #self.tableViewTasks.setColumnWidth(5, 160)
-        #self.tableViewTasks.setColumnWidth(6, 600)
-
         selectionModel = self.tableViewTasks.selectionModel()
         selectionModel.selectionChanged.connect(self.task_table_selection_changed)         
 
@@ -796,15 +818,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         hh.setDefaultSectionSize(hh.minimumSectionSize())
         hh.setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)        
 
-        #self.tableViewTasks.verticalHeader().setDefaultSectionSize(self.tableViewTasks.verticalHeader().minimumSectionSize())
-
-        #tableViewPowerDegree->verticalHeader()->setDefaultSectionSize(tableViewPowerDegree->verticalHeader()->minimumSectionSize()); 
-        # self.toolButtonPublish.setEnabled(len(tasks) > 0)
-
-        #self.labelTaskTableSelection.setText("Tasks: {}".format(self.get_current_selection()["name"]))
-        
         self.progressBarTaskTable.setMaximum(1)
-
         if len(self.tasks) > 0:
             self.labelTaskTableSelection.setText("Tasks: {} {}".format(data["project"]["name"], data["episode"]["name"]))
             self.tableViewTasks.setEnabled(True)
@@ -834,10 +848,19 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
     def task_table_double_click(self, index):
         self.selected_task = self.tableViewTasks.model().data(index, QtCore.Qt.UserRole)
         if self.selected_task:
-            if "task_url" in self.selected_task and self.selected_task["task_url"]:
-                link = self.selected_task["task_url"]
-                if not QtGui.QDesktopServices.openUrl(link):
-                    QtWidgets.QMessageBox.warning(self, 'Open Url', 'Could not open url')                    
+            if "project_dir" in self.selected_task:
+                project_dir = self.selected_task["project_dir"]
+                if os.path.exists(project_dir) and os.path.isdir(project_dir):
+                    count = fcount(project_dir)
+                    if count > 0:
+                        self.publish_scene()
+                    else:
+                        open_folder(project_dir)
+                else:
+                    dialog = CreateDialogGUI(self, self.handler, self.selected_task)
+                    dialog.resize(self.size())
+                    dialog.setWorkingDir(project_dir)
+                    dialog.show()                     
 
 
     def breakout_dialog(self):
@@ -921,13 +944,27 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
     def publish_scene(self):
         if self.selected_task:        
             dialog = PublishDialogGUI(self, self.projectNav, self.handler, self.selected_task)
-            dialog.show()
+            if "project_dir" in self.selected_task:
+                project_dir = self.selected_task["project_dir"]
+                if os.path.exists(project_dir) and os.path.isdir(project_dir):
+                    dialog = PublishDialogGUI(self, self.projectNav, self.handler, self.selected_task)
+                    dialog.set_working_dir(project_dir)
+                    dialog.show()
 
     def new_scene(self):
         if self.selected_task:
             dialog = CreateDialogGUI(self, self.handler, self.selected_task)
             dialog.resize(self.size())
             dialog.show() 
+
+    def task_info(self):
+        if self.selected_task:
+            entity_id = self.selected_task["entity_id"]
+            dialog = EntityInfoDialog(self, self.projectNav, entity_id, self.handler)
+            dialog.resize(self.size())
+            dialog.show()
+
+
 
 '''
     ConnectionDialog class
@@ -1031,7 +1068,7 @@ class CreateDialogGUI(QtWidgets.QDialog, Ui_CreateDialog):
         self.pushButtonCancel.clicked.connect(self.close_dialog)
         self.pushButtonImport.clicked.connect(self.process)
 
-        self.setWorkingDir(load_settings("projects_root", os.path.expanduser("~")))
+        self.setWorkingDir(task["project_dir"])
         
 
     def open_url(self, url):
@@ -1208,10 +1245,6 @@ class CreateDialogGUI(QtWidgets.QDialog, Ui_CreateDialog):
         software = self.software[self.comboBoxSoftware.currentIndex()]
         name = "{}{}".format(self.lineEditEntity.text().strip(), software["file_extension"])
         workingDir = self.lineEditWorkingDir.text().strip()
-
-        workingDir = os.path.normpath(workingDir)
-        workingDir = self.task_dir.replace("/mnt/content/productions", workingDir)
-        workingDir = workingDir.replace("\\", "/")
 
         # only create working files on uploads
         # working_file = gazu.files.new_working_file(self.task, name = name, mode = mode, software = software)

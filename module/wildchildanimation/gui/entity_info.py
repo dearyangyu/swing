@@ -60,7 +60,11 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
         self.file_list = []
 
         if self.entity:
-            loader = EntityLoaderThread(self, self.entity["id"])
+            if isinstance(entity, dict):
+                loader = EntityLoaderThread(self, self.entity["id"])
+            else:
+                loader = EntityLoaderThread(self, self.entity)
+
             loader.callback.loaded.connect(self.entity_loaded)
             self.threadpool.start(loader)
 
@@ -143,6 +147,8 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
         self.project = data["project"]
 
         self.lineEditProject.setText(self.project["name"])
+        self.lineEditWorkingDirectory.setText(self.working_dir)
+
         # self.lineEditEntity.setEnabled(True)
 
         self.comboBoxTasks.setEnabled(True)
@@ -258,7 +264,6 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
 
     def setWorkingDir(self, working_dir):
         self.working_dir = working_dir
-        self.lineEditWorkingDirectory.setText(self.working_dir)
 
     def set_selected(self, file_item):
         if not file_item:
@@ -266,7 +271,7 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
         
         index = 0
         while index < len(self.file_list):
-            if file_item["id"] == self.files[index]["id"]:
+            if file_item["id"] == self.file_list[index]["id"]:
                 break
             index += 1        
 
@@ -354,7 +359,7 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
                     return True
 
             dialog = LoaderDialogGUI(self, self.handler, self.entity)
-            dialog.load_files(self.files)
+            dialog.load_files(self.file_list)
             dialog.set_selected(self.selected_file)
             #dialog.exec_()
             dialog.show()
