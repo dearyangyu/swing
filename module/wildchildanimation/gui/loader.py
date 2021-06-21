@@ -240,6 +240,8 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
         working_dir = results["working_dir"]
         self.append_status(message, "error" in status)
 
+        print("Loaded file {0} target {1}".format(file_name, working_dir))
+
         # call maya handler: import into existing workspace
         try:
             #
