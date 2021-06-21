@@ -316,10 +316,10 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
         row = 0
         if "WorkingFile" in item["type"]:
             #target = os.path.normpath(os.path.join(self.working_dir, item["name"]))
-            url = "{}/api/working_file/{}".format(edit_api, item["id"])
+            url = "{}/api/working_file/{}".format(edit_api, item["file_id"])
             target = set_target(item, self.working_dir)
 
-            worker = FileDownloader(self, self.working_dir, item["id"], url, item["target_path"], email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
+            worker = FileDownloader(self, self.working_dir, item["file_id"], url, item["target_path"], email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
 
             worker.callback.progress.connect(self.file_loading)
             worker.callback.done.connect(self.file_loaded)
@@ -330,16 +330,16 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
             #file_item["status"] = "Busy"
         else:
             #target = os.path.normpath(os.path.join(self.working_dir, item["name"]))
-            url = "{}/api/output_file/{}".format(edit_api, item["id"])
+            url = "{}/api/output_file/{}".format(edit_api, item["file_id"])
             target = set_target(item, self.working_dir)
 
-            worker = FileDownloader(self, self.working_dir, item["id"], url,  item["target_path"], email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
+            worker = FileDownloader(self, self.working_dir, item["file_id"], url,  item["target_path"], email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
 
             worker.callback.progress.connect(self.file_loading)
             worker.callback.done.connect(self.file_loaded)
             
             self.process_count += 1
             self.threadpool.start(worker)
-            self.append_status("Downloading {} to {}".format(item["name"], item["target_path"]))
+            self.append_status("Downloading {} to {}".format(item["file_name"], item["target_path"]))
         # file type
     # process
