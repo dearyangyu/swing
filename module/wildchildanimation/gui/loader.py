@@ -316,7 +316,7 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
         # download the currently selected file
         item = self.files[self.comboBoxWorkingFile.currentIndex()]
         row = 0
-        if "WorkingFile" in item["type"]:
+        if "working-file" in item["file_type"]:
             #target = os.path.normpath(os.path.join(self.working_dir, item["name"]))
             url = "{}/api/working_file/{}".format(edit_api, item["file_id"])
             target = set_target(item, self.working_dir)
@@ -328,7 +328,7 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
 
             self.process_count += 1
             self.threadpool.start(worker)
-            self.append_status("Downloading {} to {}".format(item["name"], item["target_path"]))
+            self.append_status("Downloading {} to {}".format(item["file_name"], item["target_path"]))
             #file_item["status"] = "Busy"
         else:
             #target = os.path.normpath(os.path.join(self.working_dir, item["name"]))

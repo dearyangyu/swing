@@ -150,7 +150,10 @@ class StudioHandler(StudioInterface):
         working_dir = kwargs["working_dir"]
         namespace = kwargs["namespace"]
 
-        self.log_output("Importing {0} to {1}".format(source, working_dir))
+        self.log_output("Importing {0}".format(source, working_dir))
+        self.log_output("Source  {0}".format(working_dir))
+        self.log_output("Working Dir {0}".format(working_dir))
+        self.log_output("Namespace {0}".format(namespace))
 
         filename, file_extension = os.path.splitext(source)
 
@@ -180,6 +183,8 @@ class StudioHandler(StudioInterface):
         working_dir = kwargs["working_dir"]
 
         self.log_output("Loading {0} to {1}".format(source, working_dir))
+        self.log_output("Source  {0}".format(working_dir))
+        self.log_output("Working Dir {0}".format(working_dir))
 
         filename, file_extension = os.path.splitext(source)
 
