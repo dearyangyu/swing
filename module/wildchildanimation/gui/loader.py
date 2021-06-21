@@ -204,7 +204,7 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
     def set_selected(self, file_item):
         index = 0
         while index < len(self.files):
-            if file_item["id"] == self.files[index]["id"]:
+            if file_item["file_id"] == self.files[index]["file_id"]:
                 self.comboBoxWorkingFile.setCurrentIndex(index)
                 break
             index += 1

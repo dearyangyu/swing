@@ -220,17 +220,17 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.filesSelectNoneAction.setStatusTip("Select none")
         self.filesSelectNoneAction.triggered.connect(self.select_no_files)
 
-        self.filesImportAction = self._loadActionIcon("&Import Files", "../resources/fa-free/solid/download.svg")
-        self.filesImportAction.setStatusTip("Open Loader")
-        self.filesImportAction.triggered.connect(self.load_asset)
+        #self.filesImportAction = self._loadActionIcon("&Import Files", "../resources/fa-free/solid/download.svg")
+        #self.filesImportAction.setStatusTip("Open Loader")
+        #self.filesImportAction.triggered.connect(self.load_asset)
 
-        self.filesDownloadAction = self._loadActionIcon("&Download Files", "../resources/fa-free/solid/download.svg")
-        self.filesDownloadAction.setStatusTip("Open Downloader")
-        self.filesDownloadAction.triggered.connect(self.download_files)   
+        #self.filesDownloadAction = self._loadActionIcon("&Download Files", "../resources/fa-free/solid/download.svg")
+        #self.filesDownloadAction.setStatusTip("Open Downloader")
+        #self.filesDownloadAction.triggered.connect(self.download_files)   
 
-        self.filesOpenLocationAction = self._loadActionIcon("&Open Folder", "../resources/fa-free/solid/folder.svg")
-        self.filesOpenLocationAction.setStatusTip("Open Folder")
-        self.filesOpenLocationAction.triggered.connect(self.open_file_folder)
+        #self.filesOpenLocationAction = self._loadActionIcon("&Open Folder", "../resources/fa-free/solid/folder.svg")
+        #self.filesOpenLocationAction.setStatusTip("Open Folder")
+        #self.filesOpenLocationAction.triggered.connect(self.open_file_folder)
 
         # Task actions
         self.newTaskDirAction = self._loadActionIcon("&New", "../resources/fa-free/solid/folder-plus.svg")
@@ -255,8 +255,8 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.tableViewFiles.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
         self.tableViewFiles.addAction(self.filesSelectAllAction)
         self.tableViewFiles.addAction(self.filesSelectNoneAction)
-        self.tableViewFiles.addAction(self.filesImportAction)
-        self.tableViewFiles.addAction(self.filesDownloadAction)
+        #self.tableViewFiles.addAction(self.filesImportAction)
+        #self.tableViewFiles.addAction(self.filesDownloadAction)
         # self.tableViewFiles.addAction(self.filesOpenLocationAction)
 
 
@@ -919,9 +919,8 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
     def load_asset(self):
         dialog = LoaderDialogGUI(self, self.handler, self.get_current_selection())
-        #dialog.resize(self.size())    
+        dialog.load_files(self.tableModelFiles.items)        
 
-        dialog.load_files(self.tableModelFiles.items)
         if self.selected_file:
             dialog.set_selected(self.selected_file)
 
