@@ -10,6 +10,8 @@ except ImportError:
 
 class StudioInterface(QtCore.QObject):
 
+    
+
     '''
         Naming Lookups
     '''
@@ -59,35 +61,35 @@ class StudioInterface(QtCore.QObject):
 
     def log_error(self, text):
         ### log error
-        pass
+        return True
 
     def log_warning(self, text):
         ### log warning
-        pass
+        return True
 
     def log_output(self, text):
         ### log output
-        pass
+        return True
 
     def set_globals(self, **kwargs):
         ### set global parameters
-        pass
+        return True
 
     def list_unresolved(self):
         ### return a json list of unresolved references
-        pass
+        return True
 
     def import_reference(self, **kwargs):
         # tries to import the file specified in source into the currently open scene
-        pass
+        return True
     
     def load_file(self, **kwargs):
         # tries to import the file specified in source into the currently open scene
-        pass
+        return True
 
     def on_save(self, **kwargs):
         # return the currently open file
-        pass
+        return True
 
         '''
         file_path = cmds.file(q = True, sn = True)

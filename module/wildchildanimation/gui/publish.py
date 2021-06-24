@@ -106,9 +106,19 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
             name = '{} {}'.format(name, self.task["entity_name"])
 
         if "task_type" in self.task:
+            task_type = self.task["task_type"]["name"]
             name = '{} {}'.format(name, self.task["task_type"]["name"])   
         else:
-            name = '{} {}'.format(name, self.task["task_type_name"])   
+            task_type = self.task["task_type_name"]
+
+        name = '{} {}'.format(name, task_type)   
+        if "final" in task_type.lower():
+            self.output_mode = "render"
+            self.groupBoxOutputFiles.setTitle("Final Output")
+        else:
+            self.output_mode = "wip"
+            self.groupBoxOutputFiles.setTitle("Media for Review")
+
 
         self.lineEditSelection.setText(name)
 
@@ -123,6 +133,7 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
 
         self.outputDirSelectButton.clicked.connect(self.select_output_dir)
         self.outputDirSelectButton.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_DirIcon))
+
 
         # load artist allowed task status codes
         idx = 0
@@ -336,7 +347,9 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         #self, parent, task, source, software_name, comment, email, password
         dialog = UploadMonitorDialog(self, self.task)
 
-        # project file
+        #
+        # working files
+        #
         if len(self.workingFileEdit.text()) > 0:
             source = self.workingFileEdit.text()
 
@@ -353,9 +366,10 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
                 self.process_count += 1                
                 self.threadpool.start(worker)
                 ##worker.run()
-
-        # project dir
-        if len(self.workingDirEdit.text()) > 0:
+        #
+        # working dir
+        #
+        elif len(self.workingDirEdit.text()) > 0:
             source = self.workingDirEdit.text()
 
             if os.path.exists(source):
@@ -391,20 +405,40 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         #        self.process_count += 1
         #        self.threadpool.start(worker)            
 
+
+        # def __init__(self, parent, edit_api, task, source, file_name, software_name, comment, email, password, mode = "working", filter = []):
+        #
+        # output files
+        #
         if len(self.outputFileEdit.text()) > 0:
             source = self.outputFileEdit.text()
             if os.path.exists(source):
                 file_base = os.path.basename(source)
-                file_path = os.path.dirname(source)
                 file_name, file_ext = os.path.splitext(file_base)
 
-                worker = WorkingFileUploader(self, edit_api, self.task, source, file_name, "wip", self.commentEdit.toPlainText().strip(), email, password, mode = "preview")
+                worker = WorkingFileUploader(self, edit_api, self.task, source, file_name, None, self.commentEdit.toPlainText().strip(), email, password, mode = self.output_mode)
                 worker.callback.progress.connect(dialog.file_loading)
                 worker.callback.done.connect(dialog.file_loaded)
                 dialog.add_item(source, "Pending")    
 
                 self.process_count += 1
                 self.threadpool.start(worker)   
+            
+        # output dir
+        elif len(self.outputDirEdit.text()) > 0:
+            source = self.outputDirEdit.text()
+            if os.path.exists(source):
+                file_base = os.path.basename(source)
+                file_name, file_ext = os.path.splitext(file_base)
+
+                worker = WorkingFileUploader(self, edit_api, self.task, source, file_name, None, self.commentEdit.toPlainText().strip(), email, password, mode = self.output_mode)
+                worker.callback.progress.connect(dialog.file_loading)
+                worker.callback.done.connect(dialog.file_loaded)
+                dialog.add_item(source, "Pending")    
+
+                self.process_count += 1
+                self.threadpool.start(worker)    
+                #worker.run()               
 
         row = 0
         model = self.referencesListView.model()

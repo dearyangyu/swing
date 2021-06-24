@@ -700,7 +700,7 @@ class WorkingFileUploader(QtCore.QRunnable):
                 for filename in files:
                     if not filename in self.filter:
                         #file_path = os.path.join(folder, filename)
-                        zip.write(os.path.join(folder, filename), arcname=os.path.join(folder.replace(self.source, ""), filename))
+                        zip.write(os.path.join(folder, filename), arcname=os.path.join(folder.replace(self.source, baseline), filename))
 
                         # zip.write(file_path, os.path.basename(file_path))
                         #ziph.write(os.path.join(root, file), arcname=os.path.join(root.replace(src, ""), file))                        

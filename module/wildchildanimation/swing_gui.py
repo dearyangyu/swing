@@ -6,7 +6,7 @@
 #
 #############################
 _APP_NAME = "treehouse: swing"
-_APP_VERSION = "0.0.0.18"
+_APP_VERSION = "0.0.0.19"
  
 from genericpath import exists
 import traceback
@@ -945,10 +945,12 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             dialog = PublishDialogGUI(self, self.projectNav, self.handler, self.selected_task)
             if "project_dir" in self.selected_task:
                 project_dir = self.selected_task["project_dir"]
+                dialog = PublishDialogGUI(self, self.projectNav, self.handler, self.selected_task)
+
                 if os.path.exists(project_dir) and os.path.isdir(project_dir):
-                    dialog = PublishDialogGUI(self, self.projectNav, self.handler, self.selected_task)
                     dialog.set_working_dir(project_dir)
-                    dialog.show()
+
+                dialog.show()
 
     def new_scene(self):
         if self.selected_task:

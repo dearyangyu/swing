@@ -6,6 +6,8 @@ import os
 import re
 import copy
 
+from wildchildanimation.studio_interface import StudioInterface
+
 # ==== auto Qt load ====
 try:
     from PySide2 import QtGui
@@ -71,6 +73,15 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
 
         self.setWorkingDir(load_settings("projects_root", os.path.expanduser("~")))
 
+        if self.handler and self.handler.NAME == StudioInterface.NAME:
+            self.checkBoxReferences.setEnabled(False)
+            self.checkBoxReferences.setChecked(False)
+            self.spinBoxReferenceCount.setEnabled(False)
+            self.checkBoxNamespace.setEnabled(False)
+            self.lineEditNamespace.setEnabled(False)
+            
+
+
     def open_url(self, url):
         link = QtCore.QUrl(self.url)
         if not QtGui.QDesktopServices.openUrl(link):
@@ -93,7 +104,12 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
 
         sections = []
         if self.type == "Shot":
-            self.setWindowTitle("swing: import shot")
+
+            if self.handler and self.handler.NAME == StudioInterface.NAME:
+                self.setWindowTitle("swing: download shot")
+            else:
+                self.setWindowTitle("swing: import shot")
+
             self.shot = data["item"]
             self.url = data["url"]
 
@@ -134,7 +150,11 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
             self.lineEditFrameCount.setText(text)                
             self.lineEditFrameCount.setEnabled(False)                          
         else:
-            self.setWindowTitle("swing: import asset")
+            if self.handler and self.handler.NAME == StudioInterface.NAME:
+                self.setWindowTitle("swing: download asset")
+            else:
+                self.setWindowTitle("swing: import asset")
+
             self.asset = data["item"]
             self.url = data["url"]
 
@@ -245,7 +265,7 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
         # call maya handler: import into existing workspace
         try:
             #
-            # import referenes
+            # import refs
             # 
             if self.checkBoxReferences.checkState() == QtCore.Qt.Checked:
 
@@ -281,8 +301,6 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
     def file_loading(self, result):
         message = result["message"]
         size = result["size"]
-        row = result["file_id"]
-        file_name = result["target"]
 
         self.append_status("{} {}".format(message, human_size(size)))
 
@@ -316,10 +334,22 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
         # download the currently selected file
         item = self.files[self.comboBoxWorkingFile.currentIndex()]
         row = 0
-        if "working-file" in item["file_type"]:
+        if "library-file" in item['file_type']:
+            url = "{}/api/library_file/{}".format(edit_api, item["entity_id"])
+            set_target(item, self.working_dir)
+            worker = FileDownloader(self, self.working_dir, item["file_id"], url, item["target_path"], email, password, self.checkBoxSkipExisting.isChecked(), self.checkBoxExtractZips.isChecked(), { "fn": item['file_name'] } )
+
+            worker.callback.progress.connect(self.file_loading)
+            worker.callback.done.connect(self.file_loaded)
+            
+            self.process_count += 1
+            self.threadpool.start(worker)       
+
+            item["status"] = "Busy"    
+        elif "working-file" in item["file_type"]:
             #target = os.path.normpath(os.path.join(self.working_dir, item["name"]))
             url = "{}/api/working_file/{}".format(edit_api, item["file_id"])
-            target = set_target(item, self.working_dir)
+            set_target(item, self.working_dir)
 
             worker = FileDownloader(self, self.working_dir, item["file_id"], url, item["target_path"], email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
 
@@ -333,7 +363,7 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
         else:
             #target = os.path.normpath(os.path.join(self.working_dir, item["name"]))
             url = "{}/api/output_file/{}".format(edit_api, item["file_id"])
-            target = set_target(item, self.working_dir)
+            set_target(item, self.working_dir)
 
             worker = FileDownloader(self, self.working_dir, item["file_id"], url,  item["target_path"], email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
 
