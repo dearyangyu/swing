@@ -21,6 +21,8 @@ import hashlib
 
 from six.moves import urllib
 
+from wildchildanimation.gui.settings import SwingSettings
+
 # ==== auto Qt load ====
 try:
     from PySide2 import QtCore
@@ -30,12 +32,8 @@ except ImportError:
     from PyQt5 import QtCore
     from PyQt5.QtCore import pyqtSignal
 
-from datetime import datetime
-
-from wildchildanimation.gui.swing_utils import write_log, connect_to_server, load_settings, load_keyring, resolve_content_path
+from wildchildanimation.gui.swing_utils import write_log, resolve_content_path
 from wildchildanimation.gui.swing_updater import update
-
-import wildchildanimation.gui.swing_utils
 
 class LoadedSignal(QtCore.QObject):
     loaded = pyqtSignal(object)        
@@ -756,9 +754,11 @@ class ShotCreator(QtCore.QRunnable):
         return False        
 
     def run(self):
-        email = load_settings('user', 'user@example.com')
-        password = load_keyring('swing', 'password', 'Not A Password')        
-        server = load_settings('server', 'https://example.example.com')
+        settings = SwingSettings.getInstance()
+        email = settings.swing_user()
+        password = settings.swing_password()
+        server = settings.swing_server()
+
         edit_api = "{}/edit".format(server)       
 
         force_preview = True                               
@@ -984,11 +984,12 @@ class EntityFileLoader(QtCore.QRunnable):
         self.scan_cast = scan_cast
         self.show_hidden = show_hidden
 
-        self.email = load_settings('user', 'user@example.com')
-        self.password = load_keyring('swing', 'password', 'Not A Password')
-        self.server = load_settings('server', 'https://example.company.com')
-        self.edit_api = "{}/edit".format(self.server)
+        settings = SwingSettings.getInstance()
+        self.email = settings.swing_user()
+        self.password = settings.swing_password()
+        self.server = settings.swing_server()
 
+        self.edit_api = "{}/edit".format(self.server)
 
     def run(self):
         url = "{}/{}/{}".format(self.edit_api, "entity_info", self.entity['id'])

@@ -7,6 +7,7 @@ import os
 import requests
 import gazu
 import tempfile
+from wildchildanimation.gui.settings import SwingSettings
 
 # ==== auto Qt load ====
 try:
@@ -28,11 +29,12 @@ class PreviewImageLoader(QtCore.QRunnable):
 
     def __init__(self, parent, file_id):
         super(PreviewImageLoader, self).__init__(self, parent)
-
         self.parent = parent
-        self.password = load_keyring('swing', 'password', 'Not A Password')
-        self.server = load_settings('server', 'https://example.wildchildanimation.com')
-        self.email = load_settings('user', 'user@example.com')            
+
+        self.swing_settings = SwingSettings.getInstance()
+        self.password = self.swing_settings.swing_password()
+        self.server = self.swing_settings.swing_server()
+        self.email = self.swing_settings.swing_user()
 
         self.file_id = file_id
         self.callback = ImageLoaderSignal()

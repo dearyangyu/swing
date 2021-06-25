@@ -51,6 +51,7 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
         self.asset = None
         self.url = None
         self.threadpool = QtCore.QThreadPool.globalInstance()
+        self.swing_settings = SwingSettings.getInstance()
 
         if self.entity:
             if isinstance(entity, dict):
@@ -71,7 +72,7 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
         self.pushButtonCancel.clicked.connect(self.close_dialog)
         self.pushButtonImport.clicked.connect(self.process)
 
-        self.setWorkingDir(load_settings("projects_root", os.path.expanduser("~")))
+        self.setWorkingDir(self.swing_settings.swing_root())
 
         if self.handler and self.handler.NAME == StudioInterface.NAME:
             self.checkBoxReferences.setEnabled(False)
@@ -326,9 +327,10 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
         self.set_ui_enabled(False)
         self.process_count = 0
 
-        email = load_settings('user', 'user@example.com')
-        password = load_keyring('swing', 'password', 'Not A Password')
-        server = load_settings('server', 'https://example.wildchildanimation.com')
+        password = self.swing_settings.swing_password()
+        server = self.swing_settings.swing_server()
+        email = self.swing_settings.swing_user()     
+           
         edit_api = "{}/edit".format(server)
 
         # download the currently selected file

@@ -5,9 +5,6 @@
 # date: 18 Feb 2021
 #
 #############################
-_APP_NAME = "treehouse: swing"
-_APP_VERSION = "0.0.0.19"
- 
 from genericpath import exists
 import traceback
 import sys
@@ -36,8 +33,6 @@ from datetime import datetime
 from wildchildanimation.gui.background_workers import *
 
 from wildchildanimation.gui.swing_utils import *
-
-from wildchildanimation.gui.connection_dialog import Ui_ConnectionDialog
 from wildchildanimation.gui.create_dialog import Ui_CreateDialog
 
 from wildchildanimation.gui.loader import *
@@ -58,6 +53,7 @@ from wildchildanimation.gui.project_nav import ProjectNavWidget
 from wildchildanimation.studio_interface import StudioInterface
 
 from wildchildanimation.gui.swing_playblast import *
+from wildchildanimation.gui.settings import SwingSettings, SettingsDialog
 
 
 '''
@@ -88,6 +84,8 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
     dlg_instance = None
 
+    swing_settings = None
+
     @classmethod
     def show_dialog(cls, handler = StudioInterface()):
         if not cls.dlg_instance:
@@ -112,16 +110,14 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.set_handler(studio_handler)
 
         self.connect(self, QtCore.SIGNAL("finished(int)"), self.finished)
-        self.setWindowTitle("{} v{}".format(_APP_NAME, _APP_VERSION))
+        self.setWindowTitle("{} v{}".format(SwingSettings._APP_NAME, SwingSettings._APP_VERSION))
 
         resource_file = resource_path("../resources/swing_logo_white_small.png")
         if os.path.exists(resource_file):
             icon = QtGui.QIcon(resource_file)
             self.setWindowIcon(icon)
 
-        QtCore.QCoreApplication.setOrganizationName("Wild Child Animation")
-        QtCore.QCoreApplication.setOrganizationDomain("wildchildanimation.com")
-        QtCore.QCoreApplication.setApplicationName(_APP_NAME)
+        self.swing_settings = SwingSettings.getInstance()
 
         self.projectNav = ProjectNavWidget()
         self.projectNav.signal.selection_changed.connect(self.selection_changed)        
@@ -273,15 +269,15 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
     def open_file_folder(self):
         self.file_table_selection_changed()
         if self.selected_file:
-            working_dir = load_settings("projects_root", os.path.expanduser("~"))
+            working_dir = self.swing_settings.swing_root()
             open_folder(resolve_content_path(self.selected_file["target_path"], working_dir))
 
     def open_task_folder(self):
         if self.selected_task:
             if "project_dir" in self.selected_task:
-                project_dir = self.selected_task["project_dir"]
-                if os.path.exists(project_dir) and os.path.isdir(project_dir):
-                    open_folder(project_dir)        
+                working_dir = self.swing_settings.swing_root()
+                if os.path.exists(working_dir) and os.path.isdir(working_dir):
+                    open_folder(working_dir)        
 
     def version_check(self):
         version_check = VersionCheck(self)
@@ -292,7 +288,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
     def version_check_loaded(self, version):
         print(version)
         if version:
-            if _APP_VERSION == version:
+            if SwingSettings._APP_VERSION == version:
                 self.labelConnection.setText("Connected - v{}".format(version))
                 self.labelConnection.mouseDoubleClickEvent = None
                 #self.labelConnection.setHint("")
@@ -429,18 +425,11 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.last_shot = self.settings.value("last_project")
         self.settings.endGroup()          
 
-        self.settings.beginGroup("Workplace")
-        self.project_root = self.settings.value("projects_root")
-        self.ffmpeg_bin = self.settings.value("ffmpeg_bin")
-        self.settings.endGroup()      
+        self.project_root = self.swing_settings.swing_root()
+        self.ffmpeg_bin = self.swing_settings.bin_ffmpeg()
 
     def open_connection_settings(self):
-        dialog = ConnectionDialogGUI(self)
-
-        dialog.lineEditServer.setText(load_settings('server', 'https://example.example.com'))
-        dialog.lineEditEmail.setText(load_settings('user', 'user@example.com'))
-        dialog.lineEditProjectsFolder.setText(load_settings('projects_root', os.path.expanduser("~")))
-        dialog.lineEditPassword.setText(load_keyring('swing', 'password', 'Not A Password'))
+        dialog = SettingsDialog(self)
 
         if dialog.exec_():
             if not self.connected:
@@ -459,10 +448,9 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             self.gazu_client = None
             self.connected = False
 
-        password = load_keyring('swing', 'password', 'Not A Password')
-
-        server = load_settings('server', 'https://example.example.com')
-        email = load_settings('user', 'user@example.com')
+        password = self.swing_settings.swing_password()
+        server = self.swing_settings.swing_server()
+        email = self.swing_settings.swing_user()
 
         gazu.set_host("{}/api".format(server))
         try:
@@ -486,7 +474,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
     def closeEvent(self, event):
         # in desktop, confirm and write 
-        reply = QtWidgets.QMessageBox.question(self, 'Confirm Exit', 'close {} ?'.format(_APP_NAME), QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
+        reply = QtWidgets.QMessageBox.question(self, 'Confirm Exit', 'close {} ?'.format(SwingSettings._APP_NAME), QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
 
         if reply == QtWidgets.QMessageBox.Yes:
             # save settings
@@ -496,11 +484,6 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             event.ignore()        
 
     def selection_changed(self, source, selection): 
-        ## print("{} {}".format(source, selection))
-
-        #if not self.projectNav.is_loaded():
-        #    return 
-
         ## write_log("[selection_changed]", source)
         if "project" in source and selection["is_loaded"]:
             ## self.projectNav.lock_ui(True)
@@ -524,20 +507,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
                 if index >= 0:
                     self.load_shot_files(index)
 
-        #elif source in ["sequence_changed"]:
-            # self.sequence_changed(self.projectNav.comboBoxSequence.currentIndex())
-
-        #if self.projectNav.is_loaded():
-        #    self.projectNav.lock_ui(False)
-
-        #self.comboBoxProject.setEnabled(True)
-
-        #if self.first_load:
-        #    self.first_load = False
-        #    self.project_changed(self.currentProjectIndex)   
-
     def project_changed(self, index):
-        #write_log("[project_changed]")
         # reset file list and task list on project change
             
         self.tableViewFiles.setModel(None)
@@ -570,7 +540,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             self.tasks_changed()
 
     def tasks_changed(self):
-        working_dir = load_settings("projects_root", os.path.expanduser("~"))
+        working_dir = self.swing_settings.swing_root()
 
         task_loader = TaskLoaderThread(self, self.projectNav, self.user_email, working_dir)
         task_loader.callback.loaded.connect(self.load_tasks)
@@ -582,7 +552,6 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.toolButtonPublish.setEnabled(False)
 
         self.threadpool.start(task_loader)
-        ##task_loader.run()        
 
     def episode_changed(self, index):
         #write_log("[episode_changed]")
@@ -612,7 +581,8 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.comboBoxAssetType.clear()
         for item in self.asset_types:
             #name = "{} {}".format(self.currentProject["code"], item["name"])            
-            self.comboBoxAssetType.addItem(item["name"]) 
+            self.comboBoxAssetType.addItem(item["name"], userData = item)             
+            # self.comboBoxAssetType.addItem(item["name"]) 
         self.comboBoxAssetType.blockSignals(False)                       
         self.comboBoxAssetType.setEnabled(True)
 
@@ -625,15 +595,18 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.comboBoxShot.blockSignals(True)                 
         self.comboBoxShot.clear()
 
-        have_shots = False
         sequence = self.projectNav.get_sequence()
         if not sequence:
             return False
 
+        episode = self.projectNav.get_episode()
         for item in sequence["shots"]:
-            name = "{} {}".format(item["sequence_name"],  item["name"])
-            self.comboBoxShot.addItem(item["name"], userData = item) 
-            have_shots  = True
+            if episode:
+                name = "{} / {} / {}".format(episode["name"], item["sequence_name"],  item["name"])
+            else:
+                name = "{} / {} / {}".format(item["sequence_name"],  item["name"])
+
+            self.comboBoxShot.addItem(name, userData = item) 
 
         self.comboBoxShot.blockSignals(False)                 
         ## self.load_shot_files(0)
@@ -661,7 +634,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
                 self.currentShot = shots[index]
                 #write_log("load shot files {}".format(index))
 
-                loader = EntityFileLoader(self, self.projectNav, self.currentShot, working_dir = load_settings("projects_root", os.path.expanduser("~")))
+                loader = EntityFileLoader(self, self.projectNav, self.currentShot, working_dir = self.swing_settings.swing_root())
                 loader.callback.loaded.connect(self.load_files)
 
                 self.labelFileTableSelection.setText("Loading files for {}".format(self.currentShot["name"]))
@@ -684,9 +657,14 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.comboBoxAsset.clear()
 
         last = self.comboBoxAsset.currentIndex()
-        for p in self.assets:
-            name = "{}".format(p["name"]).strip()
-            self.comboBoxAsset.addItem(name, userData = p)     
+
+        asset_type = self.currentAssetType
+        for item in self.assets:
+            if asset_type:
+                name = "{} / {}".format(asset_type["name"], item["name"]).strip()
+            else:
+                name = "{}".format(item["name"]).strip()
+            self.comboBoxAsset.addItem(name, userData = item)     
 
         self.comboBoxAsset.blockSignals(False)            
         self.comboBoxAsset.setEnabled(True)       
@@ -702,7 +680,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         ## write_log("[selection_changed]", source)
 
         #write_log("load asset files {}".format(index))
-        loader = EntityFileLoader(self, self.projectNav, asset, working_dir = load_settings("projects_root", os.path.expanduser("~")))
+        loader = EntityFileLoader(self, self.projectNav, asset, working_dir = self.swing_settings.swing_root())
         loader.callback.loaded.connect(self.load_files)
 
         self.labelFileTableSelection.setText("Loading files for {}".format(asset["name"]))
@@ -716,7 +694,6 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.threadpool.start(loader)       
         ## loader.run()
 
-
     def load_files(self, data):
         if len(data) == 0:
             self.tableViewFiles.setEnabled(False)
@@ -728,7 +705,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.files = data[0]
         self.entity = data[1]
 
-        self.tableModelFiles = FileTableModel(self, working_dir = load_settings("projects_root", os.path.expanduser("~")), items = self.files)
+        self.tableModelFiles = FileTableModel(self, working_dir = self.swing_settings.swing_root(), items = self.files)
         setup_file_table(self.tableModelFiles, self.tableViewFiles)        
 
         selectionModel = self.tableViewFiles.selectionModel()
@@ -759,7 +736,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         #row_index = index.row()
         self.selected_file = self.tableViewFiles.model().data(index, QtCore.Qt.UserRole)
         if self.selected_file:
-            working_dir = load_settings("projects_root", os.path.expanduser("~"))
+            working_dir = self.swing_settings.swing_root()
             set_target(self.selected_file, working_dir)
 
             if os.path.isfile(self.selected_file["target_path"]):
@@ -800,13 +777,13 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         # create the sorter model
         sorterModel = QtCore.QSortFilterProxyModel()
         sorterModel.setSourceModel(tableModel)
-        sorterModel.setFilterKeyColumn(3)
+        sorterModel.setFilterKeyColumn(TaskTableModel.COL_ENTITY)
 
         self.tableViewTasks.setModel(sorterModel)
         self.tableViewTasks.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
 
         self.tableViewTasks.setSortingEnabled(True)
-        self.tableViewTasks.sortByColumn(4, QtCore.Qt.AscendingOrder)
+        self.tableViewTasks.sortByColumn(TaskTableModel.COL_ENTITY, QtCore.Qt.AscendingOrder)
 
         selectionModel = self.tableViewTasks.selectionModel()
         selectionModel.selectionChanged.connect(self.task_table_selection_changed)         
@@ -909,7 +886,6 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
                 files.append(item)
 
         if len(files) == 0:
-            #def __init__(self, parent, project_nav = None, entity = None, file_list = None):
             dialog = DownloadDialogGUI(self, self.handler, self.projectNav, self.get_current_selection())
         else:
             dialog = DownloadDialogGUI(self, self.handler, self.projectNav, self.get_current_selection(), files)
@@ -965,65 +941,6 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             dialog.resize(self.size())
             dialog.show()
 
-
-
-'''
-    ConnectionDialog class
-    ################################################################################
-'''
-
-class ConnectionDialogGUI(QtWidgets.QDialog, Ui_ConnectionDialog):
-
-    def __init__(self, parent = None):
-        super(ConnectionDialogGUI, self).__init__(parent) # Call the inherited classes __init__ method
-        self.setupUi(self)
-        self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
-
-        self.buttonBox.accepted.connect(self.save_settings)
-
-        self.lineEditProjectsFolder.setText(load_settings("projects_root", os.path.expanduser("~")))
-
-        self.toolButtonProjectsFolder.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_DirOpenIcon))
-        self.toolButtonProjectsFolder.clicked.connect(self.select_projects_dir)    
-
-        self.lineEditFfmpegBin.setText(load_settings("ffmpeg_bin", ""))
-
-        self.toolButtonFfmpegBin.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_DirOpenIcon))
-        self.toolButtonFfmpegBin.clicked.connect(self.select_ffmpeg_bin)    
-
-        self.lineEditFfprobeBin.setText(load_settings("ffprobe_bin", ""))
-        self.toolButtonFfprobeBin.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_DirOpenIcon))
-        self.toolButtonFfprobeBin.clicked.connect(self.select_ffprobe_bin)    
-
-    def select_projects_dir(self):
-        directory = QtWidgets.QFileDialog.getExistingDirectory(self, 'Select working directory')
-        if directory:
-            self.lineEditProjectsFolder.setText(directory)
-
-    def select_ffmpeg_bin(self):
-        binary = QtWidgets.QFileDialog.getOpenFileName(self, 'Select ffmpeg binary')
-        if binary:
-            self.lineEditFfmpegBin.setText(binary[0])            
-
-    def select_ffprobe_bin(self):
-        binary = QtWidgets.QFileDialog.getOpenFileName(self, 'Select ffprobe binary')
-        if binary:
-            self.lineEditFfprobeBin.setText(binary[0])            
-
-    def save_settings(self):
-        self.buttonBox.accepted.disconnect()
-
-        save_settings('server', self.lineEditServer.text())
-        save_settings('user', self.lineEditEmail.text())
-        save_settings("projects_root", self.lineEditProjectsFolder.text())                            
-        save_settings("ffmpeg_bin", self.lineEditFfmpegBin.text())    
-        save_settings("ffprobe_bin", self.lineEditFfprobeBin.text())    
-
-        save_password('swing', 'password', self.lineEditPassword.text())
-
-        self.buttonBox.accepted.connect(self.save_settings)
-        return True
-
 '''
     CreateDialog class
     ################################################################################
@@ -1051,7 +968,7 @@ class CreateDialogGUI(QtWidgets.QDialog, Ui_CreateDialog):
         loader.callback.loaded.connect(self.entity_loaded)
         self.threadpool.start(loader)
 
-        loader = TaskFileInfoThread(self, self.task, load_settings("projects_root", os.path.expanduser("~")))
+        loader = TaskFileInfoThread(self, self.task, self.swing_settings.swing_root())
         loader.callback.loaded.connect(self.task_loaded)
         self.threadpool.start(loader)
 
@@ -1204,7 +1121,6 @@ class CreateDialogGUI(QtWidgets.QDialog, Ui_CreateDialog):
             index += 1
 
     def setWorkingDir(self, working_dir):
-
         self.working_dir = working_dir
         self.lineEditWorkingDir.setText(self.working_dir)
 

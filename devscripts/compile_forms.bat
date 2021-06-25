@@ -9,6 +9,7 @@ c:\dev\github\wca-maya\venv\lib\site-packages\PySide2\uic --tr fakestr -g python
 
 echo "Compling connection dialog"
 c:\dev\github\wca-maya\venv\lib\site-packages\PySide2\uic --tr fakestr -g python -o c:\dev\Github\wca-maya\module\wildchildanimation\gui\connection_dialog.py c:\dev\Github\wca-maya\module\wildchildanimation\gui\forms\maya\connection_dialog.ui
+c:\dev\github\wca-maya\venv\lib\site-packages\PySide2\uic --tr fakestr -g python -o c:\dev\Github\wca-maya\module\wildchildanimation\gui\settings_dialog.py c:\dev\Github\wca-maya\module\wildchildanimation\gui\forms\maya\settings_dialog.ui
 
 echo "Compling download dialog"
 c:\dev\github\wca-maya\venv\lib\site-packages\PySide2\uic --tr fakestr -g python -o c:\dev\Github\wca-maya\module\wildchildanimation\gui\download_dialog.py c:\dev\Github\wca-maya\module\wildchildanimation\gui\forms\maya\download_dialog.ui

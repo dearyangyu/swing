@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'connection_dialog.ui'
+## Form generated from reading UI file 'settings_dialog.ui'
 ##
 ## Created by: Qt User Interface Compiler version 5.15.2
 ##
@@ -13,14 +13,18 @@ from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
 from wildchildanimation.gui.swing_utils import fakestr
-class Ui_ConnectionDialog(object):
-    def setupUi(self, ConnectionDialog):
-        if not ConnectionDialog.objectName():
-            ConnectionDialog.setObjectName(u"ConnectionDialog")
-        ConnectionDialog.resize(413, 356)
-        self.verticalLayout = QVBoxLayout(ConnectionDialog)
+
+class Ui_SettingsDialog(object):
+    def setupUi(self, SettingsDialog):
+        if not SettingsDialog.objectName():
+            SettingsDialog.setObjectName(u"SettingsDialog")
+        SettingsDialog.setWindowModality(Qt.ApplicationModal)
+        SettingsDialog.resize(413, 356)
+        SettingsDialog.setFocusPolicy(Qt.StrongFocus)
+        SettingsDialog.setModal(True)
+        self.verticalLayout = QVBoxLayout(SettingsDialog)
         self.verticalLayout.setObjectName(u"verticalLayout")
-        self.label_9 = QLabel(ConnectionDialog)
+        self.label_9 = QLabel(SettingsDialog)
         self.label_9.setObjectName(u"label_9")
         font = QFont()
         font.setBold(True)
@@ -31,13 +35,13 @@ class Ui_ConnectionDialog(object):
 
         self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.labelServer = QLabel(ConnectionDialog)
+        self.labelServer = QLabel(SettingsDialog)
         self.labelServer.setObjectName(u"labelServer")
         self.labelServer.setMinimumSize(QSize(120, 0))
 
         self.horizontalLayout.addWidget(self.labelServer)
 
-        self.lineEditServer = QLineEdit(ConnectionDialog)
+        self.lineEditServer = QLineEdit(SettingsDialog)
         self.lineEditServer.setObjectName(u"lineEditServer")
 
         self.horizontalLayout.addWidget(self.lineEditServer)
@@ -47,13 +51,13 @@ class Ui_ConnectionDialog(object):
 
         self.horizontalLayout_2 = QHBoxLayout()
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
-        self.labelEmail = QLabel(ConnectionDialog)
+        self.labelEmail = QLabel(SettingsDialog)
         self.labelEmail.setObjectName(u"labelEmail")
         self.labelEmail.setMinimumSize(QSize(120, 0))
 
         self.horizontalLayout_2.addWidget(self.labelEmail)
 
-        self.lineEditEmail = QLineEdit(ConnectionDialog)
+        self.lineEditEmail = QLineEdit(SettingsDialog)
         self.lineEditEmail.setObjectName(u"lineEditEmail")
 
         self.horizontalLayout_2.addWidget(self.lineEditEmail)
@@ -63,13 +67,13 @@ class Ui_ConnectionDialog(object):
 
         self.horizontalLayout_3 = QHBoxLayout()
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
-        self.label_3 = QLabel(ConnectionDialog)
+        self.label_3 = QLabel(SettingsDialog)
         self.label_3.setObjectName(u"label_3")
         self.label_3.setMinimumSize(QSize(120, 0))
 
         self.horizontalLayout_3.addWidget(self.label_3)
 
-        self.lineEditPassword = QLineEdit(ConnectionDialog)
+        self.lineEditPassword = QLineEdit(SettingsDialog)
         self.lineEditPassword.setObjectName(u"lineEditPassword")
         self.lineEditPassword.setEchoMode(QLineEdit.Password)
 
@@ -78,7 +82,7 @@ class Ui_ConnectionDialog(object):
 
         self.verticalLayout.addLayout(self.horizontalLayout_3)
 
-        self.label_10 = QLabel(ConnectionDialog)
+        self.label_10 = QLabel(SettingsDialog)
         self.label_10.setObjectName(u"label_10")
         self.label_10.setFont(font)
 
@@ -86,18 +90,18 @@ class Ui_ConnectionDialog(object):
 
         self.horizontalLayout_4 = QHBoxLayout()
         self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
-        self.label = QLabel(ConnectionDialog)
+        self.label = QLabel(SettingsDialog)
         self.label.setObjectName(u"label")
         self.label.setMinimumSize(QSize(120, 0))
 
         self.horizontalLayout_4.addWidget(self.label)
 
-        self.lineEditProjectsFolder = QLineEdit(ConnectionDialog)
+        self.lineEditProjectsFolder = QLineEdit(SettingsDialog)
         self.lineEditProjectsFolder.setObjectName(u"lineEditProjectsFolder")
 
         self.horizontalLayout_4.addWidget(self.lineEditProjectsFolder)
 
-        self.toolButtonProjectsFolder = QToolButton(ConnectionDialog)
+        self.toolButtonProjectsFolder = QToolButton(SettingsDialog)
         self.toolButtonProjectsFolder.setObjectName(u"toolButtonProjectsFolder")
 
         self.horizontalLayout_4.addWidget(self.toolButtonProjectsFolder)
@@ -109,31 +113,31 @@ class Ui_ConnectionDialog(object):
 
         self.verticalLayout.addItem(self.verticalSpacer)
 
-        self.label_6 = QLabel(ConnectionDialog)
+        self.label_6 = QLabel(SettingsDialog)
         self.label_6.setObjectName(u"label_6")
         self.label_6.setFont(font)
 
         self.verticalLayout.addWidget(self.label_6)
 
-        self.label_7 = QLabel(ConnectionDialog)
+        self.label_7 = QLabel(SettingsDialog)
         self.label_7.setObjectName(u"label_7")
 
         self.verticalLayout.addWidget(self.label_7)
 
         self.horizontalLayout_5 = QHBoxLayout()
         self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
-        self.label_2 = QLabel(ConnectionDialog)
+        self.label_2 = QLabel(SettingsDialog)
         self.label_2.setObjectName(u"label_2")
         self.label_2.setMinimumSize(QSize(120, 0))
 
         self.horizontalLayout_5.addWidget(self.label_2)
 
-        self.lineEditFfmpegBin = QLineEdit(ConnectionDialog)
+        self.lineEditFfmpegBin = QLineEdit(SettingsDialog)
         self.lineEditFfmpegBin.setObjectName(u"lineEditFfmpegBin")
 
         self.horizontalLayout_5.addWidget(self.lineEditFfmpegBin)
 
-        self.toolButtonFfmpegBin = QToolButton(ConnectionDialog)
+        self.toolButtonFfmpegBin = QToolButton(SettingsDialog)
         self.toolButtonFfmpegBin.setObjectName(u"toolButtonFfmpegBin")
 
         self.horizontalLayout_5.addWidget(self.toolButtonFfmpegBin)
@@ -143,18 +147,18 @@ class Ui_ConnectionDialog(object):
 
         self.horizontalLayout_6 = QHBoxLayout()
         self.horizontalLayout_6.setObjectName(u"horizontalLayout_6")
-        self.label_4 = QLabel(ConnectionDialog)
+        self.label_4 = QLabel(SettingsDialog)
         self.label_4.setObjectName(u"label_4")
         self.label_4.setMinimumSize(QSize(120, 0))
 
         self.horizontalLayout_6.addWidget(self.label_4)
 
-        self.lineEditFfprobeBin = QLineEdit(ConnectionDialog)
+        self.lineEditFfprobeBin = QLineEdit(SettingsDialog)
         self.lineEditFfprobeBin.setObjectName(u"lineEditFfprobeBin")
 
         self.horizontalLayout_6.addWidget(self.lineEditFfprobeBin)
 
-        self.toolButtonFfprobeBin = QToolButton(ConnectionDialog)
+        self.toolButtonFfprobeBin = QToolButton(SettingsDialog)
         self.toolButtonFfprobeBin.setObjectName(u"toolButtonFfprobeBin")
 
         self.horizontalLayout_6.addWidget(self.toolButtonFfprobeBin)
@@ -162,25 +166,25 @@ class Ui_ConnectionDialog(object):
 
         self.verticalLayout.addLayout(self.horizontalLayout_6)
 
-        self.label_8 = QLabel(ConnectionDialog)
+        self.label_8 = QLabel(SettingsDialog)
         self.label_8.setObjectName(u"label_8")
 
         self.verticalLayout.addWidget(self.label_8)
 
         self.horizontalLayout_7 = QHBoxLayout()
         self.horizontalLayout_7.setObjectName(u"horizontalLayout_7")
-        self.label_5 = QLabel(ConnectionDialog)
+        self.label_5 = QLabel(SettingsDialog)
         self.label_5.setObjectName(u"label_5")
         self.label_5.setMinimumSize(QSize(120, 0))
 
         self.horizontalLayout_7.addWidget(self.label_5)
 
-        self.lineEdit7zBinary = QLineEdit(ConnectionDialog)
+        self.lineEdit7zBinary = QLineEdit(SettingsDialog)
         self.lineEdit7zBinary.setObjectName(u"lineEdit7zBinary")
 
         self.horizontalLayout_7.addWidget(self.lineEdit7zBinary)
 
-        self.toolButton7zSelect = QToolButton(ConnectionDialog)
+        self.toolButton7zSelect = QToolButton(SettingsDialog)
         self.toolButton7zSelect.setObjectName(u"toolButton7zSelect")
 
         self.horizontalLayout_7.addWidget(self.toolButton7zSelect)
@@ -188,7 +192,7 @@ class Ui_ConnectionDialog(object):
 
         self.verticalLayout.addLayout(self.horizontalLayout_7)
 
-        self.buttonBox = QDialogButtonBox(ConnectionDialog)
+        self.buttonBox = QDialogButtonBox(SettingsDialog)
         self.buttonBox.setObjectName(u"buttonBox")
         self.buttonBox.setOrientation(Qt.Horizontal)
         self.buttonBox.setStandardButtons(QDialogButtonBox.Cancel|QDialogButtonBox.Ok)
@@ -196,15 +200,15 @@ class Ui_ConnectionDialog(object):
         self.verticalLayout.addWidget(self.buttonBox)
 
 
-        self.retranslateUi(ConnectionDialog)
-        self.buttonBox.accepted.connect(ConnectionDialog.accept)
-        self.buttonBox.rejected.connect(ConnectionDialog.reject)
+        self.retranslateUi(SettingsDialog)
+        self.buttonBox.accepted.connect(SettingsDialog.accept)
+        self.buttonBox.rejected.connect(SettingsDialog.reject)
 
-        QMetaObject.connectSlotsByName(ConnectionDialog)
+        QMetaObject.connectSlotsByName(SettingsDialog)
     # setupUi
 
-    def retranslateUi(self, ConnectionDialog):
-        ConnectionDialog.setWindowTitle(fakestr(u"Dialog", None))
+    def retranslateUi(self, SettingsDialog):
+        SettingsDialog.setWindowTitle(fakestr(u"Swing: Application Settings", None))
         self.label_9.setText(fakestr(u"Treehouse:", None))
         self.labelServer.setText(fakestr(u"Server", None))
 #if QT_CONFIG(tooltip)

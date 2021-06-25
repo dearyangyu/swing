@@ -269,6 +269,17 @@ def setup_file_table(tableModelFiles, tableView):
 
 class TaskTableModel(QtCore.QAbstractTableModel):    
 
+    COL_PROJECT = 0
+    COL_TYPE = 1
+    COL_FOR = 2
+    COL_ENTITY = 3
+    COL_DUE = 4
+    COL_STATUS = 5
+    COL_DESCRIPTION = 6
+
+    # cheap hack until i figure out spacing
+    SPACE = '  '
+
     columns = [
         "Project", "Type", "For", "Entity", "Due", "Status", "Description"
     ]
@@ -311,7 +322,7 @@ class TaskTableModel(QtCore.QAbstractTableModel):
 
         ### -----------------------------------------------------------------------------------
         if role == QtCore.Qt.ForegroundRole:
-            if col == 4:
+            if col == TaskTableModel.COL_DUE:
                 if item["due_date"]:
                     text = item["due_date"]
                     if text and len(text) == 19:
@@ -324,11 +335,11 @@ class TaskTableModel(QtCore.QAbstractTableModel):
             # .row() indexes into the outer list,
             # .column() indexes into the sub-list
 
-            if col == 0:
-                return item["project_name"].strip()
-            elif col == 1:
-                return item["task_type_name"].strip()
-            elif col == 2:
+            if col == TaskTableModel.COL_PROJECT:
+                return item["project_name"].strip() + TaskTableModel.SPACE
+            elif col == TaskTableModel.COL_TYPE:
+                return item["task_type_name"].strip() + TaskTableModel.SPACE
+            elif col == TaskTableModel.COL_FOR:
                 text = ""
                 if "episode_name" in item and item["episode_name"]:
                     text = item["episode_name"]
@@ -339,20 +350,20 @@ class TaskTableModel(QtCore.QAbstractTableModel):
                 if item["entity_type_name"]:
                     text = "{} {}".format(text, item["entity_type_name"])
 
-                return text.strip()
-            elif col == 3:
+                return text.strip()  + TaskTableModel.SPACE
+            elif col == TaskTableModel.COL_ENTITY:
                 text = item["entity_name"]
                 return text.strip()
-            elif col == 4:
+            elif col == TaskTableModel.COL_DUE:
                 if item["due_date"]:
                     text = item["due_date"]
                     if text and len(text) == 19:
                         my_date = datetime.strptime(text, "%Y-%m-%dT%H:%M:%S")
                         return my_date.strftime("%Y-%m-%d")
                 return None
-            elif col == 5:
-                return item["task_status_name"].strip()
-            elif col == 6:
+            elif col == TaskTableModel.COL_STATUS:
+                return item["task_status_name"].strip()  + TaskTableModel.SPACE
+            elif col == TaskTableModel.COL_DESCRIPTION:
                 if item["description"]:
                     return item["description"].strip()
                 if item["entity_description"]:
@@ -365,10 +376,10 @@ class TaskTableModel(QtCore.QAbstractTableModel):
             row = index.row()
             item = self.items[row]
 
-            if col == 1:
+            if col == TaskTableModel.COL_TYPE:
                 if "task_type_color" in item:
                     return QtGui.QColor(item["task_type_color"])      
-            elif col == 5:
+            elif col == TaskTableModel.COL_STATUS:
                 if "task_status_color" in item:
                     return QtGui.QColor(item["task_status_color"])      
 

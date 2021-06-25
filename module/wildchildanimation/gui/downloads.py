@@ -52,6 +52,7 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
         self.threadpool = QtCore.QThreadPool.globalInstance()
         self.task_types = self.nav._task_types
         self.file_list = file_list
+        self.swing_settings = SwingSettings.getInstance()
 
         if self.entity:
             loader = EntityLoaderThread(self, self.entity["id"])
@@ -77,7 +78,7 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
 
         self.tableView.doubleClicked.connect(self.file_table_double_click)
 
-        self.setWorkingDir(load_settings("projects_root", os.path.expanduser("~")))
+        self.setWorkingDir(self.swing_settings.swing_root())
 
     def select_all(self):
         for row in range(self.tableView.model().rowCount()):
@@ -94,7 +95,7 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
     def file_table_double_click(self, index):
         self.selected_file = self.tableView.model().data(index, QtCore.Qt.UserRole)        
         if self.selected_file:
-            working_dir = load_settings("projects_root", os.path.expanduser("~"))
+            working_dir = self.swing_settings.swing_root()
             set_target(self.selected_file, working_dir)
 
             if os.path.isfile(self.selected_file["target_path"]):
@@ -263,7 +264,7 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
                 self.tableView.viewport().update()      
 
     def load_files(self, file_list):
-        self.tableModelFiles = FileTableModel(self, working_dir = load_settings("projects_root", os.path.expanduser("~")), items = file_list)
+        self.tableModelFiles = FileTableModel(self, working_dir = self.swing_settings.swing_root(), items = file_list)
         setup_file_table(self.tableModelFiles, self.tableView)
         self.tableView.clicked.connect(self.select_row)   
 
@@ -278,7 +279,7 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
 
         row_item = self.tableView.item(row, column)
         selected = row_item.data(QtCore.Qt.UserRole)
-        working_dir = load_settings("projects_root", os.path.expanduser("~"))
+        working_dir = self.swing_settings.swing_root()
         set_target(selected, working_dir)        
 
         if os.path.exists(selected["target_path"]):
@@ -301,11 +302,11 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
             index = self.tableView.model().index(row, 0)
             if self.tableView.model().data(index, QtCore.Qt.DisplayRole):
                 item = self.tableView.model().data(index, QtCore.Qt.UserRole)
-                file_list.append(item)   
+                file_list.append(item) 
 
-        email = load_settings('user', 'user@example.com')
-        password = load_keyring('swing', 'password', 'Not A Password')
-        server = load_settings('server', 'https://example.wildchildanimation.com')
+        email = self.swing_settings.swing_user()
+        password = self.swing_settings.swing_password()
+        server = self.swing_settings.swing_server()
 
         skip_existing = self.checkBoxSkipExisting.isChecked()
         extract_zips = self.checkBoxExtractZips.isChecked()

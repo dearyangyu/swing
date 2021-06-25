@@ -48,6 +48,7 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
     
     def __init__(self, parent = None, project_nav = None, entity = None, handler = None):
         super(EntityInfoDialog, self).__init__(parent) # Call the inherited classes __init__ method
+        self.swing_settings = SwingSettings.getInstance()
         self.setupUi(self)
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint ^ QtCore.Qt.WindowMinMaxButtonsHint)
         self.nav = project_nav
@@ -91,7 +92,7 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
         #self.toolButtonNone.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_DialogCancelButton))
         self.toolButtonNone.clicked.connect(self.select_none)
 
-        self.setWorkingDir(load_settings("projects_root", os.path.expanduser("~")))        
+        self.setWorkingDir(self.swing_settings.swing_root())        
 
         self.checkBoxCasted.clicked.connect(self.check_casted)
 
@@ -228,21 +229,13 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
             self.threadpool.start(loader)
         else:
             self.load_files(self.file_list)
-            #loader.run()
 
         if "preview_file_id" in self.entity and self.entity["preview_file_id"]:
             preview_file_id = self.entity["preview_file_id"]
 
-            #def __init__(self, parent, preview_file):
-            #ef __init__(self, parent, server_api, email, password, preview_file):
-
             imageLoader = PreviewImageLoader(self, preview_file_id)
             imageLoader.callback.results.connect(self.load_preview_image)
-            #imageLoader.run()
             self.threadpool.start(imageLoader)
-
-            #print(preview_file_id)
-            #self.load_preview_image(preview_url)
 
     def load_preview_image(self, pixmap):
         self.labelPreview.setPixmap(pixmap)            
@@ -343,13 +336,13 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
 
 
     def load_files(self, file_list):
-        self.tableModelFiles = FileTableModel(self, working_dir = load_settings("projects_root", os.path.expanduser("~")), items = file_list)
+        self.tableModelFiles = FileTableModel(self, working_dir = self.swing_settings.swing_root(), items = file_list)
         setup_file_table(self.tableModelFiles, self.tableView)
 
     def file_table_double_click(self, index):
         self.selected_file = self.tableView.model().data(index, QtCore.Qt.UserRole)        
         if self.selected_file:
-            working_dir = load_settings("projects_root", os.path.expanduser("~"))
+            working_dir = self.swing_settings.swing_root()
             set_target(self.selected_file, working_dir)
 
             if os.path.isfile(self.selected_file["target_path"]):
@@ -366,7 +359,7 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
 
     def on_click(self, index):
         selected = self.tableView.model().data(index, QtCore.Qt.UserRole)      
-        working_dir = load_settings("projects_root", os.path.expanduser("~"))
+        working_dir = self.swing_settings.swing_root()
         set_target(selected, working_dir)        
 
         if os.path.exists(selected["target_path"]):

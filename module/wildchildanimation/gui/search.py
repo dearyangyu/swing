@@ -39,6 +39,7 @@ class SearchFilesDialog(QtWidgets.QDialog, Ui_SearchFilesDialog):
         self.setupUi(self)
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
         self.setMinimumWidth(640)
+        self.swing_settings = SwingSettings.getInstance()
 
         self.nav = project_nav
         self.project = self.nav.get_project()
@@ -57,9 +58,9 @@ class SearchFilesDialog(QtWidgets.QDialog, Ui_SearchFilesDialog):
     def process(self):
         self.threadpool = QtCore.QThreadPool.globalInstance()
 
-        email = load_settings('user', 'user@example.com')
-        password = load_keyring('swing', 'password', 'Not A Password')
-        server = load_settings('server', 'https://example.company.com')
+        password = self.swing_settings.swing_password()
+        server = self.swing_settings.swing_server()
+        email = self.swing_settings.swing_user()             
         edit_api = "{}/edit".format(server)
 
         file_list = []

@@ -6,6 +6,8 @@ import os
 import re
 import json
 
+from wildchildanimation.gui.settings import SwingSettings
+
 # ==== auto Qt load ====
 try:
     from PySide2 import QtGui
@@ -65,11 +67,12 @@ class BreakoutUploadDialog(QtWidgets.QDialog, Ui_BreakoutUploadDialog):
         self.episode = None
         self.sequences = None
         self.shot_list = {}
+        self.swing_settings = SwingSettings.getInstance()
 
         self.lineEditPlayblastFolder.setText(load_settings("last_breakout_playblast", os.path.expanduser("~")))
         self.lineEditProjectsFolder.setText(load_settings("last_breakout_projects", os.path.expanduser("~")))
 
-        self.ffprobe_bin = load_settings("ffprobe_bin", None)
+        self.ffprobe_bin = self.swing_settings._ffprobe_bin()
         self.pushButtonFfprobe.setEnabled(self.ffprobe_bin is not None)
         self.pushButtonFfprobe.clicked.connect(self.ffprobe)
         self.pushButtonSetRange.clicked.connect(self.set_range)
@@ -141,8 +144,8 @@ class BreakoutUploadDialog(QtWidgets.QDialog, Ui_BreakoutUploadDialog):
             worker = ShotCreator(self, self.project, self.episode, sequence, shot_list)
             worker.callback.results.connect(self.results)
 
-            ##self.threadpool.start(worker)
-            worker.run()
+            self.threadpool.start(worker)
+            #worker.run()
         else:
             QtWidgets.QMessageBox.info(self, 'Break Out', 'Please select a sequence')               
             #worker.run()

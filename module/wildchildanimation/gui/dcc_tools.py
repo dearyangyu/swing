@@ -117,7 +117,7 @@ class DCCToolsDialog(QtWidgets.QDialog, Ui_DCCToolsDialog):
         if not self.handler:
             return False        
 
-        return handler.get_param("frame_range", frame_range_preset)
+        return self.handler.get_param("frame_range", frame_range_preset)
 
     def fbx_export(self):
         if not self.handler:
