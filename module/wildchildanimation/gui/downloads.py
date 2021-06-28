@@ -304,22 +304,16 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
                 item = self.tableView.model().data(index, QtCore.Qt.UserRole)
                 file_list.append(item) 
 
-        email = self.swing_settings.swing_user()
-        password = self.swing_settings.swing_password()
-        server = self.swing_settings.swing_server()
-
         skip_existing = self.checkBoxSkipExisting.isChecked()
         extract_zips = self.checkBoxExtractZips.isChecked()
 
-        process_downloads(self, self.threadpool, file_list, self.progressBar, self.file_loading, self.file_loaded, email, password, server, self.working_dir, skip_existing, extract_zips)                      
+        process_downloads(self, self.threadpool, file_list, self.progressBar, self.file_loading, self.file_loaded, self.working_dir, skip_existing, extract_zips)                      
 
-def process_downloads(parent, threadpool, file_list, progressBar = None, on_load = None, on_finished = None, 
-    email = None, password = None, server = None, working_dir = None,
-    skip_existing = True, extract_zips = True):
+def process_downloads(parent, threadpool, file_list, progressBar = None, on_load = None, on_finished = None, working_dir = None, skip_existing = True, extract_zips = True):
     if progressBar:
         progressBar.setRange(0, len(file_list))
 
-    edit_api = "{}/edit".format(server)
+    edit_api = "{}/edit".format(SwingSettings.getInstance().swing_server())
 
     downloads = 0
     row = 0
@@ -329,12 +323,13 @@ def process_downloads(parent, threadpool, file_list, progressBar = None, on_load
         if "library-file" in item['file_type']:
             url = "{}/api/library_file/{}".format(edit_api, item["entity_id"])
             set_target(item, working_dir)
-            worker = FileDownloader(parent, working_dir, item["file_id"], url, item["target_path"], email, password, skip_existing, extract_zips, { "fn": item['file_name'] } )
+            worker = FileDownloader(parent, working_dir, item["file_id"], url, item["target_path"], skip_existing, extract_zips, { "fn": item['file_name'] } )
 
             worker.callback.progress.connect(on_load)
             worker.callback.done.connect(on_finished)
             
             threadpool.start(worker)
+            #worker.run()
             downloads += 1            
 
             item["status"] = "Busy"     
@@ -343,12 +338,13 @@ def process_downloads(parent, threadpool, file_list, progressBar = None, on_load
             url = "{}/api/working_file/{}".format(edit_api, item["file_id"])
             set_target(item, working_dir)
 
-            worker = FileDownloader(parent, working_dir, item["file_id"], url, item["target_path"], email, password, skip_existing, extract_zips)
+            worker = FileDownloader(parent, working_dir, item["file_id"], url, item["target_path"], skip_existing, extract_zips)
 
             worker.callback.progress.connect(on_load)
             worker.callback.done.connect(on_finished)
 
             threadpool.start(worker)
+            #worker.run()
             downloads += 1                
 
             item["status"] = "Busy"
@@ -357,12 +353,13 @@ def process_downloads(parent, threadpool, file_list, progressBar = None, on_load
             url = "{}/api/output_file/{}".format(edit_api, item["file_id"])
             set_target(item, working_dir)
 
-            worker = FileDownloader(parent, working_dir, item["file_id"], url, item["target_path"], email, password, skip_existing, extract_zips)
+            worker = FileDownloader(parent, working_dir, item["file_id"], url, item["target_path"], skip_existing, extract_zips)
 
             worker.callback.progress.connect(on_load)
             worker.callback.done.connect(on_finished)
 
             threadpool.start(worker)
+            #worker.run()
             downloads += 1                
 
             item["status"] = "Busy"

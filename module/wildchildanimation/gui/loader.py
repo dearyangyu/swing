@@ -339,7 +339,7 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
         if "library-file" in item['file_type']:
             url = "{}/api/library_file/{}".format(edit_api, item["entity_id"])
             set_target(item, self.working_dir)
-            worker = FileDownloader(self, self.working_dir, item["file_id"], url, item["target_path"], email, password, self.checkBoxSkipExisting.isChecked(), self.checkBoxExtractZips.isChecked(), { "fn": item['file_name'] } )
+            worker = FileDownloader(self, self.working_dir, item["file_id"], url, item["target_path"], self.checkBoxSkipExisting.isChecked(), self.checkBoxExtractZips.isChecked(), { "fn": item['file_name'] } )
 
             worker.callback.progress.connect(self.file_loading)
             worker.callback.done.connect(self.file_loaded)

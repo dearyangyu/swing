@@ -35,8 +35,9 @@ class StudioInterface(QtCore.QObject):
     ]        
 
     NAME = "StudioInterface"
-    VERSION = "0.0.0"
+    VERSION = "0.0.1"
     SUPPORTED_TYPES = [ ]
+    UNARCHIVE_TYPES = [ ".zip", ".rar" ]
 
     def get_param(self, option, value):
         ### runs a custom value request against the local dcc

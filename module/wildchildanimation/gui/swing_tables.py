@@ -178,6 +178,9 @@ class FileTableModel(QtCore.QAbstractTableModel):
                 return item["file_name"]
             elif col == FileTableModel._COL_SIZE:
                 if "download_status" in item:
+                    if item['download_status'] == '2':
+                        return ''
+                        
                     if isinstance(item, dict):
                         text = item["download_status"]["message"]
                         return text

@@ -17,11 +17,11 @@ from requests_toolbelt import (
     MultipartEncoderMonitor
 )
 
-import hashlib
-
-from six.moves import urllib
+import urllib
+#from url six.moves import urllib
 
 from wildchildanimation.gui.settings import SwingSettings
+from wildchildanimation.gui.swing_utils import extract_archive
 
 # ==== auto Qt load ====
 try:
@@ -34,6 +34,7 @@ except ImportError:
 
 from wildchildanimation.gui.swing_utils import write_log, resolve_content_path
 from wildchildanimation.gui.swing_updater import update
+from wildchildanimation.studio_interface import StudioInterface
 
 class LoadedSignal(QtCore.QObject):
     loaded = pyqtSignal(object)        
@@ -412,15 +413,16 @@ class DownloadSignal(QtCore.QObject):
 
 class FileDownloader(QtCore.QRunnable):
 
-    def __init__(self, parent, working_dir, file_id, url, target, email, password, skip_existing = True, extract_zips = False, params = {}):
+    def __init__(self, parent, working_dir, file_id, url, target, skip_existing = True, extract_zips = False, params = {}):
         super(FileDownloader, self).__init__(self, parent)
         self.parent = parent
         self.working_dir = working_dir
         self.file_id = file_id
         self.url = url
         self.target = target
-        self.email = email
-        self.password = password
+
+        self.swing_settings = SwingSettings.getInstance()
+
         self.skip_existing = skip_existing
         self.extract_zips = extract_zips
         self.params = params
@@ -472,9 +474,8 @@ class FileDownloader(QtCore.QRunnable):
                 self.callback.done.emit(status)
                 return                
 
-        self.params["username"] = self.email,
-        self.params["password"] = self.password
-
+        self.params["username"] = self.swing_settings.swing_user()
+        self.params["password"] = self.swing_settings.swing_password()
 
         target_dir = os.path.dirname(self.target)
         if not os.path.exists(target_dir):
@@ -511,7 +512,7 @@ class FileDownloader(QtCore.QRunnable):
 
         size = os.path.getsize(self.target)
         ###
-        if self.extract_zips and file_extension in [ ".zip" ]:
+        if self.extract_zips and file_extension.lower() in StudioInterface.UNARCHIVE_TYPES:
             zip_root = os.path.normpath(os.path.join(self.working_dir, filename))
 
             status = {
@@ -529,7 +530,7 @@ class FileDownloader(QtCore.QRunnable):
             except:
                 pass
 
-            if self.extract_zip(self.target, zip_root):
+            if extract_archive(self.swing_settings.bin_7z(), self.target, zip_root):
                 status = {
                     "status": "ok",
                     "message": "Extracted zip",
@@ -561,20 +562,6 @@ class FileDownloader(QtCore.QRunnable):
 
         write_log("Download complete: {}".format(self.target))
         self.callback.done.emit(status)        
-
-    def extract_zip(self, archive, directory):
-        try:
-            os.chdir(directory)
-            with ZipFile(archive, 'r') as zipObj:
-                # Extract all the contents of zip file in current directory
-                zipObj.extractall()
-                #shutil.unpack_archive(archive)        
-            return True
-        except:
-            traceback.print_exc(file=sys.stdout)
-            return False
-            # extract all items in 64bit
-        # open zip file in read binary
 
 
 ##############################################################################################################################################################################################

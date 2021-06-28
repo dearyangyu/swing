@@ -70,7 +70,7 @@ class SwingSettings(QtCore.QObject):
         self._swing_root = _settings.value('projects_root', os.path.expanduser("~"))
         self._ffmpeg_bin = _settings.value("ffmpeg_bin", "")
         self._ffprobe_bin = _settings.value("ffprobe_bin", "")
-        self._7zffprobe_bin = _settings.value("7z_bin", "")
+        self._7z_bin = _settings.value("7z_bin", "")
 
     def save_settings(self):
         save_password('swing', 'password', self.swing_password())

@@ -15,7 +15,8 @@ import keyring
 import os
 import os.path
 import re
-import zipfile
+import zipfile, traceback
+import subprocess
 
 from datetime import datetime
 
@@ -163,28 +164,18 @@ def my_date_format(date):
     return result
 
 def human_size(bytes):
-    if bytes < 1024:
-        return "{} bytes".format(bytes)
-    
-    bytes /= 1024
-    if bytes < 1024:
-        return "{:.2f} Kb".format(bytes)
-    
-    bytes /= 1024
-    if bytes < 1024:
-        return "{:.2f} Mb".format(bytes)
-    
-    bytes /= 1024
-    if bytes < 1024:
-        return "{:.2f} Gb".format(bytes)
-    
-    bytes /= 1024
-    if bytes < 1024:
-        return "{:.2f} Tb".format(bytes)
-
-    # really ?     
-    return "{:.2f}".format(bytes)   
-
+    # type: (float) -> str
+    if bytes > 1000000 * 1000:
+        return '%.1f GB' % (bytes / 1000.0 / 1000.0 / 1000)
+    elif bytes > 1000 * 1000:
+        return '%.1f MB' % (bytes / 1000.0 / 1000)
+    elif bytes > 10 * 1000:
+        return '%i kB' % (bytes / 1000)
+    elif bytes > 1000:
+        return '%.1f kB' % (bytes / 1000.0)
+    else:
+        return '%i bytes' % bytes
+        
 def resource_path(resource):
     base_path = os.path.dirname(os.path.realpath(__file__))
     return os.path.join(base_path, resource)    
@@ -243,5 +234,80 @@ def zip_directory(dir_name):
     write_log("Created {0}.zip".format(dir_name))
     return 
 
+def extract_archive(prog_name, archive, directory):
+
+    if prog_name and len(prog_name) > 0:
+        if os.path.exists(prog_name) and os.path.isfile(prog_name):
+            return external_extract(prog_name, archive, directory)
+    else:
+        try:
+            os.chdir(directory)
+            with zipfile.ZipFile(archive, 'r') as zipObj:
+                # Extract all the contents of zip file in current directory
+                zipObj.extractall()
+                #shutil.unpack_archive(archive)        
+            return True
+        except:
+            traceback.print_exc(file=sys.stdout)
+            return False
+            # extract all items in 64bit
+    # open zip file in read binary
+
+# extract archive using 7zip
+def external_extract(program, archive, directory):
+    #
+    ## Usage: 7z <command> [<switches>...] <archive_name> [<file_names>...] [@listfile]
+    
+    # <Commands>
+    # a : Add files to archive
+    # b : Benchmark
+    # d : Delete files from archive
+    # e : Extract files from archive (without using directory names)
+    # h : Calculate hash values for files
+    # i : Show information about supported formats
+    # l : List contents of archive
+    # rn : Rename files in archive
+    # t : Test integrity of archive
+    # u : Update files to archive
+    # x : eXtract files with full paths
+
+    # <Switches>
+    # -bs{o|e|p}{0|1|2} : set output stream for output/error/progress line
+    # -bt : show execution time statistics
+    # -i[r[-|0]]{@listfile|!wildcard} : Include filenames
+    # -m{Parameters} : set compression Method
+    #     -mmt[N] : set number of CPU threads
+    #     -mx[N] : set compression level: -mx1 (fastest) ... -mx9 (ultra)
+    # -o{Directory} : set Output directory
+    # -p{Password} : set Password
+    # -r[-|0] : Recurse subdirectories
+    # -sa{a|e|s} : set Archive name mode
+    # -spd : disable wildcard matching for file names
+    # -spe : eliminate duplication of root folder for extract command
+    # -spf : use fully qualified file paths
+    # -ssc[-] : set sensitive case mode
+    # -sse : stop archive creating, if it can't open some input file
+    # -ssw : compress shared files
+    # -stl : set archive timestamp from the most recently modified file
+    # -stm{HexMask} : set CPU thread affinity mask (hexadecimal number)
+    # -stx{Type} : exclude archive type
+    # -t{Type} : Set type of archive
+    # -u[-][p#][q#][r#][x#][y#][z#][!newArchiveName] : Update options
+    # -v{Size}[b|k|m|g] : Create volumes
+    # -w[{path}] : assign Work directory. Empty path means a temporary directory
+    # -x[r[-|0]]{@listfile|!wildcard} : eXclude filenames
+    # -y : assume Yes on all queries
+    try:
+        os.chdir(directory)
+
+        with subprocess.Popen([program, "x", "-y", archive], stdout=subprocess.PIPE) as proc:
+            print(proc.stdout.read())
+
+        return True
+    except:
+        traceback.print_exc(file=sys.stdout)
+        return False
+        # extract all items in 64bit
+    # open zip file in read binary
 
 ## zip_directory("C:/Work/testdir")
