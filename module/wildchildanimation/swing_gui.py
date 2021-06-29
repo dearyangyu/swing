@@ -961,7 +961,7 @@ class CreateDialogGUI(QtWidgets.QDialog, Ui_CreateDialog):
         self.url = None
         self.task = task
         self.set_ui_enabled(False)
-
+        self.swing_settings = SwingSettings.getInstance()
         self.threadpool = QtCore.QThreadPool.globalInstance()
 
         loader = EntityLoaderThread(self, self.task["entity_id"])

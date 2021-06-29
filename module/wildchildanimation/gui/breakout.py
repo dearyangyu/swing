@@ -72,7 +72,7 @@ class BreakoutUploadDialog(QtWidgets.QDialog, Ui_BreakoutUploadDialog):
         self.lineEditPlayblastFolder.setText(load_settings("last_breakout_playblast", os.path.expanduser("~")))
         self.lineEditProjectsFolder.setText(load_settings("last_breakout_projects", os.path.expanduser("~")))
 
-        self.ffprobe_bin = self.swing_settings._ffprobe_bin()
+        self.ffprobe_bin = self.swing_settings.bin_ffprobe()
         self.pushButtonFfprobe.setEnabled(self.ffprobe_bin is not None)
         self.pushButtonFfprobe.clicked.connect(self.ffprobe)
         self.pushButtonSetRange.clicked.connect(self.set_range)
