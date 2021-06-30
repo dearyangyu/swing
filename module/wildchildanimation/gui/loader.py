@@ -353,7 +353,7 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
             url = "{}/api/working_file/{}".format(edit_api, item["file_id"])
             set_target(item, self.working_dir)
 
-            worker = FileDownloader(self, self.working_dir, item["file_id"], url, item["target_path"], email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
+            worker = FileDownloader(self, self.working_dir, item["file_id"], url, item["target_path"], skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
 
             worker.callback.progress.connect(self.file_loading)
             worker.callback.done.connect(self.file_loaded)
@@ -367,7 +367,7 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
             url = "{}/api/output_file/{}".format(edit_api, item["file_id"])
             set_target(item, self.working_dir)
 
-            worker = FileDownloader(self, self.working_dir, item["file_id"], url,  item["target_path"], email, password, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
+            worker = FileDownloader(self, self.working_dir, item["file_id"], url,  item["target_path"], skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
 
             worker.callback.progress.connect(self.file_loading)
             worker.callback.done.connect(self.file_loaded)
