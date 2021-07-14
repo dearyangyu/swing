@@ -1,3 +1,4 @@
+pip
 gazu
 keyring
 PyQt5

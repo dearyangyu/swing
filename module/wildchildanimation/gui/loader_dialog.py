@@ -18,7 +18,7 @@ class Ui_LoaderDialog(object):
         if not LoaderDialog.objectName():
             LoaderDialog.setObjectName(u"LoaderDialog")
         LoaderDialog.setEnabled(True)
-        LoaderDialog.resize(874, 446)
+        LoaderDialog.resize(874, 473)
         self.verticalLayout = QVBoxLayout(LoaderDialog)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.verticalLayoutEntity = QVBoxLayout()
@@ -178,13 +178,27 @@ class Ui_LoaderDialog(object):
 
         self.verticalLayoutOptions.addWidget(self.checkBoxExtractZips)
 
+        self.checkBoxForce = QCheckBox(LoaderDialog)
+        self.checkBoxForce.setObjectName(u"checkBoxForce")
+
+        self.verticalLayoutOptions.addWidget(self.checkBoxForce)
+
         self.horizontalLayout_4 = QHBoxLayout()
         self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
-        self.checkBoxReferences = QCheckBox(LoaderDialog)
-        self.checkBoxReferences.setObjectName(u"checkBoxReferences")
-        self.checkBoxReferences.setChecked(True)
+        self.openRb = QRadioButton(LoaderDialog)
+        self.openRb.setObjectName(u"openRb")
 
-        self.horizontalLayout_4.addWidget(self.checkBoxReferences)
+        self.horizontalLayout_4.addWidget(self.openRb)
+
+        self.importRb = QRadioButton(LoaderDialog)
+        self.importRb.setObjectName(u"importRb")
+
+        self.horizontalLayout_4.addWidget(self.importRb)
+
+        self.referenceRb = QRadioButton(LoaderDialog)
+        self.referenceRb.setObjectName(u"referenceRb")
+
+        self.horizontalLayout_4.addWidget(self.referenceRb)
 
         self.horizontalSpacer_2 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
@@ -277,11 +291,23 @@ class Ui_LoaderDialog(object):
         self.toolButtonWorkingDir.setText(fakestr(u"...", None))
         self.checkBoxSkipExisting.setText(fakestr(u"Skip existing files", None))
         self.checkBoxExtractZips.setText(fakestr(u"Extract zip files automatically", None))
-#if QT_CONFIG(tooltip)
-        self.checkBoxReferences.setToolTip(fakestr(u"Unselect to load file", None))
-#endif // QT_CONFIG(tooltip)
-        self.checkBoxReferences.setText(fakestr(u"Import as Reference", None))
-        self.checkBoxNamespace.setText(fakestr(u"Set Namespace", None))
+        self.checkBoxForce.setText(fakestr(u"Force load (Ignore unsaved changed)", None))
+        self.openRb.setText(fakestr(u"&Open File", None))
+#if QT_CONFIG(shortcut)
+        self.openRb.setShortcut(fakestr(u"Alt+O", None))
+#endif // QT_CONFIG(shortcut)
+        self.importRb.setText(fakestr(u"&Import File", None))
+#if QT_CONFIG(shortcut)
+        self.importRb.setShortcut(fakestr(u"Alt+I", None))
+#endif // QT_CONFIG(shortcut)
+        self.referenceRb.setText(fakestr(u"Re&ference File", None))
+#if QT_CONFIG(shortcut)
+        self.referenceRb.setShortcut(fakestr(u"Alt+F", None))
+#endif // QT_CONFIG(shortcut)
+        self.checkBoxNamespace.setText(fakestr(u"Set &Namespace", None))
+#if QT_CONFIG(shortcut)
+        self.checkBoxNamespace.setShortcut(fakestr(u"Alt+N", None))
+#endif // QT_CONFIG(shortcut)
         self.labelFiles.setText(fakestr(u"Status", None))
         self.textEditStatus.setHtml(fakestr(u"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"

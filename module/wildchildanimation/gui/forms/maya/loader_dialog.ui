@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>874</width>
-    <height>446</height>
+    <height>473</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -252,17 +252,41 @@
       </widget>
      </item>
      <item>
+      <widget class="QCheckBox" name="checkBoxForce">
+       <property name="text">
+        <string>Force load (Ignore unsaved changed)</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <layout class="QHBoxLayout" name="horizontalLayout_4">
        <item>
-        <widget class="QCheckBox" name="checkBoxReferences">
-         <property name="toolTip">
-          <string>Unselect to load file</string>
-         </property>
+        <widget class="QRadioButton" name="openRb">
          <property name="text">
-          <string>Import as Reference</string>
+          <string>&amp;Open File</string>
          </property>
-         <property name="checked">
-          <bool>true</bool>
+         <property name="shortcut">
+          <string>Alt+O</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="importRb">
+         <property name="text">
+          <string>&amp;Import File</string>
+         </property>
+         <property name="shortcut">
+          <string>Alt+I</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="referenceRb">
+         <property name="text">
+          <string>Re&amp;ference File</string>
+         </property>
+         <property name="shortcut">
+          <string>Alt+F</string>
          </property>
         </widget>
        </item>
@@ -292,7 +316,10 @@
        <item>
         <widget class="QCheckBox" name="checkBoxNamespace">
          <property name="text">
-          <string>Set Namespace</string>
+          <string>Set &amp;Namespace</string>
+         </property>
+         <property name="shortcut">
+          <string>Alt+N</string>
          </property>
          <property name="checked">
           <bool>true</bool>

@@ -601,7 +601,7 @@ def create_callback(encoder, upload_signal, source):
 
 class WorkingFileUploader(QtCore.QRunnable):
 
-    def __init__(self, parent, edit_api, task, source, file_name, software_name, comment, email, password, mode = "working", filter = []):
+    def __init__(self, parent, edit_api, task, source, file_name, software_name, comment = '', mode = "working", filter = []):
         super(WorkingFileUploader, self).__init__(self, parent)
         self.parent = parent
         self.url = edit_api
@@ -611,13 +611,17 @@ class WorkingFileUploader(QtCore.QRunnable):
         self.task = task
         self.software_name = software_name
         self.comment = comment
-        self.email = email
-        self.password = password
+
+        self.swing_settings = SwingSettings.getInstance()
+
+        self.email = self.swing_settings.swing_user()
+        self.password = self.swing_settings.swing_password()
+
         self.filter = filter
         self.callback = UploadSignal()
 
     def process_upload(self):
-        source_name, source_ext = os.path.splitext(self.source)
+        # source_name, source_ext = os.path.splitext(self.source)
 
         # /edit/logon 
         logon_url = "{}/login/".format(self.url)
@@ -833,7 +837,7 @@ class ShotCreator(QtCore.QRunnable):
                             file_base = os.path.basename(source)
                             file_path = os.path.dirname(source)
 
-                            worker = WorkingFileUploader(self, edit_api, task, source, file_base, software["name"], "Breakout file", email, password, mode = "working")
+                            worker = WorkingFileUploader(self, edit_api, task, source, file_base, software["name"], "Breakout file", mode = "working")
                             ##self.threadpool.start(worker)                        
                             worker.run()
 
@@ -864,7 +868,7 @@ class ShotCreator(QtCore.QRunnable):
                             file_name, file_ext = os.path.splitext(file_base)                
 
                             # self.threadpool.start(worker)                        
-                            worker = WorkingFileUploader(self, edit_api, task, source, file_base, software["name"], "Breakout file", email, password,  mode = "preview")
+                            worker = WorkingFileUploader(self, edit_api, task, source, file_base, software["name"], "Breakout file", mode = "preview")
                             ##self.threadpool.start(worker)                                                    
                             worker.run()
 

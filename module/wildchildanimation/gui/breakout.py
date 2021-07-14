@@ -144,8 +144,8 @@ class BreakoutUploadDialog(QtWidgets.QDialog, Ui_BreakoutUploadDialog):
             worker = ShotCreator(self, self.project, self.episode, sequence, shot_list)
             worker.callback.results.connect(self.results)
 
-            self.threadpool.start(worker)
-            #worker.run()
+            #self.threadpool.start(worker)
+            worker.run()
         else:
             QtWidgets.QMessageBox.info(self, 'Break Out', 'Please select a sequence')               
             #worker.run()

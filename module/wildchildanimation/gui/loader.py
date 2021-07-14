@@ -44,6 +44,7 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
         super(LoaderDialogGUI, self).__init__(parent) # Call the inherited classes __init__ method
         self.setupUi(self)
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
+        self.read_settings()        
 
         self.handler = handler
         self.entity = entity
@@ -74,14 +75,67 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
 
         self.setWorkingDir(self.swing_settings.swing_root())
 
+        self.openRb.clicked.connect(self.selection_changed)
+        self.importRb.clicked.connect(self.selection_changed)
+        self.referenceRb.clicked.connect(self.selection_changed)
+
         if self.handler and self.handler.NAME == StudioInterface.NAME:
-            self.checkBoxReferences.setEnabled(False)
-            self.checkBoxReferences.setChecked(False)
+            #self.checkBoxReferences.setEnabled(False)
+            #self.checkBoxReferences.setChecked(False)
             self.spinBoxReferenceCount.setEnabled(False)
             self.checkBoxNamespace.setEnabled(False)
             self.lineEditNamespace.setEnabled(False)
-            
 
+    # save main dialog state
+    def write_settings(self):
+        self.settings = QtCore.QSettings()
+
+        self.settings.beginGroup("Loader")
+        self.settings.setValue("size", self.size())
+        self.settings.setValue("pos", self.pos())
+
+        self.settings.setValue("skip_existing", self.checkBoxSkipExisting.isChecked())
+        self.settings.setValue("extract_zips", self.checkBoxExtractZips.isChecked())
+
+        self.settings.setValue("force_load", self.checkBoxForce.isChecked())
+        self.settings.setValue("name_space", self.checkBoxNamespace.isChecked())
+
+        if self.openRb.isChecked():
+            self.settings.setValue("load_type", "open")
+        elif self.importRb.isChecked():
+            self.settings.setValue("load_type", "import")
+        else:
+            self.settings.setValue("load_type", "reference")
+
+        self.settings.endGroup()
+
+    # load main dialog state
+    def read_settings(self):
+        self.settings = QtCore.QSettings()
+
+        self.settings.beginGroup("Loader")
+        self.resize(self.settings.value("size", QtCore.QSize(480, 520)))
+        self.move(self.settings.value("pos", QtCore.QPoint(0, 200)))
+
+        self.checkBoxSkipExisting.setChecked(self.settings.value("skip_existing", True, type=bool))
+        self.checkBoxExtractZips.setChecked(self.settings.value("extract_zips", True, type=bool))
+        self.checkBoxForce.setChecked(self.settings.value("force_load", True, type=bool))
+        self.checkBoxNamespace.setChecked(self.settings.value("name_space", True, type=bool))
+
+        load_type = self.settings.value("load_type", "open", type=str)
+        if "open" in load_type:
+            self.openRb.setChecked(True)
+        elif "import" in load_type:
+            self.importRb.setChecked(True)
+        else:
+            self.referenceRb.setChecked(True)
+
+        self.settings.endGroup()              
+
+    def selection_changed(self):
+        self.checkBoxNamespace.setEnabled(self.referenceRb.isChecked())       
+        self.lineEditNamespace.setEnabled(self.referenceRb.isChecked())       
+        self.spinBoxReferenceCount.setEnabled(self.referenceRb.isChecked())
 
     def open_url(self, url):
         link = QtCore.QUrl(self.url)
@@ -105,11 +159,7 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
 
         sections = []
         if self.type == "Shot":
-
-            if self.handler and self.handler.NAME == StudioInterface.NAME:
-                self.setWindowTitle("swing: download shot")
-            else:
-                self.setWindowTitle("swing: import shot")
+            self.setWindowTitle("swing: shot loader")
 
             self.shot = data["item"]
             self.url = data["url"]
@@ -151,10 +201,7 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
             self.lineEditFrameCount.setText(text)                
             self.lineEditFrameCount.setEnabled(False)                          
         else:
-            if self.handler and self.handler.NAME == StudioInterface.NAME:
-                self.setWindowTitle("swing: download asset")
-            else:
-                self.setWindowTitle("swing: import asset")
+            self.setWindowTitle("swing: asset loader")
 
             self.asset = data["item"]
             self.url = data["url"]
@@ -190,6 +237,7 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
             self.lineEditFrameCount.setEnabled(False)
 
         namespace = friendly_string("_".join(sections).lower().strip())
+
         #if self.asset_type_name:
         #    namespace = self.asset_type_name
         #elif self.asset_name:
@@ -235,6 +283,7 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
         self.lineEditWorkingDir.setText(self.working_dir)
 
     def close_dialog(self):
+        self.write_settings()
         self.close()
 
     def select_wcd(self):
@@ -251,53 +300,6 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
             text = "<span style=' font-weight:100; '>{}</span><br/><bt/>".format(status_message.strip())
 
         cursor.insertHtml(text)
-
-    def file_loaded(self, results):
-        status = results["status"]
-        message = results["message"]
-        size = results["size"]
-        row = results["file_id"]
-        file_name = results["target"]
-        working_dir = results["working_dir"]
-        self.append_status(message, "error" in status)
-
-        print("Loaded file {0} target {1}".format(file_name, working_dir))
-
-        # call maya handler: import into existing workspace
-        try:
-            #
-            # import refs
-            # 
-            if self.checkBoxReferences.checkState() == QtCore.Qt.Checked:
-
-                # see if we know a namespace
-                if self.checkBoxNamespace.checkState() == QtCore.Qt.Checked:
-                    namespace = self.lineEditNamespace.text()
-                else:
-                    namespace = self.lineEditEntity.text()
-
-                # loop through spinbox counter
-                for ref in range(self.spinBoxReferenceCount.value()):
-                    ref_str = str(ref).zfill(4)
-                    ref_namespace = "{0}_{1}".format(namespace, ref_str)
-
-                    self.append_status("Adding reference {}".format(file_name))
-                    if (self.handler.import_reference(source = file_name, working_dir = working_dir, namespace = ref_namespace)):
-                        self.append_status("Added {0}".format(ref_namespace))
-                    else:
-                        self.append_status("Import error", True)
-            else:
-                self.append_status("Loading file {}".format(file_name))
-                if (self.handler.load_file(source = file_name, working_dir = working_dir)):
-                    self.append_status("Loading done")
-                else:
-                    self.append_status("Loading error", True)
-
-        except:
-            traceback.print_exc(file=sys.stdout)          
-
-        self.append_status("{}".format(message))
-        self.set_ui_enabled(True)
 
     def file_loading(self, result):
         message = result["message"]
@@ -319,6 +321,8 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
         self.pushButtonImport.setEnabled(status)
         self.pushButtonCancel.setEnabled(status)
 
+    
+    # first download and extract the file
     def process(self):
         #self.threadpool = QtCore.QThreadPool()
         self.textEditStatus.clear()
@@ -327,15 +331,11 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
         self.set_ui_enabled(False)
         self.process_count = 0
 
-        password = self.swing_settings.swing_password()
         server = self.swing_settings.swing_server()
-        email = self.swing_settings.swing_user()     
-           
         edit_api = "{}/edit".format(server)
 
         # download the currently selected file
         item = self.files[self.comboBoxWorkingFile.currentIndex()]
-        row = 0
         if "library-file" in item['file_type']:
             url = "{}/api/library_file/{}".format(edit_api, item["entity_id"])
             set_target(item, self.working_dir)
@@ -377,3 +377,66 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
             self.append_status("Downloading {} to {}".format(item["file_name"], item["target_path"]))
         # file type
     # process
+
+    #
+    # we have a file or an archive now, let's see what needs to be done
+    #
+    def file_loaded(self, results):
+        status = results["status"]
+        message = results["message"]
+        file_name = results["target"]
+        working_dir = results["working_dir"]
+        self.append_status(message, "error" in status)
+
+        print("Loaded file {0} target {1}".format(file_name, working_dir))
+
+        # call maya handler: import into existing workspace
+        try:
+            if self.openRb.isChecked():
+                # call handler, open downloaded file
+                self.load_file(file_name, working_dir)
+                
+            elif self.importRb.isChecked():
+                # call handler importing downloaded file
+                self.import_file(file_name, working_dir)
+
+            else:
+                # reference file
+                self.import_ref(file_name, working_dir)
+        except:
+            traceback.print_exc(file=sys.stdout)          
+
+        self.append_status("{}".format(message))
+        self.set_ui_enabled(True)
+
+    def load_file(self, file_name, wcd):
+        self.append_status("Loading file {}".format(file_name))
+        if (self.handler.load_file(source = file_name, working_dir = wcd, force = self.checkBoxForce.isChecked())):
+            self.append_status("Loading done")
+        else:
+            self.append_status("Loading error", True)
+
+    def import_file(self, file_name, wcd):
+        self.append_status("Loading file {}".format(file_name))
+        if (self.handler.import_file(source = file_name, working_dir = wcd)):
+            self.append_status("Loading done")
+        else:
+            self.append_status("Loading error", True)
+
+    def import_ref(self, file_name, wcd):
+        if self.checkBoxNamespace.checkState() == QtCore.Qt.Checked:
+            namespace = self.lineEditNamespace.text()
+        else:
+            namespace = self.lineEditEntity.text()
+
+        # loop through spinbox counter
+        for ref in range(self.spinBoxReferenceCount.value()):
+            ref_str = str(ref).zfill(4)
+            ref_namespace = "{0}_{1}".format(namespace, ref_str)
+
+            self.append_status("Adding reference {}".format(file_name))
+            if (self.handler.import_reference(source = file_name, working_dir = wcd, namespace = ref_namespace)):
+                self.append_status("Added {0}".format(ref_namespace))
+            else:
+                self.append_status("Import error", True)
+

@@ -10,6 +10,9 @@ import traceback
 import sys
 import os
 
+# Qt High DPI 
+os.environ["QT_ENABLE_HIGHDPI_SCALING"] = "1"
+
 # ==== auto Qt load ====
 try:
     from PySide2 import QtGui
@@ -96,6 +99,9 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         else:
             cls.dlg_instance.raise_()
             cls.dlg_instance.activateWindow()    
+
+    def build_shelf(self):
+        self.handler.build_shelf(self)
 
     def keyPressEvent(self, event):
         super(SwingGUI, self).keyPressEvent(event)            

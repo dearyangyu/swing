@@ -24,16 +24,31 @@ except:
 
 from wildchildanimation.studio_interface import StudioInterface
 from wildchildanimation.gui.swing_playblast import *
+from wildchildanimation.maya.swing_shelf import SwingShelf
+
+def maya_main_window():
+    """
+    Return the Maya main window widget as a Python object
+    """
+    main_window_ptr = omui.MQtUtil.mainWindow()
+    if sys.version_info.major >= 3:
+        return wrapInstance(int(main_window_ptr), QtWidgets.QWidget)
+    else:
+        return wrapInstance(long(main_window_ptr), QtWidgets.QWidget)
 
 class StudioHandler(StudioInterface):
 
     NAME = "MayaSwingInterface"
-    VERSION = "0.0.1"
+    VERSION = "0.0.3"
     SUPPORTED_TYPES = [".ma", ".mb", ".fbx", ".obj", ".mov", ".mp4", ".wav", ".jpg", ".png" ]
 
     def __init__(self):
         super(StudioHandler, self).__init__()
         self.log_output("Maya Found: {0}".format(_maya_loaded))
+
+    # populates maya shelf
+    def build_shelf(self, swing_gui):
+        SwingShelf(controller = swing_gui, name = "Wild_Child", iconPath = "{}/resources/".format(os.path.dirname(os.path.realpath(__file__))))
 
     def log_error(self, text):
         if _maya_loaded:
@@ -145,12 +160,74 @@ class StudioHandler(StudioInterface):
                     shot_no += shot_step
 
     # tries to import the file specified in source into the currently open scene
+    def load_file(self, **kwargs):
+        source = kwargs["source"]
+        force = kwargs["force"]
+        working_dir = kwargs["working_dir"]
+
+        self.log_output("load_file:: {0} to {1}".format(source, working_dir))
+        self.log_output("Source  {0}".format(working_dir))
+        self.log_output("Working Dir {0}".format(working_dir))
+
+        filename, file_extension = os.path.splitext(source)
+
+        if file_extension in StudioHandler.SUPPORTED_TYPES:
+            prompt_val = cmds.file(prompt=True, q=True)
+            try:
+                if not force and cmds.file(q = True, modified = True):
+                    if QtWidgets.QMessageBox.question(self, 'Unsaved changes', 'Current scene has unsaved changes. Continue?') == QtWidgets.QMessageBox.StandardButton.Yes:
+                        force = True
+                    else:
+                        self.log_output("Aborted load file")
+                        return
+
+                cmds.file(source, open = True, ignoreVersion = True, prompt = False, force = force)
+            except:
+                traceback.print_exc(file=sys.stdout)
+                self.log_error("Error processing importing reference {}".format(source))
+                return False
+            finally:
+                cmds.file(prompt = prompt_val)
+
+        else:
+            self.log_error("File extension not valid {0}".format(file_extension))                
+
+        write_log("load_file complete")
+        return True    
+
+    # tries to import the file specified in source into the currently open scene
+    def import_file(self, **kwargs):
+        source = kwargs["source"]
+        working_dir = kwargs["working_dir"]
+
+        self.log_output("import_file:: {0} to {1}".format(source, working_dir))
+        self.log_output("Source  {0}".format(working_dir))
+        self.log_output("Working Dir {0}".format(working_dir))
+
+        filename, file_extension = os.path.splitext(source)
+
+        if file_extension in StudioHandler.SUPPORTED_TYPES:
+            self.log_output("Loading file {}".format(source))
+            try:
+                pm.system.importFile(source)
+                self.log_output("importFile {} successfully".format(filename))
+            except:
+                traceback.print_exc(file=sys.stdout)
+                self.log_error("Error processing load file {}".format(source))
+                return False
+        else:
+            self.log_error("File extension not valid {0}".format(file_extension))                
+
+        write_log("load_file complete")
+        return True  
+
+    # tries to import the file specified in source into the currently open scene
     def import_reference(self, **kwargs):
         source = kwargs["source"]
         working_dir = kwargs["working_dir"]
         namespace = kwargs["namespace"]
 
-        self.log_output("Importing {0}".format(source, working_dir))
+        self.log_output("load_reference:: {0}".format(source, working_dir))
         self.log_output("Source  {0}".format(working_dir))
         self.log_output("Working Dir {0}".format(working_dir))
         self.log_output("Namespace {0}".format(namespace))
@@ -175,33 +252,7 @@ class StudioHandler(StudioInterface):
             self.log_error("File extension not valid {0}".format(file_extension))
 
         write_log("import_reference complete")
-        return True
-
-    # tries to import the file specified in source into the currently open scene
-    def load_file(self, **kwargs):
-        source = kwargs["source"]
-        working_dir = kwargs["working_dir"]
-
-        self.log_output("Loading {0} to {1}".format(source, working_dir))
-        self.log_output("Source  {0}".format(working_dir))
-        self.log_output("Working Dir {0}".format(working_dir))
-
-        filename, file_extension = os.path.splitext(source)
-
-        if file_extension in StudioHandler.SUPPORTED_TYPES:
-            self.log_output("Loading file {}".format(source))
-            try:
-                pm.system.importFile(source)
-                self.log_output("importFile {} successfully".format(filename))
-            except:
-                traceback.print_exc(file=sys.stdout)
-                self.log_error("Error processing load file {}".format(source))
-                return False
-        else:
-            self.log_error("File extension not valid {0}".format(file_extension))                
-
-        write_log("load_file complete")
-        return True        
+        return True                     
 
     def on_save(self, **kwargs):
         file_path = cmds.file(q = True, sn = True)

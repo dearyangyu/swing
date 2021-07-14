@@ -1,0 +1,28 @@
+//
+//  Creation Date:  13 July 2021
+//
+//  Description:
+//      Define the Swing shelf.
+//
+
+global proc shelf_Swing () {
+
+    string $label;
+    string $annot;
+    string $format = "^1s: ^2s";
+    string $runtimeCommand;
+    string $image;
+
+    // Playblast
+    $label          = "Swing";
+    $runtimeCommand = "PlayblastWindow" ;
+    $image          = "playblast.png" ;
+    $annot          = "Open Treehouse: Swing";
+    shelfButton
+        -version    2020
+        -label      $label
+        -annotation `format -s $label -s $annot $format`
+        -image1     $image
+        -command    $runtimeCommand
+        -doubleClickCommand ("PlayblastOptions");
+} 

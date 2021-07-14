@@ -35,7 +35,7 @@ class StudioInterface(QtCore.QObject):
     ]        
 
     NAME = "StudioInterface"
-    VERSION = "0.0.1"
+    VERSION = "0.0.3"
     SUPPORTED_TYPES = [ ]
     UNARCHIVE_TYPES = [ ".zip", ".rar" ]
 
@@ -88,6 +88,14 @@ class StudioInterface(QtCore.QObject):
         # tries to import the file specified in source into the currently open scene
         return True
 
+    def import_file(self, **kwargs):
+        # tries to import the file specified in source into the currently open scene
+        return True     
+
+    def import_reference(self, **kwargs):
+        # tries to import the file specified in source into the currently open scene
+        return True           
+
     def on_save(self, **kwargs):
         # return the currently open file
         return True
@@ -130,3 +138,7 @@ class StudioInterface(QtCore.QObject):
         ##self.log_output("fbx_export", kwargs)
         return True
         '''
+
+    # populates maya shelf
+    def build_shelf(self, swing_gui):
+        pass

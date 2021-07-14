@@ -1397,7 +1397,7 @@ class SwingPlayblastUi(QtWidgets.QDialog):
         self.settings.beginGroup("Playblast")
 
         self.resize(self.settings.value("size", QtCore.QSize(400, 400)))
-        self.move(self.settings.value("pos", QtCore.QPoint(200, 200)))
+        # self.move(self.settings.value("pos", QtCore.QPoint(200, 200)))
         self.settings.endGroup()          
 
     def load_user_settings(self):

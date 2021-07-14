@@ -31,6 +31,7 @@ from wildchildanimation.gui.publish_dialog import Ui_PublishDialog
 from wildchildanimation.gui.upload_monitor import UploadMonitorDialog
 
 from wildchildanimation.gui.swing_tables import human_size, load_file_table_widget
+from wildchildanimation.swing_workpacket import WorkPacket
 
 class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
 
@@ -271,17 +272,16 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         self.outputFileEdit.setText("")
 
     def scan_working_dir(self, directory):
-        media_files = []
+        self.media_files = []
 
-        for file in glob.glob("{}/*.mp4".format(directory)):
-            media_files.append(file)
+        self.media_files += filter(os.path.isfile, glob.glob(directory + '/*.mp4'))
+        self.media_files += filter(os.path.isfile, glob.glob(directory + '/*.mov'))
 
-        for file in glob.glob("{}/*.mov".format(directory)):
-            media_files.append(file)
+        self.media_files = sorted(self.media_files, key = os.path.getmtime)
 
-        if len(media_files) > 0:
+        if len(self.media_files) > 0:
             self.labelReviewFile.setText("Found review media to upload")
-            self.set_output_file(media_files[0])
+            self.set_output_file(self.media_files[len(self.media_files)-1])
 
         self.labelZipMessage.setText("Compress and upload directory: {}".format(directory))
 
@@ -327,25 +327,30 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         status = resuls["status"]
         if "ok" in status:
             self.process_count -= 1
-            if self.process_count == 0:
-                QtWidgets.QMessageBox.question(self, 'Publishing complete', 'All files uploaded, thank you', QtWidgets.QMessageBox.Ok)
-                self.pushButtonCancel.setEnabled(True)
+
+        if self.process_count == 0:
+            self.threadpool.waitForDone()
+            QtWidgets.QMessageBox.question(self, 'Publishing complete', 'All files uploaded, thank you', QtWidgets.QMessageBox.Ok)
+            self.pushButtonCancel.setEnabled(True)
 
     def get_software(self):
         return self.comboBoxSoftware.currentData(QtCore.Qt.UserRole)        
 
     def process(self):
         self.pushButtonCancel.setEnabled(False)
+
         self.process_count = 0
+        self.queue = []
 
-        email = load_settings('user', 'user@example.com')
-        password = load_keyring('swing', 'password', 'Not A Password')        
-
-        server = load_settings('server', 'https://example.wildchildanimation.com')
+        server = load_settings('server', 'https://studio.example.com')
         edit_api = "{}/edit".format(server)        
+
+        self.workpacket = WorkPacket(eidt_api = edit_api, task = self.task)
 
         #self, parent, task, source, software_name, comment, email, password
         dialog = UploadMonitorDialog(self, self.task)
+
+        task_comments = self.commentEdit.toPlainText().strip()
 
         #
         # working files
@@ -358,12 +363,14 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
                 file_path = os.path.dirname(source)
                 file_name, file_ext = os.path.splitext(file_base)                
 
-                worker = WorkingFileUploader(self, edit_api, self.task, source, file_name, self.get_software()["name"], self.commentEdit.toPlainText().strip(), email, password)
+                worker = WorkingFileUploader(self, edit_api, self.task, source, file_name, self.get_software()["name"], comment = task_comments, mode = "working")
                 worker.callback.progress.connect(dialog.file_loading)
                 worker.callback.done.connect(dialog.file_loaded)
+
                 dialog.add_item(source, "Pending")
 
-                self.process_count += 1                
+                self.process_count += 1       
+                self.queue.append(worker)         
                 self.threadpool.start(worker)
                 ##worker.run()
         #
@@ -377,8 +384,7 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
                 file_path = os.path.dirname(source)
                 file_name, file_ext = os.path.splitext(file_base)                
 
-                worker = WorkingFileUploader(self, edit_api, self.task, source, file_name, 
-                    self.get_software()["name"], self.commentEdit.toPlainText().strip(), email, password, "working", [ os.path.basename(self.outputFileEdit.text()) ])
+                worker = WorkingFileUploader(self, edit_api, self.task, source, file_name, self.get_software()["name"], comment = task_comments, mode = "working", filter = [ os.path.basename(self.outputFileEdit.text()) ])
                 worker.callback.progress.connect(dialog.file_loading)
                 worker.callback.done.connect(dialog.file_loaded)
 
@@ -386,6 +392,7 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
                 dialog.add_item(target, "Pending")
 
                 self.process_count += 1                
+                self.queue.append(worker)
                 self.threadpool.start(worker)
                 ##worker.run()             
 
@@ -416,7 +423,7 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
                 file_base = os.path.basename(source)
                 file_name, file_ext = os.path.splitext(file_base)
 
-                worker = WorkingFileUploader(self, edit_api, self.task, source, file_name, None, self.commentEdit.toPlainText().strip(), email, password, mode = self.output_mode)
+                worker = WorkingFileUploader(self, edit_api, self.task, source, file_name, self.get_software()["name"],  comment=task_comments, mode = self.output_mode)
                 worker.callback.progress.connect(dialog.file_loading)
                 worker.callback.done.connect(dialog.file_loaded)
                 dialog.add_item(source, "Pending")    
@@ -431,7 +438,7 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
                 file_base = os.path.basename(source)
                 file_name, file_ext = os.path.splitext(file_base)
 
-                worker = WorkingFileUploader(self, edit_api, self.task, source, file_name, None, self.commentEdit.toPlainText().strip(), email, password, mode = self.output_mode)
+                worker = WorkingFileUploader(self, edit_api, self.task, source, self.get_software()["name"], comment=task_comments, mode = self.output_mode)
                 worker.callback.progress.connect(dialog.file_loading)
                 worker.callback.done.connect(dialog.file_loaded)
                 dialog.add_item(source, "Pending")    
@@ -452,7 +459,7 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
                     file_path = os.path.dirname(source)
                     file_name, file_ext = os.path.splitext(file_base)
 
-                    worker = WorkingFileUploader(self, edit_api, self.task, source, file_name, "working", self.commentEdit.toPlainText().strip(), email, password)
+                    worker = WorkingFileUploader(self, edit_api, self.task, source, file_name, mode = "working", comment=task_comments)
                     worker.callback.progress.connect(dialog.file_loading)
                     worker.callback.done.connect(dialog.file_loaded)
                     dialog.add_item(source, "Pending")   
@@ -461,9 +468,11 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
                     self.threadpool.start(worker)                  
             row += 1
 
-        dialog.reset_progressbar()
-        dialog.show()
-        self.hide()
+        if self.process_count > 0:
+            dialog.reset_progressbar()
+            dialog.show()
+            self.hide()
+
 
     def get_references(self):
         return self.references

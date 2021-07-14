@@ -1,3 +1,8 @@
+# https://urllib3.readthedocs.io/en/latest/advanced-usage.html#ssl-warnings
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+
 # -*- coding: utf-8 -*-
 #
 # Swing Standalone command line runner
