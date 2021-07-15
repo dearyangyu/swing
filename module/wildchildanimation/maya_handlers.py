@@ -42,13 +42,21 @@ class StudioHandler(StudioInterface):
     VERSION = "0.0.3"
     SUPPORTED_TYPES = [".ma", ".mb", ".fbx", ".obj", ".mov", ".mp4", ".wav", ".jpg", ".png" ]
 
+    _shelf = None
+
     def __init__(self):
         super(StudioHandler, self).__init__()
         self.log_output("Maya Found: {0}".format(_maya_loaded))
 
     # populates maya shelf
     def build_shelf(self, swing_gui):
-        SwingShelf(controller = swing_gui, name = "Wild_Child", iconPath = "{}/resources/".format(os.path.dirname(os.path.realpath(__file__))))
+        self._shelf = SwingShelf(controller = swing_gui, name = "Wild_Child", iconPath = "{}/resources/".format(os.path.dirname(os.path.realpath(__file__))))
+        self.log_output("Build Shelf: Wild Child")
+
+    def update_shelf(self):
+        if self._shelf:
+            self._shelf.update_shelf()
+            self.log_output("Update Shelf: Wild Child")
 
     def log_error(self, text):
         if _maya_loaded:
@@ -175,7 +183,7 @@ class StudioHandler(StudioInterface):
             prompt_val = cmds.file(prompt=True, q=True)
             try:
                 if not force and cmds.file(q = True, modified = True):
-                    if QtWidgets.QMessageBox.question(self, 'Unsaved changes', 'Current scene has unsaved changes. Continue?') == QtWidgets.QMessageBox.StandardButton.Yes:
+                    if QtWidgets.QMessageBox.question(maya_main_window(), 'Unsaved changes', 'Current scene has unsaved changes. Continue?') == QtWidgets.QMessageBox.StandardButton.Yes:
                         force = True
                     else:
                         self.log_output("Aborted load file")

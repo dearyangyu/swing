@@ -5,6 +5,8 @@ from wildchildanimation.maya.maya_shelf import _shelf
 
 class SwingShelf(_shelf):
 
+    project_popup = None
+
     _run_swing = '''
 import wildchildanimation.studio_interface
 import wildchildanimation.maya_handlers
@@ -21,10 +23,26 @@ swing_playblast_dialog.show()
 
     def __init__(self, controller, name, iconPath):
         super().__init__(controller=controller, name=name, iconPath=iconPath)
+        self.controller = controller
 
     def build(self):
         self.addButon(label="Swing", icon = "swing_assets.png", command = SwingShelf._run_swing)
         self.addButon(label="PB", icon = "swing_pb.png", command = SwingShelf._playblast)
+
+        self.update_shelf(self.controller)
+
+    def get_project_popup(self):
+        if self.project_popup is None:
+            self.project_popup = mc.popupMenu(b=1)
+        return self.project_popup
+
+    def update_shelf(self, contoller):
+        project_popup = self.get_project_popup()
+        self.addMenuItem(project_popup, "popupMenuItem1")
+        self.addMenuItem(project_popup, "popupMenuItem2")
+
+        sub = self.addSubMenu(project_popup, "subMenuLevel1")
+        self.addMenuItem(sub, "subMenuLevel1Item1")
 
 # ###################################################################################
 # '''This is an example shelf.'''

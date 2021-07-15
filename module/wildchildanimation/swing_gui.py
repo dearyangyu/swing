@@ -48,7 +48,7 @@ from wildchildanimation.gui.breakout import *
 from wildchildanimation.gui.entity_info import *
 from wildchildanimation.gui.dcc_tools import *
 
-from wildchildanimation.gui.swing_tables import FileTableModel, CheckBoxDelegate, TaskTableModel, setup_file_table
+from wildchildanimation.gui.swing_tables import FileTableModel, TaskTableModel, setup_file_table
 
 from wildchildanimation.gui.swing_desktop import Ui_SwingMain
 from wildchildanimation.gui.project_nav import ProjectNavWidget
@@ -606,19 +606,26 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             return False
 
         episode = self.projectNav.get_episode()
-        for item in sequence["shots"]:
-            if episode:
-                name = "{} / {} / {}".format(episode["name"], item["sequence_name"],  item["name"])
-            else:
-                name = "{} / {} / {}".format(item["sequence_name"],  item["name"])
+        if "shots" in sequence:
+            for item in sequence["shots"]:
+                if episode:
+                    name = "{} / {} / {}".format(episode["name"], item["sequence_name"],  item["name"])
+                else:
+                    name = "{} / {} / {}".format(item["sequence_name"],  item["name"])
 
-            self.comboBoxShot.addItem(name, userData = item) 
+                self.comboBoxShot.addItem(name, userData = item) 
+            self.comboBoxShot.setEnabled(True)
+        else:
+            self.comboBoxShot.setEnabled(False)
 
         self.comboBoxShot.blockSignals(False)                 
         ## self.load_shot_files(0)
 
     def asset_type_changed(self, index):
         #write_log("[asset_type_changed]")
+        if index < 0:
+            return
+
         self.currentAssetType = self.asset_types[index]
 
         project = self.projectNav.get_project()
@@ -634,7 +641,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         ## write_log("[selection_changed]", source)
 
         sequence = self.projectNav.get_sequence()
-        if sequence:
+        if sequence and "shots" in sequence:
             shots = sequence["shots"]
             if len(shots) > index:
                 self.currentShot = shots[index]

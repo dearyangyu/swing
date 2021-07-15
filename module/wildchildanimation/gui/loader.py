@@ -60,8 +60,8 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
             else:
                 loader = EntityLoaderThread(self, self.entity)        
 
-        loader.callback.loaded.connect(self.entity_loaded)
-        self.threadpool.start(loader)
+            loader.callback.loaded.connect(self.entity_loaded)
+            self.threadpool.start(loader)
 
         self.toolButtonWeb.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_CommandLink))
         self.toolButtonWeb.clicked.connect(self.open_url)
