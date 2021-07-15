@@ -345,7 +345,7 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         server = load_settings('server', 'https://studio.example.com')
         edit_api = "{}/edit".format(server)        
 
-        self.workpacket = WorkPacket(eidt_api = edit_api, task = self.task)
+        self.workpacket = WorkPacket(edit_api = edit_api, task = self.task)
 
         #self, parent, task, source, software_name, comment, email, password
         dialog = UploadMonitorDialog(self, self.task)
