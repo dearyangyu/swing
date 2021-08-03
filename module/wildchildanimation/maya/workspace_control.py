@@ -32,16 +32,11 @@ class WorkspaceControl(object):
         self.widget = None
 
     def create(self, label, widget, ui_script):
-        print("create")
         cmds.workspaceControl(self.name, label = label)
         if ui_script:
-            print("script")
             cmds.workspaceControl(self.name, e=True, uiScript=ui_script)
 
-        print("widget")
         self.add_widget_to_layout(widget)
-
-        print("visible")
         self.set_visible(True)
 
     def restore(self, widget):

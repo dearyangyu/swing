@@ -38,37 +38,19 @@ class Ui_SwingControlWidget(object):
 
         self.comboBoxProject = QComboBox(SwingControlWidget)
         self.comboBoxProject.setObjectName(u"comboBoxProject")
-        sizePolicy1 = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        sizePolicy1.setHorizontalStretch(1)
-        sizePolicy1.setVerticalStretch(0)
-        sizePolicy1.setHeightForWidth(self.comboBoxProject.sizePolicy().hasHeightForWidth())
-        self.comboBoxProject.setSizePolicy(sizePolicy1)
         self.comboBoxProject.setMinimumSize(QSize(300, 0))
-        self.comboBoxProject.setMaximumSize(QSize(300, 16777215))
-        self.comboBoxProject.setPlaceholderText(u"")
 
         self.horizontalLayout_3.addWidget(self.comboBoxProject)
 
         self.comboBoxEpisode = QComboBox(SwingControlWidget)
         self.comboBoxEpisode.setObjectName(u"comboBoxEpisode")
-        sizePolicy1.setHeightForWidth(self.comboBoxEpisode.sizePolicy().hasHeightForWidth())
-        self.comboBoxEpisode.setSizePolicy(sizePolicy1)
         self.comboBoxEpisode.setMinimumSize(QSize(150, 0))
-        self.comboBoxEpisode.setMaximumSize(QSize(200, 16777215))
-        self.comboBoxEpisode.setPlaceholderText(u"")
 
         self.horizontalLayout_3.addWidget(self.comboBoxEpisode)
 
         self.comboBoxTask = QComboBox(SwingControlWidget)
         self.comboBoxTask.setObjectName(u"comboBoxTask")
-        sizePolicy2 = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        sizePolicy2.setHorizontalStretch(2)
-        sizePolicy2.setVerticalStretch(0)
-        sizePolicy2.setHeightForWidth(self.comboBoxTask.sizePolicy().hasHeightForWidth())
-        self.comboBoxTask.setSizePolicy(sizePolicy2)
         self.comboBoxTask.setMinimumSize(QSize(300, 0))
-        self.comboBoxTask.setMaximumSize(QSize(300, 16777215))
-        self.comboBoxTask.setPlaceholderText(u"")
 
         self.horizontalLayout_3.addWidget(self.comboBoxTask)
 
@@ -144,7 +126,6 @@ class Ui_SwingControlWidget(object):
     def retranslateUi(self, SwingControlWidget):
         SwingControlWidget.setWindowTitle(fakestr(u"Form", None))
         self.toolButtonRefresh.setText(fakestr(u"Refresh", None))
-        self.comboBoxProject.setCurrentText("")
         self.toolButtonSwing.setText(fakestr(u"Swing", None))
         self.toolButtonTask.setText(fakestr(u"Task", None))
         self.toolButtonPlayblast.setText(fakestr(u"Playblast", None))
