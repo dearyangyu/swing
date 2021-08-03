@@ -874,9 +874,10 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
                 files.append(item)
 
         if len(files) == 0:
-            self.downloadDialog = DownloadDialogGUI(parent = self, handler = self.handler, entity = self.get_current_selection(), task_types=self.nav.get_task_types(), status_types=self.nav.get_status_types())
+            QtWidgets.QMessageBox.information(self, 'Swing: Downloader', 'Please select a file')  
+            # self.downloadDialog = DownloadDialogGUI(parent = self, handler = self.handler, entity = self.get_current_selection(), task_types=self.nav.get_task_types(), status_types=self.nav.get_status_types())
         else:
-            self.downloadDialog = DownloadDialogGUI(parent = self, handler = self.handler, entity = self.get_current_selection(), file_list=files)
+            self.downloadDialog = DownloadDialogGUI(parent = self, handler = self.handler, file_list=files)
 
         #dialog.resize(self.size())
         self.downloadDialog.show()

@@ -372,19 +372,19 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
         if "library-file" in item['file_type']:
             url = "{}/api/library_file/{}".format(edit_api, item["entity_id"])
             ## set_target(item, self.working_dir)
-            worker = FileDownloader(self, target_dir, item["file_id"], url, target, self.checkBoxSkipExisting.isChecked(), self.checkBoxExtractZips.isChecked(), { "fn": item['file_name'] } )
+            worker = FileDownloader(self, item["file_id"], url, target, self.checkBoxSkipExisting.isChecked(), self.checkBoxExtractZips.isChecked(), { "fn": item['file_name'] } )
         elif "working-file" in item["file_type"]:
             #target_name = os.path.normpath(os.path.join(target_name_dir, item["name"]))
             url = "{}/api/working_file/{}".format(edit_api, item["file_id"])
             ## set_target_name(item, target_name_dir)
 
-            worker = FileDownloader(self, target_dir, item["file_id"], url, target, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
+            worker = FileDownloader(self, item["file_id"], url, target, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
         else:
             #target_name = os.path.normpath(os.path.join(target_name_dir, item["name"]))
             url = "{}/api/output_file/{}".format(edit_api, item["file_id"])
             ## set_target_name(item, target_name_dir)
 
-            worker = FileDownloader(self, target_dir, item["file_id"], url,  target, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
+            worker = FileDownloader(self, item["file_id"], url,  target, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
         # file type
 
         self.append_status("{}: downloading to {}".format(self.target_name, target))

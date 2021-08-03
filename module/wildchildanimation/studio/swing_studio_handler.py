@@ -122,7 +122,7 @@ class SwingStudioHandler(StudioInterface):
         self.searchDialog = SearchFilesDialog(parent = parent, text = text, entity = entity, project = project, task_types = task_types, status_types = status_types)
         result = self.searchDialog.exec_()
         if result:
-            downloadDialog = DownloadDialogGUI(parent = parent, handler = self, entity = entity, file_list = self.searchDialog.get_file_list())
+            downloadDialog = DownloadDialogGUI(parent = parent, handler = self, file_list = self.searchDialog.get_file_list())
             downloadDialog.show()     
 
     def on_entity_info(self, **kwargs):

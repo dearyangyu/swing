@@ -493,15 +493,12 @@ class DownloadSignal(QtCore.QObject):
 
 class FileDownloader(QtCore.QRunnable):
 
-    def __init__(self, parent, working_dir, file_id, url, target, skip_existing = True, extract_zips = False, params = {}):
+    def __init__(self, parent, file_id, url, target, skip_existing = True, extract_zips = False, params = {}):
         super(FileDownloader, self).__init__(self, parent)
         self.parent = parent
-        self.working_dir = working_dir
         self.file_id = file_id
         self.url = url
         self.target = target
-
-        self.swing_settings = SwingSettings.get_instance()
 
         self.skip_existing = skip_existing
         self.extract_zips = extract_zips
@@ -514,13 +511,13 @@ class FileDownloader(QtCore.QRunnable):
             "message": "downloading",
             "file_id": self.file_id,
             "target": self.target,
-            "working_dir": self.working_dir,
             "size": count
         }
         self.callback.progress.emit(results)
 
     def run(self):
-        filename, file_extension = os.path.splitext(self.target)
+        filename, file_extension = os.path.splitext(os.path.basename(self.target))
+        working_dir = os.path.dirname(self.target)
 
         ###
         # check if the file exists
@@ -536,23 +533,23 @@ class FileDownloader(QtCore.QRunnable):
                     "message": "Skipped existing file",
                     "file_id": self.file_id,
                     "target": self.target,
-                    "working_dir": self.working_dir,
+                    "working_dir": working_dir,
                     "size": size
                 }
                 self.callback.done.emit(status)
                 return
 
-            if os.path.exists(os.path.join(self.working_dir, filename)):
+            if os.path.exists(os.path.join(working_dir, filename)):
                 write_log("Working path exists {}".format(os.path.join(self.working_dir, filename)))
 
-                if os.path.isfile(os.path.join(self.working_dir, filename)):
+                if os.path.isfile(os.path.join(working_dir, filename)):
                     size = os.path.getsize(self.target)                
                     status = {
                         "status": "skipped",
                         "message": "Skipped existing file",
                         "file_id": self.file_id,
                         "target": self.target,
-                        "working_dir": self.working_dir,
+                        "working_dir": working_dir,
                         "size": size
                     }
                 else:
@@ -561,19 +558,19 @@ class FileDownloader(QtCore.QRunnable):
                         "message": "Skipped existing directory",
                         "file_id": self.file_id,
                         "target": self.target,
-                        "working_dir": self.working_dir
+                        "working_dir": working_dir
                     }                    
                 self.callback.done.emit(status)
                 return                
         ###
 
-        self.params["username"] = self.swing_settings.swing_user()
-        self.params["password"] = self.swing_settings.swing_password()
+        self.params["username"] = SwingSettings.get_instance().swing_user()
+        self.params["password"] = SwingSettings.get_instance().swing_password()
 
-        if not os.path.exists(self.working_dir):
+        if not os.path.exists(working_dir):
             try:
-                os.makedirs(self.working_dir)   
-                print("Made dir: {}".format(self.working_dir))     
+                os.makedirs(working_dir)   
+                print("Made dir: {}".format(os.path.dirname(working_dir)))
             except:
                 pass
 
@@ -581,6 +578,7 @@ class FileDownloader(QtCore.QRunnable):
         rq = requests.post(self.url, data = self.params, stream = True)
         if rq.status_code == 200:
             with open(self.target, 'wb') as out:
+                # download in 1 MB chunks
                 for bits in rq.iter_content(1024 * 1024):
                     out.write(bits)        
                     count += len(bits)
@@ -591,7 +589,7 @@ class FileDownloader(QtCore.QRunnable):
                 "message": "Error downloading file",
                 "file_id": self.file_id,
                 "target": self.target,
-                "working_dir": self.working_dir,
+                "working_dir": working_dir,
                 "size": 0
             }   
             self.callback.done.emit(status)            
@@ -605,14 +603,14 @@ class FileDownloader(QtCore.QRunnable):
         size = os.path.getsize(self.target)
         ###
         if self.extract_zips and file_extension.lower() in  [ ".zip", ".rar" ]:
-            zip_root = os.path.normpath(os.path.join(self.working_dir, filename))
+            zip_root = os.path.normpath(os.path.join(working_dir, filename))
 
             status = {
                 "status": "ok",
                 "message": "Extracting zip",
                 "file_id": self.file_id,
                 "target": zip_root,
-                "working_dir": self.working_dir,
+                "working_dir": working_dir,
                 "size": size
             }   
             self.callback.progress.emit(status)
@@ -622,13 +620,13 @@ class FileDownloader(QtCore.QRunnable):
             except:
                 pass
 
-            if extract_archive(self.swing_settings.bin_7z(), self.target, zip_root):
+            if extract_archive(SwingSettings.get_instance().bin_7z(), self.target, zip_root):
                 status = {
                     "status": "ok",
                     "message": "Extracted zip",
                     "file_id": self.file_id,
                     "target": zip_root,
-                    "working_dir": self.working_dir,
+                    "working_dir": working_dir,
                     "size": size
                 }   
                 self.callback.progress.emit(status)  
@@ -638,7 +636,7 @@ class FileDownloader(QtCore.QRunnable):
                     "message": "Error extracting zip",
                     "file_id": self.file_id,
                     "target": zip_root,
-                    "working_dir": self.working_dir,
+                    "working_dir": working_dir,
                     "size": size
                 }   
                 self.callback.progress.emit(status)                               
@@ -648,7 +646,7 @@ class FileDownloader(QtCore.QRunnable):
             "message": "Download complete",
             "file_id": self.file_id,
             "target": self.target,
-            "working_dir": self.working_dir,
+            "working_dir": working_dir,
             "size": size            
         }
 

@@ -179,7 +179,7 @@ class SwingUpdateTaskDialog(QtWidgets.QDialog, Ui_SwingUpdateTask):
 
                 url = "{}/api/working_file/{}".format(edit_api, item["id"])
 
-                worker = FileDownloader(self, working_dir, item["id"], url, item["target_path"], skip_existing = False, extract_zips = True)
+                worker = FileDownloader(self, item["id"], url, item["target_path"], skip_existing = False, extract_zips = True)
 
                 worker.callback.progress.connect(self.file_loading)
                 worker.callback.done.connect(self.file_loaded)

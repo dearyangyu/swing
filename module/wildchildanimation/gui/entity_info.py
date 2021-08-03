@@ -383,7 +383,7 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
         skip_existing = self.checkBoxSkipExisting.isChecked()
         extract_zips = self.checkBoxExtractZips.isChecked()
 
-        process_downloads(self, self.threadpool, file_list, self.progressBar, self.file_loading, self.file_loaded, self.working_dir, skip_existing, extract_zips) 
+        process_downloads(self, self.threadpool, file_list, self.progressBar, self.file_loading, self.file_loaded, skip_existing, extract_zips) 
 
 ### end of class
 

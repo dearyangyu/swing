@@ -28,7 +28,7 @@ from wildchildanimation.gui.swing_utils import save_password, load_keyring, set_
 class SwingSettings(QtCore.QObject):
 
     _APP_NAME = "treehouse: swing"
-    _APP_VERSION = "0.0.0.24"
+    _APP_VERSION = "0.0.0.25"
 
     #
     # Singleton

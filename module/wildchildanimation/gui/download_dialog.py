@@ -12,6 +12,7 @@ from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
+
 from wildchildanimation.gui.swing_utils import fakestr
 class Ui_DownloadDialog(object):
     def setupUi(self, DownloadDialog):
@@ -22,48 +23,6 @@ class Ui_DownloadDialog(object):
         DownloadDialog.setMinimumSize(QSize(640, 480))
         self.verticalLayout = QVBoxLayout(DownloadDialog)
         self.verticalLayout.setObjectName(u"verticalLayout")
-        self.horizontalLayout_6 = QHBoxLayout()
-        self.horizontalLayout_6.setObjectName(u"horizontalLayout_6")
-        self.labelEntity = QLabel(DownloadDialog)
-        self.labelEntity.setObjectName(u"labelEntity")
-        self.labelEntity.setMinimumSize(QSize(100, 0))
-
-        self.horizontalLayout_6.addWidget(self.labelEntity)
-
-        self.lineEditEntity = QLineEdit(DownloadDialog)
-        self.lineEditEntity.setObjectName(u"lineEditEntity")
-
-        self.horizontalLayout_6.addWidget(self.lineEditEntity)
-
-        self.toolButtonWeb = QToolButton(DownloadDialog)
-        self.toolButtonWeb.setObjectName(u"toolButtonWeb")
-
-        self.horizontalLayout_6.addWidget(self.toolButtonWeb)
-
-
-        self.verticalLayout.addLayout(self.horizontalLayout_6)
-
-        self.horizontalLayout = QHBoxLayout()
-        self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.labelWorkingDirectory = QLabel(DownloadDialog)
-        self.labelWorkingDirectory.setObjectName(u"labelWorkingDirectory")
-        self.labelWorkingDirectory.setMinimumSize(QSize(100, 0))
-
-        self.horizontalLayout.addWidget(self.labelWorkingDirectory)
-
-        self.lineEditWorkingDirectory = QLineEdit(DownloadDialog)
-        self.lineEditWorkingDirectory.setObjectName(u"lineEditWorkingDirectory")
-
-        self.horizontalLayout.addWidget(self.lineEditWorkingDirectory)
-
-        self.toolButtonWorkingDir = QToolButton(DownloadDialog)
-        self.toolButtonWorkingDir.setObjectName(u"toolButtonWorkingDir")
-
-        self.horizontalLayout.addWidget(self.toolButtonWorkingDir)
-
-
-        self.verticalLayout.addLayout(self.horizontalLayout)
-
         self.horizontalLayout_2 = QHBoxLayout()
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
         self.horizontalSpacer_4 = QSpacerItem(10, 20, QSizePolicy.Minimum, QSizePolicy.Minimum)
@@ -168,10 +127,6 @@ class Ui_DownloadDialog(object):
 
     def retranslateUi(self, DownloadDialog):
         DownloadDialog.setWindowTitle(fakestr(u"Download Files", None))
-        self.labelEntity.setText(fakestr(u"Entity", None))
-        self.toolButtonWeb.setText(fakestr(u"...", None))
-        self.labelWorkingDirectory.setText(fakestr(u"Root Folder", None))
-        self.toolButtonWorkingDir.setText(fakestr(u"...", None))
         self.checkBoxSkipExisting.setText(fakestr(u"Skip Existing Files", None))
         self.checkBoxExtractZips.setText(fakestr(u"Extract Zip Files", None))
         self.toolButtonAll.setText(fakestr(u"+", None))
