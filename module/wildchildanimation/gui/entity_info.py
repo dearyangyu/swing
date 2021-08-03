@@ -3,17 +3,12 @@
 import traceback
 import sys
 import os
-import re
-import copy
-import requests
 
 # ==== auto Qt load ====
 try:
     from PySide2 import QtGui
     from PySide2 import QtCore
     from PySide2 import QtWidgets
-    from shiboken2 import wrapInstance 
-    import PySide2.QtUiTools as QtUiTools
     qtMode = 0
 except ImportError:
     traceback.print_exc(file=sys.stdout)
@@ -21,20 +16,18 @@ except ImportError:
     from PyQt5 import QtGui, QtCore, QtWidgets
     import sip
     qtMode = 1
-    
-from datetime import datetime
 
-import wildchildanimation.gui.background_workers as bg
-from wildchildanimation.gui.image_loader import *
+from wildchildanimation.gui.background_workers import TaskTypeLoader, EntityFileLoader 
+from wildchildanimation.gui.settings import SwingSettings    
+from wildchildanimation.gui.image_loader import PreviewImageLoader
 
-from wildchildanimation.gui.swing_utils import *
-from wildchildanimation.gui.loader import *
-from wildchildanimation.gui.publish import *
-from wildchildanimation.gui.downloads import *
+from wildchildanimation.gui.loader import EntityLoaderThread
+from wildchildanimation.gui.publish import PublishDialogGUI
+from wildchildanimation.gui.downloads import LoaderDialogGUI, process_downloads
 
 from wildchildanimation.gui.entity_info_dialog import Ui_EntityInfoDialog
-from wildchildanimation.gui.publish_dialog import Ui_PublishDialog
 
+from wildchildanimation.gui.swing_utils import set_button_icon, set_target, open_folder
 from wildchildanimation.gui.swing_tables import human_size, FileTableModel, setup_file_table
 
 '''
@@ -46,15 +39,17 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
 
     working_dir = None
     
-    def __init__(self, parent = None, project_nav = None, entity = None, handler = None):
+    def __init__(self, parent = None, entity = None, handler = None, task_types = None):
         super(EntityInfoDialog, self).__init__(parent) # Call the inherited classes __init__ method
-        self.swing_settings = SwingSettings.getInstance()
+
+        self.swing_settings = SwingSettings.get_instance()
         self.setupUi(self)
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint ^ QtCore.Qt.WindowMinMaxButtonsHint)
-        self.nav = project_nav
+
         self.entity = entity 
         self.threadpool = QtCore.QThreadPool.globalInstance()
-        self.task_types = self.nav._task_types
+        self.task_types = task_types
+        
         self.file_list = None
         self.handler = handler
         self.tasks = None
@@ -69,40 +64,36 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
             loader.callback.loaded.connect(self.entity_loaded)
             self.threadpool.start(loader)
 
-        self.toolButtonWeb.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_CommandLink))
+        set_button_icon(self.toolButtonWeb, "../resources/fa-free/solid/info-circle.svg")
         self.toolButtonWeb.clicked.connect(self.open_url)
         self.toolButtonWeb.setEnabled(False)            
 
         self.pushButtonDownload.clicked.connect(self.download_files)
         self.pushButtonClose.clicked.connect(self.close_dialog)
 
-        self.toolButtonWorkingDir.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_DirOpenIcon))
+        set_button_icon(self.toolButtonWorkingDir, "../resources/fa-free/solid/folder.svg")
         self.toolButtonWorkingDir.clicked.connect(self.select_wcd)             
 
-        #self.toolButtonAll.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_DialogApplyButton))
-        #self.toolButtonAll.clicked.connect(self.select_all)
-        #self.toolButtonNone.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_DialogCancelButton))
-        #self.toolButtonNone.clicked.connect(self.select_none)
+        set_button_icon(self.toolButtonAll, "../resources/fa-free/solid/plus.svg")
+        self.toolButtonAll.clicked.connect(self.select_all)
+
+        set_button_icon(self.toolButtonNone, "../resources/fa-free/solid/minus.svg")
+        self.toolButtonNone.clicked.connect(self.select_none)        
 
         self.tableView.doubleClicked.connect(self.file_table_double_click)
         self.pushButtonPublish.clicked.connect(self.publish)
 
-        #self.toolButtonAll.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_DialogApplyButton))
-        self.toolButtonAll.clicked.connect(self.select_all)
-        #self.toolButtonNone.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_DialogCancelButton))
-        self.toolButtonNone.clicked.connect(self.select_none)
-
         self.setWorkingDir(self.swing_settings.swing_root())        
-
         self.checkBoxCasted.clicked.connect(self.check_casted)
 
     def check_casted(self):
         if self.entity:
-            loader = EntityFileLoader(self, self.nav, self.entity, self.working_dir, show_hidden = False, scan_cast = self.checkBoxCasted.isChecked())
+            loader = EntityFileLoader(self, entity = self.entity, working_dir = self.working_dir, show_hidden = False, scan_cast = self.checkBoxCasted.isChecked())
             loader.callback.loaded.connect(self.files_loaded)
+
             self.tableView.setEnabled(False)
-            ##self.threadpool.start(loader)        
-            loader.run()
+            self.threadpool.start(loader)        
+            # loader.run()
 
     def get_selected_task(self):
         return self.comboBoxTasks.currentData(QtCore.Qt.UserRole)
@@ -110,7 +101,7 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
     def publish(self):
         task = self.get_selected_task()
         if task:        
-            dialog = PublishDialogGUI(self, self.nav, self.handler, task)
+            dialog = PublishDialogGUI(self, self.nav, self.handler, task, task_types=self.task_types)
 
             #dialog = PublishDialogGUI(self, self.handler, gazu.task.get_task(task))
             #dialog.setMinimumWidth(640)
@@ -143,6 +134,8 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
 
     def entity_loaded(self, data):
         self.type = data["type"]
+        self.entity = data["entity"]
+        self.task_types = data["task_types"]
         self.shot = None
         self.asset = None
         self.project = data["project"]
@@ -181,7 +174,7 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
             self.shot = data["item"]
             self.url = data["url"]
             self.labelEntity.setText("Shot")
-            loader = EntityFileLoader(self, self.nav, self.shot, self.working_dir, show_hidden = False, scan_cast = self.checkBoxCasted.isChecked())
+            loader = EntityFileLoader(self, self.shot["id"], self.working_dir, show_hidden = False, scan_cast = self.checkBoxCasted.isChecked())
 
             if "code" in self.project:
                 sections.append(self.project["code"])
@@ -204,7 +197,7 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
             self.asset = data["item"]
             self.url = data["url"]
             self.labelEntity.setText("Asset")
-            loader = EntityFileLoader(self, self.nav, self.asset, self.working_dir, show_hidden = False, scan_cast = self.checkBoxCasted.isChecked())
+            loader = EntityFileLoader(self, self.asset["id"], self.working_dir, show_hidden = False, scan_cast = self.checkBoxCasted.isChecked())
 
             if "code" in self.project:
                 sections.append(self.project["code"])
@@ -281,8 +274,8 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
         message = results["message"]
         size = results["size"]
         file_id = results["file_id"]
-        file_name = results["target"]
-        working_dir = results["working_dir"]
+        #file_name = results["target"]
+        #working_dir = results["working_dir"]
 
         for row in range(self.tableView.model().rowCount()):
             index = self.tableView.model().index(row, 0)
@@ -316,10 +309,10 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
 
 
     def file_loading(self, result):
-        message = result["message"]
+        #message = result["message"]
         size = result["size"]
         file_id = result["file_id"]
-        file_name = result["target"]      
+        #file_name = result["target"]      
 
         for row in range(self.tableView.model().rowCount()):
             index = self.tableView.model().index(row, 0)
@@ -351,11 +344,11 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
                     open_folder(os.path.dirname(self.selected_file["target_path"]))
                     return True
 
-            dialog = LoaderDialogGUI(self, self.handler, self.entity)
-            dialog.load_files(self.file_list)
-            dialog.set_selected(self.selected_file)
+            self.loaderDialog = LoaderDialogGUI(parent = self.parentWidget(), handler = self.handler, entity = self.entity)
+            self.loaderDialog.load_files(self.file_list)
+            self.loaderDialog.set_selected(self.selected_file)
             #dialog.exec_()
-            dialog.show()
+            self.loaderDialog.show()
 
     def on_click(self, index):
         selected = self.tableView.model().data(index, QtCore.Qt.UserRole)      
@@ -392,5 +385,5 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
 
         process_downloads(self, self.threadpool, file_list, self.progressBar, self.file_loading, self.file_loaded, self.working_dir, skip_existing, extract_zips) 
 
-
+### end of class
 

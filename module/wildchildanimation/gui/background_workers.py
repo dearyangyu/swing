@@ -6,22 +6,16 @@ import gazu
 import json
 import sys
 import os
+
 import requests
 import zipfile
 
-from zipfile import ZipFile
-
-from requests_toolbelt.streaming_iterator import StreamingIterator
 from requests_toolbelt import (
     MultipartEncoder,
     MultipartEncoderMonitor
 )
 
 import urllib
-#from url six.moves import urllib
-
-from wildchildanimation.gui.settings import SwingSettings
-from wildchildanimation.gui.swing_utils import extract_archive
 
 # ==== auto Qt load ====
 try:
@@ -31,10 +25,9 @@ try:
 except ImportError:
     from PyQt5 import QtCore
     from PyQt5.QtCore import pyqtSignal
-
-from wildchildanimation.gui.swing_utils import write_log, resolve_content_path
+from wildchildanimation.gui.settings import SwingSettings
+from wildchildanimation.gui.swing_utils import write_log, resolve_content_path, extract_archive
 from wildchildanimation.gui.swing_updater import update
-from wildchildanimation.studio_interface import StudioInterface
 
 class LoadedSignal(QtCore.QObject):
     loaded = pyqtSignal(object)        
@@ -68,7 +61,9 @@ class SwingUpdater(QtCore.QRunnable):
         except:
             traceback.print_exc(file=sys.stdout)
         # done        
-
+'''
+    Loads all open projects, all episodes per project, all task types and softwares
+'''
 class ProjectLoaderThread(QtCore.QRunnable):
 
     def __init__(self, parent):
@@ -79,11 +74,13 @@ class ProjectLoaderThread(QtCore.QRunnable):
         results = {}
         try:
             try:
-                projects = gazu.project.all_open_projects()
+                #projects = gazu.project.all_open_projects()
+                projects = ProjectEpisodeLoader().run()
                 task_types = gazu.task.all_task_types()
                 software = gazu.files.all_softwares()
 
                 results["projects"] = projects
+                # results["project_data"] = project_data
                 results["task_types"] = task_types
                 results["software"] = software
 
@@ -92,6 +89,7 @@ class ProjectLoaderThread(QtCore.QRunnable):
             # done
         finally:
             self.callback.loaded.emit(results)
+            
 
 class ProjectHierarchyLoaderThread(QtCore.QRunnable):
 
@@ -162,7 +160,7 @@ class ProjectHierarchyLoaderThread(QtCore.QRunnable):
 class EntityFileLoaderOld(QtCore.QRunnable):
 
     def __init__(self, parent, project_nav, entity, working_dir, scan_cast = False):
-        super(EntityFileLoader, self).__init__(self, parent)
+        super(EntityFileLoaderOld, self).__init__(self, parent)
         self.nav = project_nav
         self.entity = entity
         self.working_dir = working_dir
@@ -240,25 +238,27 @@ class EntityFileLoaderOld(QtCore.QRunnable):
               
 class AssetTypeLoaderThread(QtCore.QRunnable):
 
-    def __init__(self, parent, project):
+    def __init__(self, parent, project_id):
         super(AssetTypeLoaderThread, self).__init__(self, parent)
-        self.project = project
+        self.project_id = project_id
         self.callback = LoadedSignal()        
 
     def run(self):
-        results = gazu.asset.all_asset_types_for_project(self.project)
+        results = gazu.asset.all_asset_types_for_project(gazu.project.get_project(self.project_id))
 
         self.callback.loaded.emit(results)        
 
 class AssetLoaderThread(QtCore.QRunnable):
 
-    def __init__(self, parent, project, asset_type):
+    def __init__(self, parent, project_id, asset_type):
         super(AssetLoaderThread, self).__init__(self, parent)
-        self.project = project
+        self.project_id = project_id
         self.asset_type = asset_type
         self.callback = LoadedSignal()        
 
     def run(self):
+        self.project = gazu.project.get_project(self.project_id)
+
         if self.asset_type:
             results = gazu.asset.all_assets_for_project_and_type(self.project, self.asset_type)
         else:
@@ -275,9 +275,10 @@ class EntityLoaderThread(QtCore.QRunnable):
 
     def run(self):
         results = {}
-
         entity = gazu.entity.get_entity(self.entity_id)
+
         results["entity"] = entity
+        results["task_types"] = gazu.task.all_task_types()
         results["type"] = entity["type"]
         results["history"] = []
 
@@ -313,28 +314,73 @@ class TaskFileInfoThread(QtCore.QRunnable):
     
     def run(self):
         task = gazu.task.get_task(self.task)
+
+        if task["entity_type"]["name"] == "Shot":
+            entity = gazu.shot.get_shot(task["entity_id"])
+        else:
+            entity = gazu.asset.get_asset(task["entity_id"])
+        
         project = task["project_id"]
         task_dir = gazu.files.build_working_file_path(task)
+        wf = gazu.files.get_last_working_files(task)
 
         results = {
             "task": task,
+            "working_files": wf,
+            "entity": entity,
             "task_dir": task_dir,
             "project_dir": resolve_content_path(task_dir, self.project_root),
             "project": project
         }
 
         self.callback.loaded.emit(results)        
+        return results
+
+class ToDoLoader(QtCore.QRunnable):
+
+    def __init__(self, project_id, episode_id, is_done = False):
+        super(ToDoLoader, self).__init__(self)
+        self.settings = SwingSettings.get_instance()
+        self.request_url = "{}/edit/api/task_list".format(self.settings.swing_server())
+        self.callback = LoadedSignal()    
+        self.project_id = project_id
+        self.episode_id = episode_id
+        self.is_done = is_done
+
+    def run(self):
+        params = { 
+            "username": self.settings.swing_user(),
+            "password": self.settings.swing_password(),
+            "episode_id": self.episode_id,
+            "project_id": self.project_id,
+            "is_done": self.is_done
+        }             
+
+        results = []
+        rq = requests.post(self.request_url, data = params)
+        if rq.status_code == 200:
+            found = rq.json()
+            for item in found:
+                results.append(item)
+
+        self.callback.loaded.emit(results)                        
+        return results               
 
 class TaskLoaderThread(QtCore.QRunnable):
 
     ALL_TASKS = False
 
-    def __init__(self, parent, project_nav, email, project_root):
+    def __init__(self, parent, project_id, episode_id, parent_id, task_types = [], status_types = []):
         super(TaskLoaderThread, self).__init__(self, parent)
         self.parent = parent
-        self.nav = project_nav
-        self.email = email
-        self.project_root = project_root
+
+        self.project_id = project_id
+        self.episode_id = episode_id
+        self.parent_id = parent_id
+        self.task_types = task_types
+        self.status_types = status_types
+
+        self.settings = SwingSettings.get_instance()
         self.callback = LoadedSignal()        
 
     #def due_date(self, elem):
@@ -349,46 +395,48 @@ class TaskLoaderThread(QtCore.QRunnable):
         return False
 
     def run(self):
-        if TaskLoaderThread.ALL_TASKS:
-            person = gazu.person.get_person_by_email(self.email)
-            task_list = gazu.task.all_tasks_for_person(person)
-        else:
-            task_list = gazu.user.all_tasks_to_do()
-
         results = {}
         tasks = []
 
-        current_project = self.nav.get_project()
-        current_episode = self.nav.get_episode()
+        task_list = ToDoLoader(self.project_id, self.episode_id).run()    
         
         task_types = {}
-        for item in self.nav.get_task_types():
-            task_types[item["id"]] = item
+        if self.task_types:
+            for item in self.task_types:
+                task_types[item["id"]] = item
 
         task_status = {}
-        for item in self.nav.get_task_status():
-            task_status[item["id"]] = item
+        if self.status_types:
+            for item in self.status_types:
+                task_status[item["id"]] = item
 
         for item in task_list:
-            if not item["project_id"] == current_project["id"]:
+            task = gazu.task.get_task(item["task_id"])
+
+            if len(task_types) > 0 and task["task_type_id"] not in task_types:
                 continue
 
-            if item["task_type_id"] in task_types:
-                if item["task_status_id"] in task_status:
-                    if current_episode and item["episode_id"] != current_episode["id"]:
-                        continue
-                    ##item["task_url"] = gazu.task.get_task_url(item)
-                    tasks.append(item)
+            if len(task_status) > 0 and task["task_status_id"] not in task_status:
+                continue
 
-        for item in tasks:
-            item["task_dir"] = gazu.files.build_working_file_path(item)
-            item["project_dir"] = resolve_content_path(item["task_dir"], self.project_root)
+            if self.parent_id:
+                if task["entity"]["id"] != self.parent_id:
+                    continue
 
-        results["project"] = current_project
-        results["episode"] = current_episode
+            task["task_dir"] = gazu.files.build_working_file_path(task)
+            task["project_dir"] = resolve_content_path(task["task_dir"], SwingSettings.get_instance().swing_root())
+        
+            tasks.append(task)
+
+        if self.episode_id and self.episode_id != 'All':
+            results["episode"] = gazu.shot.get_episode(self.episode_id)
+        else:
+            results["episode"] = { "id": "all", "name": "All" }
+
         results["tasks"] = tasks
 
         self.callback.loaded.emit(results)
+        return results
 
 class SoftwareLoader(QtCore.QRunnable):
 
@@ -404,6 +452,38 @@ class SoftwareLoader(QtCore.QRunnable):
             "software": software
         }
         self.callback.loaded.emit(results)        
+
+        return results
+
+class TaskTypeLoader(QtCore.QRunnable):
+
+    def __init__(self, parent):
+        super(TaskTypeLoader, self).__init__(self, parent)
+        self.parent = parent
+        self.callback = LoadedSignal()        
+
+    def run(self):
+        items = gazu.task.all_task_types()
+        results = {
+            "results": items
+        }
+        self.callback.loaded.emit(results)  
+        return results
+
+class StatusTypeLoader(QtCore.QRunnable):
+
+    def __init__(self, parent):
+        super(StatusTypeLoader, self).__init__(self, parent)
+        self.parent = parent
+        self.callback = LoadedSignal()        
+
+    def run(self):
+        items = gazu.task.all_task_statuses()
+        results = {
+            "results": items
+        }
+        self.callback.loaded.emit(results)                   
+        return results
 
 class DownloadSignal(QtCore.QObject):
 
@@ -421,7 +501,7 @@ class FileDownloader(QtCore.QRunnable):
         self.url = url
         self.target = target
 
-        self.swing_settings = SwingSettings.getInstance()
+        self.swing_settings = SwingSettings.get_instance()
 
         self.skip_existing = skip_existing
         self.extract_zips = extract_zips
@@ -441,7 +521,10 @@ class FileDownloader(QtCore.QRunnable):
 
     def run(self):
         filename, file_extension = os.path.splitext(self.target)
+
         ###
+        # check if the file exists
+        #
         if self.skip_existing:
             # check if the target 
             if os.path.exists(self.target):
@@ -462,26 +545,35 @@ class FileDownloader(QtCore.QRunnable):
             if os.path.exists(os.path.join(self.working_dir, filename)):
                 write_log("Working path exists {}".format(os.path.join(self.working_dir, filename)))
 
-                size = os.path.getsize(self.target)                
-                status = {
-                    "status": "skipped",
-                    "message": "Skipped existing file",
-                    "file_id": self.file_id,
-                    "target": self.target,
-                    "working_dir": self.working_dir,
-                    "size": size
-                }
+                if os.path.isfile(os.path.join(self.working_dir, filename)):
+                    size = os.path.getsize(self.target)                
+                    status = {
+                        "status": "skipped",
+                        "message": "Skipped existing file",
+                        "file_id": self.file_id,
+                        "target": self.target,
+                        "working_dir": self.working_dir,
+                        "size": size
+                    }
+                else:
+                    status = {
+                        "status": "skipped",
+                        "message": "Skipped existing directory",
+                        "file_id": self.file_id,
+                        "target": self.target,
+                        "working_dir": self.working_dir
+                    }                    
                 self.callback.done.emit(status)
                 return                
+        ###
 
         self.params["username"] = self.swing_settings.swing_user()
         self.params["password"] = self.swing_settings.swing_password()
 
-        target_dir = os.path.dirname(self.target)
-        if not os.path.exists(target_dir):
+        if not os.path.exists(self.working_dir):
             try:
-                os.makedirs(target_dir)   
-                # print("Made dir: {}".format(target_dir))     
+                os.makedirs(self.working_dir)   
+                print("Made dir: {}".format(self.working_dir))     
             except:
                 pass
 
@@ -498,7 +590,7 @@ class FileDownloader(QtCore.QRunnable):
                 "status": "error",
                 "message": "Error downloading file",
                 "file_id": self.file_id,
-                "target": target_dir,
+                "target": self.target,
                 "working_dir": self.working_dir,
                 "size": 0
             }   
@@ -512,7 +604,7 @@ class FileDownloader(QtCore.QRunnable):
 
         size = os.path.getsize(self.target)
         ###
-        if self.extract_zips and file_extension.lower() in StudioInterface.UNARCHIVE_TYPES:
+        if self.extract_zips and file_extension.lower() in  [ ".zip", ".rar" ]:
             zip_root = os.path.normpath(os.path.join(self.working_dir, filename))
 
             status = {
@@ -565,8 +657,6 @@ class FileDownloader(QtCore.QRunnable):
 
 
 ##############################################################################################################################################################################################
-##############################################################################################################################################################################################
-##############################################################################################################################################################################################
 
 class UploadSignal(QtCore.QObject):
 
@@ -601,7 +691,7 @@ def create_callback(encoder, upload_signal, source):
 
 class WorkingFileUploader(QtCore.QRunnable):
 
-    def __init__(self, parent, edit_api, task, source, file_name, software_name, comment = '', mode = "working", filter = []):
+    def __init__(self, parent, edit_api, task, source, file_name, software_name, comment = '', mode = "working", filter = [], task_status = None):
         super(WorkingFileUploader, self).__init__(self, parent)
         self.parent = parent
         self.url = edit_api
@@ -609,10 +699,11 @@ class WorkingFileUploader(QtCore.QRunnable):
         self.source = source
         self.file_name = file_name
         self.task = task
+        self.task_status = task_status
         self.software_name = software_name
         self.comment = comment
 
-        self.swing_settings = SwingSettings.getInstance()
+        self.swing_settings = SwingSettings.get_instance()
 
         self.email = self.swing_settings.swing_user()
         self.password = self.swing_settings.swing_password()
@@ -639,6 +730,7 @@ class WorkingFileUploader(QtCore.QRunnable):
         encoder = MultipartEncoder(fields = { 
             "task_id": self.task["id"],
             "user_id": self.email,
+            "task_status": self.task_status,
             "software": self.software_name,
             "mode": self.mode,
             "file_name": upload_to,
@@ -717,8 +809,6 @@ class ShotCreatorSignal(QtCore.QObject):
     # setting up custom signal
     results = pyqtSignal(object) 
 
-
-
 class ShotCreator(QtCore.QRunnable):
 
     def __init__(self, parent, project, episode, sequence, shot_list):
@@ -745,7 +835,7 @@ class ShotCreator(QtCore.QRunnable):
         return False        
 
     def run(self):
-        settings = SwingSettings.getInstance()
+        settings = SwingSettings.get_instance()
         email = settings.swing_user()
         password = settings.swing_password()
         server = settings.swing_server()
@@ -916,30 +1006,35 @@ class SearchResultSignal(QtCore.QObject):
 
 class SearchFn(QtCore.QRunnable):
 
-    def __init__(self, parent, edit_api, email, password, list_of_names, project_nav, show_hidden = False):
+    def __init__(self, parent, list_of_names, project_id, show_hidden = False, task_types = None, status_types = None):
         super(SearchFn, self).__init__(self, parent)
         self.parent = parent
-        self.nav = project_nav
-        self.url = edit_api
-        self.email = email
-        self.password = password        
+
+        self.swing_settings = SwingSettings.get_instance()
+        self.project_id = project_id
+
+        self.email = self.swing_settings.swing_user()
+        self.password = self.swing_settings.swing_password()        
+        
         self.search_list = list_of_names
         self.show_hidden = show_hidden
+        self.task_types = task_types
+        self.status_types = status_types
+
         self.callback = SearchResultSignal()
 
     def run(self):
-        search_url = "{}/{}".format(self.url, "api/search/fn")
+        search_url = "{}/edit/api/search/fn".format(self.swing_settings.swing_server())
         results = []
 
-        task_types = []
-        if self.nav.is_task_types_filtered():
-            for item in self.nav.get_task_types():
-                task_types.append(item["id"])
-
-        status_types = []
-        if self.nav.is_status_types_filtered():
-            for item in self.nav.get_task_status():
-                status_types.append(item["id"])
+        user_task_types = []
+        if self.task_types:
+            for item in self.task_types:
+                user_task_types.append(item["id"])
+            if len(user_task_types) > 0:
+                task_types = ",".join(user_task_types)
+        else:
+            task_types = None
 
         count = 0
         for item in self.search_list:
@@ -948,9 +1043,9 @@ class SearchFn(QtCore.QRunnable):
                 "username": self.email,
                 "password": self.password,
                 "filename": "%{}%".format(item.strip()),
-                "project": self.nav.get_project()["id"],
+                "project": self.project_id,
                 "task_types": task_types, 
-                "task_status": status_types,
+                "task_status": self.status_types,
                 "show_hidden": self.show_hidden
             }             
 
@@ -962,20 +1057,21 @@ class SearchFn(QtCore.QRunnable):
             count += 1
 
         self.callback.results.emit(results)
-        return True        
+        return results
 
 class EntityFileLoader(QtCore.QRunnable):
 
-    def __init__(self, parent, project_nav, entity, working_dir, show_hidden = False, scan_cast = False):
+    def __init__(self, parent, entity_id, working_dir, task_types = [], status_types = [], show_hidden = False, scan_cast = False):
         super(EntityFileLoader, self).__init__(self, parent)
-        self.nav = project_nav
-        self.entity = entity
+        self.entity_id = entity_id
         self.working_dir = working_dir
         self.callback = LoadedSignal()    
         self.scan_cast = scan_cast
         self.show_hidden = show_hidden
+        self.task_types = task_types
+        self.status_types = status_types
 
-        settings = SwingSettings.getInstance()
+        settings = SwingSettings.get_instance()
         self.email = settings.swing_user()
         self.password = settings.swing_password()
         self.server = settings.swing_server()
@@ -983,22 +1079,22 @@ class EntityFileLoader(QtCore.QRunnable):
         self.edit_api = "{}/edit".format(self.server)
 
     def run(self):
-        url = "{}/{}/{}".format(self.edit_api, "entity_info", self.entity['id'])
+        url = "{}/{}/{}".format(self.edit_api, "entity_info", self.entity_id)
 
         task_types = []
-        if self.nav.is_task_types_filtered():
-            for item in self.nav.get_task_types():
+        if self.task_types:
+            for item in self.task_types:
                 task_types.append(item["id"])
 
         status_types = []
-        if self.nav.is_status_types_filtered():
-            for item in self.nav.get_task_status():
+        if self.status_types: 
+            for item in status_types:
                 status_types.append(item["id"])            
 
         params = { 
             "username": self.email,
             "password": self.password,
-            "project": self.nav.get_project()["id"],
+#            "project": self.entity["project_id"],
             "task_types": json.dumps(task_types), 
             "task_status": json.dumps(status_types),            
             "output": "json",
@@ -1015,3 +1111,88 @@ class EntityFileLoader(QtCore.QRunnable):
 
         self.callback.loaded.emit(results)                        
         return True               
+'''
+    Loads all open projects, all episodes per project
+'''
+class ProjectEpisodeLoader(QtCore.QRunnable):
+
+    def __init__(self):
+        super(ProjectEpisodeLoader, self).__init__(self)
+        self.settings = SwingSettings.get_instance()
+        self.request_url = "{}/edit/api/project_list".format(self.settings.swing_server())
+        self.callback = LoadedSignal()    
+
+    def run(self):
+        params = { 
+            "username": self.settings.swing_user(),
+            "password": self.settings.swing_password()
+        }             
+
+        results = []
+        rq = requests.post(self.request_url, data = params)
+        if rq.status_code == 200:
+            found = rq.json()
+            for item in found:
+                results.append(item)
+
+        self.callback.loaded.emit(results)                        
+        return results      
+
+class ProjectShotLoader(QtCore.QRunnable):
+
+    def __init__(self, episode_id):
+        super(ProjectShotLoader, self).__init__(self)
+        self.settings = SwingSettings.get_instance()
+        self.request_url = "{}/edit/api/shot_list".format(self.settings.swing_server())
+        self.episode_id = episode_id
+        self.callback = LoadedSignal()    
+
+    def run(self):
+        params = { 
+            "username": self.settings.swing_user(),
+            "password": self.settings.swing_password(),
+            "episode_id": self.episode_id
+        }             
+
+        results = []
+        rq = requests.post(self.request_url, data = params)
+        if rq.status_code == 200:
+            found = rq.json()
+            for item in found:
+                results.append(item)
+
+        self.callback.loaded.emit(results)                        
+        return results       
+
+class EntityTagLoader(QtCore.QRunnable):
+
+    def __init__(self, project_id, entity_id, entity_type = None):
+        super(EntityTagLoader, self).__init__(self)
+        self.settings = SwingSettings.get_instance()
+        self.request_url = "{}/edit/api/tags".format(self.settings.swing_server())
+        self.project_id = project_id
+        self.entity_id = entity_id
+        self.entity_type = entity_type
+        self.callback = LoadedSignal()    
+
+    def run(self):
+        params = { 
+            "username": self.settings.swing_user(),
+            "password": self.settings.swing_password(),
+            "project_id": self.project_id, 
+            "entity_id": self.entity_id,
+            "entity_type": self.entity_type
+        }             
+
+        results = []
+        rq = requests.post(self.request_url, data = params)
+
+        if rq.status_code == 200:
+            results = rq.json()
+
+        self.callback.loaded.emit(results)                        
+        return results       
+
+
+
+

@@ -9,16 +9,13 @@ import gazu
 
 # ==== auto Qt load ====
 try:
-    from PySide2 import QtGui
     from PySide2 import QtCore
     from PySide2 import QtWidgets
-    from shiboken2 import wrapInstance 
-    import PySide2.QtUiTools as QtUiTools
     qtMode = 0
 except ImportError:
     traceback.print_exc(file=sys.stdout)
 
-    from PyQt5 import QtGui, QtCore, QtWidgets
+    from PyQt5 import QtCore, QtWidgets
     import sip
     qtMode = 1
 

@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>CreateDialog</class>
- <widget class="QDialog" name="CreateDialog">
-  <property name="windowModality">
-   <enum>Qt::ApplicationModal</enum>
-  </property>
+ <class>SwingMayaTasksUI</class>
+ <widget class="QDialog" name="SwingMayaTasksUI">
   <property name="enabled">
    <bool>true</bool>
   </property>
@@ -12,15 +9,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>853</width>
-    <height>416</height>
+    <width>604</width>
+    <height>447</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>swing: create new entity</string>
-  </property>
-  <property name="modal">
-   <bool>true</bool>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -42,22 +36,6 @@
        </item>
        <item>
         <widget class="QLineEdit" name="lineEditEntity"/>
-       </item>
-       <item>
-        <widget class="QToolButton" name="toolButtonWeb">
-         <property name="minimumSize">
-          <size>
-           <width>40</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="toolTip">
-          <string>Opens link in Kitsu</string>
-         </property>
-         <property name="text">
-          <string>Web</string>
-         </property>
-        </widget>
        </item>
       </layout>
      </item>
@@ -95,46 +73,13 @@
       </layout>
      </item>
      <item>
-      <layout class="QHBoxLayout" name="horizontalLayoutSoftware">
-       <item>
-        <widget class="QLabel" name="labelSoftware">
-         <property name="minimumSize">
-          <size>
-           <width>100</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>Software</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QComboBox" name="comboBoxSoftware">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item>
       <layout class="QVBoxLayout" name="verticalLayoutEntityInfo">
        <item>
         <layout class="QHBoxLayout" name="horizontalLayoutFrameDetails">
          <item>
-          <widget class="QLabel" name="labelFrames">
-           <property name="minimumSize">
-            <size>
-             <width>100</width>
-             <height>0</height>
-            </size>
-           </property>
+          <widget class="QRadioButton" name="radioButton_2">
            <property name="text">
-            <string>Frame</string>
+            <string>Shot</string>
            </property>
           </widget>
          </item>
@@ -215,11 +160,15 @@
         </layout>
        </item>
        <item>
-        <widget class="QLabel" name="label">
-         <property name="text">
-          <string>Notes and Comments</string>
-         </property>
-        </widget>
+        <layout class="QHBoxLayout" name="horizontalLayout_4">
+         <item>
+          <widget class="QRadioButton" name="radioButton">
+           <property name="text">
+            <string>Asset:</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
        <item>
         <widget class="QTextEdit" name="textEditShotInfo">

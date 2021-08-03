@@ -13,7 +13,6 @@ from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
 from wildchildanimation.gui.swing_utils import fakestr
-
 class Ui_ProjectNavWidget(object):
     def setupUi(self, ProjectNavWidget):
         if not ProjectNavWidget.objectName():
@@ -54,22 +53,6 @@ class Ui_ProjectNavWidget(object):
 
         self.horizontalLayoutProjectTitle.addWidget(self.toolButtonRefresh)
 
-        self.progressBar = QProgressBar(ProjectNavWidget)
-        self.progressBar.setObjectName(u"progressBar")
-        self.progressBar.setEnabled(False)
-        sizePolicy1 = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        sizePolicy1.setHorizontalStretch(0)
-        sizePolicy1.setVerticalStretch(0)
-        sizePolicy1.setHeightForWidth(self.progressBar.sizePolicy().hasHeightForWidth())
-        self.progressBar.setSizePolicy(sizePolicy1)
-        self.progressBar.setMaximumSize(QSize(52, 16777215))
-        self.progressBar.setMaximum(1)
-        self.progressBar.setValue(-1)
-        self.progressBar.setTextVisible(False)
-        self.progressBar.setInvertedAppearance(False)
-
-        self.horizontalLayoutProjectTitle.addWidget(self.progressBar)
-
 
         self.verticalLayoutProject.addLayout(self.horizontalLayoutProjectTitle)
 
@@ -77,6 +60,9 @@ class Ui_ProjectNavWidget(object):
         self.horizontalLayoutEpisodeSequence.setObjectName(u"horizontalLayoutEpisodeSequence")
         self.labelShotEpisode = QLabel(ProjectNavWidget)
         self.labelShotEpisode.setObjectName(u"labelShotEpisode")
+        sizePolicy1 = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        sizePolicy1.setHorizontalStretch(0)
+        sizePolicy1.setVerticalStretch(0)
         sizePolicy1.setHeightForWidth(self.labelShotEpisode.sizePolicy().hasHeightForWidth())
         self.labelShotEpisode.setSizePolicy(sizePolicy1)
         self.labelShotEpisode.setMinimumSize(QSize(100, 0))

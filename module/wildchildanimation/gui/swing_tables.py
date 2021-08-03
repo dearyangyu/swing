@@ -11,8 +11,6 @@ try:
     from PySide2 import QtGui
     from PySide2 import QtCore
     from PySide2 import QtWidgets
-    from shiboken2 import wrapInstance 
-    import PySide2.QtUiTools as QtUiTools
     qtMode = 0
 except ImportError:
     traceback.print_exc(file=sys.stdout)
@@ -59,7 +57,7 @@ class CheckBoxDelegate(QtWidgets.QStyledItemDelegate):
         if event.button() == QtCore.Qt.LeftButton:
             if event.type() == QtCore.QEvent.MouseButtonRelease:
                 if self.getCheckBoxRect(option).contains(event.pos()):
-                    self.setModelData(None, model, index)
+                    self.setModelData(model, index)
                     return True
             elif event.type() == QtCore.QEvent.MouseButtonDblClick:
                 if self.getCheckBoxRect(option).contains(event.pos()):
@@ -67,9 +65,7 @@ class CheckBoxDelegate(QtWidgets.QStyledItemDelegate):
 
         return False
 
-    def setModelData(self, editor, model, index):
-        col = index.column()
-        row = index.row()
+    def setModelData(self, model, index):
         checked = not index.model().data(index, QtCore.Qt.DisplayRole)
         model.setData(index, checked, QtCore.Qt.EditRole)
 
@@ -93,8 +89,6 @@ class FileTableModel(QtCore.QAbstractTableModel):
     _COL_UPDATED = 4
     _COL_SIZE = 5
     _COL_COMMENT = 6
-    _COL_DESCRIPTION = 7
-    _COL_PATH = 8
 
     columns = [
         "", 
@@ -103,9 +97,7 @@ class FileTableModel(QtCore.QAbstractTableModel):
         "Task",
         "Updated", 
         "Size", 
-        "Comment", 
-        "Description", 
-        "Path"
+        "Comment"
     ]
     items = []
     selection = []
@@ -178,7 +170,7 @@ class FileTableModel(QtCore.QAbstractTableModel):
                 return item["file_name"]
             elif col == FileTableModel._COL_SIZE:
                 if "download_status" in item:
-                    if item['download_status'] == '2':
+                    if item['download_status'] == 2:
                         return ''
                         
                     if isinstance(item, dict):
@@ -203,12 +195,6 @@ class FileTableModel(QtCore.QAbstractTableModel):
                     return ""
             elif col == FileTableModel._COL_COMMENT:
                 return item["file_comment"]                
-            elif col == FileTableModel._COL_DESCRIPTION:
-                return item["file_description"]
-            elif col == FileTableModel._COL_PATH:
-                if item["file_path"] and len(item["file_path"]) > 0:
-                    return resolve_content_path(item["file_path"], "$/")
-                return ""
 
         if role == QtCore.Qt.BackgroundRole:
             col = index.column()
@@ -245,22 +231,19 @@ def setup_file_table(tableModelFiles, tableView):
     tableView.sortByColumn(FileTableModel._COL_UPDATED, QtCore.Qt.DescendingOrder)
 
     tableView.setColumnWidth(FileTableModel._COL_SELECT, 10)
-    tableView.setColumnWidth(FileTableModel._COL_FILE_NAME, 300)
+    tableView.setColumnWidth(FileTableModel._COL_FILE_NAME, 400)
     tableView.setColumnWidth(FileTableModel._COL_VERSION, 20)
-    tableView.setColumnWidth(FileTableModel._COL_TASK, 100)
-    tableView.setColumnWidth(FileTableModel._COL_UPDATED, 160)
-    tableView.setColumnWidth(FileTableModel._COL_SIZE, 80)
+    tableView.setColumnWidth(FileTableModel._COL_TASK, 150)
+    tableView.setColumnWidth(FileTableModel._COL_UPDATED, 180)
+    tableView.setColumnWidth(FileTableModel._COL_SIZE, 100)
     tableView.setColumnWidth(FileTableModel._COL_COMMENT, 200)
-    tableView.setColumnWidth(FileTableModel._COL_DESCRIPTION, 150)
-    tableView.setColumnWidth(FileTableModel._COL_PATH, 100)
 
     #tableView.horizontalHeader().setSectionResizeMode(FileTableModel._COL_PATH, QtWidgets.QHeaderView.Stretch)
 
     tableView.resizeRowsToContents()
-    tableView.horizontalHeader().setSectionResizeMode(8, QtWidgets.QHeaderView.Stretch)        
-
     tableView.verticalHeader().setDefaultSectionSize(tableView.verticalHeader().minimumSectionSize())        
-    tableView.horizontalHeader().setSectionResizeMode(FileTableModel._COL_PATH, QtWidgets.QHeaderView.Stretch)
+    tableView.horizontalHeader().setSectionResizeMode(FileTableModel._COL_FILE_NAME, QtWidgets.QHeaderView.Stretch)
+    tableView.horizontalHeader().setSectionResizeMode(FileTableModel._COL_COMMENT, QtWidgets.QHeaderView.Stretch)
 
     checkboxDelegate = CheckBoxDelegate()
     tableView.setItemDelegateForColumn(FileTableModel._COL_SELECT, checkboxDelegate)        
@@ -339,40 +322,49 @@ class TaskTableModel(QtCore.QAbstractTableModel):
             # .column() indexes into the sub-list
 
             if col == TaskTableModel.COL_PROJECT:
-                return item["project_name"].strip() + TaskTableModel.SPACE
+                return item["project"]["name"].strip() + TaskTableModel.SPACE
             elif col == TaskTableModel.COL_TYPE:
-                return item["task_type_name"].strip() + TaskTableModel.SPACE
+                return item["task_type"]["name"].strip() + TaskTableModel.SPACE
             elif col == TaskTableModel.COL_FOR:
                 text = ""
-                if "episode_name" in item and item["episode_name"]:
-                    text = item["episode_name"]
+                if "episode" in item:
+                    text = item["episode"]["name"]
 
-                if "sequence_name" in item and item["sequence_name"]:
-                    text = "{} {}".format(text, item["sequence_name"])
+                if "sequence" in item:
+                    text = "{} {}".format(text, item["sequence"]["name"])
 
-                if item["entity_type_name"]:
-                    text = "{} {}".format(text, item["entity_type_name"])
+                if item["entity_type"]:
+                    text = "{} {}".format(text, item["entity_type"]["name"])
 
                 return text.strip()  + TaskTableModel.SPACE
+
             elif col == TaskTableModel.COL_ENTITY:
-                text = item["entity_name"]
+                text = item["entity"]["name"]
+
                 return text.strip()
+
             elif col == TaskTableModel.COL_DUE:
                 if item["due_date"]:
                     text = item["due_date"]
                     if text and len(text) == 19:
                         my_date = datetime.strptime(text, "%Y-%m-%dT%H:%M:%S")
                         return my_date.strftime("%Y-%m-%d")
+
                 return None
+
             elif col == TaskTableModel.COL_STATUS:
-                return item["task_status_name"].strip()  + TaskTableModel.SPACE
+                return item["task_status"]["name"].strip()  + TaskTableModel.SPACE
+
             elif col == TaskTableModel.COL_DESCRIPTION:
                 if item["description"]:
                     return item["description"].strip()
-                if item["entity_description"]:
-                    return item["entity_description"].strip()
-                if item["last_comment"]:
-                    return item["last_comment"]["text"].strip()
+
+                if item["entity"] and item["entity"]["description"]:
+                    return item["entity"]["description"].strip()
+
+                return ""
+                #if item["last_comment"] and item["last_comment"]["text"]:
+                #    return item["last_comment"]["text"].strip()
 
         if role == QtCore.Qt.BackgroundRole:
             col = index.column()
@@ -380,11 +372,11 @@ class TaskTableModel(QtCore.QAbstractTableModel):
             item = self.items[row]
 
             if col == TaskTableModel.COL_TYPE:
-                if "task_type_color" in item:
-                    return QtGui.QColor(item["task_type_color"])      
+                if "task_type" in item:
+                    return QtGui.QColor(item["task_type"]["color"])      
             elif col == TaskTableModel.COL_STATUS:
-                if "task_status_color" in item:
-                    return QtGui.QColor(item["task_status_color"])      
+                if "task_status" in item:
+                    return QtGui.QColor(item["task_status"]["color"])      
 
         return None
 ###########################################################################
@@ -430,6 +422,52 @@ class CastingTableModel(QtCore.QAbstractTableModel):
                 return item["asset_name"]
 
         return None
+
+class SecondaryAssetsFileTableModel(QtCore.QAbstractTableModel):    
+
+    COL_FILE_NAME = 0
+    COL_FILE_TYPE = 1
+
+    columns = [
+        "File Name", "File Type"
+    ]
+    items = []
+
+    def __init__(self, parent = None, items = [], entity = None):
+        QtCore.QAbstractTableModel.__init__(self, parent) 
+        self.items = items
+        self.entity = entity
+
+        for item in self.items:
+            item["selected"] = True
+
+    def rowCount(self, parent = QtCore.QModelIndex()):
+        return len(self.items)
+
+    def columnCount(self, parent = QtCore.QModelIndex()):
+        return len(self.columns)
+
+    def headerData(self, section, orientation, role):
+        if role == QtCore.Qt.DisplayRole:
+            if orientation == QtCore.Qt.Horizontal:
+                return str(self.columns[section])
+
+    def data(self, index, role):
+        col = index.column()
+        row = index.row()
+        item = self.items[row]
+
+        if role == QtCore.Qt.UserRole:
+            return item
+
+        if role == QtCore.Qt.DisplayRole:
+
+            if col == SecondaryAssetsFileTableModel.COL_FILE_NAME:
+                return item["item"]
+            elif col == SecondaryAssetsFileTableModel.COL_FILE_TYPE:
+                return item["type"]
+
+        return None        
 ###########################################################################
 
 def load_file_table_widget(tableWidget, model, working_dir = "{ROOT}/"):

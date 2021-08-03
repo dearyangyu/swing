@@ -24,13 +24,17 @@ echo "Compling loader dialog"
 c:\dev\github\wca-maya\venv\lib\site-packages\PySide2\uic --tr fakestr -g python -o c:\dev\Github\wca-maya\module\wildchildanimation\gui\loader_dialog.py c:\dev\Github\wca-maya\module\wildchildanimation\gui\forms\maya\loader_dialog.ui
 
 echo "Compling create dialog"
-c:\dev\github\wca-maya\venv\lib\site-packages\PySide2\uic --tr fakestr -g python -o c:\dev\Github\wca-maya\module\wildchildanimation\gui\create_dialog.py c:\dev\Github\wca-maya\module\wildchildanimation\gui\forms\maya\create_dialog.ui
+c:\dev\github\wca-maya\venv\lib\site-packages\PySide2\uic --tr fakestr -g python -o c:\dev\Github\wca-maya\module\wildchildanimation\gui\swing_create_dialog.py c:\dev\Github\wca-maya\module\wildchildanimation\gui\forms\maya\swing_create_dialog.ui
+
+echo "Update task dialog"
+c:\dev\github\wca-maya\venv\lib\site-packages\PySide2\uic --tr fakestr -g python -o c:\dev\Github\wca-maya\module\wildchildanimation\gui\swing_update_task_dialog.py c:\dev\Github\wca-maya\module\wildchildanimation\gui\forms\swing_update_task_dialog.ui
+
 
 echo "Compling upload monitor dialog"
 c:\dev\github\wca-maya\venv\lib\site-packages\PySide2\uic --tr fakestr -g python -o c:\dev\Github\wca-maya\module\wildchildanimation\gui\upload_monitor_dialog.py c:\dev\Github\wca-maya\module\wildchildanimation\gui\forms\maya\upload_monitor_dialog.ui
 
 echo "Compling upload monitor dialog"
-c:\dev\github\wca-maya\venv\lib\site-packages\PySide2\uic --tr fakestr -g python -o c:\dev\Github\wca-maya\module\wildchildanimation\gui\playblast_dialog.py c:\dev\Github\wca-maya\module\wildchildanimation\gui\forms\maya\playblast_dialog.ui
+c:\dev\github\wca-maya\venv\lib\site-packages\PySide2\uic --tr fakestr -g python -o c:\dev\Github\wca-maya\module\wildchildanimation\gui\swing_playblast_dialog.py c:\dev\Github\wca-maya\module\wildchildanimation\gui\forms\maya\swing_playblast_dialog.ui
 
 echo "Compling references dialog"
 c:\dev\github\wca-maya\venv\lib\site-packages\PySide2\uic --tr fakestr -g python -o c:\dev\Github\wca-maya\module\wildchildanimation\gui\references_dialog.py c:\dev\Github\wca-maya\module\wildchildanimation\gui\forms\maya\references_dialog.ui
@@ -43,6 +47,7 @@ c:\dev\github\wca-maya\venv\lib\site-packages\PySide2\uic --tr fakestr -g python
 
 echo "Compling dcctools dialog"
 c:\dev\github\wca-maya\venv\lib\site-packages\PySide2\uic --tr fakestr -g python -o c:\dev\Github\wca-maya\module\wildchildanimation\gui\dcc_tools_dialog.py c:\dev\Github\wca-maya\module\wildchildanimation\gui\forms\dcc_tools.ui
+c:\dev\github\wca-maya\venv\lib\site-packages\PySide2\uic --tr fakestr -g python -o c:\dev\Github\wca-maya\module\wildchildanimation\maya\swing_export_dialog.py c:\dev\Github\wca-maya\module\wildchildanimation\gui\forms\maya\swing_export.ui
 
 echo "Compling entity info dialog"
 c:\dev\github\wca-maya\venv\lib\site-packages\PySide2\uic --tr fakestr -g python -o c:\dev\Github\wca-maya\module\wildchildanimation\gui\entity_info_dialog.py c:\dev\Github\wca-maya\module\wildchildanimation\gui\forms\entity_info_dialog.ui
@@ -55,3 +60,6 @@ c:\dev\github\wca-maya\venv\lib\site-packages\PySide2\uic --tr fakestr -g python
 
 echo "Compiling resources"
 c:\dev\github\wca-maya\venv\lib\site-packages\PySide2\rcc -g python C:\DEV\Github\wca-maya\module\wildchildanimation\gui\forms\resources\swing_resources.qrc -o c:\dev\Github\wca-maya\module\wildchildanimation\gui\swing_resources.py
+
+echo "Compiling SwingMayaUI"
+c:\dev\github\wca-maya\venv\lib\site-packages\PySide2\uic --tr fakestr -g python -o c:\dev\Github\wca-maya\module\wildchildanimation\maya\swing_maya_control_ui.py C:\DEV\Github\wca-maya\module\wildchildanimation\gui\forms\maya\swing_maya_control.ui

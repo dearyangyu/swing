@@ -20,7 +20,13 @@
    <item>
     <layout class="QHBoxLayout" name="connectionLayout">
      <item>
-      <widget class="QPushButton" name="pushButtonSettings">
+      <widget class="QToolButton" name="toolButtonSettings">
+       <property name="minimumSize">
+        <size>
+         <width>80</width>
+         <height>0</height>
+        </size>
+       </property>
        <property name="toolTip">
         <string>Open connection settings</string>
        </property>
@@ -30,7 +36,13 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButtonConnect">
+      <widget class="QToolButton" name="toolButtonConnect">
+       <property name="minimumSize">
+        <size>
+         <width>80</width>
+         <height>0</height>
+        </size>
+       </property>
        <property name="toolTip">
         <string>Connect or reconnect to Treehouse</string>
        </property>
@@ -59,7 +71,13 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButtonPlayblast">
+      <widget class="QToolButton" name="toolButtonPlayblast">
+       <property name="minimumSize">
+        <size>
+         <width>80</width>
+         <height>0</height>
+        </size>
+       </property>
        <property name="toolTip">
         <string>Open DCC Playblast</string>
        </property>
@@ -69,7 +87,13 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButtonExport">
+      <widget class="QToolButton" name="toolButtonExport">
+       <property name="minimumSize">
+        <size>
+         <width>80</width>
+         <height>0</height>
+        </size>
+       </property>
        <property name="toolTip">
         <string>Open DCC Export</string>
        </property>
@@ -98,17 +122,29 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButtonBreakout">
+      <widget class="QToolButton" name="toolButtonLayout">
+       <property name="minimumSize">
+        <size>
+         <width>80</width>
+         <height>0</height>
+        </size>
+       </property>
        <property name="toolTip">
         <string>Open Shot Breakout</string>
        </property>
        <property name="text">
-        <string>Breakout</string>
+        <string>Layout</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButtonSearchFiles">
+      <widget class="QToolButton" name="toolButtonSearchFiles">
+       <property name="minimumSize">
+        <size>
+         <width>80</width>
+         <height>0</height>
+        </size>
+       </property>
        <property name="toolTip">
         <string>Search for files</string>
        </property>
@@ -215,11 +251,20 @@
        <property name="enabled">
         <bool>true</bool>
        </property>
+       <property name="minimumSize">
+        <size>
+         <width>80</width>
+         <height>0</height>
+        </size>
+       </property>
        <property name="toolTip">
         <string>Open Asset Information</string>
        </property>
        <property name="text">
-        <string>...</string>
+        <string> Asset Info</string>
+       </property>
+       <property name="toolButtonStyle">
+        <enum>Qt::ToolButtonTextBesideIcon</enum>
        </property>
       </widget>
      </item>
@@ -285,11 +330,20 @@
        <property name="enabled">
         <bool>true</bool>
        </property>
+       <property name="minimumSize">
+        <size>
+         <width>80</width>
+         <height>0</height>
+        </size>
+       </property>
        <property name="toolTip">
         <string>Open Shot Information</string>
        </property>
        <property name="text">
-        <string>...</string>
+        <string> Shot Info</string>
+       </property>
+       <property name="toolButtonStyle">
+        <enum>Qt::ToolButtonTextBesideIcon</enum>
        </property>
       </widget>
      </item>
@@ -300,7 +354,7 @@
      <item>
       <widget class="QTabWidget" name="tabWidget">
        <property name="currentIndex">
-        <number>1</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="tabTasks">
         <attribute name="title">
@@ -362,11 +416,36 @@
                <property name="enabled">
                 <bool>false</bool>
                </property>
+               <property name="minimumSize">
+                <size>
+                 <width>80</width>
+                 <height>0</height>
+                </size>
+               </property>
                <property name="toolTip">
                 <string>Create a new scene</string>
                </property>
                <property name="text">
-                <string>New</string>
+                <string> New</string>
+               </property>
+               <property name="toolButtonStyle">
+                <enum>Qt::ToolButtonTextBesideIcon</enum>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QToolButton" name="toolButtonLoad">
+               <property name="minimumSize">
+                <size>
+                 <width>80</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="text">
+                <string> Load</string>
+               </property>
+               <property name="toolButtonStyle">
+                <enum>Qt::ToolButtonTextBesideIcon</enum>
                </property>
               </widget>
              </item>
@@ -375,14 +454,23 @@
                <property name="enabled">
                 <bool>false</bool>
                </property>
+               <property name="minimumSize">
+                <size>
+                 <width>80</width>
+                 <height>0</height>
+                </size>
+               </property>
                <property name="toolTip">
                 <string>Publish current scene to Treehouse</string>
                </property>
                <property name="text">
-                <string>Publish</string>
+                <string> Publish</string>
                </property>
                <property name="shortcut">
                 <string>Alt+P</string>
+               </property>
+               <property name="toolButtonStyle">
+                <enum>Qt::ToolButtonTextBesideIcon</enum>
                </property>
               </widget>
              </item>
@@ -465,8 +553,17 @@
                <property name="enabled">
                 <bool>false</bool>
                </property>
+               <property name="minimumSize">
+                <size>
+                 <width>80</width>
+                 <height>0</height>
+                </size>
+               </property>
                <property name="text">
-                <string>Select All</string>
+                <string> All</string>
+               </property>
+               <property name="toolButtonStyle">
+                <enum>Qt::ToolButtonTextBesideIcon</enum>
                </property>
               </widget>
              </item>
@@ -475,21 +572,17 @@
                <property name="enabled">
                 <bool>false</bool>
                </property>
-               <property name="text">
-                <string>Select None</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QToolButton" name="toolButtonImport">
-               <property name="enabled">
-                <bool>false</bool>
+               <property name="minimumSize">
+                <size>
+                 <width>80</width>
+                 <height>0</height>
+                </size>
                </property>
                <property name="text">
-                <string>Import</string>
+                <string> None</string>
                </property>
-               <property name="shortcut">
-                <string>Alt+I</string>
+               <property name="toolButtonStyle">
+                <enum>Qt::ToolButtonTextBesideIcon</enum>
                </property>
               </widget>
              </item>
@@ -498,11 +591,42 @@
                <property name="enabled">
                 <bool>false</bool>
                </property>
+               <property name="minimumSize">
+                <size>
+                 <width>80</width>
+                 <height>0</height>
+                </size>
+               </property>
                <property name="text">
-                <string>Download</string>
+                <string> Download</string>
                </property>
                <property name="shortcut">
                 <string>Alt+D</string>
+               </property>
+               <property name="toolButtonStyle">
+                <enum>Qt::ToolButtonTextBesideIcon</enum>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QToolButton" name="toolButtonImport">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>80</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="text">
+                <string> Import</string>
+               </property>
+               <property name="shortcut">
+                <string>Alt+I</string>
+               </property>
+               <property name="toolButtonStyle">
+                <enum>Qt::ToolButtonTextBesideIcon</enum>
                </property>
               </widget>
              </item>
@@ -577,9 +701,15 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButtonClose">
+      <widget class="QToolButton" name="toolButtonClose">
+       <property name="minimumSize">
+        <size>
+         <width>80</width>
+         <height>0</height>
+        </size>
+       </property>
        <property name="text">
-        <string>Close</string>
+        <string> Close</string>
        </property>
       </widget>
      </item>

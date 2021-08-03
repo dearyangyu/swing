@@ -1,21 +1,27 @@
-# https://urllib3.readthedocs.io/en/latest/advanced-usage.html#ssl-warnings
-import urllib3
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-
 # -*- coding: utf-8 -*-
 #
 # Swing Standalone command line runner
 #
+
+#
+# Disable InsecureRequestWarning for now
+#
+# https://urllib3.readthedocs.io/en/latest/advanced-usage.html#ssl-warnings
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
 import os
 import sys
 
+#
+# add module root to sys path
 module_path = "{}/../../".format(__file__)
 module_path = os.path.dirname(os.path.realpath(module_path))
-sys.path.append(module_path)
+if not module_path in sys.path:
+    sys.path.append(module_path)
 
-from wildchildanimation.swing_gui import SwingGUI
-
+from wildchildanimation.gui.swing_gui import SwingGUI
+from wildchildanimation.studio.swing_studio_handler import SwingStudioHandler
 #
 #
 try:
@@ -26,10 +32,10 @@ except:
 
 # ==== auto Qt load ====
 try:
-    from PySide2.QtWidgets import QApplication, QWidget    
+    from PySide2.QtWidgets import QApplication
     qtMode = 0
 except ImportError:
-    from PyQt5.QtWidgets import QApplication, QWidget
+    from PyQt5.QtWidgets import QApplication
     qtMode = 1
 
 if __name__ == "__main__":
@@ -47,8 +53,7 @@ if __name__ == "__main__":
         # or in new API
         app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))        
     
-
-    SwingGUI.show_dialog()
+    SwingGUI.show_dialog(SwingStudioHandler())
     sys.exit(app.exec_())
 
 

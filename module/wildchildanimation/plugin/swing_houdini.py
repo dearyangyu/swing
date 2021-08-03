@@ -6,7 +6,7 @@ import sys
 
 sys.path.append("{0}".format(WCA_ROOT))
 from PyQt5.QtWidgets import QApplication, QWidget
-from wildchildanimation.swing_gui import SwingGUI
+from wildchildanimation.gui.swing_gui import SwingGUI
 
 # studio specific import callbacks 
 #sys.path.append("{0}/{1}".format(WCA_ROOT, "/plugin/treehouse"))

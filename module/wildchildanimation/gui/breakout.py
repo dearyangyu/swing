@@ -3,23 +3,19 @@
 import traceback
 import sys
 import os
-import re
 import json
 
 from wildchildanimation.gui.settings import SwingSettings
 
 # ==== auto Qt load ====
 try:
-    from PySide2 import QtGui
     from PySide2 import QtCore
     from PySide2 import QtWidgets
-    from shiboken2 import wrapInstance 
-    import PySide2.QtUiTools as QtUiTools
     qtMode = 0
 except ImportError:
     traceback.print_exc(file=sys.stdout)
 
-    from PyQt5 import QtGui, QtCore, QtWidgets
+    from PyQt5 import QtCore, QtWidgets
     import sip
     qtMode = 1
 
@@ -48,8 +44,8 @@ class BreakoutUploadDialog(QtWidgets.QDialog, Ui_BreakoutUploadDialog):
         self.setupUi(self)
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint ^ QtCore.Qt.WindowMinMaxButtonsHint)
 
-        self.toolButtonSelectPlayblasts.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_DirOpenIcon))
-        self.toolButtonSelectProjects.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_DirOpenIcon))
+        set_button_icon(self.toolButtonSelectPlayblasts, "../resources/fa-free/solid/info-circle.svg")
+        set_button_icon(self.toolButtonSelectProjects, "../resources/fa-free/solid/info-circle.svg")        
 
         self.pushButtonCancel.clicked.connect(self.close_dialog)
 
@@ -67,7 +63,7 @@ class BreakoutUploadDialog(QtWidgets.QDialog, Ui_BreakoutUploadDialog):
         self.episode = None
         self.sequences = None
         self.shot_list = {}
-        self.swing_settings = SwingSettings.getInstance()
+        self.swing_settings = SwingSettings.get_instance()
 
         self.lineEditPlayblastFolder.setText(load_settings("last_breakout_playblast", os.path.expanduser("~")))
         self.lineEditProjectsFolder.setText(load_settings("last_breakout_projects", os.path.expanduser("~")))
@@ -251,14 +247,10 @@ class BreakoutUploadDialog(QtWidgets.QDialog, Ui_BreakoutUploadDialog):
 
     def set_episode(self, episode):
         self.episode = episode
-        self.sequences = self.episode["sequences"]
+        #self.sequences = self.episode["sequences"]
 
-        self.comboBoxSequence.clear()
-        for item in self.sequences:
-            self.comboBoxSequence.addItem(item["name"], userData = item) 
-
-    def set_sequence_index(self, index):
-        self.comboBoxSequence.setCurrentIndex(index)
+    def set_sequence(self, sequence):
+        self.comboBoxSequence.setCurrentIndex(self.comboBoxSequence.findData(sequence))
 
 class ShotlistModel(QtCore.QAbstractTableModel):
 

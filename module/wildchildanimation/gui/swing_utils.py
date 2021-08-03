@@ -13,12 +13,19 @@ import sys
 import gazu
 import keyring
 import os
-import os.path
 import re
 import zipfile, traceback
 import subprocess
 
 from datetime import datetime
+
+def load_combo(combo, items):
+    combo.blockSignals(True)
+    combo.clear()
+    for item in items:
+        combo.addItem(item["name"], userData = item)
+    combo.blockSignals(False)
+    return combo
 
 def get_platform():
     platforms = {
@@ -60,10 +67,16 @@ def open_folder(directory):
         write_log("[ERROR] Invalid directory path: {0}".format(directory))
 
 def resolve_content_path(path, local):
-    if path:
-        if "/mnt/content/productions" in path:
-            return path.replace("/mnt/content/productions", local)
-    return local
+    try:
+        if path:
+            if "/mnt/content/productions" in path:
+                path = path.replace('/mnt/content/productions', local)
+                return os.path.normpath(path)
+        return os.path.normpath(path)
+    except:
+        traceback.print_exc(file=sys.stdout)          
+
+    return path
 
 def set_target(file_item, local_root):
     if "file_path" in file_item:
@@ -73,10 +86,13 @@ def set_target(file_item, local_root):
 
     path = resolve_content_path(path, local_root)
 
+    if not "file_name" in file_item or not file_item["file_name"]:
+        return file_item
+
     if not path.endswith(file_item["file_name"]):
         path = "{}/{}".format(path, file_item["file_name"])
 
-    file_item["target_path"] = path
+    file_item["target_path"] = os.path.normpath(path)
     return file_item
  
 def load_settings(key, default):

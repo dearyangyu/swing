@@ -11,8 +11,8 @@
 from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
-
 from wildchildanimation.gui.swing_utils import fakestr
+
 
 class Ui_PublishDialog(object):
     def setupUi(self, PublishDialog):
@@ -201,11 +201,10 @@ class Ui_PublishDialog(object):
         self.verticalLayout_7.setObjectName(u"verticalLayout_7")
         self.verticalLayout_3 = QVBoxLayout()
         self.verticalLayout_3.setObjectName(u"verticalLayout_3")
-        self.referencesListView = QListView(self.tab_2)
-        self.referencesListView.setObjectName(u"referencesListView")
-        self.referencesListView.setMinimumSize(QSize(0, 20))
+        self.tableViewReferences = QTableView(self.tab_2)
+        self.tableViewReferences.setObjectName(u"tableViewReferences")
 
-        self.verticalLayout_3.addWidget(self.referencesListView)
+        self.verticalLayout_3.addWidget(self.tableViewReferences)
 
         self.horizontalLayout_8 = QHBoxLayout()
         self.horizontalLayout_8.setObjectName(u"horizontalLayout_8")

@@ -26,8 +26,8 @@ try:
 except:
     darkStyle = False
 
-from wildchildanimation.gui.swing_utils import connect_to_server, write_log, load_keyring, load_settings, save_settings, set_button_icon
-from wildchildanimation.gui.background_workers import ProjectLoaderThread, ProjectHierarchyLoaderThread
+from wildchildanimation.gui.swing_utils import connect_to_server, load_keyring, set_button_icon
+from wildchildanimation.gui.background_workers import ProjectLoaderThread, ProjectShotLoader
 from wildchildanimation.gui.project_nav_widget import Ui_ProjectNavWidget
 from wildchildanimation.gui.entity_select import *
 
@@ -38,12 +38,9 @@ class NavigationChangedSignal(QObject):
 
 class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
 
-    _projects = []
-    _episodes = []
-    _sequences = []
-
     _task_types = []
     _user_task_types = []
+
     _software = []
 
     _task_status = []
@@ -60,12 +57,10 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
         self.threadpool = QThreadPool.globalInstance()
 
         self.setupUi(self)
-        self.readSettings()
-        self.locked = True
+        self.read_settings()
 
-        self.toolButtonRefresh.setIcon(self.style().standardIcon(QStyle.SP_BrowserReload))
-
-        self.toolButtonRefresh.clicked.connect(self.load_project_hierarchy)
+        set_button_icon(self.toolButtonRefresh, "../resources/fa-free/solid/sync-solid.svg")
+        self.toolButtonRefresh.clicked.connect(self.load_open_projects)
 
         self.toolButtonTaskTypes.clicked.connect(self.select_task_types)
         set_button_icon(self.toolButtonTaskTypes, "../resources/fa-free/solid/list.svg")
@@ -74,7 +69,7 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
         set_button_icon(self.toolButtonStatusTypes, "../resources/fa-free/solid/tasks.svg")        
 
         self.signal = NavigationChangedSignal()
-        self.signal.selection_changed.connect(self.selection_changed)
+        #self.signal.selection_changed.connect(self.selection_changed)
 
         self.comboBoxProject.currentIndexChanged.connect(self.project_changed)
         self.comboBoxEpisode.currentIndexChanged.connect(self.episode_changed)
@@ -83,9 +78,10 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
         self.toggle_filter_buttons()
 
     # load main dialog state
-    def readSettings(self):
+    def read_settings(self):
         self.settings = QtCore.QSettings()
-        self.settings.beginGroup("ProjectNav")
+        self.settings.beginGroup(self.__class__.__name__)
+        
         self._user_task_types = self.settings.value("task_types", [])
         self._user_task_status = self.settings.value("status_codes", [])
         self.settings.endGroup()            
@@ -133,19 +129,21 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
         return self._status["projects"] and self._status["episodes"] and self._status["sequences"]
 
     def get_project(self):
-        if self.comboBoxProject.currentIndex() >= 0:
-            return self._projects[self.comboBoxProject.currentIndex()]
-        return None
+        return self.comboBoxProject.currentData()
+
+    def set_project(self, index):
+        self.comboBoxProject.setCurrentIndex(index)
+        self.project_changed(index)
 
     def get_episode(self):
-        if self.comboBoxEpisode.currentIndex() >= 0:
-            return self._episodes[self.comboBoxEpisode.currentIndex()]
-        return None
+        return self.comboBoxEpisode.currentData()
+
+    def set_episode(self, index):
+        self.comboBoxEpisode.setCurrentIndex(index)
+        self.episode_changed(index)
 
     def get_sequence(self):
-        if self.comboBoxSequence.currentIndex() >= 0:
-            return self._sequences[self.comboBoxSequence.currentIndex()]
-        return None
+        return self.comboBoxSequence.currentData()
 
     def get_task_types(self):
         if len(self._user_task_types) > 0 and len(self._user_task_types) != len(self._task_types):
@@ -166,39 +164,7 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
 
     def get_software(self):
         return self._software
-
-    def selection_changed(self, source, object):
-        if "project_changed" in source:
-            self.load_project_hierarchy()
-
-        elif "episode_changed" in source:
-            self.load_sequence()
-
-    def project_changed(self, index):
-        if index >= 0:
-            self.signal.selection_changed.emit("project_changed", { 
-                "project": self._projects[index],
-                "is_loaded": self.is_loaded()
-            } )
-
         ## write_log("project_changed", self._projects[index]["id"])
-
-    def episode_changed(self, index):
-        if index >= 0:
-            self.signal.selection_changed.emit("episode_changed", { 
-                "episode": self._episodes[index] 
-            } )
-
-        ## write_log("episode_changed", self._episodes[index]["id"])
-
-    def sequence_changed(self, index):
-        if index >= 0:
-            self.signal.selection_changed.emit("sequence_changed", { 
-                "sequence": self._sequences[index]["id"],
-                "name": self._sequences[index]["name"]
-            })
-
-        ## write_log("sequence_changed", self._sequences[index]["id"])
 
     def task_types_changed(self, selection):
         if len(selection) >= 0:
@@ -216,141 +182,139 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
 
         ## write_log("sequence_changed", self._sequences[index]["id"])
 
-    def lock_ui(self, enabled):
+    def project_hierarchy_loaded(self):
+        self.signal.selection_changed.emit("project_hierarchy_loaded", { 
+            "status": "OK"
+        })
+
+        ## write_log("sequence_changed", self._sequences[index]["id"])        
+
+    def set_enabled(self, enabled):
         ## print("projectNav is_locked {} should_lock {} is_loaded {}".format(self.locked, enabled, self.is_loaded()))
 
-        if enabled:
-            self.comboBoxProject.setEnabled(False)
-            self.comboBoxProject.blockSignals(True)
-
-            self.comboBoxEpisode.setEnabled(False)
-            self.comboBoxEpisode.blockSignals(True)
-
-            self.comboBoxSequence.setEnabled(False)
-            self.comboBoxSequence.blockSignals(True)
-
-            self.toolButtonTaskTypes.setEnabled(False)
-            self.toolButtonStatusTypes.setEnabled(False)
-
-            self.progressBar.setMaximum(0)
-            self.locked = False
-        else:
-            self.comboBoxProject.setEnabled(True)
-            self.comboBoxProject.blockSignals(False)
-
-            self.comboBoxEpisode.setEnabled(True)
-            self.comboBoxEpisode.blockSignals(False)
-
-            self.comboBoxSequence.setEnabled(True)
-            self.comboBoxSequence.blockSignals(False)
-
-            self.toolButtonTaskTypes.setEnabled(True)
-            self.toolButtonStatusTypes.setEnabled(True)
-
-            self.progressBar.setMaximum(1)
-            self.locked = True
+        self.comboBoxProject.setEnabled(enabled)
+        self.comboBoxEpisode.setEnabled(enabled)
+        self.comboBoxSequence.setEnabled(enabled)
+        self.toolButtonTaskTypes.setEnabled(enabled)
+        self.toolButtonStatusTypes.setEnabled(enabled)
 
     def load_open_projects(self):
-        self.lock_ui(True)
+        #self.comboBoxProject.clear()
+        #self.comboBoxEpisode.clear()        
+        #self.comboBoxSequence.clear()
 
         loader = ProjectLoaderThread(self)
         loader.callback.loaded.connect(self.projects_loaded)
-
-        self.threadpool.start(loader)        
-        #loader.run()
-
-    def load_project_hierarchy(self):
-        self.lock_ui(True)
         
+        self.set_enabled(False)
+        self.threadpool.start(loader)  
+
+    def projects_loaded(self, results): 
+        self._software = results["software"]
+        self._task_types = results["task_types"]
+
+        project_dict = {}
+        for item in results["projects"]:
+            project_id = item["project_id"]
+            if not project_id in project_dict:
+                project_dict[project_id] = { "project_id": project_id, "project": item["project"], "episodes": [] }
+
+            project = project_dict[project_id]
+            project["episodes"].append(item)
+
+        self._projects = []
+        for item in project_dict:
+            self._projects.append(project_dict[item])
+
+        self._status["projects"] = True
+        self._status["episodes"] = True
+
+        self.comboBoxProject.blockSignals(True)
+        self.comboBoxProject.clear()
+
+        for item in self._projects:
+            self.comboBoxProject.addItem(item["project"], userData = item)
+        self.comboBoxProject.blockSignals(False)
+
+        self.comboBoxEpisode.clear()
         self.comboBoxSequence.clear()
 
-        loader = ProjectHierarchyLoaderThread(self, self.get_project())
-        loader.callback.loaded.connect(self.hierarchy_loaded)
+        self.project_changed(self.comboBoxProject.currentIndex())
+        self.set_enabled(True)
 
-        self.threadpool.start(loader)     
-        #loader.run()
+    def project_changed(self, index):
+        project = self.comboBoxProject.itemData(index)
 
-    def load_sequence(self):
-        self.lock_ui(True)
-
+        self.comboBoxEpisode.clear()
         self.comboBoxSequence.clear()
-        self._sequences = []
 
+        self.comboBoxEpisode.blockSignals(True)
+
+        # Add Main Pack Episode placeholder for Asset Tasks
+        self.comboBoxEpisode.addItem("MP", userData = {"episode": "all", "episode_id": "All"} )
+        if "episodes" in project:
+            episodes = project["episodes"]
+            for item in episodes:
+                self.comboBoxEpisode.addItem(item["episode"], userData = item)
+            
+        self.comboBoxEpisode.blockSignals(False)
+
+        self.comboBoxEpisode.setCurrentIndex(0)   
+        self.episode_changed(self.comboBoxProject.currentIndex())
+        ## self.sequence_changed(self.comboBoxSequence.currentIndex())          
+
+    def episode_changed(self, index):
         episode = self.get_episode()
-        if not episode:
-            return False
 
-        if "sequences" in episode:
-            sequences = episode["sequences"]
+        if episode is None:
+            return
 
-            for item in sequences:
-                self._sequences.append(item)
+        loader = ProjectShotLoader(episode["episode_id"])
+        loader.callback.loaded.connect(self.sequence_loaded)
 
-            for item in self._sequences:
-                self.comboBoxSequence.addItem(item["name"])
+        loader.run()
+        if index >= 0:
+            self.signal.selection_changed.emit("episode_changed", { 
+                "episode": self.get_episode()
+            } )
+
+    def sequence_loaded(self, results):
+        sequence_dict = {}
+
+        for item in results:
+            sequence_id = item["sequence_id"]
+
+            if not sequence_id in sequence_dict:
+                sequence_dict[sequence_id] = { "sequence_id": item["sequence_id"], "sequence": item["sequence"], "episode_id": item["episode_id"] }
+
+            sequence = sequence_dict[sequence_id]
+            if not "shots" in sequence:
+                sequence["shots"] = []
+
+            shots = sequence["shots"]
+            shots.append(item)
+
+        self.comboBoxSequence.blockSignals(True)
+        self.comboBoxSequence.clear()
+        self.comboBoxSequence.addItem("All", userData = {"sequence": "all", "sequence_id": "All"})
+        for item in sequence_dict.values():
+            self.comboBoxSequence.addItem(item["sequence"], userData = item)
+        self.comboBoxSequence.blockSignals(False)                
 
         self._status["sequences"] = True
 
+        self.set_enabled(True)
+
+        self.comboBoxSequence.setCurrentIndex(0)
         self.sequence_changed(self.comboBoxSequence.currentIndex())
-        self.lock_ui(False)
 
-    def hierarchy_loaded(self, results): 
-        self.comboBoxEpisode.clear()
-        self._task_types = []
-        self._episodes = []        
-
-        if len(results["task_types"]) * len(results["episodes"]) * len(results["status_codes"]) > 0:
-            for item in results["task_types"]:
-                if item not in self._task_types:
-                    self._task_types.append(copy.copy(item))
-
-            for item in results["status_codes"]:
-                if item not in self._task_status:
-                    self._task_status.append(copy.copy(item))
-
-            for item in results["episodes"]:
-                self._episodes.append(copy.copy(item))
-
-            for item in self._episodes:
-                self.comboBoxEpisode.addItem(item["name"])
-
-            if len(self._episodes) > 0:
-                self.comboBoxEpisode.setEnabled(True)
-                self.episode_changed(self.comboBoxEpisode.currentIndex())
-            else:
-                self.comboBoxEpisode.setEnabled(False)
-
-            if len(self._sequences) > 0:
-                self.comboBoxSequence.setEnabled(True)
-                self.sequence_changed(self.comboBoxSequence.currentIndex())            
-            else:
-                self.comboBoxSequence.setEnabled(True)
-
-        self._status["episodes"] = True
-        self.lock_ui(False)
-        
-
-    def projects_loaded(self, results): 
-        ## write_log("[projects_loaded]")
-
-        self._projects = []
-        self._task_types = []
-
-        if len(results) > 0:
-            for item in results["projects"]:
-                self._projects.append(copy.copy(item))
-
-            for item in results["task_types"]:
-                self._task_types.append(copy.copy(item))
-
-            for item in self._projects:
-                self.comboBoxProject.addItem(item["name"])
-
-            for item in results["software"]:
-                self._software.append(copy.copy(item))
-
-        self._status["projects"] = True
-        self.load_project_hierarchy()
+    def sequence_changed(self, index):
+        if index >= 0:
+            sequence = self.get_sequence()
+            self.signal.selection_changed.emit("sequence_changed", { 
+                "sequence": sequence, 
+                "name": sequence["sequence"]
+            })
 
 
 if __name__ == "__main__":

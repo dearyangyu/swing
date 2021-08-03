@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'playblast_dialog.ui'
+## Form generated from reading UI file 'swing_playblast_dialog.ui'
 ##
 ## Created by: Qt User Interface Compiler version 5.15.2
 ##
@@ -11,7 +11,6 @@
 from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
-
 from wildchildanimation.gui.swing_utils import fakestr
 
 class Ui_PlayblastDialog(object):
@@ -24,31 +23,37 @@ class Ui_PlayblastDialog(object):
         self.verticalLayout_3.setObjectName(u"verticalLayout_3")
         self.verticalLayoutPathing = QVBoxLayout()
         self.verticalLayoutPathing.setObjectName(u"verticalLayoutPathing")
-        self.horizontalLayoutDirectory = QHBoxLayout()
-        self.horizontalLayoutDirectory.setObjectName(u"horizontalLayoutDirectory")
-        self.projectFileLabel = QLabel(PlayblastDialog)
-        self.projectFileLabel.setObjectName(u"projectFileLabel")
+        self.horizontalLayoutFile = QHBoxLayout()
+        self.horizontalLayoutFile.setObjectName(u"horizontalLayoutFile")
+        self.filename_label = QLabel(PlayblastDialog)
+        self.filename_label.setObjectName(u"filename_label")
         sizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.projectFileLabel.sizePolicy().hasHeightForWidth())
-        self.projectFileLabel.setSizePolicy(sizePolicy)
-        self.projectFileLabel.setMinimumSize(QSize(80, 0))
-        self.projectFileLabel.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+        sizePolicy.setHeightForWidth(self.filename_label.sizePolicy().hasHeightForWidth())
+        self.filename_label.setSizePolicy(sizePolicy)
+        self.filename_label.setMinimumSize(QSize(80, 0))
+        self.filename_label.setMaximumSize(QSize(80, 16777215))
+        self.filename_label.setAlignment(Qt.AlignLeading|Qt.AlignLeft|Qt.AlignVCenter)
 
-        self.horizontalLayoutDirectory.addWidget(self.projectFileLabel)
+        self.horizontalLayoutFile.addWidget(self.filename_label)
 
-        self.output_dir_path_le = QLineEdit(PlayblastDialog)
-        self.output_dir_path_le.setObjectName(u"output_dir_path_le")
+        self.output_filename_le = QLineEdit(PlayblastDialog)
+        self.output_filename_le.setObjectName(u"output_filename_le")
 
-        self.horizontalLayoutDirectory.addWidget(self.output_dir_path_le)
+        self.horizontalLayoutFile.addWidget(self.output_filename_le)
 
         self.output_dir_path_select_btn = QToolButton(PlayblastDialog)
         self.output_dir_path_select_btn.setObjectName(u"output_dir_path_select_btn")
         self.output_dir_path_select_btn.setMinimumSize(QSize(40, 0))
         self.output_dir_path_select_btn.setMaximumSize(QSize(40, 16777215))
 
-        self.horizontalLayoutDirectory.addWidget(self.output_dir_path_select_btn)
+        self.horizontalLayoutFile.addWidget(self.output_dir_path_select_btn)
+
+        self.force_overwrite_cb = QCheckBox(PlayblastDialog)
+        self.force_overwrite_cb.setObjectName(u"force_overwrite_cb")
+
+        self.horizontalLayoutFile.addWidget(self.force_overwrite_cb)
 
         self.output_dir_path_show_folder_btn = QPushButton(PlayblastDialog)
         self.output_dir_path_show_folder_btn.setObjectName(u"output_dir_path_show_folder_btn")
@@ -59,31 +64,7 @@ class Ui_PlayblastDialog(object):
         self.output_dir_path_show_folder_btn.setSizePolicy(sizePolicy1)
         self.output_dir_path_show_folder_btn.setMaximumSize(QSize(32, 16777215))
 
-        self.horizontalLayoutDirectory.addWidget(self.output_dir_path_show_folder_btn)
-
-
-        self.verticalLayoutPathing.addLayout(self.horizontalLayoutDirectory)
-
-        self.horizontalLayoutFile = QHBoxLayout()
-        self.horizontalLayoutFile.setObjectName(u"horizontalLayoutFile")
-        self.filename_label = QLabel(PlayblastDialog)
-        self.filename_label.setObjectName(u"filename_label")
-        sizePolicy.setHeightForWidth(self.filename_label.sizePolicy().hasHeightForWidth())
-        self.filename_label.setSizePolicy(sizePolicy)
-        self.filename_label.setMinimumSize(QSize(80, 0))
-        self.filename_label.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
-
-        self.horizontalLayoutFile.addWidget(self.filename_label)
-
-        self.output_filename_le = QLineEdit(PlayblastDialog)
-        self.output_filename_le.setObjectName(u"output_filename_le")
-
-        self.horizontalLayoutFile.addWidget(self.output_filename_le)
-
-        self.force_overwrite_cb = QCheckBox(PlayblastDialog)
-        self.force_overwrite_cb.setObjectName(u"force_overwrite_cb")
-
-        self.horizontalLayoutFile.addWidget(self.force_overwrite_cb)
+        self.horizontalLayoutFile.addWidget(self.output_dir_path_show_folder_btn)
 
 
         self.verticalLayoutPathing.addLayout(self.horizontalLayoutFile)
@@ -104,9 +85,9 @@ class Ui_PlayblastDialog(object):
         self.label_2.setObjectName(u"label_2")
         sizePolicy.setHeightForWidth(self.label_2.sizePolicy().hasHeightForWidth())
         self.label_2.setSizePolicy(sizePolicy)
-        self.label_2.setMinimumSize(QSize(100, 0))
-        self.label_2.setMaximumSize(QSize(100, 16777215))
-        self.label_2.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+        self.label_2.setMinimumSize(QSize(80, 0))
+        self.label_2.setMaximumSize(QSize(80, 16777215))
+        self.label_2.setAlignment(Qt.AlignLeading|Qt.AlignLeft|Qt.AlignVCenter)
 
         self.horizontalLayout_2.addWidget(self.label_2)
 
@@ -135,9 +116,9 @@ class Ui_PlayblastDialog(object):
         self.label_3.setObjectName(u"label_3")
         sizePolicy.setHeightForWidth(self.label_3.sizePolicy().hasHeightForWidth())
         self.label_3.setSizePolicy(sizePolicy)
-        self.label_3.setMinimumSize(QSize(100, 0))
-        self.label_3.setMaximumSize(QSize(100, 16777215))
-        self.label_3.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+        self.label_3.setMinimumSize(QSize(80, 0))
+        self.label_3.setMaximumSize(QSize(80, 16777215))
+        self.label_3.setAlignment(Qt.AlignLeading|Qt.AlignLeft|Qt.AlignVCenter)
 
         self.horizontalLayout_3.addWidget(self.label_3)
 
@@ -195,9 +176,9 @@ class Ui_PlayblastDialog(object):
         self.label_4.setObjectName(u"label_4")
         sizePolicy.setHeightForWidth(self.label_4.sizePolicy().hasHeightForWidth())
         self.label_4.setSizePolicy(sizePolicy)
-        self.label_4.setMinimumSize(QSize(100, 0))
-        self.label_4.setMaximumSize(QSize(100, 16777215))
-        self.label_4.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+        self.label_4.setMinimumSize(QSize(80, 0))
+        self.label_4.setMaximumSize(QSize(80, 16777215))
+        self.label_4.setAlignment(Qt.AlignLeading|Qt.AlignLeft|Qt.AlignVCenter)
 
         self.horizontalLayout_4.addWidget(self.label_4)
 
@@ -251,9 +232,9 @@ class Ui_PlayblastDialog(object):
         self.label_5.setObjectName(u"label_5")
         sizePolicy.setHeightForWidth(self.label_5.sizePolicy().hasHeightForWidth())
         self.label_5.setSizePolicy(sizePolicy)
-        self.label_5.setMinimumSize(QSize(100, 0))
-        self.label_5.setMaximumSize(QSize(100, 16777215))
-        self.label_5.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+        self.label_5.setMinimumSize(QSize(80, 0))
+        self.label_5.setMaximumSize(QSize(80, 16777215))
+        self.label_5.setAlignment(Qt.AlignLeading|Qt.AlignLeft|Qt.AlignVCenter)
 
         self.horizontalLayout_5.addWidget(self.label_5)
 
@@ -291,9 +272,9 @@ class Ui_PlayblastDialog(object):
         self.label_6.setObjectName(u"label_6")
         sizePolicy.setHeightForWidth(self.label_6.sizePolicy().hasHeightForWidth())
         self.label_6.setSizePolicy(sizePolicy)
-        self.label_6.setMinimumSize(QSize(100, 0))
-        self.label_6.setMaximumSize(QSize(100, 16777215))
-        self.label_6.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+        self.label_6.setMinimumSize(QSize(80, 0))
+        self.label_6.setMaximumSize(QSize(80, 16777215))
+        self.label_6.setAlignment(Qt.AlignLeading|Qt.AlignLeft|Qt.AlignVCenter)
 
         self.horizontalLayout_6.addWidget(self.label_6)
 
@@ -317,6 +298,10 @@ class Ui_PlayblastDialog(object):
 
         self.verticalLayout.addLayout(self.horizontalLayout_6)
 
+        self.horizontalLayout_10 = QHBoxLayout()
+        self.horizontalLayout_10.setObjectName(u"horizontalLayout_10")
+        self.verticalLayout_4 = QVBoxLayout()
+        self.verticalLayout_4.setObjectName(u"verticalLayout_4")
         self.ornaments_cb = QCheckBox(PlayblastDialog)
         self.ornaments_cb.setObjectName(u"ornaments_cb")
         sizePolicy2.setHeightForWidth(self.ornaments_cb.sizePolicy().hasHeightForWidth())
@@ -324,7 +309,13 @@ class Ui_PlayblastDialog(object):
         self.ornaments_cb.setMinimumSize(QSize(100, 0))
         self.ornaments_cb.setChecked(True)
 
-        self.verticalLayout.addWidget(self.ornaments_cb)
+        self.verticalLayout_4.addWidget(self.ornaments_cb)
+
+        self.overscan_cb = QCheckBox(PlayblastDialog)
+        self.overscan_cb.setObjectName(u"overscan_cb")
+        self.overscan_cb.setChecked(True)
+
+        self.verticalLayout_4.addWidget(self.overscan_cb)
 
         self.viewer_cb = QCheckBox(PlayblastDialog)
         self.viewer_cb.setObjectName(u"viewer_cb")
@@ -333,13 +324,41 @@ class Ui_PlayblastDialog(object):
         self.viewer_cb.setMinimumSize(QSize(100, 0))
         self.viewer_cb.setChecked(True)
 
-        self.verticalLayout.addWidget(self.viewer_cb)
+        self.verticalLayout_4.addWidget(self.viewer_cb)
 
-        self.overscan_cb = QCheckBox(PlayblastDialog)
-        self.overscan_cb.setObjectName(u"overscan_cb")
-        self.overscan_cb.setChecked(True)
 
-        self.verticalLayout.addWidget(self.overscan_cb)
+        self.horizontalLayout_10.addLayout(self.verticalLayout_4)
+
+        self.verticalLayout_5 = QVBoxLayout()
+        self.verticalLayout_5.setObjectName(u"verticalLayout_5")
+        self.checkBoxBurnCaption = QCheckBox(PlayblastDialog)
+        self.checkBoxBurnCaption.setObjectName(u"checkBoxBurnCaption")
+        self.checkBoxBurnCaption.setChecked(True)
+
+        self.verticalLayout_5.addWidget(self.checkBoxBurnCaption)
+
+        self.checkBoxTimeCode = QCheckBox(PlayblastDialog)
+        self.checkBoxTimeCode.setObjectName(u"checkBoxTimeCode")
+        self.checkBoxTimeCode.setChecked(True)
+
+        self.verticalLayout_5.addWidget(self.checkBoxTimeCode)
+
+        self.checkBoxFrameNumber = QCheckBox(PlayblastDialog)
+        self.checkBoxFrameNumber.setObjectName(u"checkBoxFrameNumber")
+        self.checkBoxFrameNumber.setChecked(True)
+
+        self.verticalLayout_5.addWidget(self.checkBoxFrameNumber)
+
+
+        self.horizontalLayout_10.addLayout(self.verticalLayout_5)
+
+
+        self.verticalLayout.addLayout(self.horizontalLayout_10)
+
+        self.horizontalLayout_7 = QHBoxLayout()
+        self.horizontalLayout_7.setObjectName(u"horizontalLayout_7")
+
+        self.verticalLayout.addLayout(self.horizontalLayout_7)
 
         self.output_edit = QPlainTextEdit(PlayblastDialog)
         self.output_edit.setObjectName(u"output_edit")
@@ -389,21 +408,18 @@ class Ui_PlayblastDialog(object):
 
     def retranslateUi(self, PlayblastDialog):
         PlayblastDialog.setWindowTitle(fakestr(u"Playblaster", None))
-        self.projectFileLabel.setText(fakestr(u"Directory:", None))
-        self.output_dir_path_le.setText("")
-        self.output_dir_path_le.setPlaceholderText(fakestr(u"{project}/movies", None))
+        self.filename_label.setText(fakestr(u"Filename", None))
+        self.output_filename_le.setText("")
+        self.output_filename_le.setPlaceholderText(fakestr(u"{scene}", None))
 #if QT_CONFIG(tooltip)
         self.output_dir_path_select_btn.setToolTip(fakestr(u"Select Output Directory", None))
 #endif // QT_CONFIG(tooltip)
         self.output_dir_path_select_btn.setText(fakestr(u"...", None))
+        self.force_overwrite_cb.setText(fakestr(u"Force overwrite", None))
 #if QT_CONFIG(tooltip)
         self.output_dir_path_show_folder_btn.setToolTip(fakestr(u"Show in Folder", None))
 #endif // QT_CONFIG(tooltip)
         self.output_dir_path_show_folder_btn.setText(fakestr(u"Go", None))
-        self.filename_label.setText(fakestr(u"Filename", None))
-        self.output_filename_le.setText("")
-        self.output_filename_le.setPlaceholderText(fakestr(u"{scene}", None))
-        self.force_overwrite_cb.setText(fakestr(u"Force overwrite", None))
         self.label.setText(fakestr(u"Options", None))
         self.label_2.setText(fakestr(u"Camera:", None))
         self.camera_select_hide_defaults_cb.setText(fakestr(u"Hide defaults", None))
@@ -416,8 +432,11 @@ class Ui_PlayblastDialog(object):
         self.label_6.setText(fakestr(u"Visibility:", None))
         self.visibility_customize_btn.setText(fakestr(u"Customise ...", None))
         self.ornaments_cb.setText(fakestr(u"Ornaments", None))
-        self.viewer_cb.setText(fakestr(u"Show in Viewer", None))
         self.overscan_cb.setText(fakestr(u"Overscan", None))
+        self.viewer_cb.setText(fakestr(u"Show in Viewer", None))
+        self.checkBoxBurnCaption.setText(fakestr(u"Burn caption", None))
+        self.checkBoxTimeCode.setText(fakestr(u"Burn time code", None))
+        self.checkBoxFrameNumber.setText(fakestr(u"Burn frame number", None))
         self.refresh_btn.setText(fakestr(u"Refresh", None))
         self.clear_btn.setText(fakestr(u"Clear", None))
         self.playblast_btn.setText(fakestr(u"Playblast", None))

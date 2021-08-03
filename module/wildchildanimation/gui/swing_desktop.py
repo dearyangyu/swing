@@ -23,45 +23,51 @@ class Ui_SwingMain(object):
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.connectionLayout = QHBoxLayout()
         self.connectionLayout.setObjectName(u"connectionLayout")
-        self.pushButtonSettings = QPushButton(SwingMain)
-        self.pushButtonSettings.setObjectName(u"pushButtonSettings")
+        self.toolButtonSettings = QToolButton(SwingMain)
+        self.toolButtonSettings.setObjectName(u"toolButtonSettings")
+        self.toolButtonSettings.setMinimumSize(QSize(80, 0))
 
-        self.connectionLayout.addWidget(self.pushButtonSettings)
+        self.connectionLayout.addWidget(self.toolButtonSettings)
 
-        self.pushButtonConnect = QPushButton(SwingMain)
-        self.pushButtonConnect.setObjectName(u"pushButtonConnect")
-        self.pushButtonConnect.setAutoFillBackground(False)
-        self.pushButtonConnect.setStyleSheet(u"")
+        self.toolButtonConnect = QToolButton(SwingMain)
+        self.toolButtonConnect.setObjectName(u"toolButtonConnect")
+        self.toolButtonConnect.setMinimumSize(QSize(80, 0))
+        self.toolButtonConnect.setAutoFillBackground(False)
+        self.toolButtonConnect.setStyleSheet(u"")
 
-        self.connectionLayout.addWidget(self.pushButtonConnect)
+        self.connectionLayout.addWidget(self.toolButtonConnect)
 
         self.horizontalSpacer_4 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
         self.connectionLayout.addItem(self.horizontalSpacer_4)
 
-        self.pushButtonPlayblast = QPushButton(SwingMain)
-        self.pushButtonPlayblast.setObjectName(u"pushButtonPlayblast")
+        self.toolButtonPlayblast = QToolButton(SwingMain)
+        self.toolButtonPlayblast.setObjectName(u"toolButtonPlayblast")
+        self.toolButtonPlayblast.setMinimumSize(QSize(80, 0))
 
-        self.connectionLayout.addWidget(self.pushButtonPlayblast)
+        self.connectionLayout.addWidget(self.toolButtonPlayblast)
 
-        self.pushButtonExport = QPushButton(SwingMain)
-        self.pushButtonExport.setObjectName(u"pushButtonExport")
+        self.toolButtonExport = QToolButton(SwingMain)
+        self.toolButtonExport.setObjectName(u"toolButtonExport")
+        self.toolButtonExport.setMinimumSize(QSize(80, 0))
 
-        self.connectionLayout.addWidget(self.pushButtonExport)
+        self.connectionLayout.addWidget(self.toolButtonExport)
 
         self.horizontalSpacer_5 = QSpacerItem(40, 20, QSizePolicy.Minimum, QSizePolicy.Minimum)
 
         self.connectionLayout.addItem(self.horizontalSpacer_5)
 
-        self.pushButtonBreakout = QPushButton(SwingMain)
-        self.pushButtonBreakout.setObjectName(u"pushButtonBreakout")
+        self.toolButtonLayout = QToolButton(SwingMain)
+        self.toolButtonLayout.setObjectName(u"toolButtonLayout")
+        self.toolButtonLayout.setMinimumSize(QSize(80, 0))
 
-        self.connectionLayout.addWidget(self.pushButtonBreakout)
+        self.connectionLayout.addWidget(self.toolButtonLayout)
 
-        self.pushButtonSearchFiles = QPushButton(SwingMain)
-        self.pushButtonSearchFiles.setObjectName(u"pushButtonSearchFiles")
+        self.toolButtonSearchFiles = QToolButton(SwingMain)
+        self.toolButtonSearchFiles.setObjectName(u"toolButtonSearchFiles")
+        self.toolButtonSearchFiles.setMinimumSize(QSize(80, 0))
 
-        self.connectionLayout.addWidget(self.pushButtonSearchFiles)
+        self.connectionLayout.addWidget(self.toolButtonSearchFiles)
 
 
         self.verticalLayout.addLayout(self.connectionLayout)
@@ -120,6 +126,8 @@ class Ui_SwingMain(object):
         self.toolButtonAssetInfo = QToolButton(SwingMain)
         self.toolButtonAssetInfo.setObjectName(u"toolButtonAssetInfo")
         self.toolButtonAssetInfo.setEnabled(True)
+        self.toolButtonAssetInfo.setMinimumSize(QSize(80, 0))
+        self.toolButtonAssetInfo.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
 
         self.horizontalLayoutAsset.addWidget(self.toolButtonAssetInfo)
 
@@ -152,6 +160,8 @@ class Ui_SwingMain(object):
         self.toolButtonShotInfo = QToolButton(SwingMain)
         self.toolButtonShotInfo.setObjectName(u"toolButtonShotInfo")
         self.toolButtonShotInfo.setEnabled(True)
+        self.toolButtonShotInfo.setMinimumSize(QSize(80, 0))
+        self.toolButtonShotInfo.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
 
         self.horizontalLayoutShot.addWidget(self.toolButtonShotInfo)
 
@@ -201,12 +211,23 @@ class Ui_SwingMain(object):
         self.toolButtonNew = QToolButton(self.tabTasks)
         self.toolButtonNew.setObjectName(u"toolButtonNew")
         self.toolButtonNew.setEnabled(False)
+        self.toolButtonNew.setMinimumSize(QSize(80, 0))
+        self.toolButtonNew.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
 
         self.horizontalLayout_4.addWidget(self.toolButtonNew)
+
+        self.toolButtonLoad = QToolButton(self.tabTasks)
+        self.toolButtonLoad.setObjectName(u"toolButtonLoad")
+        self.toolButtonLoad.setMinimumSize(QSize(80, 0))
+        self.toolButtonLoad.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+
+        self.horizontalLayout_4.addWidget(self.toolButtonLoad)
 
         self.toolButtonPublish = QToolButton(self.tabTasks)
         self.toolButtonPublish.setObjectName(u"toolButtonPublish")
         self.toolButtonPublish.setEnabled(False)
+        self.toolButtonPublish.setMinimumSize(QSize(80, 0))
+        self.toolButtonPublish.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
 
         self.horizontalLayout_4.addWidget(self.toolButtonPublish)
 
@@ -260,26 +281,34 @@ class Ui_SwingMain(object):
         self.toolButtonFileTableSelectAll = QToolButton(self.tabFiles)
         self.toolButtonFileTableSelectAll.setObjectName(u"toolButtonFileTableSelectAll")
         self.toolButtonFileTableSelectAll.setEnabled(False)
+        self.toolButtonFileTableSelectAll.setMinimumSize(QSize(80, 0))
+        self.toolButtonFileTableSelectAll.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
 
         self.horizontalLayout_5.addWidget(self.toolButtonFileTableSelectAll)
 
         self.toolButtonFileSelectNone = QToolButton(self.tabFiles)
         self.toolButtonFileSelectNone.setObjectName(u"toolButtonFileSelectNone")
         self.toolButtonFileSelectNone.setEnabled(False)
+        self.toolButtonFileSelectNone.setMinimumSize(QSize(80, 0))
+        self.toolButtonFileSelectNone.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
 
         self.horizontalLayout_5.addWidget(self.toolButtonFileSelectNone)
-
-        self.toolButtonImport = QToolButton(self.tabFiles)
-        self.toolButtonImport.setObjectName(u"toolButtonImport")
-        self.toolButtonImport.setEnabled(False)
-
-        self.horizontalLayout_5.addWidget(self.toolButtonImport)
 
         self.toolButtonDownload = QToolButton(self.tabFiles)
         self.toolButtonDownload.setObjectName(u"toolButtonDownload")
         self.toolButtonDownload.setEnabled(False)
+        self.toolButtonDownload.setMinimumSize(QSize(80, 0))
+        self.toolButtonDownload.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
 
         self.horizontalLayout_5.addWidget(self.toolButtonDownload)
+
+        self.toolButtonImport = QToolButton(self.tabFiles)
+        self.toolButtonImport.setObjectName(u"toolButtonImport")
+        self.toolButtonImport.setEnabled(False)
+        self.toolButtonImport.setMinimumSize(QSize(80, 0))
+        self.toolButtonImport.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+
+        self.horizontalLayout_5.addWidget(self.toolButtonImport)
 
         self.horizontalSpacer_3 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
@@ -323,10 +352,11 @@ class Ui_SwingMain(object):
 
         self.horizontalLayoutStatus.addItem(self.horizontalSpacer)
 
-        self.pushButtonClose = QPushButton(SwingMain)
-        self.pushButtonClose.setObjectName(u"pushButtonClose")
+        self.toolButtonClose = QToolButton(SwingMain)
+        self.toolButtonClose.setObjectName(u"toolButtonClose")
+        self.toolButtonClose.setMinimumSize(QSize(80, 0))
 
-        self.horizontalLayoutStatus.addWidget(self.pushButtonClose)
+        self.horizontalLayoutStatus.addWidget(self.toolButtonClose)
 
 
         self.verticalLayout.addLayout(self.horizontalLayoutStatus)
@@ -343,34 +373,34 @@ class Ui_SwingMain(object):
     def retranslateUi(self, SwingMain):
         SwingMain.setWindowTitle(fakestr(u"treehouse: swing", None))
 #if QT_CONFIG(tooltip)
-        self.pushButtonSettings.setToolTip(fakestr(u"Open connection settings", None))
+        self.toolButtonSettings.setToolTip(fakestr(u"Open connection settings", None))
 #endif // QT_CONFIG(tooltip)
-        self.pushButtonSettings.setText(fakestr(u"Settings", None))
+        self.toolButtonSettings.setText(fakestr(u"Settings", None))
 #if QT_CONFIG(tooltip)
-        self.pushButtonConnect.setToolTip(fakestr(u"Connect or reconnect to Treehouse", None))
+        self.toolButtonConnect.setToolTip(fakestr(u"Connect or reconnect to Treehouse", None))
 #endif // QT_CONFIG(tooltip)
-        self.pushButtonConnect.setText(fakestr(u"Connect", None))
+        self.toolButtonConnect.setText(fakestr(u"Connect", None))
 #if QT_CONFIG(tooltip)
-        self.pushButtonPlayblast.setToolTip(fakestr(u"Open DCC Playblast", None))
+        self.toolButtonPlayblast.setToolTip(fakestr(u"Open DCC Playblast", None))
 #endif // QT_CONFIG(tooltip)
-        self.pushButtonPlayblast.setText(fakestr(u"Playblast", None))
+        self.toolButtonPlayblast.setText(fakestr(u"Playblast", None))
 #if QT_CONFIG(tooltip)
-        self.pushButtonExport.setToolTip(fakestr(u"Open DCC Export", None))
+        self.toolButtonExport.setToolTip(fakestr(u"Open DCC Export", None))
 #endif // QT_CONFIG(tooltip)
-        self.pushButtonExport.setText(fakestr(u"Export", None))
+        self.toolButtonExport.setText(fakestr(u"Export", None))
 #if QT_CONFIG(shortcut)
-        self.pushButtonExport.setShortcut(fakestr(u"F8", None))
+        self.toolButtonExport.setShortcut(fakestr(u"F8", None))
 #endif // QT_CONFIG(shortcut)
 #if QT_CONFIG(tooltip)
-        self.pushButtonBreakout.setToolTip(fakestr(u"Open Shot Breakout", None))
+        self.toolButtonLayout.setToolTip(fakestr(u"Open Shot Breakout", None))
 #endif // QT_CONFIG(tooltip)
-        self.pushButtonBreakout.setText(fakestr(u"Breakout", None))
+        self.toolButtonLayout.setText(fakestr(u"Layout", None))
 #if QT_CONFIG(tooltip)
-        self.pushButtonSearchFiles.setToolTip(fakestr(u"Search for files", None))
+        self.toolButtonSearchFiles.setToolTip(fakestr(u"Search for files", None))
 #endif // QT_CONFIG(tooltip)
-        self.pushButtonSearchFiles.setText(fakestr(u"Search", None))
+        self.toolButtonSearchFiles.setText(fakestr(u"Search", None))
 #if QT_CONFIG(shortcut)
-        self.pushButtonSearchFiles.setShortcut(fakestr(u"F3", None))
+        self.toolButtonSearchFiles.setShortcut(fakestr(u"F3", None))
 #endif // QT_CONFIG(shortcut)
 #if QT_CONFIG(tooltip)
         self.radioButtonAsset.setToolTip(fakestr(u"Filter files by selected asset", None))
@@ -382,7 +412,7 @@ class Ui_SwingMain(object):
 #if QT_CONFIG(tooltip)
         self.toolButtonAssetInfo.setToolTip(fakestr(u"Open Asset Information", None))
 #endif // QT_CONFIG(tooltip)
-        self.toolButtonAssetInfo.setText(fakestr(u"...", None))
+        self.toolButtonAssetInfo.setText(fakestr(u" Asset Info", None))
 #if QT_CONFIG(tooltip)
         self.radioButtonShot.setToolTip(fakestr(u"Filter files by selected shot", None))
 #endif // QT_CONFIG(tooltip)
@@ -393,33 +423,34 @@ class Ui_SwingMain(object):
 #if QT_CONFIG(tooltip)
         self.toolButtonShotInfo.setToolTip(fakestr(u"Open Shot Information", None))
 #endif // QT_CONFIG(tooltip)
-        self.toolButtonShotInfo.setText(fakestr(u"...", None))
+        self.toolButtonShotInfo.setText(fakestr(u" Shot Info", None))
         self.labelTaskTableSelection.setText(fakestr(u"Tasks for selection:", None))
 #if QT_CONFIG(tooltip)
         self.toolButtonNew.setToolTip(fakestr(u"Create a new scene", None))
 #endif // QT_CONFIG(tooltip)
-        self.toolButtonNew.setText(fakestr(u"New", None))
+        self.toolButtonNew.setText(fakestr(u" New", None))
+        self.toolButtonLoad.setText(fakestr(u" Load", None))
 #if QT_CONFIG(tooltip)
         self.toolButtonPublish.setToolTip(fakestr(u"Publish current scene to Treehouse", None))
 #endif // QT_CONFIG(tooltip)
-        self.toolButtonPublish.setText(fakestr(u"Publish", None))
+        self.toolButtonPublish.setText(fakestr(u" Publish", None))
 #if QT_CONFIG(shortcut)
         self.toolButtonPublish.setShortcut(fakestr(u"Alt+P", None))
 #endif // QT_CONFIG(shortcut)
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabTasks), fakestr(u"Tasks", None))
         self.labelFileTableSelection.setText(fakestr(u"Files for selection", None))
-        self.toolButtonFileTableSelectAll.setText(fakestr(u"Select All", None))
-        self.toolButtonFileSelectNone.setText(fakestr(u"Select None", None))
-        self.toolButtonImport.setText(fakestr(u"Import", None))
-#if QT_CONFIG(shortcut)
-        self.toolButtonImport.setShortcut(fakestr(u"Alt+I", None))
-#endif // QT_CONFIG(shortcut)
-        self.toolButtonDownload.setText(fakestr(u"Download", None))
+        self.toolButtonFileTableSelectAll.setText(fakestr(u" All", None))
+        self.toolButtonFileSelectNone.setText(fakestr(u" None", None))
+        self.toolButtonDownload.setText(fakestr(u" Download", None))
 #if QT_CONFIG(shortcut)
         self.toolButtonDownload.setShortcut(fakestr(u"Alt+D", None))
 #endif // QT_CONFIG(shortcut)
+        self.toolButtonImport.setText(fakestr(u" Import", None))
+#if QT_CONFIG(shortcut)
+        self.toolButtonImport.setShortcut(fakestr(u"Alt+I", None))
+#endif // QT_CONFIG(shortcut)
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabFiles), fakestr(u"Files", None))
         self.labelConnection.setText(fakestr(u"Offline", None))
-        self.pushButtonClose.setText(fakestr(u"Close", None))
+        self.toolButtonClose.setText(fakestr(u" Close", None))
     # retranslateUi
 

@@ -14,131 +14,35 @@ try:
     import maya.OpenMaya as om
     import maya.OpenMayaUI as omui
     _stand_alone = False
-    _log_to_maya = True
 except:
-    print("Maya not found")
     _stand_alone = True
-    _log_to_maya = False
 
-from wildchildanimation.gui.swing_utils import load_settings, save_settings
-
-class SwingPlayblast(QtCore.QObject):
-
-    VERSION = "0.0.2"
-
-    RESOLUTION_LOOKUP = {
-        "Render": (),
-        "HD 1080": (1920, 1080),
-        "HD 720": (1280, 720),
-        "HD 540": (960, 540),
-    }
-
-    FRAME_RANGE_PRESETS = [
-        "Render",
-        "Playback",
-        "Animation",
-    ]
-
-    VIDEO_ENCODER_LOOKUP = {
-        "mov": ["h264"],
-        "mp4": ["h264"],
-        "Image": ["jpg", "png", "tif"],
-    }
-
-    H264_QUALITIES = {
-        "Very High": 18,
-        "High": 20,
-        "Medium": 23,
-        "Low": 26,
-    }
-
-    H264_PRESETS = [
-        "veryslow",
-        "slow",
-        "medium",
-        "fast",
-        "faster",
-        "ultrafast",
-    ]
-
-    VIEWPORT_VISIBILITY_LOOKUP = [
-        ["Controllers", "controllers"],
-        ["NURBS Curves", "nurbsCurves"],
-        ["NURBS Surfaces", "nurbsSurfaces"],
-        ["NURBS CVs", "cv"],
-        ["NURBS Hulls", "hulls"],
-        ["Polygons", "polymeshes"],
-        ["Subdiv Surfaces", "subdivSurfaces"],
-        ["Planes", "planes"],
-        ["Lights", "lights"],
-        ["Cameras", "cameras"],
-        ["Image Planes", "imagePlane"],
-        ["Joints", "joints"],
-        ["IK Handles", "ikHandles"],
-        ["Deformers", "deformers"],
-        ["Dynamics", "dynamics"],
-        ["Particle Instancers", "particleInstancers"],
-        ["Fluids", "fluids"],
-        ["Hair Systems", "hairSystems"],
-        ["Follicles", "follicles"],
-        ["nCloths", "nCloths"],
-        ["nParticles", "nParticles"],
-        ["nRigids", "nRigids"],
-        ["Dynamic Constraints", "dynamicConstraints"],
-        ["Locators", "locators"],
-        ["Dimensions", "dimensions"],
-        ["Pivots", "pivots"],
-        ["Handles", "handles"],
-        ["Texture Placements", "textures"],
-        ["Strokes", "strokes"],
-        ["Motion Trails", "motionTrails"],
-        ["Plugin Shapes", "pluginShapes"],
-        ["Clip Ghosts", "clipGhosts"],
-        ["Grease Pencil", "greasePencils"],
-        ["Grid", "grid"],
-        ["HUD", "hud"],
-        ["Hold-Outs", "hos"],
-        ["Selection Highlighting", "sel"],
-    ]
-
-    VIEWPORT_VISIBILITY_PRESETS = {
-        "Viewport": [],
-        "Geo": ["NURBS Surfaces", "Polygons"],
-        "Dynamics": ["NURBS Surfaces", "Polygons", "Dynamics", "Fluids", "nParticles"],
-    }
-
-
-    DEFAULT_CAMERA = None
-    DEFAULT_RESOLUTION = "Render"
-    DEFAULT_FRAME_RANGE = "Render"
+from wildchildanimation.maya.swing_maya import SwingMaya
+from wildchildanimation.gui.swing_playblast_dialog import Ui_PlayblastDialog
+from wildchildanimation.gui.swing_utils import load_settings, save_settings, open_folder
+class SwingPlayblast(SwingMaya):
 
     DEFAULT_CONTAINER = "mp4"
     DEFAULT_ENCODER = "h264"
     DEFAULT_H264_QUALITY = "High"
     DEFAULT_H264_PRESET = "fast"
     DEFAULT_IMAGE_QUALITY = 100
-
-    DEFAULT_VISIBILITY = "Viewport"
-
     DEFAULT_PADDING = 4
+    DEFAULT_VISIBILITY = "Viewport"
 
     output_logged = QtCore.Signal(str)
 
-
-    def __init__(self, ffmpeg_path=None, log_to_maya=_log_to_maya):
+    def __init__(self, ffmpeg_path = None, log_to_maya = True):
         super(SwingPlayblast, self).__init__()
 
-        self.set_ffmpeg_path(ffmpeg_path)
         self.set_maya_logging_enabled(log_to_maya)
-
+        self.set_ffmpeg_path(ffmpeg_path)
         self.set_camera(SwingPlayblast.DEFAULT_CAMERA)
         self.set_resolution(SwingPlayblast.DEFAULT_RESOLUTION)
         self.set_frame_range(SwingPlayblast.DEFAULT_FRAME_RANGE)
-
         self.set_encoding(SwingPlayblast.DEFAULT_CONTAINER, SwingPlayblast.DEFAULT_ENCODER)
         self.set_h264_settings(SwingPlayblast.DEFAULT_H264_QUALITY, SwingPlayblast.DEFAULT_H264_PRESET)
         self.set_image_settings(SwingPlayblast.DEFAULT_IMAGE_QUALITY)
-
         self.set_visibility(SwingPlayblast.DEFAULT_VISIBILITY)
 
         self.initialize_ffmpeg_process()
@@ -148,9 +52,6 @@ class SwingPlayblast(QtCore.QObject):
 
     def get_ffmpeg_path(self):
         return self._ffmpeg_path
-
-    def set_maya_logging_enabled(self, enabled):
-        self._log_to_maya = enabled
 
     def set_camera(self, camera):
         if camera and camera not in cmds.listCameras():
@@ -205,120 +106,6 @@ class SwingPlayblast(QtCore.QObject):
         else:
             raise RuntimeError("Invalid resolution preset: {0}".format(resolution_preset))
 
-    def set_frame_range(self, frame_range):
-        resolved_frame_range = self.resolve_frame_range(frame_range)
-        if not resolved_frame_range:
-            return
-
-        self._frame_range_preset = None
-        if frame_range in SwingPlayblast.FRAME_RANGE_PRESETS:
-            self._frame_range_preset = frame_range
-
-        self._start_frame = resolved_frame_range[0]
-        self._end_frame = resolved_frame_range[1]
-
-    def get_start_end_frame(self):
-        if self._frame_range_preset:
-            return self.preset_to_frame_range(self._frame_range_preset)
-
-        return (self._start_frame, self._end_frame)
-
-    def resolve_frame_range(self, frame_range):
-        try:
-            if type(frame_range) in [list, tuple]:
-                start_frame = frame_range[0]
-                end_frame = frame_range[1]
-            else:
-                start_frame, end_frame = self.preset_to_frame_range(frame_range)
-
-            return (start_frame, end_frame)
-
-        except:
-            presets = []
-            for preset in SwingPlayblast.FRAME_RANGE_PRESETS:
-                presets.append("'{0}'".format(preset))
-            self.log_error('Invalid frame range. Expected one of (start_frame, end_frame), {0}'.format(", ".join(presets)))
-
-        return None
-
-    def preset_to_frame_range(self, frame_range_preset):
-        if frame_range_preset == "Render":
-            start_frame = int(cmds.getAttr("defaultRenderGlobals.startFrame"))
-            end_frame = int(cmds.getAttr("defaultRenderGlobals.endFrame"))
-        elif frame_range_preset == "Playback":
-            start_frame = int(cmds.playbackOptions(q=True, minTime=True))
-            end_frame = int(cmds.playbackOptions(q=True, maxTime=True))
-        elif frame_range_preset == "Animation":
-            start_frame = int(cmds.playbackOptions(q=True, animationStartTime=True))
-            end_frame = int(cmds.playbackOptions(q=True, animationEndTime=True))
-        else:
-            raise RuntimeError("Invalid frame range preset: {0}".format(frame_range_preset))
-
-        return (start_frame, end_frame)
-
-    def set_visibility(self, visibility_data):
-        if not visibility_data:
-            visibility_data = []
-
-        if not type(visibility_data) in [list, tuple]:
-            visibility_data = self.preset_to_visibility(visibility_data)
-
-            if visibility_data is None:
-                return
-
-        self._visibility = copy.copy(visibility_data)
-
-    def get_visibility(self):
-        if not self._visibility:
-            return self.get_viewport_visibility()
-
-        return self._visibility
-
-    def preset_to_visibility(self, visibility_preset):
-        if not visibility_preset in SwingPlayblast.VIEWPORT_VISIBILITY_PRESETS.keys():
-            self.log_error("Invaild visibility preset: {0}".format(visibility_preset))
-            return None
-
-        visibility_data = []
-
-        preset_names = SwingPlayblast.VIEWPORT_VISIBILITY_PRESETS[visibility_preset]
-        if preset_names:
-            for lookup_item in SwingPlayblast.VIEWPORT_VISIBILITY_LOOKUP:
-                visibility_data.append(lookup_item[0] in preset_names)
-
-        return visibility_data
-
-    def get_viewport_visibility(self):
-        model_panel = self.get_viewport_panel()
-        if not model_panel:
-            self.log_error("Failed to get viewport visibility. A viewport is not active.")
-            return None
-
-        viewport_visibility = []
-        try:
-            for item in SwingPlayblast.VIEWPORT_VISIBILITY_LOOKUP:
-                kwargs = {item[1]: True}
-                viewport_visibility.append(cmds.modelEditor(model_panel, q=True, **kwargs))
-        except:
-            traceback.print_exc()
-            self.log_error("Failed to get active viewport visibility. See script editor for details.")
-            return None
-
-        return viewport_visibility
-
-    def set_viewport_visibility(self, model_editor, visibility_flags):
-        cmds.modelEditor(model_editor, e=True, **visibility_flags)
-
-    def create_viewport_visibility_flags(self, visibility_data):
-        visibility_flags = {}
-
-        data_index = 0
-        for item in SwingPlayblast.VIEWPORT_VISIBILITY_LOOKUP:
-            visibility_flags[item[1]] = visibility_data[data_index]
-            data_index += 1
-
-        return visibility_flags
-
     def set_encoding(self, container_format, encoder):
         if container_format not in SwingPlayblast.VIDEO_ENCODER_LOOKUP.keys():
             self.log_error("Invalid container: {0}. Expected one of {1}".format(container_format, SwingPlayblast.VIDEO_ENCODER_LOOKUP.keys()))
@@ -360,7 +147,22 @@ class SwingPlayblast(QtCore.QObject):
             "quality": self._image_quality,
         }
 
-    def execute(self, output_dir, filename, padding=4, overscan=False, show_ornaments=True, show_in_viewer=True, overwrite=False):
+    # expects filename without extension
+    #
+    def execute(self, target_file_name, padding=4, overscan=False, show_ornaments=True, show_in_viewer=True, overwrite=False, time_code = True, time_code_border = True, frame_numbers = True, caption = None):
+        file_parts = os.path.split(target_file_name)
+
+        output_dir = file_parts[0]
+        filename = file_parts[1]
+
+        if len(filename) == 0 or len(output_dir) == 0:
+            self.log_error("playblast: invalid filename or directoy [{}] [{}]".format(filename, output_dir))        
+            return
+
+        ## aokb_chr_atomic_toad_rig_v010 
+        # E:\productions\aotkb\aotk\user\assets\ch_rig\atomic_toad\playblasts\aokb_chr_atomic_toad_rig_v010 // 
+        self.log_output("playblast: filename [{}]".format(filename))        
+        self.log_output("playblast: output_dir [{}]".format(output_dir))        
 
         if self.requires_ffmpeg() and not self.validate_ffmpeg():
             self.log_error("ffmpeg executable is not configured. See script editor for details.")
@@ -371,27 +173,29 @@ class SwingPlayblast(QtCore.QObject):
             self.log_error("An active viewport is not selected. Select a viewport and retry.")
             return
 
-        if not output_dir:
-            self.log_error("Output directory path not set")
-            return
-        if not filename:
-            self.log_error("Output file name not set")
-            return
-
-        output_dir = self.resolve_output_directory_path(output_dir)
-        filename = self.resolve_output_filename(filename)
-
         if padding <= 0:
             padding = SwingPlayblast.DEFAULT_PADDING
 
         if self.requires_ffmpeg():
+
+            # create target dir if it doesn't exist
+            if not os.path.exists(output_dir):
+                os.makedirs(output_dir)
+
+            # sets target file name, adds' container extension
             output_path = os.path.normpath(os.path.join(output_dir, "{0}.{1}".format(filename, self._container_format)))
+            self.log_output("Playblast: output_path: {}".format(output_path))
+
             if not overwrite and os.path.exists(output_path):
                 self.log_error("Output file already exists. Enable overwrite to ignore.")
                 return
 
-            playblast_output_dir = "{0}/playblast_temp".format(output_dir)
-            playblast_output = os.path.normpath(os.path.join(playblast_output_dir, filename))
+            playblast_output_dir = os.path.join(output_dir, "playblast_temp")
+            self.log_output("Playblast: playblast_output_dir: {}".format(playblast_output_dir))
+
+            playblast_output = os.path.join(output_dir, "playblast_temp", filename)
+            self.log_output("Playblast: playblast_output: {}".format(playblast_output))
+
             force_overwrite = True
             compression = "png"
             image_quality = 100
@@ -399,6 +203,7 @@ class SwingPlayblast(QtCore.QObject):
             viewer = False
         else:
             playblast_output = os.path.normpath(os.path.join(output_dir, filename))
+
             force_overwrite = overwrite
             compression = self._encoder
             image_quality = self._image_quality
@@ -472,10 +277,10 @@ class SwingPlayblast(QtCore.QObject):
             return
 
         if self.requires_ffmpeg():
-            source_path = "{0}/{1}.%0{2}d.png".format(playblast_output_dir, filename, padding)
+            source_path = "{0}/{1}.%0{2}d.png".format(playblast_output_dir, os.path.basename(filename), padding)
 
             if self._encoder == "h264":
-                self.encode_h264(source_path, output_path, start_frame)
+                self.encode_h264(source_path, output_path, start_frame, time_code, time_code_border, frame_numbers, caption)
             else:
                 self.log_error("Encoding failed. Unsupported encoder ({0}) for container ({1}).".format(self._encoder, self._container_format))
                 self.remove_temp_dir(playblast_output_dir)
@@ -485,30 +290,6 @@ class SwingPlayblast(QtCore.QObject):
 
             if show_in_viewer:
                 self.open_in_viewer(output_path)
-
-
-    def remove_temp_dir(self, temp_dir_path):
-        playblast_dir = QtCore.QDir(temp_dir_path)
-        playblast_dir.setNameFilters(["*.png"])
-        playblast_dir.setFilter(QtCore.QDir.Files)
-        for f in playblast_dir.entryList():
-            playblast_dir.remove(f)
-
-        if not playblast_dir.rmdir(temp_dir_path):
-            self.log_warning("Failed to remove temporary directory: {0}".format(temp_dir_path))
-
-    def open_in_viewer(self, path):
-        if not os.path.exists(path):
-            self.log_error("Failed to open in viewer. File does not exists: {0}".format(path))
-            return
-
-        if self._container_format in ("mov", "mp4") and cmds.optionVar(exists="PlayblastCmdQuicktime"):
-            executable_path = cmds.optionVar(q="PlayblastCmdQuicktime")
-            if executable_path:
-                QtCore.QProcess.startDetached(executable_path, [path])
-                return
-
-        QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromLocalFile(path))
 
     def requires_ffmpeg(self):
         return self._container_format != "Image"
@@ -547,8 +328,7 @@ class SwingPlayblast(QtCore.QObject):
 
         self.log_output(output)
 
-
-    def encode_h264(self, source_path, output_path, start_frame):
+    def encode_h264(self, source_path, output_path, start_frame, time_code = True, time_code_background = True, frame_number = True, caption = None):
         framerate = self.get_frame_rate()
 
         audio_file_path, audio_frame_offset = self.get_audio_attributes()
@@ -564,6 +344,33 @@ class SwingPlayblast(QtCore.QObject):
         if audio_file_path:
             ffmpeg_cmd += ' -ss {0} -i "{1}"'.format(audio_offset, audio_file_path)
 
+        filters = []
+        text_graph = ''
+
+        if caption:
+            filters.append("drawtext=font=Consolas: fontsize=18: fontcolor=white: x=(w-text_w)/2: y=20: text='{}' ".format(caption, 24))
+                #ffmpeg_cmd += " -vf \"drawtext=font=Consolas: fontsize=24: fontcolor=white: text='{}': r={}: x=(w-tw-20): y=h-lh-20: box=1: boxcolor=black\" ".format(caption, 24)
+
+        if time_code:
+            if time_code_background:
+
+                # Timecode Burn-In (w/background box)
+                filters.append("drawtext=font=Consolas: fontsize=18: fontcolor=white: x=5: y=20: timecode='00\:00\:00\:00': r={}: ".format(framerate))
+            else:
+                # Timecode Burn-In
+                filters.append("drawtext=font=Consolas: fontsize=18: fontcolor=white: x=5: y=20: timecode='00\:00\:00\:00': r={}: ".format(framerate))
+
+        if frame_number:
+                filters.append("drawtext=font=Consolas: fontsize=18: fontcolor=white: x=(w-text_w)-5: y=20: start_number=1: text='%{frame_num}' ")
+
+        for i in range(len(filters)):
+            text_graph += filters[i]
+            if i < len(filters) - 1:
+                text_graph += ', '
+
+        if len(text_graph) > 0:
+            ffmpeg_cmd += ' -vf "{}"'.format(text_graph)
+
         ffmpeg_cmd += ' -c:v libx264 -crf:v {0} -preset:v {1} -profile high -level 4.0 -pix_fmt yuv420p'.format(crf, preset)
 
         if audio_file_path:
@@ -572,116 +379,8 @@ class SwingPlayblast(QtCore.QObject):
         ffmpeg_cmd += ' "{0}"'.format(output_path)
 
         self.log_output(ffmpeg_cmd)
+        self.execute_ffmpeg_command(ffmpeg_cmd)        
 
-        self.execute_ffmpeg_command(ffmpeg_cmd)
-
-
-    def get_frame_rate(self):
-        rate_str = cmds.currentUnit(q=True, time=True)
-
-        if rate_str == "game":
-            frame_rate = 15.0
-        elif rate_str == "film":
-            frame_rate = 24.0
-        elif rate_str == "pal":
-            frame_rate = 25.0
-        elif rate_str == "ntsc":
-            frame_rate = 30.0
-        elif rate_str == "show":
-            frame_rate = 48.0
-        elif rate_str == "palf":
-            frame_rate = 50.0
-        elif rate_str == "ntscf":
-            frame_rate = 60.0
-        elif rate_str.endswith("fps"):
-            frame_rate = float(rate_str[0:-3])
-        else:
-            raise RuntimeError("Unsupported frame rate: {0}".format(rate_str))
-
-        return frame_rate
-
-    def get_audio_attributes(self):
-        sound_node = mel.eval("timeControl -q -sound $gPlayBackSlider;")
-        if sound_node:
-            file_path = cmds.getAttr("{0}.filename".format(sound_node))
-            file_info = QtCore.QFileInfo(file_path)
-            if file_info.exists():
-                offset = cmds.getAttr("{0}.offset".format(sound_node))
-
-                return (file_path, offset)
-
-        return (None, None)
-
-    def get_audio_offset_in_sec(self, start_frame, audio_frame_offset, frame_rate):
-        return (start_frame - audio_frame_offset) / frame_rate
-
-    def resolve_output_directory_path(self, dir_path):
-        if "{project}" in dir_path:
-            dir_path = dir_path.replace("{project}", self.get_project_dir_path())
-
-        return dir_path
-
-    def resolve_output_filename(self, filename):
-        if "{scene}" in filename:
-            filename = filename.replace("{scene}", self.get_scene_name())
-
-        return filename
-
-    def get_project_dir_path(self):
-        return cmds.workspace(q=True, rootDirectory=True)
-
-    def get_scene_name(self):
-        scene_name = cmds.file(q=True, sceneName=True, shortName=True)
-        if scene_name:
-            scene_name = os.path.splitext(scene_name)[0]
-        else:
-            scene_name = "untitled"
-
-        return scene_name
-
-    def get_viewport_panel(self):
-        model_panel = cmds.getPanel(withFocus=True)
-        try:
-            cmds.modelPanel(model_panel, q=True, modelEditor=True)
-        except:
-            self.log_error("Failed to get active view.")
-            return None
-
-        return model_panel
-
-    def get_active_camera(self):
-        model_panel = self.get_viewport_panel()
-        if not model_panel:
-            self.log_error("Failed to get active camera. A viewport is not active.")
-            return None
-
-        return cmds.modelPanel(model_panel, q=True, camera=True)
-
-    def set_active_camera(self, camera):
-        model_panel = self.get_viewport_panel()
-        if model_panel:
-            mel.eval("lookThroughModelPanel {0} {1}".format(camera, model_panel))
-        else:
-            self.log_error("Failed to set active camera. A viewport is not active.")
-
-
-    def log_error(self, text):
-        if self._log_to_maya:
-            om.MGlobal.displayError("[SwingPlayblast] {0}".format(text))
-
-        self.output_logged.emit("[ERROR] {0}".format(text)) # pylint: disable=E1101
-
-    def log_warning(self, text):
-        if self._log_to_maya:
-            om.MGlobal.displayWarning("[SwingPlayblast] {0}".format(text))
-
-        self.output_logged.emit("[WARNING] {0}".format(text)) # pylint: disable=E1101
-
-    def log_output(self, text):
-        if self._log_to_maya:
-            om.MGlobal.displayInfo(text)
-
-        self.output_logged.emit(text) # pylint: disable=E1101
 class SwingPlayblastEncoderSettingsDialog(QtWidgets.QDialog):
 
     ENCODER_PAGES = {
@@ -759,7 +458,6 @@ class SwingPlayblastEncoderSettingsDialog(QtWidgets.QDialog):
     def create_connections(self):
         self.accept_btn.clicked.connect(self.accept)
         self.cancel_btn.clicked.connect(self.close)
-
 
     def set_page(self, page):
         if not page in SwingPlayblastEncoderSettingsDialog.ENCODER_PAGES:
@@ -842,12 +540,15 @@ class SwingPlayblastVisibilityDialog(QtWidgets.QDialog):
             raise RuntimeError("Visibility property/data mismatch")
 
         for i in range(len(data)):
-            self.visibility_checkboxes[i].setChecked(data[i])
+            self.visibility_checkboxes[i].setChecked(data[i]) 
 
 
-class SwingPlayblastUi(QtWidgets.QDialog):
+
+class SwingPlayblastUi(QtWidgets.QDialog, Ui_PlayblastDialog):
 
     TITLE = "Swing Playblast"
+
+    _caption = False
 
     CONTAINER_PRESETS = [
         "mov",
@@ -893,9 +594,8 @@ class SwingPlayblastUi(QtWidgets.QDialog):
         except:
             super(SwingPlayblastUi, self).__init__()
 
-        self.setWindowTitle(SwingPlayblastUi.TITLE)
+        self.setupUi(self)
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
-        self.setMinimumWidth(500)
 
         self._playblast = SwingPlayblast()
 
@@ -906,14 +606,60 @@ class SwingPlayblastUi(QtWidgets.QDialog):
 
         self.create_actions()
         self.create_menus()
-        self.create_widgets()
-        self.create_layout()
+
+        # Set cameras
+        self.refresh_cameras()
+
+        # Select Resolution
+        self.resolution_select_cmb.addItems(SwingPlayblastUi.RESOLUTION_PRESETS)
+        self.resolution_select_cmb.addItem("Custom")
+        self.resolution_select_cmb.setCurrentText(SwingPlayblast.DEFAULT_RESOLUTION)
+
+        self.resolution_width_sb.setButtonSymbols(QtWidgets.QSpinBox.NoButtons)
+        self.resolution_width_sb.setRange(1, 9999)
+        self.resolution_width_sb.setMinimumWidth(40)
+        self.resolution_width_sb.setAlignment(QtCore.Qt.AlignRight)
+
+        self.resolution_height_sb.setButtonSymbols(QtWidgets.QSpinBox.NoButtons)
+        self.resolution_height_sb.setRange(1, 9999)
+        self.resolution_height_sb.setMinimumWidth(40)
+        self.resolution_height_sb.setAlignment(QtCore.Qt.AlignRight)
+
+        # Frame Rane
+        self.frame_range_cmb.addItems(SwingPlayblast.FRAME_RANGE_PRESETS)
+        self.frame_range_cmb.addItem("Custom")
+        self.frame_range_cmb.setCurrentText(SwingPlayblast.DEFAULT_FRAME_RANGE)
+
+        self.frame_range_start_sb.setButtonSymbols(QtWidgets.QSpinBox.NoButtons)
+        self.frame_range_start_sb.setRange(-9999, 9999)
+        self.frame_range_start_sb.setMinimumWidth(40)
+        self.frame_range_start_sb.setAlignment(QtCore.Qt.AlignRight)
+
+        self.frame_range_end_sb.setButtonSymbols(QtWidgets.QSpinBox.NoButtons)
+        self.frame_range_end_sb.setRange(-9999, 9999)
+        self.frame_range_end_sb.setMinimumWidth(40)
+
+        # Encoding
+        self.encoding_container_cmb.addItems(SwingPlayblastUi.CONTAINER_PRESETS)
+        self.encoding_container_cmb.setCurrentText(SwingPlayblast.DEFAULT_CONTAINER)
+
+        # Visibility
+        self.visibility_cmb.addItems(SwingPlayblastUi.VISIBILITY_PRESETS)
+        self.visibility_cmb.addItem("Custom")
+        self.visibility_cmb.setCurrentText(SwingPlayblast.DEFAULT_VISIBILITY)
+
+        # Options
+        self.overscan_cb.setChecked(False)
+        self.ornaments_cb.setChecked(True)
+        self.viewer_cb.setChecked(True)              
+
+        self.output_edit.setReadOnly(True)
+        self.output_edit.setWordWrapMode(QtGui.QTextOption.NoWrap)  
+
         self.create_connections()
 
         self.load_defaults()
         self.load_user_settings()
-        self.append_output("Playblast v{0}".format(SwingPlayblast.VERSION))
-
 
     def create_actions(self):
         self.save_defaults_action = QtWidgets.QAction("Save Defaults", self)
@@ -934,233 +680,66 @@ class SwingPlayblastUi(QtWidgets.QDialog):
         edit_menu.addSeparator()
 
         help_menu = self.main_menu.addMenu("Help")
-        help_menu.addAction(self.show_about_action)
-
-    def create_widgets(self):
-        self.output_dir_path_le = QtWidgets.QLineEdit()
-        self.output_dir_path_le.setPlaceholderText("{project}/movies")
-
-        self.output_dir_path_select_btn = QtWidgets.QPushButton("...")
-        self.output_dir_path_select_btn.setFixedSize(24, 19)
-        self.output_dir_path_select_btn.setToolTip("Select Output Directory")
-
-        self.output_dir_path_show_folder_btn = QtWidgets.QPushButton(QtGui.QIcon(":fileOpen.png"), "")
-        self.output_dir_path_show_folder_btn.setFixedSize(24, 19)
-        self.output_dir_path_show_folder_btn.setToolTip("Show in Folder")
-
-        self.output_filename_le = QtWidgets.QLineEdit()
-        self.output_filename_le.setPlaceholderText("{scene}")
-        self.output_filename_le.setMaximumWidth(200)
-
-        self.output_filename_select_btn = QtWidgets.QPushButton("...")
-        self.output_filename_select_btn.setFixedSize(24, 19)
-        self.output_filename_select_btn.setToolTip("Select File")
-
-        self.output_filename_path_show_folder_btn = QtWidgets.QPushButton(QtGui.QIcon(":fileOpen.png"), "")
-        self.output_filename_path_show_folder_btn.setFixedSize(24, 19)
-        self.output_filename_path_show_folder_btn.setToolTip("Show in Folder")
-
-        self.force_overwrite_cb = QtWidgets.QCheckBox("Force overwrite")
-
-        self.resolution_select_cmb = QtWidgets.QComboBox()
-        self.resolution_select_cmb.addItems(SwingPlayblastUi.RESOLUTION_PRESETS)
-        self.resolution_select_cmb.addItem("Custom")
-        self.resolution_select_cmb.setCurrentText(SwingPlayblast.DEFAULT_RESOLUTION)
-
-        self.resolution_width_sb = QtWidgets.QSpinBox()
-        self.resolution_width_sb.setButtonSymbols(QtWidgets.QSpinBox.NoButtons)
-        self.resolution_width_sb.setRange(1, 9999)
-        self.resolution_width_sb.setMinimumWidth(40)
-        self.resolution_width_sb.setAlignment(QtCore.Qt.AlignRight)
-        self.resolution_height_sb = QtWidgets.QSpinBox()
-        self.resolution_height_sb.setButtonSymbols(QtWidgets.QSpinBox.NoButtons)
-        self.resolution_height_sb.setRange(1, 9999)
-        self.resolution_height_sb.setMinimumWidth(40)
-        self.resolution_height_sb.setAlignment(QtCore.Qt.AlignRight)
-
-        self.camera_select_cmb = QtWidgets.QComboBox()
-        self.camera_select_hide_defaults_cb = QtWidgets.QCheckBox("Hide defaults")
-        self.refresh_cameras()
-
-        self.frame_range_cmb = QtWidgets.QComboBox()
-        self.frame_range_cmb.addItems(SwingPlayblast.FRAME_RANGE_PRESETS)
-        self.frame_range_cmb.addItem("Custom")
-        self.frame_range_cmb.setCurrentText(SwingPlayblast.DEFAULT_FRAME_RANGE)
-
-        self.frame_range_start_sb = QtWidgets.QSpinBox()
-        self.frame_range_start_sb.setButtonSymbols(QtWidgets.QSpinBox.NoButtons)
-        self.frame_range_start_sb.setRange(-9999, 9999)
-        self.frame_range_start_sb.setMinimumWidth(40)
-        self.frame_range_start_sb.setAlignment(QtCore.Qt.AlignRight)
-
-        self.frame_range_end_sb = QtWidgets.QSpinBox()
-        self.frame_range_end_sb.setButtonSymbols(QtWidgets.QSpinBox.NoButtons)
-        self.frame_range_end_sb.setRange(-9999, 9999)
-        self.frame_range_end_sb.setMinimumWidth(40)
-        self.frame_range_end_sb.setAlignment(QtCore.Qt.AlignRight)
-
-        self.encoding_container_cmb = QtWidgets.QComboBox()
-        self.encoding_container_cmb.addItems(SwingPlayblastUi.CONTAINER_PRESETS)
-        self.encoding_container_cmb.setCurrentText(SwingPlayblast.DEFAULT_CONTAINER)
-
-        self.encoding_video_codec_cmb = QtWidgets.QComboBox()
-        self.encoding_video_codec_settings_btn = QtWidgets.QPushButton("Settings...")
-        self.encoding_video_codec_settings_btn.setFixedHeight(19)
-
-        self.visibility_cmb = QtWidgets.QComboBox()
-        self.visibility_cmb.addItems(SwingPlayblastUi.VISIBILITY_PRESETS)
-        self.visibility_cmb.addItem("Custom")
-        self.visibility_cmb.setCurrentText(SwingPlayblast.DEFAULT_VISIBILITY)
-
-        self.visibility_customize_btn = QtWidgets.QPushButton("Customize...")
-        self.visibility_customize_btn.setFixedHeight(19)
-        
-        self.overscan_cb = QtWidgets.QCheckBox()
-        self.overscan_cb.setChecked(False)
-
-        self.ornaments_cb = QtWidgets.QCheckBox()
-        self.ornaments_cb.setChecked(True)
-
-        self.viewer_cb = QtWidgets.QCheckBox()
-        self.viewer_cb.setChecked(True)
-
-        self.output_edit = QtWidgets.QPlainTextEdit()
-        self.output_edit.setReadOnly(True)
-        self.output_edit.setWordWrapMode(QtGui.QTextOption.NoWrap)
-
-        self.refresh_btn = QtWidgets.QPushButton("Refresh")
-        self.clear_btn = QtWidgets.QPushButton("Clear")
-        self.playblast_btn = QtWidgets.QPushButton("Playblast")
-        self.close_btn = QtWidgets.QPushButton("Close")
-
-    def create_layout(self):
-        output_path_layout = QtWidgets.QHBoxLayout()
-        output_path_layout.setSpacing(4)
-        output_path_layout.addWidget(self.output_dir_path_le)
-        output_path_layout.addWidget(self.output_dir_path_select_btn)
-        output_path_layout.addWidget(self.output_dir_path_show_folder_btn)
-
-        output_file_layout = QtWidgets.QHBoxLayout()
-        output_file_layout.setSpacing(4)
-        output_file_layout.addWidget(self.output_filename_le)
-        output_file_layout.addWidget(self.output_filename_select_btn)
-        output_file_layout.addWidget(self.force_overwrite_cb)
-
-        output_layout = QtWidgets.QFormLayout()
-        output_layout.setSpacing(4)
-        output_layout.addRow("Directory:", output_path_layout)
-        output_layout.addRow("Filename:", output_file_layout)
-
-        output_grp = QtWidgets.QGroupBox("Output")
-        output_grp.setLayout(output_layout)
-
-        camera_options_layout = QtWidgets.QHBoxLayout()
-        camera_options_layout.setSpacing(4)
-        camera_options_layout.addWidget(self.camera_select_cmb)
-        camera_options_layout.addWidget(self.camera_select_hide_defaults_cb)
-
-        resolution_layout = QtWidgets.QHBoxLayout()
-        resolution_layout.setSpacing(4)
-        resolution_layout.addWidget(self.resolution_select_cmb)
-        resolution_layout.addWidget(self.resolution_width_sb)
-        resolution_layout.addWidget(QtWidgets.QLabel("x"))
-        resolution_layout.addWidget(self.resolution_height_sb)
-
-        frame_range_layout = QtWidgets.QHBoxLayout()
-        frame_range_layout.setSpacing(4)
-        frame_range_layout.addWidget(self.frame_range_cmb)
-        frame_range_layout.addWidget(self.frame_range_start_sb)
-        frame_range_layout.addWidget(self.frame_range_end_sb)
-
-        encoding_layout = QtWidgets.QHBoxLayout()
-        encoding_layout.setSpacing(4)
-        encoding_layout.addWidget(self.encoding_container_cmb)
-        encoding_layout.addWidget(self.encoding_video_codec_cmb)
-        encoding_layout.addWidget(self.encoding_video_codec_settings_btn)
-
-        visibility_layout = QtWidgets.QHBoxLayout()
-        visibility_layout.setSpacing(4)
-        visibility_layout.addWidget(self.visibility_cmb)
-        visibility_layout.addWidget(self.visibility_customize_btn)
-
-        options_layout = QtWidgets.QFormLayout()
-        options_layout.addRow("Camera:", camera_options_layout)
-        options_layout.addRow("Resolution:", resolution_layout)
-        options_layout.addRow("Frame Range:", frame_range_layout)
-        options_layout.addRow("Encoding:", encoding_layout)
-        options_layout.addRow("Visiblity:", visibility_layout)
-        options_layout.addRow("Overscan:", self.overscan_cb)
-        options_layout.addRow("Ornaments:", self.ornaments_cb)
-        options_layout.addRow("Show in Viewer:", self.viewer_cb)
-
-        options_grp = QtWidgets.QGroupBox("Options")
-        options_grp.setLayout(options_layout)
-
-        button_layout = QtWidgets.QHBoxLayout()
-        button_layout.addWidget(self.refresh_btn)
-        button_layout.addWidget(self.clear_btn)
-        button_layout.addStretch()
-        button_layout.addWidget(self.playblast_btn)
-        button_layout.addWidget(self.close_btn)
-
-        status_bar_layout = QtWidgets.QHBoxLayout()
-        status_bar_layout.addStretch()
-        status_bar_layout.addWidget(QtWidgets.QLabel("v{0}".format(SwingPlayblast.VERSION)))
-
-        main_layout = QtWidgets.QVBoxLayout(self)
-        main_layout.setContentsMargins(4, 4, 4, 4)
-        main_layout.setSpacing(4)
-        main_layout.setMenuBar(self.main_menu)
-        main_layout.addWidget(output_grp)
-        main_layout.addWidget(options_grp)
-        main_layout.addWidget(self.output_edit)
-        main_layout.addLayout(button_layout)
-        main_layout.addLayout(status_bar_layout)
+        help_menu.addAction(self.show_about_action)        
 
     def create_connections(self):
-        self.output_dir_path_select_btn.clicked.connect(self.select_output_directory)
-        self.output_dir_path_show_folder_btn.clicked.connect(self.open_output_directory)
 
-        self.output_filename_select_btn.clicked.connect(self.select_output_filename)
-
+        # Camera
         self.camera_select_cmb.currentTextChanged.connect(self.on_camera_changed)
         self.camera_select_hide_defaults_cb.toggled.connect(self.refresh_cameras)
 
+        # Frame Range
         self.frame_range_cmb.currentTextChanged.connect(self.refresh_frame_range)
         self.frame_range_start_sb.editingFinished.connect(self.on_frame_range_changed)
         self.frame_range_end_sb.editingFinished.connect(self.on_frame_range_changed)
 
+        # Encoding
         self.encoding_container_cmb.currentTextChanged.connect(self.refresh_video_encoders)
         self.encoding_video_codec_cmb.currentTextChanged.connect(self.on_video_encoder_changed)
         self.encoding_video_codec_settings_btn.clicked.connect(self.show_encoder_settings_dialog)
 
+        # Resolution
         self.resolution_select_cmb.currentTextChanged.connect(self.refresh_resolution)
         self.resolution_width_sb.editingFinished.connect(self.on_resolution_changed)
         self.resolution_height_sb.editingFinished.connect(self.on_resolution_changed)
 
+        # Visibility
         self.visibility_cmb.currentTextChanged.connect(self.on_visibility_preset_changed)
         self.visibility_customize_btn.clicked.connect(self.show_visibility_dialog)
 
+        # Buttons    
         self.refresh_btn.clicked.connect(self.refresh)
         self.clear_btn.clicked.connect(self.output_edit.clear)
         self.playblast_btn.clicked.connect(self.do_playblast)
         self.close_btn.clicked.connect(self.do_close)
 
+        self.output_dir_path_select_btn.clicked.connect(self.select_output_filename)
+        self.output_dir_path_show_folder_btn.clicked.connect(self.open_output_folder)
+
         self._playblast.output_logged.connect(self.append_output) # pylint: disable=E1101
+
+    def set_caption_text(self, text):
+        self._caption = text
+
+    def set_burn_time_code(self, should_burn):
+        self.checkBoxTimeCode.setChecked(should_burn)
+
+    #def set_burn_time_code_border(self, should_burn):
+    #    self.checkBoxBackground.setChecked(should_burn)
+
+    def set_burn_frame_number(self, should_burn):
+        self.checkBoxFrameNumber.setChecked(should_burn)
+
+    def open_output_folder(self):
+        dir_path = self.output_filename_le.text()
+        open_folder(os.path.dirname(dir_path))
 
     def do_close(self):
         self.write_settings()
         self.close()
 
     def do_playblast(self):
-        output_dir_path = self.output_dir_path_le.text()
-        if not output_dir_path:
-            output_dir_path = self.output_dir_path_le.placeholderText()
-
         filename = self.output_filename_le.text()
-        if not filename:
-            filename = self.output_filename_le.placeholderText()
-
         padding = SwingPlayblast.DEFAULT_PADDING
 
         overscan = self.overscan_cb.isChecked()
@@ -1168,38 +747,36 @@ class SwingPlayblastUi(QtWidgets.QDialog):
         show_in_viewer = self.viewer_cb.isChecked()
         overwrite = self.force_overwrite_cb.isChecked()
 
-        self._playblast.execute(output_dir_path, filename, padding, overscan, show_ornaments, show_in_viewer, overwrite)
+        if self.checkBoxTimeCode.isChecked():
+            self._playblast.log_output("Burn time code")
 
-    def select_output_directory(self):
-        current_dir_path = self.output_dir_path_le.text()
-        if not current_dir_path:
-            current_dir_path = self.output_dir_path_le.placeholderText()
+        #if self.checkBoxBackground.isChecked():
+        #    self._playblast.log_output("Burn time code border")
+            
+        if self.checkBoxFrameNumber.isChecked():
+            self._playblast.log_output("Burn Frame Number")
 
-        current_dir_path = self._playblast.resolve_output_directory_path(current_dir_path)
+        caption = False
+        if self.checkBoxBurnCaption.isChecked():
+            caption = self._caption
+            if caption:
+                self._playblast.log_output("Burn Caption: {}".format(caption))
 
-        file_info = QtCore.QFileInfo(current_dir_path)
-        if not file_info.exists():
-            current_dir_path = self._playblast.get_project_dir_path()
-
-        new_dir_path = QtWidgets.QFileDialog.getExistingDirectory(self, "Select Directory", current_dir_path)
-        if new_dir_path:
-            self.output_dir_path_le.setText(new_dir_path)
+        self._playblast.execute(target_file_name = filename, padding = padding, 
+            overscan = overscan, show_ornaments = show_ornaments, show_in_viewer = show_in_viewer, overwrite = overwrite,  
+            time_code = self.checkBoxTimeCode.isChecked(), time_code_border = False, frame_numbers=self.checkBoxFrameNumber.isChecked(), 
+            caption=caption)
 
     def select_output_filename(self):
-        current_dir_path = self.output_dir_path_le.text()
-        if not current_dir_path:
-            current_dir_path = self.output_dir_path_le.placeholderText()
-
         current_filename = self.output_filename_le.text()
         if not current_filename:
             current_filename = self.output_filename_le.placeholderText()
 
-        current_dir_path = self._playblast.resolve_output_directory_path(current_dir_path)
-        current_filename = self._playblast.resolve_output_filename(current_filename)
-
-        selected_file = os.path.join(current_dir_path, current_filename)
+        current_filename = self._playblast.resolve_output_file_name(current_filename)
+        selected_file = os.path.normpath(current_filename)
 
         file_info = QtCore.QFileInfo(selected_file)
+
         if not file_info.exists():
             current_dir_path = self._playblast.get_project_dir_path()
 
@@ -1214,38 +791,23 @@ class SwingPlayblastUi(QtWidgets.QDialog):
 
         new_filename = QtWidgets.QFileDialog.getSaveFileName(self, "Select file name", selected_file, filter)
         if new_filename:
-            file_name = os.path.basename(new_filename[0])
-            self.output_filename_le.setText(file_name)
+            self.set_output_file_name(new_filename[0])
+            #file_name = os.path.basename(new_filename[0])
+            #self.output_filename_le.setText(file_name)
 
-            new_dir_path = os.path.dirname(new_filename[0])
-            self.output_dir_path_le.setText(new_dir_path)
+            #new_dir_path = os.path.dirname(new_filename[0])
+            #self.output_dir_path_le.setText(new_dir_path)
 
-    def open_output_directory(self):
-        output_dir_path = self.output_dir_path_le.text()
-        if not output_dir_path:
-            output_dir_path = self.output_dir_path_le.placeholderText()
-
-        output_dir_path = self._playblast.resolve_output_directory_path(output_dir_path)
-
-        file_info = QtCore.QFileInfo(output_dir_path)
-        if file_info.isDir():
-            QtGui.QDesktopServices.openUrl(output_dir_path)
-        else:
-            self.append_output("[ERROR] Invalid directory path: {0}".format(output_dir_path))
+    def set_output_file_name(self, new_file_name):
+        self.output_filename_le.setText(new_file_name)
 
     def refresh(self):
-        if _stand_alone:
-            return
-
         self.refresh_cameras()
         self.refresh_resolution()
         self.refresh_frame_range()
         self.refresh_video_encoders()
 
     def refresh_cameras(self):
-        if _stand_alone:
-            return 
-
         current_camera = self.camera_select_cmb.currentText()
         self.camera_select_cmb.clear()
 
@@ -1381,12 +943,11 @@ class SwingPlayblastUi(QtWidgets.QDialog):
     # save main dialog state
     def write_settings(self):
         self.settings = QtCore.QSettings()
-        self.settings.beginGroup("Playblast")
+        self.settings.beginGroup(self.__class__.__name__)
 
         self.settings.setValue("size", self.size())
         self.settings.setValue("pos", self.pos())
 
-        self.settings.setValue("output_dir_path_le", self.output_dir_path_le.text())
         self.settings.setValue("output_filename_le", self.output_filename_le.text())
         
         self.settings.endGroup()
@@ -1394,7 +955,7 @@ class SwingPlayblastUi(QtWidgets.QDialog):
     # load main dialog state
     def read_settings(self):
         self.settings = QtCore.QSettings()
-        self.settings.beginGroup("Playblast")
+        self.settings.beginGroup(self.__class__.__name__)
 
         self.resize(self.settings.value("size", QtCore.QSize(400, 400)))
         # self.move(self.settings.value("pos", QtCore.QPoint(200, 200)))
@@ -1402,8 +963,8 @@ class SwingPlayblastUi(QtWidgets.QDialog):
 
     def load_user_settings(self):
         self.settings = QtCore.QSettings()
-        self.settings.beginGroup("Playblast")
-        self.output_dir_path_le.setText(self.settings.value("output_dir_path_le", self.output_dir_path_le.placeholderText()))
+        self.settings.beginGroup(self.__class__.__name__)
+        
         self.output_filename_le.setText(self.settings.value("output_filename_le", self.output_filename_le.placeholderText()))
         self.settings.endGroup()          
 
@@ -1419,10 +980,6 @@ class SwingPlayblastUi(QtWidgets.QDialog):
             print("Error: ffmpeg not loaded")
 
     def save_defaults(self):
-        if _stand_alone:
-            return 
-
-        cmds.optionVar(sv=("SwingPlayblastUiOutputDir", self.output_dir_path_le.text()))
         cmds.optionVar(sv=("SwingPlayblastUiOutputFilename", self.output_filename_le.text()))
         cmds.optionVar(iv=("SwingPlayblastUiForceOverwrite", self.force_overwrite_cb.isChecked()))
 
@@ -1459,12 +1016,15 @@ class SwingPlayblastUi(QtWidgets.QDialog):
         cmds.optionVar(iv=("SwingPlayblastUiOrnaments", self.ornaments_cb.isChecked()))
         cmds.optionVar(iv=("SwingPlayblastUiViewer", self.viewer_cb.isChecked()))
 
+        cmds.optionVar(iv=("SwingPLayblastBurnTimeCode", self.checkBoxTimeCode.isChecked()))
+        # cmds.optionVar(iv=("SwingPlayblastBurnBorder", self.checkBoxBackground.isChecked()))
+        cmds.optionVar(iv=("SwingPlayblastBurnFrameNumbers", self.checkBoxFrameNumber.isChecked()))
+
+
     def load_defaults(self):
         if _stand_alone:
             return 
 
-        if cmds.optionVar(exists="SwingPlayblastUiOutputDir"):
-            self.output_dir_path_le.setText(cmds.optionVar(q="SwingPlayblastUiOutputDir"))
         if cmds.optionVar(exists="SwingPlayblastUiOutputFilename"):
             self.output_filename_le.setText(cmds.optionVar(q="SwingPlayblastUiOutputFilename"))
         if cmds.optionVar(exists="SwingPlayblastUiForceOverwrite"):
@@ -1523,7 +1083,12 @@ class SwingPlayblastUi(QtWidgets.QDialog):
         if cmds.optionVar(exists="SwingPlayblastUiViewer"):
             self.viewer_cb.setChecked(cmds.optionVar(q="SwingPlayblastUiViewer"))
 
-
+        if cmds.optionVar(exists="SwingPLayblastBurnTimeCode"):
+            self.checkBoxTimeCode.setChecked(cmds.optionVar(q="SwingPLayblastBurnTimeCode"))
+        #if cmds.optionVar(exists="SwingPlayblastBurnBorder"):
+        #    self.checkBoxBackground.setChecked(cmds.optionVar(q="SwingPlayblastBurnBorder"))
+        if cmds.optionVar(exists="SwingPlayblastBurnFrameNumbers"):
+            self.checkBoxFrameNumber.setChecked(cmds.optionVar(q="SwingPlayblastBurnFrameNumbers"))
 
     def show_about_dialog(self):
         text = '<h2>{0}</h2>'.format(SwingPlayblastUi.TITLE)
@@ -1541,15 +1106,3 @@ class SwingPlayblastUi(QtWidgets.QDialog):
 
     def showEvent(self, event):
         self.refresh()
-
-
-if __name__ == "__main__":
-    try:
-        swing_playblast_dialog.close() # pylint: disable=E0601
-        swing_playblast_dialog.deleteLater()
-    except:
-        pass
-
-    swing_playblast_dialog = SwingPlayblastUi()
-    swing_playblast_dialog.show()
-    

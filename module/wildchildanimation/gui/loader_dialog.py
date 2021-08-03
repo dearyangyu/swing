@@ -139,21 +139,21 @@ class Ui_LoaderDialog(object):
 
         self.horizontalLayoutProjectDir = QHBoxLayout()
         self.horizontalLayoutProjectDir.setObjectName(u"horizontalLayoutProjectDir")
-        self.labelWorkingDir = QLabel(LoaderDialog)
-        self.labelWorkingDir.setObjectName(u"labelWorkingDir")
-        self.labelWorkingDir.setMinimumSize(QSize(100, 0))
+        self.labelTarget = QLabel(LoaderDialog)
+        self.labelTarget.setObjectName(u"labelTarget")
+        self.labelTarget.setMinimumSize(QSize(100, 0))
 
-        self.horizontalLayoutProjectDir.addWidget(self.labelWorkingDir)
+        self.horizontalLayoutProjectDir.addWidget(self.labelTarget)
 
-        self.lineEditWorkingDir = QLineEdit(LoaderDialog)
-        self.lineEditWorkingDir.setObjectName(u"lineEditWorkingDir")
+        self.lineEditTarget = QLineEdit(LoaderDialog)
+        self.lineEditTarget.setObjectName(u"lineEditTarget")
 
-        self.horizontalLayoutProjectDir.addWidget(self.lineEditWorkingDir)
+        self.horizontalLayoutProjectDir.addWidget(self.lineEditTarget)
 
-        self.toolButtonWorkingDir = QToolButton(LoaderDialog)
-        self.toolButtonWorkingDir.setObjectName(u"toolButtonWorkingDir")
+        self.toolButtonTargetDir = QToolButton(LoaderDialog)
+        self.toolButtonTargetDir.setObjectName(u"toolButtonTargetDir")
 
-        self.horizontalLayoutProjectDir.addWidget(self.toolButtonWorkingDir)
+        self.horizontalLayoutProjectDir.addWidget(self.toolButtonTargetDir)
 
 
         self.verticalLayoutEntity.addLayout(self.horizontalLayoutProjectDir)
@@ -237,9 +237,6 @@ class Ui_LoaderDialog(object):
 
         self.textEditStatus = QTextEdit(LoaderDialog)
         self.textEditStatus.setObjectName(u"textEditStatus")
-        font = QFont()
-        font.setFamily(u"MS Sans Serif")
-        self.textEditStatus.setFont(font)
 
         self.verticalLayoutFiles.addWidget(self.textEditStatus)
 
@@ -287,8 +284,8 @@ class Ui_LoaderDialog(object):
         self.labelFrameOut.setText(fakestr(u"Out", None))
         self.labelFrameCount.setText(fakestr(u"Count", None))
         self.label.setText(fakestr(u"Notes and Comments", None))
-        self.labelWorkingDir.setText(fakestr(u"Work Folder", None))
-        self.toolButtonWorkingDir.setText(fakestr(u"...", None))
+        self.labelTarget.setText(fakestr(u"Target", None))
+        self.toolButtonTargetDir.setText(fakestr(u"...", None))
         self.checkBoxSkipExisting.setText(fakestr(u"Skip existing files", None))
         self.checkBoxExtractZips.setText(fakestr(u"Extract zip files automatically", None))
         self.checkBoxForce.setText(fakestr(u"Force load (Ignore unsaved changed)", None))
@@ -309,11 +306,6 @@ class Ui_LoaderDialog(object):
         self.checkBoxNamespace.setShortcut(fakestr(u"Alt+N", None))
 #endif // QT_CONFIG(shortcut)
         self.labelFiles.setText(fakestr(u"Status", None))
-        self.textEditStatus.setHtml(fakestr(u"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
-"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
-"p, li { white-space: pre-wrap; }\n"
-"</style></head><body style=\" font-family:'MS Sans Serif'; font-size:8pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p></body></html>", None))
         self.pushButtonImport.setText(fakestr(u"Go", None))
         self.pushButtonCancel.setText(fakestr(u"Close", None))
     # retranslateUi

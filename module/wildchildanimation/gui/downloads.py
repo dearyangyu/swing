@@ -10,27 +10,21 @@ try:
     from PySide2 import QtGui
     from PySide2 import QtCore
     from PySide2 import QtWidgets
-    from shiboken2 import wrapInstance 
-    import PySide2.QtUiTools as QtUiTools
     qtMode = 0
 except ImportError:
     traceback.print_exc(file=sys.stdout)
 
     from PyQt5 import QtGui, QtCore, QtWidgets
-    import sip
     qtMode = 1
 
-from datetime import datetime
 
-from wildchildanimation.gui.background_workers import *
-
-from wildchildanimation.gui.swing_utils import *
-from wildchildanimation.gui.loader import *
-
+from wildchildanimation.gui.settings import SwingSettings
+from wildchildanimation.gui.background_workers import EntityFileLoader, EntityLoaderThread, FileDownloader
+from wildchildanimation.gui.loader import LoaderDialogGUI
 from wildchildanimation.gui.download_dialog import Ui_DownloadDialog
 
-from wildchildanimation.gui.swing_tables import human_size, setup_file_table
-from wildchildanimation.gui.swing_tables import FileTableModel, CheckBoxDelegate
+from wildchildanimation.gui.swing_tables import FileTableModel, setup_file_table
+from wildchildanimation.gui.swing_utils import set_target, open_folder, human_size, set_button_icon
 
 '''
     DownloadDialogGui class
@@ -41,40 +35,53 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
 
     working_dir = None
     
-    def __init__(self, parent, handler = None, project_nav = None, entity = None, file_list = None):
+    def __init__(self, parent, handler = None, entity = None, file_list = None, task_types = None, status_types = None):
         super(DownloadDialogGUI, self).__init__(parent) # Call the inherited classes __init__ method
         self.setupUi(self)
-        self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint ^ QtCore.Qt.WindowMinMaxButtonsHint)
         self.setMinimumWidth(600)
-        self.nav = project_nav
+
         self.handler = handler
         self.entity = entity 
-        self.threadpool = QtCore.QThreadPool.globalInstance()
-        self.task_types = self.nav._task_types
-        self.file_list = file_list
-        self.swing_settings = SwingSettings.getInstance()
+        self.task_types = task_types
+        self.status_types = status_types
 
-        if self.entity:
-            loader = EntityLoaderThread(self, self.entity["id"])
+        self.threadpool = QtCore.QThreadPool.globalInstance()
+        self.file_list = file_list
+        self.swing_settings = SwingSettings.get_instance()
+
+        loader = None
+        if self.file_list and len(self.file_list) > 0:
+            self.load_files(self.file_list)
+        else:
+            # print("Entity: {}".format(self.entity))
+
+            if "id" in self.entity:
+                loader = EntityLoaderThread(self, self.entity["id"])
+            elif "entity_id" in self.entity:
+                loader = EntityLoaderThread(self, self.entity["entity_id"])
+            elif "shot_id" in self.entity:
+                loader = EntityLoaderThread(self, self.entity["shot_id"])                
+            else:
+                loader = EntityLoaderThread(self, self.entity)
+
             loader.callback.loaded.connect(self.entity_loaded)
             self.threadpool.start(loader)
-        else:
-            self.load_files(file_list)
 
-        self.toolButtonWeb.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_CommandLink))
+        set_button_icon(self.toolButtonWeb, "../resources/fa-free/solid/info-circle.svg")
         self.toolButtonWeb.clicked.connect(self.open_url)
         self.toolButtonWeb.setEnabled(False)
-
-        self.toolButtonWorkingDir.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_DirOpenIcon))
+        
+        set_button_icon(self.toolButtonWorkingDir, "../resources/fa-free/solid/folder.svg")
         self.toolButtonWorkingDir.clicked.connect(self.select_wcd)               
 
         self.pushButtonDownload.clicked.connect(self.download_files)
         self.pushButtonCancel.clicked.connect(self.close_dialog)
 
-        #self.toolButtonAll.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_DialogApplyButton))
+        set_button_icon(self.toolButtonAll, "../resources/fa-free/solid/plus.svg")
         self.toolButtonAll.clicked.connect(self.select_all)
-        #self.toolButtonNone.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_DialogCancelButton))
+
         self.toolButtonNone.clicked.connect(self.select_none)
+        set_button_icon(self.toolButtonNone, "../resources/fa-free/solid/minus.svg")
 
         self.tableView.doubleClicked.connect(self.file_table_double_click)
 
@@ -104,11 +111,13 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
                     open_folder(os.path.dirname(self.selected_file["target_path"]))
                     return True
 
-            dialog = LoaderDialogGUI(self, self.handler, self.entity)
-            dialog.load_files(self.file_list)
-            dialog.set_selected(self.selected_file)
+            #self.close_dialog()
+
+            self.loaderDialog = LoaderDialogGUI(parent = None, handler = self.handler, entity = self.entity)
+            self.loaderDialog.load_files(self.file_list)
+            self.loaderDialog.set_selected(self.selected_file)
             #dialog.exec_()
-            dialog.show()        
+            self.loaderDialog.show()        
 
     def open_url(self, url):
         link = QtCore.QUrl(self.url)
@@ -117,6 +126,7 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
 
     def entity_loaded(self, data):
         self.type = data["type"]
+        self.entity = data["entity"]
         self.shot = None
         self.asset = None
         self.project = data["project"]
@@ -126,7 +136,7 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
             self.shot = data["item"]
             self.url = data["url"]
             self.labelEntity.setText("Shot")
-            loader = EntityFileLoader(self, self.nav, self.shot, self.working_dir)
+            loader = EntityFileLoader(self, self.shot["id"], self.working_dir, task_types = self.task_types, status_types = self.status_types)
 
             if "code" in self.project:
                 sections.append(self.project["code"])
@@ -146,7 +156,7 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
             self.asset = data["item"]
             self.url = data["url"]
             self.labelEntity.setText("Asset")
-            loader = EntityFileLoader(self, self.nav, self.asset, self.working_dir)
+            loader = EntityFileLoader(self, self.asset["id"], self.working_dir, self.task_types, self.status_types)
 
             if "code" in self.project:
                 sections.append(self.project["code"])
@@ -170,13 +180,6 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
         else:
             self.load_files(self.file_list)
             #loader.run()
-
-    def get_item_task_type(self, entity):
-        if "task_type_id" in entity:
-            for task_type in self.task_types:
-                if task_type["id"] == entity["task_type_id"]:
-                    return task_type
-        return None        
 
     def files_loaded(self, data):
         self.file_list = data[0]
@@ -211,8 +214,8 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
         message = results["message"]
         size = results["size"]
         file_id = results["file_id"]
-        file_name = results["target"]
-        working_dir = results["working_dir"]
+        #file_name = results["target"]
+        #working_dir = results["working_dir"]
 
         for row in range(self.tableView.model().rowCount()):
             index = self.tableView.model().index(row, 0)
@@ -245,10 +248,10 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
             self.progressBar.setValue(self.progressBar.value() + 1)
 
     def file_loading(self, result):
-        message = result["message"]
+        #message = result["message"]
         size = result["size"]
         file_id = result["file_id"]
-        file_name = result["target"]      
+        #file_name = result["target"]      
 
         for row in range(self.tableView.model().rowCount()):
             index = self.tableView.model().index(row, 0)
@@ -275,7 +278,6 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
     def on_click(self, index):
         row = index.row()
         column = 0
-        # index.column()
 
         row_item = self.tableView.item(row, column)
         selected = row_item.data(QtCore.Qt.UserRole)
@@ -313,12 +315,11 @@ def process_downloads(parent, threadpool, file_list, progressBar = None, on_load
     if progressBar:
         progressBar.setRange(0, len(file_list))
 
-    edit_api = "{}/edit".format(SwingSettings.getInstance().swing_server())
+    edit_api = "{}/edit".format(SwingSettings.get_instance().swing_server())
 
     downloads = 0
     row = 0
     for item in file_list:
-        write_log("Downloading {}".format(item["file_name"]))
 
         if "library-file" in item['file_type']:
             url = "{}/api/library_file/{}".format(edit_api, item["entity_id"])
@@ -329,7 +330,6 @@ def process_downloads(parent, threadpool, file_list, progressBar = None, on_load
             worker.callback.done.connect(on_finished)
             
             threadpool.start(worker)
-            #worker.run()
             downloads += 1            
 
             item["status"] = "Busy"     
@@ -344,7 +344,6 @@ def process_downloads(parent, threadpool, file_list, progressBar = None, on_load
             worker.callback.done.connect(on_finished)
 
             threadpool.start(worker)
-            #worker.run()
             downloads += 1                
 
             item["status"] = "Busy"
@@ -359,7 +358,6 @@ def process_downloads(parent, threadpool, file_list, progressBar = None, on_load
             worker.callback.done.connect(on_finished)
 
             threadpool.start(worker)
-            #worker.run()
             downloads += 1                
 
             item["status"] = "Busy"

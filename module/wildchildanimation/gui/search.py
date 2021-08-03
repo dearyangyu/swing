@@ -2,66 +2,56 @@
 
 import traceback
 import sys
-import os
-import re
 
 # ==== auto Qt load ====
 try:
-    from PySide2 import QtGui
     from PySide2 import QtCore
     from PySide2 import QtWidgets
-    from shiboken2 import wrapInstance 
-    import PySide2.QtUiTools as QtUiTools
     qtMode = 0
 except ImportError:
     traceback.print_exc(file=sys.stdout)
 
-    from PyQt5 import QtGui, QtCore, QtWidgets
+    from PyQt5 import QtCore, QtWidgets
     import sip
     qtMode = 1
 
-from datetime import datetime
-
-from wildchildanimation.gui.background_workers import *
-from wildchildanimation.gui.swing_utils import *
-
+from wildchildanimation.gui.background_workers import SearchFn
 from wildchildanimation.gui.search_files_dialog import Ui_SearchFilesDialog
+from wildchildanimation.gui.settings import SwingSettings
 
-from wildchildanimation.gui.swing_tables import human_size
-from wildchildanimation.gui.downloads import *
+from wildchildanimation.gui.swing_utils import set_target
 
 class SearchFilesDialog(QtWidgets.QDialog, Ui_SearchFilesDialog):
 
     working_dir = None
-    
-    def __init__(self, project_nav, handler, entity = None):
-        super(SearchFilesDialog, self).__init__(None) # Call the inherited classes __init__ method
+    file_list = []
+
+    def __init__(self, parent, text = '', entity = None, handler = None, project = None, task_types = None, status_types = None):
+        super(SearchFilesDialog, self).__init__(parent) # Call the inherited classes __init__ method
         self.setupUi(self)
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
-        self.setMinimumWidth(640)
-        self.swing_settings = SwingSettings.getInstance()
 
-        self.nav = project_nav
-        self.project = self.nav.get_project()
-        self.task_types = self.nav.get_task_types()
+        self.setWindowModality(QtCore.Qt.ApplicationModal)
+        self.setModal(True)
+
+        self.setMinimumWidth(640)
+
+        self.swing_settings = SwingSettings.get_instance()
 
         self.handler = handler
         self.entity = entity
+        self.project_id = project
+        self.task_types = task_types
+        self.status_types = status_types
+        self.textEdit.setText(text)
+
         self.threadpool = QtCore.QThreadPool.globalInstance()
 
         self.pushButtonSearch.clicked.connect(self.process)
-        self.pushButtonCancel.clicked.connect(self.close_dialog)
-
-    def set_project(self, project):
-        self.project = project
+        self.pushButtonCancel.clicked.connect(self.cancel_dialog)
 
     def process(self):
         self.threadpool = QtCore.QThreadPool.globalInstance()
-
-        password = self.swing_settings.swing_password()
-        server = self.swing_settings.swing_server()
-        email = self.swing_settings.swing_user()             
-        edit_api = "{}/edit".format(server)
 
         file_list = []
 
@@ -69,12 +59,12 @@ class SearchFilesDialog(QtWidgets.QDialog, Ui_SearchFilesDialog):
         for i in items:
             file_list.append(i)
 
-        worker = SearchFn(self, edit_api, email, password, file_list, self.nav)
+        worker = SearchFn(self,file_list, self.project_id, show_hidden=False, task_types=self.task_types, status_types=self.status_types)
         worker.callback.results.connect(self.search_results)
 
+        self.enable_ui(False)
         self.threadpool.start(worker)
         ##worker.run()
-        self.enable_ui(False)
     # process        
 
     def enable_ui(self, enabled):
@@ -88,16 +78,23 @@ class SearchFilesDialog(QtWidgets.QDialog, Ui_SearchFilesDialog):
             self.progressBar.setRange(0, 0)
 
     def search_results(self, results):
+        self.file_list = results
         self.enable_ui(True)
 
         if len(results) == 0:
             QtWidgets.QMessageBox.information(self, 'File Search', 'No files found, sorry', QtWidgets.QMessageBox.Ok)            
-            return                 
+            return   
+        else:
+            self.close_dialog()
 
-        dialog = DownloadDialogGUI(self, self.handler, self.nav, self.entity, file_list = results)
-        #dialog.load_files(file_list)
-        dialog.show()            
+    def get_file_list(self):
+        return self.file_list
 
     def close_dialog(self):
-        self.close()     
+        self.accept()
+        self.close()
+
+    def cancel_dialog(self):
+        self.reject()        
+        self.close()
 

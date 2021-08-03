@@ -2,22 +2,17 @@
 
 import traceback
 import sys
-import os
-import re
 
 # ==== auto Qt load ====
 try:
     from PySide2 import QtGui
     from PySide2 import QtCore
     from PySide2 import QtWidgets
-    from shiboken2 import wrapInstance 
-    import PySide2.QtUiTools as QtUiTools
     qtMode = 0
 except ImportError:
     traceback.print_exc(file=sys.stdout)
 
     from PyQt5 import QtGui, QtCore, QtWidgets
-    import sip
     qtMode = 1
 
 import gazu    
@@ -92,6 +87,8 @@ class UploadMonitorDialog(QtWidgets.QDialog, Ui_UploadMonitorDialog):
             self.model.set_item_text(source, message)
 
     def file_loaded(self, results):
+        print("file_loaded {}: {} {} {} {}".format(len(self.model.files), results['status'], self.progressBar.value(), results['source'], results['message']))
+
         status = results["status"]
         if "ok" in status:
             print("file_loaded completed {0} files".format(self.progressBar.value()))
@@ -99,17 +96,18 @@ class UploadMonitorDialog(QtWidgets.QDialog, Ui_UploadMonitorDialog):
             message = results["message"]
             source = results["source"]     
 
+            if self.progressBar.value() >= len(self.model.files):
+                self.pushButtonCancel.setText("Close")
+                QtWidgets.QMessageBox.question(self, 'Publishing complete', 'All files uploaded, thank you', QtWidgets.QMessageBox.Ok)
+                try:
+                    url = gazu.task.get_task_url(self.task)
+                    self.open_url(url)
+                except:
+                    print("Error loading url {0}".format(url))
+                    pass            
+
             self.model.set_item_text(source, message)        
             self.progressBar.setValue(self.progressBar.value() + 1)
-
-        if self.progressBar.value() >= len(self.model.files):
-            QtWidgets.QMessageBox.question(self, 'Publishing complete', 'All files uploaded, thank you', QtWidgets.QMessageBox.Ok)
-            try:
-                url = gazu.task.get_task_url(self.task)
-                self.open_url(url)
-            except:
-                print("Error loading url {0}".format(url))
-                pass
 
     def add_item(self, source, text):
         self.model.add_item(source, text)         

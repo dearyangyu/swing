@@ -28,12 +28,12 @@ class _shelf():
         elements. Otherwise, nothing is added to the shelf.'''
         pass
 
-    def addButon(self, label, icon="commandButton.png", command=_null, doubleCommand=_null):
+    def addButon(self, label, icon="commandButton.png", command=_null, doubleCommand=_null, width = 32, height = 32):
         '''Adds a shelf button with the specified label, command, double click command and image.'''
         mc.setParent(self.name)
         if icon:
             icon = self.iconPath + icon
-        mc.shelfButton(width=37, height=37, image=icon, l=label, command=command, dcc=doubleCommand, imageOverlayLabel=label, olb=self.labelBackground, olc=self.labelColour)
+        return mc.shelfButton(width=width, height=height, image=icon, l=label, command=command, dcc=doubleCommand, imageOverlayLabel=label, olb=self.labelBackground, olc=self.labelColour, style="iconAndTextHorizontal")
 
     def addMenuItem(self, parent, label, command=_null, icon=""):
         '''Adds a shelf button with the specified label, command, double click command and image.'''
@@ -55,3 +55,10 @@ class _shelf():
                     mc.deleteUI(each)
         else:
             mc.shelfLayout(self.name, p="ShelfLayout")
+
+    def _cleanItem(self, item_name):
+        '''Checks if the shelf exists and empties it if it does or creates it if it does not.'''
+        if mc.shelfLayout(self.name, ex=1):
+            if mc.shelfLayout(self.name, q=1, ca=1):
+                for each in mc.shelfLayout(item_name, q=1, ca=1):
+                    mc.deleteUI(each)

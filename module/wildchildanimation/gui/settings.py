@@ -9,8 +9,6 @@ import json
 try:
     from PySide2 import QtCore
     from PySide2 import QtWidgets
-    from shiboken2 import wrapInstance 
-    import PySide2.QtUiTools as QtUiTools
     qtMode = 0
 except ImportError:
     traceback.print_exc(file=sys.stdout)
@@ -20,7 +18,7 @@ except ImportError:
     qtMode = 1
 
 from wildchildanimation.gui.settings_dialog import Ui_SettingsDialog
-from wildchildanimation.gui.swing_utils import save_password, load_keyring
+from wildchildanimation.gui.swing_utils import save_password, load_keyring, set_button_icon
 
 '''
     Swing Settings
@@ -30,14 +28,14 @@ from wildchildanimation.gui.swing_utils import save_password, load_keyring
 class SwingSettings(QtCore.QObject):
 
     _APP_NAME = "treehouse: swing"
-    _APP_VERSION = "0.0.0.23"
+    _APP_VERSION = "0.0.0.24"
 
     #
     # Singleton
     _instance = None
 
     @classmethod
-    def getInstance(cls):
+    def get_instance(cls):
         if not cls._instance:
             cls._instance = SwingSettings()
         return cls._instance
@@ -64,7 +62,7 @@ class SwingSettings(QtCore.QObject):
         self._swing_password = load_keyring('swing', 'password', 'Not A Password')
 
         _settings = QtCore.QSettings()   
-        self._swing_server = _settings.value('server', 'https://example.example.com')
+        self._swing_server = _settings.value('server', 'https://studio-api.example.com')
         self._swing_user = _settings.value('user', 'user@example.com')
         self._swing_root = _settings.value('projects_root', os.path.expanduser("~"))
         self._ffmpeg_bin = _settings.value("ffmpeg_bin", "")
@@ -116,13 +114,14 @@ class SettingsDialog(QtWidgets.QDialog, Ui_SettingsDialog):
     working_dir = None
     swing_settings = None
     
-    def __init__(self, parent = None, handler = None, selection = None):
-        super(SettingsDialog, self).__init__(None) # Call the inherited classes __init__ method
+    def __init__(self, parent = None):
+        super(SettingsDialog, self).__init__(parent) # Call the inherited classes __init__ method
         self.setupUi(self)
-        self.swing_settings = SwingSettings.getInstance()
+        self.swing_settings = SwingSettings.get_instance()
 
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
-
+        self.setWindowModality(QtCore.Qt.ApplicationModal)
+        self.setModal(True)
         self.buttonBox.accepted.connect(self.save_settings)
 
         self.lineEditServer.setText(self.swing_settings.swing_server())
@@ -130,20 +129,23 @@ class SettingsDialog(QtWidgets.QDialog, Ui_SettingsDialog):
         self.lineEditPassword.setText(self.swing_settings.swing_password())
         self.lineEditProjectsFolder.setText(self.swing_settings.swing_root())
 
-        self.toolButtonProjectsFolder.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_DirOpenIcon))
+        set_button_icon(self.toolButtonProjectsFolder, "../resources/fa-free/solid/folder.svg")
         self.toolButtonProjectsFolder.clicked.connect(self.select_projects_dir)    
 
         self.lineEditFfmpegBin.setText(self.swing_settings.bin_ffmpeg())
-        self.toolButtonFfmpegBin.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_DirOpenIcon))
-        self.toolButtonFfmpegBin.clicked.connect(self.select_ffmpeg_bin)    
 
+        set_button_icon(self.toolButtonFfmpegBin, "../resources/fa-free/solid/folder.svg")
+        self.toolButtonFfmpegBin.clicked.connect(self.select_ffmpeg_bin)    
+        
         self.lineEditFfprobeBin.setText(self.swing_settings.bin_ffprobe())
-        self.toolButtonFfprobeBin.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_DirOpenIcon))
-        self.toolButtonFfprobeBin.clicked.connect(self.select_ffprobe_bin)    
+
+        set_button_icon(self.toolButtonFfprobeBin, "../resources/fa-free/solid/folder.svg")
+        self.toolButtonFfprobeBin.clicked.connect(self.select_ffprobe_bin)            
 
         self.lineEdit7zBinary.setText(self.swing_settings.bin_7z())
-        self.toolButton7zSelect.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_DirOpenIcon))
-        self.toolButton7zSelect.clicked.connect(self.select_7z_bin)            
+        self.toolButton7zSelect.clicked.connect(self.select_7z_bin)                    
+        set_button_icon(self.toolButton7zSelect, "../resources/fa-free/solid/folder.svg")
+
 
     def select_projects_dir(self):
         directory = QtWidgets.QFileDialog.getExistingDirectory(self, 'Select working directory')

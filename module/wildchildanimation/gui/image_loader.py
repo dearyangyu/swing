@@ -31,7 +31,7 @@ class PreviewImageLoader(QtCore.QRunnable):
         super(PreviewImageLoader, self).__init__(self, parent)
         self.parent = parent
 
-        self.swing_settings = SwingSettings.getInstance()
+        self.swing_settings = SwingSettings.get_instance()
         self.password = self.swing_settings.swing_password()
         self.server = self.swing_settings.swing_server()
         self.email = self.swing_settings.swing_user()

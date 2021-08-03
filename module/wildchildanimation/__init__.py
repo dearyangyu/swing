@@ -1,1 +1,1 @@
-from wildchildanimation.swing_gui import SwingGUI
+from wildchildanimation.gui.swing_gui import SwingGUI
