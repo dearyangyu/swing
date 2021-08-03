@@ -3,7 +3,6 @@
 import traceback
 import sys
 import os
-import re
 import copy
 
 # ==== auto Qt load ====
@@ -138,26 +137,28 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
 
     # load main dialog state
     def read_settings(self):
-        self.settings = QtCore.QSettings()
-        self.settings.beginGroup(self.__class__.__name__)
-        
-        self.resize(self.settings.value("size", QtCore.QSize(480, 520)))
-        ##self.move(self.settings.value("pos", QtCore.QPoint(0, 200)))
+        try:
+            self.settings = QtCore.QSettings()
+            self.settings.beginGroup(self.__class__.__name__)
+            
+            self.resize(self.settings.value("size", QtCore.QSize(480, 520)))
 
-        self.checkBoxSkipExisting.setChecked(self.settings.value("skip_existing", True, type=bool))
-        self.checkBoxExtractZips.setChecked(self.settings.value("extract_zips", True, type=bool))
-        self.checkBoxForce.setChecked(self.settings.value("force_load", True, type=bool))
-        self.checkBoxNamespace.setChecked(self.settings.value("name_space", True, type=bool))
+            self.checkBoxSkipExisting.setChecked(self.settings.value("skip_existing", True, type=bool))
+            self.checkBoxExtractZips.setChecked(self.settings.value("extract_zips", True, type=bool))
+            self.checkBoxForce.setChecked(self.settings.value("force_load", True, type=bool))
+            self.checkBoxNamespace.setChecked(self.settings.value("name_space", True, type=bool))
 
-        load_type = self.settings.value("load_type", "open", type=str)
-        if "open" in load_type:
-            self.openRb.setChecked(True)
-        elif "import" in load_type:
-            self.importRb.setChecked(True)
-        else:
-            self.referenceRb.setChecked(True)
+            load_type = self.settings.value("load_type", "open", type=str)
+            if "open" in load_type:
+                self.openRb.setChecked(True)
+            elif "import" in load_type:
+                self.importRb.setChecked(True)
+            else:
+                self.referenceRb.setChecked(True)
 
-        self.settings.endGroup()              
+            self.settings.endGroup()              
+        except:
+            traceback.print_exc(file=sys.stdout)
 
     def selection_changed(self):
         self.checkBoxNamespace.setEnabled(self.referenceRb.isChecked())       

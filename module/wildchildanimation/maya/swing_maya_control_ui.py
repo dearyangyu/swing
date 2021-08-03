@@ -13,6 +13,8 @@ from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
 from wildchildanimation.gui.swing_utils import fakestr
+
+
 class Ui_SwingControlWidget(object):
     def setupUi(self, SwingControlWidget):
         if not SwingControlWidget.objectName():
@@ -141,9 +143,9 @@ class Ui_SwingControlWidget(object):
         SwingControlWidget.setWindowTitle(fakestr(u"Form", None))
         self.toolButtonRefresh.setText(fakestr(u"Refresh", None))
         self.comboBoxProject.setCurrentText("")
-        self.comboBoxProject.setPlaceholderText(fakestr(u"Select Project", None))
-        self.comboBoxEpisode.setPlaceholderText(fakestr(u"Select Task", None))
-        self.comboBoxTask.setPlaceholderText(fakestr(u"Select Episode", None))
+        self.comboBoxProject.setPlaceholderText("")
+        self.comboBoxEpisode.setPlaceholderText("")
+        self.comboBoxTask.setPlaceholderText("")
         self.toolButtonSwing.setText(fakestr(u"Swing", None))
         self.toolButtonTask.setText(fakestr(u"Task", None))
         self.toolButtonPlayblast.setText(fakestr(u"Playblast", None))
