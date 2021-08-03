@@ -14,7 +14,6 @@ from PySide2.QtWidgets import *
 
 from wildchildanimation.gui.swing_utils import fakestr
 
-
 class Ui_SwingControlWidget(object):
     def setupUi(self, SwingControlWidget):
         if not SwingControlWidget.objectName():
@@ -46,6 +45,7 @@ class Ui_SwingControlWidget(object):
         self.comboBoxProject.setSizePolicy(sizePolicy1)
         self.comboBoxProject.setMinimumSize(QSize(300, 0))
         self.comboBoxProject.setMaximumSize(QSize(300, 16777215))
+        self.comboBoxProject.setPlaceholderText(u"")
 
         self.horizontalLayout_3.addWidget(self.comboBoxProject)
 
@@ -55,6 +55,7 @@ class Ui_SwingControlWidget(object):
         self.comboBoxEpisode.setSizePolicy(sizePolicy1)
         self.comboBoxEpisode.setMinimumSize(QSize(150, 0))
         self.comboBoxEpisode.setMaximumSize(QSize(200, 16777215))
+        self.comboBoxEpisode.setPlaceholderText(u"")
 
         self.horizontalLayout_3.addWidget(self.comboBoxEpisode)
 
@@ -67,6 +68,7 @@ class Ui_SwingControlWidget(object):
         self.comboBoxTask.setSizePolicy(sizePolicy2)
         self.comboBoxTask.setMinimumSize(QSize(300, 0))
         self.comboBoxTask.setMaximumSize(QSize(300, 16777215))
+        self.comboBoxTask.setPlaceholderText(u"")
 
         self.horizontalLayout_3.addWidget(self.comboBoxTask)
 
@@ -143,9 +145,6 @@ class Ui_SwingControlWidget(object):
         SwingControlWidget.setWindowTitle(fakestr(u"Form", None))
         self.toolButtonRefresh.setText(fakestr(u"Refresh", None))
         self.comboBoxProject.setCurrentText("")
-        self.comboBoxProject.setPlaceholderText("")
-        self.comboBoxEpisode.setPlaceholderText("")
-        self.comboBoxTask.setPlaceholderText("")
         self.toolButtonSwing.setText(fakestr(u"Swing", None))
         self.toolButtonTask.setText(fakestr(u"Task", None))
         self.toolButtonPlayblast.setText(fakestr(u"Playblast", None))
