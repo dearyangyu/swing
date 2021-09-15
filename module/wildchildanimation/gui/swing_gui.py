@@ -254,7 +254,12 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
         self.openTaskFolderAction = self._loadActionIcon("&Open Folder", "../resources/fa-free/solid/folder.svg")
         self.openTaskFolderAction.setStatusTip("Open Task Folder")
-        self.openTaskFolderAction.triggered.connect(self.open_task_folder)                  
+        self.openTaskFolderAction.triggered.connect(self.open_task_folder)                          
+
+        self.createTaskFolderAction = self._loadActionIcon("&Create Folders", "../resources/fa-free/solid/folder-plus.svg")
+        self.createTaskFolderAction.setStatusTip("Create task folders for all selected tasks")
+        self.createTaskFolderAction.triggered.connect(self.create_task_folder)   
+
 
     def _createContextMenu(self):
         self.tableViewFiles.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
@@ -268,6 +273,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.tableViewTasks.addAction(self.publishTaskAction)
         self.tableViewTasks.addAction(self.taskInfoAction)
         self.tableViewTasks.addAction(self.openTaskFolderAction)
+        self.tableViewTasks.addAction(self.createTaskFolderAction)
 
     def open_file_folder(self):
         self.file_table_selection_changed()
@@ -284,6 +290,23 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
             if os.path.exists(working_dir) and os.path.isdir(working_dir):
                 open_folder(working_dir)        
+
+    def create_task_folder(self):
+        created = 0
+        for item in self.tableViewTasks.selectionModel().selectedRows():
+            row = item.row()
+            task = self.tableViewTasks.model().data(self.tableViewTasks.model().index(row, 0), role = QtCore.Qt.UserRole)
+            if "project_dir" in task:
+                working_dir = task["project_dir"]
+                if not os.path.exists(working_dir):
+                    try:
+                        os.makedirs(working_dir, exist_ok = True)
+                        created += 1
+                    except:
+                        print("Error creating folder: {}".format(working_dir))
+        if created > 0:
+            QtWidgets.QMessageBox.question(self, 'Swing: Tasks', 'Created {} new working folders'.format(created), QtWidgets.QMessageBox.Ok)                    
+
 
     def version_check(self):
         version_check = VersionCheck(self)
