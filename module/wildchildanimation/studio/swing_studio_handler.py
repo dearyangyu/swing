@@ -25,7 +25,7 @@ except ImportError:
 class SwingStudioHandler(StudioInterface):
 
     NAME = "SwingStudioHandler"
-    VERSION = "0.0.1"      
+    VERSION = "0.0.5"      
 
     def __init__(self):
         super(SwingStudioHandler, self).__init__()
@@ -80,9 +80,14 @@ class SwingStudioHandler(StudioInterface):
         project_dir = kwargs["project_dir"]
 
         self.publishDialog = PublishDialogGUI(parent = parent, task = task, task_types = task_types)
+
+        self.publishDialog.set_wf_exclude(StudioInterface.WF_DEFAULT_EXCLUDE)
+        self.publishDialog.set_of_include(StudioInterface.OF_DEFAULT_INCLUDE)
+        
         if project_dir:
             if os.path.exists(project_dir) and os.path.isdir(project_dir):
                 self.publishDialog.set_working_dir(project_dir)
+                self.publishDialog.set_output_dir(project_dir)
 
         self.publishDialog.show()
 

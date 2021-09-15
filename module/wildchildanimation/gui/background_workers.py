@@ -61,6 +61,8 @@ class SwingUpdater(QtCore.QRunnable):
         except:
             traceback.print_exc(file=sys.stdout)
         # done        
+
+
 '''
     Loads all open projects, all episodes per project, all task types and softwares
 '''
@@ -77,10 +79,11 @@ class ProjectLoaderThread(QtCore.QRunnable):
                 #projects = gazu.project.all_open_projects()
                 projects = ProjectEpisodeLoader().run()
                 task_types = gazu.task.all_task_types()
+                task_status = gazu.task.all_task_statuses()
                 software = gazu.files.all_softwares()
 
                 results["projects"] = projects
-                # results["project_data"] = project_data
+                results["task_status"] = task_status
                 results["task_types"] = task_types
                 results["software"] = software
 
@@ -89,6 +92,7 @@ class ProjectLoaderThread(QtCore.QRunnable):
             # done
         finally:
             self.callback.loaded.emit(results)
+        return results
             
 
 class ProjectHierarchyLoaderThread(QtCore.QRunnable):
@@ -687,10 +691,71 @@ def create_callback(encoder, upload_signal, source):
         })
     return callback
 
+class SwingCompressor(QtCore.QRunnable):
+
+    def __init__(self, directory, model, target = 'out.zip'):
+        super(SwingCompressor, self).__init__(self)
+        self.source = directory
+        self.model = model
+        self.target = target
+        
+        self.callback = UploadSignal()
+
+    def zip_dir(self, path, zipfile):
+        for root, dirs, files in os.walk(path):
+            for file in files:
+                zipfile.write(os.path.join(root, file), os.path.relpath(os.path.join(root, file), os.path.join(path, '..')))        
+
+    def run(self):
+        if not os.path.isdir(self.source):
+            print("Source {} not a directory".format(self.source))
+            return
+
+        if os.path.exists(self.target):
+            os.remove(self.target)
+            #print("Target exists: {}".format(self.target))
+            #return
+
+        current_dir = os.getcwd()
+        try:
+            #os.chdir(self.source)
+
+            root = self.source
+
+            exclude = [ ".", "..", "./", root, os.path.basename(self.source), os.path.basename(self.target) ]
+
+            with zipfile.ZipFile(self.target, 'w', zipfile.ZIP_DEFLATED) as archive:
+
+                for item in os.listdir(self.source):
+                    item_path = os.path.join(self.source, item)
+                    
+                    if self.model.checkState(self.model.index(item_path)) == QtCore.Qt.Checked:
+                        # print("{} Added {} {}".format(item, os.path.join(root, item), root))
+
+                        if any(os.path.basename(item) in ext for ext in exclude):
+                        #if item in exclude:
+                            print("{} Skipped".format(item_path))
+                            continue
+
+                        if os.path.isdir(item_path):
+                            self.zip_dir(item_path, archive)
+                        else:
+                            archive.write(item_path, item)
+
+                        self.callback.progress.emit("{} Added {} {}".format(item, os.path.join(root, item), root))
+                archive.close()
+        finally:
+            pass
+            #os.chdir(current_dir)
+
+        self.callback.done.emit(self.target)
+
+
 class WorkingFileUploader(QtCore.QRunnable):
 
-    def __init__(self, parent, edit_api, task, source, file_name, software_name, comment = '', mode = "working", filter = [], task_status = None):
+    def __init__(self, parent, edit_api, task, source, file_name, software_name, comment = '', mode = "working", file_model = None, task_status = None):
         super(WorkingFileUploader, self).__init__(self, parent)
+        self.threadpool = QtCore.QThreadPool.globalInstance()        
         self.parent = parent
         self.url = edit_api
         self.mode = mode
@@ -706,7 +771,7 @@ class WorkingFileUploader(QtCore.QRunnable):
         self.email = self.swing_settings.swing_user()
         self.password = self.swing_settings.swing_password()
 
-        self.filter = filter
+        self.file_model = file_model
         self.callback = UploadSignal()
 
     def process_upload(self):
@@ -772,35 +837,25 @@ class WorkingFileUploader(QtCore.QRunnable):
         #    v += 1
         #    target = "{}_v{}".format(os.path.dirname(self.source), '{}'.format(v).zfill(3))
         baseline = os.path.basename(self.source)
-        target = "{}/{}.zip".format(os.path.dirname(self.source), baseline)
+        target = "{}/{}_{}.zip".format(os.path.dirname(self.source), baseline, self.mode)
 
-        with zipfile.ZipFile(target, 'w') as zip:
-            for folder, sub, files in os.walk(self.source):
-                for filename in files:
-                    if not filename in self.filter:
-                        #file_path = os.path.join(folder, filename)
-                        zip.write(os.path.join(folder, filename), arcname=os.path.join(folder.replace(self.source, baseline), filename))
+        zipper = SwingCompressor(self.source, self.file_model, target=target)
+        zipper.run()
+        self.source = target
 
-                        # zip.write(file_path, os.path.basename(file_path))
-                        #ziph.write(os.path.join(root, file), arcname=os.path.join(root.replace(src, ""), file))                        
-                        #print("added {}".format(filename))  
-                    else:
-                        print("skipped {}".format(filename))
-            zip.close()
-
-        self.callback.done.emit({
-            "status": "new",
+        self.callback.progress.emit({
+            "status": "zipped",
             "source": self.source,
             "message": "created {}".format(target)
         })                            
 
-        self.source = target
+        self.process_upload()
 
     def run(self):
-        if os.path.isdir(self.source):
+        if os.path.isdir(self.source) and self.file_model:
             self.compress_dir()
-
-        return self.process_upload()
+        else:
+            self.process_upload()
 
 class ShotCreatorSignal(QtCore.QObject):
 
@@ -1075,6 +1130,7 @@ class EntityFileLoader(QtCore.QRunnable):
         self.server = settings.swing_server()
 
         self.edit_api = "{}/edit".format(self.server)
+        ##self.edit_api = "http://10.147.19.55:8202/edit"
 
     def run(self):
         url = "{}/{}/{}".format(self.edit_api, "entity_info", self.entity_id)

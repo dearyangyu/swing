@@ -772,7 +772,6 @@ class SwingPlayblastUi(QtWidgets.QDialog, Ui_PlayblastDialog):
         if not current_filename:
             current_filename = self.output_filename_le.placeholderText()
 
-        current_filename = self._playblast.resolve_output_file_name(current_filename)
         selected_file = os.path.normpath(current_filename)
 
         file_info = QtCore.QFileInfo(selected_file)
@@ -916,16 +915,9 @@ class SwingPlayblastUi(QtWidgets.QDialog, Ui_PlayblastDialog):
                 self.append_output("[ERROR] Failed to set encoder settings. Unknown encoder: {0}".format(encoder))
 
     def on_visibility_preset_changed(self):
-        if self.encoding_container_cmb.currentText() == "Image":
-            image_settings = self._encoder_settings_dialog.get_image_settings()
-            self._playblast.set_image_settings(image_settings["quality"])
-        else:
-            encoder = self.encoding_video_codec_cmb.currentText()
-            if encoder == "h264":
-                h264_settings = self._encoder_settings_dialog.get_h264_settings()
-                self._playblast.set_h264_settings(h264_settings["quality"], h264_settings["preset"])
-            else:
-                self.append_output("[ERROR] Failed to set encoder settings. Unknown encoder: {0}".format(encoder))
+        visibility_preset = self.visibility_cmb.currentText()
+        if visibility_preset != "Custom":
+            self._playblast.set_visibility(visibility_preset)
 
     def show_visibility_dialog(self):
         if not self._visibility_dialog:
@@ -933,7 +925,6 @@ class SwingPlayblastUi(QtWidgets.QDialog, Ui_PlayblastDialog):
             self._visibility_dialog.accepted.connect(self.on_visibility_dialog_modified)
 
         self._visibility_dialog.set_visibility_data(self._playblast.get_visibility())
-
         self._visibility_dialog.show()
 
     def on_visibility_dialog_modified(self):

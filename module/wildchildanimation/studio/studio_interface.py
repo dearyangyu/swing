@@ -5,7 +5,7 @@ import os
 
 from wildchildanimation.gui.settings import SwingSettings
 from wildchildanimation.gui.background_workers import ProjectEpisodeLoader, ProjectShotLoader, TaskTypeLoader, ToDoLoader
-from wildchildanimation.gui.swing_utils import connect_to_server, friendly_string
+from wildchildanimation.gui.swing_utils import connect_to_server
 
 try:
     from PySide2 import QtCore
@@ -17,7 +17,7 @@ except ImportError:
 class StudioInterface(QtCore.QObject):
 
     NAME = "StudioInterface"
-    VERSION = "0.0.4"    
+    VERSION = "0.0.5"    
 
     def __init__(self):
         super(StudioInterface, self).__init__()
@@ -42,8 +42,10 @@ class StudioInterface(QtCore.QObject):
         "Playback",
         "Animation",
         "Custom"
-    ]        
+    ]  
 
+    WF_DEFAULT_EXCLUDE = [ "_export", ".zip", ".mov", ".mp4", ".DS_Store", "playblasts", ".7z" ]
+    OF_DEFAULT_INCLUDE = [ "_export", ".zip", ".mov", ".mp4" ]
 
     SUPPORTED_TYPES = [ ]
     UNARCHIVE_TYPES = [ ".zip", ".rar" ]

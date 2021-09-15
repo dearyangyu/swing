@@ -25,6 +25,7 @@ from wildchildanimation.gui.swing_utils import set_button_icon
 from wildchildanimation.gui.image_loader import PreviewImageLoader
 from wildchildanimation.gui.publish_dialog import Ui_PublishDialog
 from wildchildanimation.gui.upload_monitor import UploadMonitorDialog
+from wildchildanimation.gui.file_selector import FileSelectDialog
 
 ## from wildchildanimation.gui.swing_workpacket import WorkPacket
 
@@ -35,7 +36,12 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
     last_output_dir = None
     default_software = None
 
-    #entity = None, handler = None, project = None, task_types = None, status_types = None):
+    working_filter = None
+    output_filter = None
+
+    wf_excluded = []
+    of_included = []
+
     def __init__(self, parent = None, task = None, task_types = None, status_types = None):
         super(PublishDialogGUI, self).__init__(parent) # Call the inherited classes __init__ method    
 
@@ -57,16 +63,10 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
 
         self.software = SoftwareLoader(self).run()["software"]
 
-        #project = self.nav.get_project()
-        #if project:
-        #    self.lineEditProject.setText(project["name"])
-
-        #episode = self.nav.get_episode()
-        #if episode:
-        #    self.lineEditFor.setText("Episode {}".format(episode["name"]))
-
         self.threadpool = QtCore.QThreadPool.globalInstance()
         self.references = []
+
+        self.working_filter = FileSelectDialog(self)
 
         self.workingFileSelectButton.clicked.connect(self.select_working_file)
         set_button_icon(self.workingFileSelectButton, "../resources/fa-free/solid/folder.svg")
@@ -74,12 +74,22 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         self.workingDirSelectButton.clicked.connect(self.select_working_dir)
         set_button_icon(self.workingDirSelectButton, "../resources/fa-free/solid/folder.svg")
 
+        self.toolButtonWorkingDirFilter.clicked.connect(self.show_working_filter)
+        set_button_icon(self.toolButtonWorkingDirFilter, "../resources/fa-free/solid/list.svg")
+
+        self.output_filter = FileSelectDialog(self)
+
         self.outputFileSelectButton.clicked.connect(self.select_output_file)
         set_button_icon(self.outputFileSelectButton, "../resources/fa-free/solid/folder.svg")
 
         self.outputDirSelectButton.clicked.connect(self.select_output_dir)
-        set_button_icon(self.outputDirSelectButton, "../resources/fa-free/solid/folder.svg")        
+        set_button_icon(self.outputDirSelectButton, "../resources/fa-free/solid/folder.svg")   
 
+        self.toolButtonReviewFilter.clicked.connect(self.show_output_filter)
+        set_button_icon(self.toolButtonReviewFilter, "../resources/fa-free/solid/list.svg")
+
+
+        self.comboBoxSoftware.currentIndexChanged.connect(self.software_changed)  
         ##self.projectFileToolButton.clicked.connect(self.select_working_file)
         #self.fbxFileToolButton.clicked.connect(self.select_fbx_file)
         #self.reviewFileToolButton.clicked.connect(self.select_output_file)
@@ -91,11 +101,21 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         self.pushButtonOK.clicked.connect(self.process)
         self.pushButtonCancel.clicked.connect(self.close_dialog)
 
-        self.set_enabled(False)        
+        self.set_enabled(False)       
+        self.labelOutputFilesMessage.setText("")
+        self.labelWorkingFilesMessage.setText("") 
 
         task_loader = TaskFileInfoThread(self, self.task, self.project_root)
         task_loader.callback.loaded.connect(self.task_loaded)
-        self.threadpool.start(task_loader)        
+        self.threadpool.start(task_loader)  
+
+        # QtCore.QTimer.singleShot(0, lambda: self.treeView.expandRecursively(model.index(root_dir.path()), 10))      
+
+    def set_wf_exclude(self, excluded):
+        self.wf_excluded = excluded
+    
+    def set_of_include(self, included):
+        self.of_included = included
 
     def set_enabled(self, enabled):
         self.lineEditProject.setEnabled(enabled)
@@ -127,6 +147,13 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         self.commentEdit.setEnabled(enabled)        
         self.pushButtonOK.setEnabled(enabled)        
 
+    
+    def software_changed(self, index):
+        self.settings = QtCore.QSettings()
+        self.settings.beginGroup(self.__class__.__name__)
+        self.settings.setValue("software", self.comboBoxSoftware.currentText())
+        self.settings.endGroup()
+    
     def load_preview_image(self, pixmap):
         """
         Set the image to the pixmap
@@ -166,6 +193,8 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         self.lineEditFor.setText("{}: {}".format(self.task["entity_type"]["name"], self.task["entity"]["name"]))        
         self.lineEditProject.setText(self.task["project"]["name"])
 
+        self.reviewTitleLineEdit.setText("Review: {}: {}".format(self.task["entity_type"]["name"], self.task["entity"]["name"]))
+
         # load artist allowed task status codes
         for item in self.status_types:
             self.comboBoxTaskStatus.addItem(item["name"], userData = item) 
@@ -174,8 +203,8 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         if status_index >= 0:
             self.comboBoxTaskStatus.setCurrentIndex(status_index)        
         else:
-
             self.comboBoxTaskStatus.setCurrentIndex(0)                    
+
         idx = 0
         sel = -1
         for item in self.software:
@@ -264,7 +293,7 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         self.workingDirEdit.setText("")
         self.workingFileEdit.setText(selected_file)
 
-        self.labelZipMessage.setText("")
+        self.labelWorkingFilesMessage.setText("")
 
     def set_working_dir(self, selected_dir):
         self.radioButtonWorkingFile.setChecked(False)
@@ -285,28 +314,50 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
             file_base = os.path.basename(selected_file)
             file_name, file_ext = os.path.splitext(file_base)
 
-            self.reviewTitleLineEdit.setText(file_name)
+            self.reviewTitleLineEdit.setText("Review: {}".format(file_name))
 
     def set_output_dir(self, selected_dir):
         self.radioButtonOutputFile.setChecked(False)
         self.radioButtonOutputDir.setChecked(True)
 
+        self.scan_output_dir(selected_dir, self.of_included)
         self.outputDirEdit.setText(selected_dir)
         self.outputFileEdit.setText("")
 
     def scan_working_dir(self, directory):
-        self.media_files = []
+        self.working_filter.set_root(directory)
+        self.working_filter.scan_working_files()
 
-        self.media_files += filter(os.path.isfile, glob.glob(directory + '/*.mp4'))
-        self.media_files += filter(os.path.isfile, glob.glob(directory + '/*.mov'))
+        #self.media_files = []
 
-        self.media_files = sorted(self.media_files, key = os.path.getmtime)
+        #self.media_files += filter(os.path.isfile, glob.glob(directory + '/*.mp4'))
+        #self.media_files += filter(os.path.isfile, glob.glob(directory + '/*.mov'))
 
-        if len(self.media_files) > 0:
-            self.labelReviewFile.setText("Found review media to upload")
-            self.set_output_file(self.media_files[len(self.media_files)-1])
+        #self.media_files = sorted(self.media_files, key = os.path.getmtime)
 
-        self.labelZipMessage.setText("Compress and upload directory: {}".format(directory))
+        #if len(self.media_files) > 0:
+        #    self.labelReviewFile.setText("Found review media to upload")
+        #    self.set_output_file(self.media_files[len(self.media_files)-1])
+
+        self.labelWorkingFilesMessage.setText("Compress and upload directory: {}".format(directory))
+
+    def scan_output_dir(self, directory, excluded):
+        self.output_filter.set_root(directory)
+        self.output_filter.scan_output_files()
+
+        #self.media_files = []
+
+        #self.media_files += filter(os.path.isfile, glob.glob(directory + '/*.mp4'))
+        #self.media_files += filter(os.path.isfile, glob.glob(directory + '/*.mov'))
+
+        #self.media_files = sorted(self.media_files, key = os.path.getmtime)
+
+        #if len(self.media_files) > 0:
+        #    self.labelReviewFile.setText("Found review media to upload")
+        #    self.set_output_file(self.media_files[len(self.media_files)-1])
+
+        self.labelOutputFilesMessage.setText("Compress and upload directory: {}".format(directory))
+
 
     # save main dialog state
     def write_settings(self):
@@ -318,7 +369,7 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
 
         self.settings.setValue("last_work_dir", self.last_work_dir)
         self.settings.setValue("last_output_dir", self.last_output_dir)
-        self.settings.setValue("software", self.comboBoxSoftware.currentText())
+        #self.settings.setValue("software", self.comboBoxSoftware.currentText())
 
         #self.settings.setValue("output_dir_path_le", self.output_dir_path_le.text())
         #self.settings.setValue("output_filename_le", self.output_filename_le.text())
@@ -357,6 +408,25 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
     def get_software(self):
         return self.comboBoxSoftware.currentData(QtCore.Qt.UserRole)        
 
+    def show_working_filter(self):
+        self.working_filter.pushButtonWorkingFiles.setVisible(True)
+        self.working_filter.pushButtonOutputFiles.setVisible(False)
+        self.working_filter.pushButtonZip.setVisible(True)
+
+        if self.working_filter.show():
+            for item in self.working_filter.treeView.model().checkStates:
+                print(item)
+
+    def show_output_filter(self):
+        self.working_filter.pushButtonWorkingFiles.setVisible(False)
+        self.working_filter.pushButtonOutputFiles.setVisible(True)
+        self.working_filter.pushButtonZip.setVisible(True)
+
+        if self.output_filter.show():
+            for item in self.output_filter.treeView.model().checkStates:
+                print(item)                
+        
+
     # ToDo: Desktop Only, Move to Swing Studio Handler
     def process(self):
         self.pushButtonCancel.setEnabled(False)
@@ -371,88 +441,94 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
 
         task_comments = self.commentEdit.toPlainText().strip()
 
-        #
-        # working files
-        #
-        if len(self.workingFileEdit.text()) > 0:
-            source = self.workingFileEdit.text()
+        if self.groupBoxWorkingFiles.isChecked():        
 
-            if os.path.exists(source):
-                file_base = os.path.basename(source)
-                file_name, file_ext = os.path.splitext(file_base)                
+            #
+            # working files
+            #
+            if len(self.workingFileEdit.text()) > 0:
+                source = self.workingFileEdit.text()
 
-                worker = WorkingFileUploader(self, edit_api, self.task, source, file_name, self.get_software()["name"], 
-                    comment = task_comments, mode = "working", task_status = self.comboBoxTaskStatus.currentData(QtCore.Qt.UserRole)["id"])
-                worker.callback.progress.connect(dialog.file_loading)
-                worker.callback.done.connect(dialog.file_loaded)
+                if os.path.exists(source):
+                    file_base = os.path.basename(source)
+                    file_name, file_ext = os.path.splitext(file_base)                
 
-                dialog.add_item(source, "Pending")
+                    worker = WorkingFileUploader(self, edit_api, self.task, source, file_name, self.get_software()["name"], 
+                        comment = task_comments, mode = "working", task_status = self.comboBoxTaskStatus.currentData(QtCore.Qt.UserRole)["id"])
+                    worker.callback.progress.connect(dialog.file_loading)
+                    worker.callback.done.connect(dialog.file_loaded)
 
-                self.process_count += 1       
-                self.queue.append(worker)         
-                self.threadpool.start(worker)
-        #
-        # working dir
-        #
-        elif len(self.workingDirEdit.text()) > 0:
-            source = self.workingDirEdit.text()
+                    ## dialog.add_item(source, "Pending")
 
-            if os.path.exists(source):
-                file_base = os.path.basename(source)
-                file_path = os.path.dirname(source)
-                file_name, file_ext = os.path.splitext(file_base)                
+                    self.process_count += 1       
+                    self.queue.append(worker)         
+                    #self.threadpool.start(worker)
+            #
+            # working dir
+            #
+            elif len(self.workingDirEdit.text()) > 0:
+                source = self.workingDirEdit.text()
 
-                worker = WorkingFileUploader(self, edit_api, self.task, source, file_name, self.get_software()["name"], 
-                    comment = task_comments, mode = "working", filter = [ os.path.basename(self.outputFileEdit.text()) ], task_status = self.comboBoxTaskStatus.currentData(QtCore.Qt.UserRole)["id"])
+                if os.path.exists(source):
+                    file_base = os.path.basename(source)
+                    file_path = os.path.dirname(source)
+                    file_name, file_ext = os.path.splitext(file_base)                
 
-                worker.callback.progress.connect(dialog.file_loading)
-                worker.callback.done.connect(dialog.file_loaded)
+                    worker = WorkingFileUploader(self, edit_api, self.task, source, file_name, software_name = self.get_software()["name"], 
+                        comment = task_comments, mode = "working", file_model = self.working_filter.treeView.model(), task_status = self.comboBoxTaskStatus.currentData(QtCore.Qt.UserRole)["id"])
 
-                target = "{}/{}.zip".format(os.path.dirname(source), file_base)
-                dialog.add_item(target, "Pending")
+                    worker.callback.progress.connect(dialog.file_loading)
+                    worker.callback.done.connect(dialog.file_loaded)
 
-                self.process_count += 1                
-                self.queue.append(worker)
-                self.threadpool.start(worker)
-                ##worker.run()             
+                    target = "{}/{}.zip".format(os.path.dirname(source), file_base)
+                    ## dialog.add_item(target, "Pending")
 
-        # def __init__(self, parent, edit_api, task, source, file_name, software_name, comment, email, password, mode = "working", filter = []):
-        #
-        # output files
-        #
-        if len(self.outputFileEdit.text()) > 0:
-            source = self.outputFileEdit.text()
-            if os.path.exists(source):
-                file_base = os.path.basename(source)
-                file_name, file_ext = os.path.splitext(file_base)
+                    self.process_count += 1                
+                    self.queue.append(worker)
+                    #self.threadpool.start(worker)
+                    ## worker.run()     
+        ### Working files        
 
-                worker = WorkingFileUploader(self, edit_api, self.task, source, file_name, self.get_software()["name"],  
-                    comment=task_comments, mode = self.output_mode, task_status = self.comboBoxTaskStatus.currentData(QtCore.Qt.UserRole)["id"])
+        if self.groupBoxOutputFiles.isChecked():
+            #
+            # output files
+            #
 
-                worker.callback.progress.connect(dialog.file_loading)
-                worker.callback.done.connect(dialog.file_loaded)
-                dialog.add_item(source, "Pending")    
+            if len(self.outputFileEdit.text()) > 0:
+                source = self.outputFileEdit.text()
+                if os.path.exists(source):
+                    file_base = os.path.basename(source)
+                    file_name, file_ext = os.path.splitext(file_base)
 
-                self.process_count += 1
-                self.threadpool.start(worker)   
-            
-        # output dir
-        elif len(self.outputDirEdit.text()) > 0:
-            source = self.outputDirEdit.text()
-            if os.path.exists(source):
-                file_base = os.path.basename(source)
-                file_name, file_ext = os.path.splitext(file_base)
+                    worker = WorkingFileUploader(self, edit_api, self.task, source, file_name, self.get_software()["name"],  
+                        comment=task_comments, mode = self.output_mode, task_status = self.comboBoxTaskStatus.currentData(QtCore.Qt.UserRole)["id"])
 
-                worker = WorkingFileUploader(self, edit_api, self.task, source, self.get_software()["name"], 
-                    comment=task_comments, mode = self.output_mode, task_status = self.comboBoxTaskStatus.currentData(QtCore.Qt.UserRole)["id"])
+                    worker.callback.progress.connect(dialog.file_loading)
+                    worker.callback.done.connect(dialog.file_loaded)
+                    ## dialog.add_item(source, "Pending")    
 
-                worker.callback.progress.connect(dialog.file_loading)
-                worker.callback.done.connect(dialog.file_loaded)
-                dialog.add_item(source, "Pending")    
+                    self.process_count += 1
+                    self.queue.append(worker)         
+                    #self.threadpool.start(worker)   
+                
+            # output dir
+            elif len(self.outputDirEdit.text()) > 0:
+                source = self.outputDirEdit.text()
+                if os.path.exists(source):
+                    file_base = os.path.basename(source)
+                    file_name, file_ext = os.path.splitext(file_base)
 
-                self.process_count += 1
-                self.threadpool.start(worker)    
-                #worker.run()               
+                    worker = WorkingFileUploader(self, edit_api, self.task, source, file_name, software_name = self.get_software()["name"], 
+                        comment=task_comments, mode = self.output_mode, file_model = self.output_filter.treeView.model(), task_status = self.comboBoxTaskStatus.currentData(QtCore.Qt.UserRole)["id"])
+
+                    worker.callback.progress.connect(dialog.file_loading)
+                    worker.callback.done.connect(dialog.file_loaded)
+                    ## dialog.add_item(source, "Pending")    
+
+                    self.process_count += 1
+                    #self.threadpool.start(worker)    
+                    self.queue.append(worker)         
+                    # worker.run()               
 
         model = self.tableViewReferences.model().items
         for item in model:
@@ -468,15 +544,22 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
                         
                     worker.callback.progress.connect(dialog.file_loading)
                     worker.callback.done.connect(dialog.file_loaded)
-                    dialog.add_item(source, "Pending")   
+                    ## dialog.add_item(source, "Pending")   
 
                     self.process_count += 1
-                    self.threadpool.start(worker)                  
+                    #self.threadpool.start(worker)      
+                    self.queue.append(worker)                     
 
-        if self.process_count > 0:
-            dialog.reset_progressbar()
+        if len(self.queue) > 0:
+            dialog.set_queue(self.queue)
+            dialog.reset_progressbar()            
             dialog.show()
-            self.hide()
+
+            self.hide()            
+
+            for item in self.queue:
+                self.threadpool.start(item)
+                #self.threadpool.waitForDone()
 
 
     def get_references(self):
@@ -508,6 +591,9 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
             self.references.append(item)
 
     def load_reference_table(self):
+        if not self.task or not  "entity" in self.task:
+            return 
+
         self.tableViewReferences.setModel(SecondaryAssetsFileTableModel(self, self.references, self.task["entity"]))
 
         self.tableViewReferences.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
@@ -559,7 +645,8 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
             self.set_working_file(q[0])
 
     def select_working_dir(self):
-        q = QtWidgets.QFileDialog.getExistingDirectory(self, "Select Working Directory for Task", self.last_work_dir)
+        working_dir = self.workingDirEdit.text()
+        q = QtWidgets.QFileDialog.getExistingDirectory(self, "Select Working Directory for Task", working_dir)
         if q:
             self.last_work_dir = q
             self.set_working_dir(q)
@@ -578,7 +665,8 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
             self.set_output_file(q[0])
 
     def select_output_dir(self):
-        q = QtWidgets.QFileDialog.getExistingDirectory(self, "Select Media Directory", self.last_output_dir)
+        working_dir = self.outputDirEdit.text()
+        q = QtWidgets.QFileDialog.getExistingDirectory(self, "Select Media Directory", working_dir)
         if q:
             self.last_output_dir = q
             self.set_output_dir(q)

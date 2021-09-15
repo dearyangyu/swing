@@ -212,6 +212,7 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
     def projects_loaded(self, results): 
         self._software = results["software"]
         self._task_types = results["task_types"]
+        self._task_status = results["task_status"]
 
         project_dict = {}
         for item in results["projects"]:

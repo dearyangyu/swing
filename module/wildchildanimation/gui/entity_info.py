@@ -101,7 +101,7 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
     def publish(self):
         task = self.get_selected_task()
         if task:        
-            dialog = PublishDialogGUI(self, self.nav, self.handler, task, task_types=self.task_types)
+            dialog = PublishDialogGUI(self, task=task, task_types=self.task_types)
 
             #dialog = PublishDialogGUI(self, self.handler, gazu.task.get_task(task))
             #dialog.setMinimumWidth(640)

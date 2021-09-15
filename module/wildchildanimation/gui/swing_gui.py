@@ -132,7 +132,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.toolButtonNew.clicked.connect(self.on_create)
         
         self.toolButtonLayout.clicked.connect(self.breakout_dialog)
-        ##self.toolButtonPlaylists.clicked.connect(self.playlist_dialog)
+        self.toolButtonPlaylists.clicked.connect(self.playlist_dialog)
         self.toolButtonSearchFiles.clicked.connect(self.on_search)
 
         self.nav.comboBoxProject.currentIndexChanged.connect(self.project_changed)
@@ -176,6 +176,9 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             self.nav.load_open_projects()
             self.version_check()
             self.set_enabled(True)
+
+        ## Don't do playlists yet
+        self.toolButtonPlaylists.setVisible(False)
 
     def set_enabled(self, enabled):
         self.toolButtonPlayblast.setEnabled(enabled)
@@ -275,9 +278,12 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
     def open_task_folder(self):
         if self.selected_task:
             if "project_dir" in self.selected_task:
+                working_dir = self.selected_task["project_dir"]
+            else:
                 working_dir = self.swing_settings.swing_root()
-                if os.path.exists(working_dir) and os.path.isdir(working_dir):
-                    open_folder(working_dir)        
+
+            if os.path.exists(working_dir) and os.path.isdir(working_dir):
+                open_folder(working_dir)        
 
     def version_check(self):
         version_check = VersionCheck(self)
@@ -465,7 +471,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         #if "project_hierarchy_loaded" in source:
         #    self.set_enabled(True)
         
-        write_log("[selection_changed]", source)
+        # write_log("[selection_changed]", source)
         if "project" in source and selection["is_loaded"]:
             ## self.nav.lock_ui(True)
             self.project_changed(self.nav.comboBoxProject.currentIndex())
@@ -858,12 +864,11 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
     def playlist_dialog(self):
         if self.nav.get_project() and self.nav.get_episode():
             dialog = PlaylistDialog(self)
-            dialog.set_project(self.nav.get_project())
+            dialog.set_project_episode(self.nav.get_project(), self.nav.get_episode())
 
-            dialog.set_selection(self.nav.get_project(), self.nav.get_episode())
             dialog.exec_()
         else:
-            QtWidgets.QMessageBox.information(self, 'Playlists', 'Please select a project')  
+            QtWidgets.QMessageBox.information(self, 'Playlists', 'Please select a project and an episode first')  
 
     def download_files(self):
         files = []

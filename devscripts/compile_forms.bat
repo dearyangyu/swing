@@ -4,6 +4,9 @@ c:\dev\github\wca-maya\venv\lib\site-packages\PySide2\uic --tr fakestr -g python
 echo "Compiling object select widget"
 c:\dev\github\wca-maya\venv\lib\site-packages\PySide2\uic --tr fakestr -g python -o c:\dev\Github\wca-maya\module\wildchildanimation\gui\entity_select_widget.py C:\DEV\Github\wca-maya\module\wildchildanimation\gui\forms\maya\entity_select_widget.ui
 
+echo "Compiling file select widget"
+c:\dev\github\wca-maya\venv\lib\site-packages\PySide2\uic --tr fakestr -g python -o c:\dev\Github\wca-maya\module\wildchildanimation\gui\file_select_widget.py C:\DEV\Github\wca-maya\module\wildchildanimation\gui\forms\maya\file_select_widget.ui
+
 echo "Compling main form"
 c:\dev\github\wca-maya\venv\lib\site-packages\PySide2\uic --tr fakestr -g python -o c:\dev\Github\wca-maya\module\wildchildanimation\gui\swing_desktop.py C:\DEV\Github\wca-maya\module\wildchildanimation\gui\forms\maya\swing_desktop.ui
 

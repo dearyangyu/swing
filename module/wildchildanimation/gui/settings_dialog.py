@@ -11,7 +11,6 @@
 from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
-
 from wildchildanimation.gui.swing_utils import fakestr
 
 class Ui_SettingsDialog(object):
@@ -19,7 +18,7 @@ class Ui_SettingsDialog(object):
         if not SettingsDialog.objectName():
             SettingsDialog.setObjectName(u"SettingsDialog")
         SettingsDialog.setWindowModality(Qt.ApplicationModal)
-        SettingsDialog.resize(413, 356)
+        SettingsDialog.resize(470, 412)
         SettingsDialog.setFocusPolicy(Qt.StrongFocus)
         SettingsDialog.setModal(True)
         self.verticalLayout = QVBoxLayout(SettingsDialog)
@@ -192,6 +191,35 @@ class Ui_SettingsDialog(object):
 
         self.verticalLayout.addLayout(self.horizontalLayout_7)
 
+        self.label_11 = QLabel(SettingsDialog)
+        self.label_11.setObjectName(u"label_11")
+        self.label_11.setFont(font)
+
+        self.verticalLayout.addWidget(self.label_11)
+
+        self.horizontalLayout_8 = QHBoxLayout()
+        self.horizontalLayout_8.setObjectName(u"horizontalLayout_8")
+        self.pushButtonShortcut = QPushButton(SettingsDialog)
+        self.pushButtonShortcut.setObjectName(u"pushButtonShortcut")
+
+        self.horizontalLayout_8.addWidget(self.pushButtonShortcut)
+
+        self.label_12 = QLabel(SettingsDialog)
+        self.label_12.setObjectName(u"label_12")
+
+        self.horizontalLayout_8.addWidget(self.label_12)
+
+        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.horizontalLayout_8.addItem(self.horizontalSpacer)
+
+
+        self.verticalLayout.addLayout(self.horizontalLayout_8)
+
+        self.verticalSpacer_2 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+
+        self.verticalLayout.addItem(self.verticalSpacer_2)
+
         self.buttonBox = QDialogButtonBox(SettingsDialog)
         self.buttonBox.setObjectName(u"buttonBox")
         self.buttonBox.setOrientation(Qt.Horizontal)
@@ -246,5 +274,8 @@ class Ui_SettingsDialog(object):
         self.lineEdit7zBinary.setToolTip(fakestr(u"<html><head/><body><p>Location of ffmpeg executable, usually something like </p><p><br/></p><p>C:\\ffmpeg\\ffmpeg-20200831-4a11a6f-win64-static\\bin\\ffmpeg.exe</p></body></html>", None))
 #endif // QT_CONFIG(tooltip)
         self.toolButton7zSelect.setText(fakestr(u"...", None))
+        self.label_11.setText(fakestr(u"Integrations:", None))
+        self.pushButtonShortcut.setText(fakestr(u"Desktop Shortcut", None))
+        self.label_12.setText(fakestr(u"Creates a new desktop shortcut", None))
     # retranslateUi
 

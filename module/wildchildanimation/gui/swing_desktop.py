@@ -11,8 +11,9 @@
 from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
-
 from wildchildanimation.gui.swing_utils import fakestr
+
+
 class Ui_SwingMain(object):
     def setupUi(self, SwingMain):
         if not SwingMain.objectName():
@@ -46,6 +47,11 @@ class Ui_SwingMain(object):
         self.toolButtonPlayblast.setMinimumSize(QSize(80, 0))
 
         self.connectionLayout.addWidget(self.toolButtonPlayblast)
+
+        self.toolButtonPlaylists = QToolButton(SwingMain)
+        self.toolButtonPlaylists.setObjectName(u"toolButtonPlaylists")
+
+        self.connectionLayout.addWidget(self.toolButtonPlaylists)
 
         self.toolButtonExport = QToolButton(SwingMain)
         self.toolButtonExport.setObjectName(u"toolButtonExport")
@@ -384,6 +390,7 @@ class Ui_SwingMain(object):
         self.toolButtonPlayblast.setToolTip(fakestr(u"Open DCC Playblast", None))
 #endif // QT_CONFIG(tooltip)
         self.toolButtonPlayblast.setText(fakestr(u"Playblast", None))
+        self.toolButtonPlaylists.setText(fakestr(u"Playlists", None))
 #if QT_CONFIG(tooltip)
         self.toolButtonExport.setToolTip(fakestr(u"Open DCC Export", None))
 #endif // QT_CONFIG(tooltip)

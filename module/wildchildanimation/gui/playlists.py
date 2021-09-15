@@ -51,12 +51,25 @@ class PlaylistDialog(QtWidgets.QDialog, Ui_PlaylistDialog):
         self.model = None
         self.project = None
         self.episode = None
-        self.sequences = None
         self.items = None
 
         self.threadpool = QtCore.QThreadPool.globalInstance()
 
         self.tableView.doubleClicked.connect(self.table_double_click)
+        self.comboBoxEpisode.currentIndexChanged.connect(self.load_episode_shot_list)
+
+
+    def load_episode_shot_list(self):
+        self.loader = PlaylistLoader(self, self.project, self.episode)
+        self.loader.callback.results.connect(self.playlist_loaded)
+
+        self.threadpool.start(self.loader)
+
+    def playlist_loaded(self, results):
+        self.items = results
+
+        for i in self.items:
+            print(i)
 
     def set_project(self, project):
         self.project = project
@@ -95,20 +108,12 @@ class PlaylistDialog(QtWidgets.QDialog, Ui_PlaylistDialog):
         self.project = project
         self.set_episode(episode)
 
-    def set_episode(self, episode):
+    def set_project_episode(self, project, episode):
+        self.project = project
         self.episode = episode
 
-        self.comboBoxSequence.clear()
-        self.comboBoxSequence.setEnabled(False)
-
-        if self.episode:
-            self.sequences = self.episode["sequences"]
-            for item in self.sequences:
-                self.comboBoxSequence.addItem(item["name"])
-                self.comboBoxSequence.setEnabled(True)                
-
-        loader = PlaylistLoader(self, self.project, self.episode)
-        loader.callback.results.connect(self.playlist_loaded)
+        loader = PlaylistLoader(self, self.project["project_id"], self.episode["episode_id"])
+        loader.callback.loaded.connect(self.playlist_loaded)
         loader.run()
 
         
@@ -117,14 +122,54 @@ class PlaylistModel(QtCore.QAbstractTableModel):
 
     columns = [
         "Name", "For", 
-    ]    
+    ]   
+
+    _shots = {}
+    _items = []
+    _task_types = []
 
     def __init__(self, parent, playlists = None):
         super(PlaylistModel, self).__init__(parent)
-        self.items = []
+
+        self._shots = {}
+        self._items = []
+        self._task_types = {}
+
         if playlists:
             for item in playlists:
-                self.items.append(item)
+                shot_name = "{} {} {}".format(item["ep"], item["sq"], item["sh"])
+
+                if shot_name in self._shots:
+                    shot = self._shots[shot_name]
+                else:
+                    shot = {
+                        "name": shot_name,
+                        "index": 0,
+                        "task_type": {}
+                    }
+
+
+                task_type_name = item["name"]
+                if task_type_name in shot["task_type"]:
+                    layer = shot["task_type"][task_type_name]
+                else:
+                    layer = {
+                        "name": task_type_name,
+                        "shots": []
+                    }
+
+                if not task_type_name in self._task_types:
+                    self._task_types[task_type_name] = item["priority"]
+
+                layer["shots"].append(item)
+                shot["task_type"][task_type_name] = layer
+                shot["index"] += 1                
+                self._shots[shot_name] = shot
+
+        self.items = list(self._shots.keys())
+        self.items.sort()
+
+        self._task_types = sorted(self._task_types, key = lambda x: self._task_types[x])
 
     def flags(self, index):
         col = index.column()
@@ -134,35 +179,38 @@ class PlaylistModel(QtCore.QAbstractTableModel):
         return QtCore.Qt.ItemIsEnabled
 
     def columnCount(self, parent = QtCore.QModelIndex()):
-        return len(self.columns)        
+        return len(self.columns) + len(self._task_types)
 
     def headerData(self, section, orientation, role):
         if role == QtCore.Qt.DisplayRole:
             if orientation == QtCore.Qt.Horizontal:
-                return str(self.columns[section])        
+                if section == 0:
+                    return "Shot"
+                elif section > 0 and (section - 1) < len(self._task_types):
+                    layer_name = self._task_types[section - 1]
+                    return layer_name                
 
     def data(self, index, role):
         if role == QtCore.Qt.DisplayRole:
             item = self.items[index.row()]
+            shot = self._shots[item]
 
             col = index.column()
-            if 0 == col:
-                return item["name"]
-            elif 1 == col:
-                if "for_entity" in item:
-                    return item["for_entity"]
-            elif 2 == col:
-                if "project_file_name" in item:
-                    return item["project_file_name"]
-            elif 3 == col:
-                return item["nb_frames"]
-            elif 4 == col:
-                return item["in"]
-            elif 5 == col:
-                return item["out"]
-            elif 6 == col:
-                return item["status"]
+            if col == 0:
+                return shot["name"]
+            elif col > 0 and (col - 1) < len(self._task_types):
+                task_type_name = self._task_types[col - 1]
+                if task_type_name in shot["task_type"]:
+                    layer = shot["task_type"][task_type_name]
+                    for item in layer["shots"]:
+                        return item["output_file_name"]
+
+                return ""
 
     def rowCount(self, index):
+        #item = self.items[index.row()]
+        #shot = self._shots[item]
+
+        #return shot["index"]
         return len(self.items)   
 

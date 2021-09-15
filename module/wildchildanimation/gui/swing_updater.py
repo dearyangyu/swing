@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
-_VERSION = "1.02"
+_VERSION = "1.04"
+
+#
+# Disable InsecureRequestWarning for now
+#
+# https://urllib3.readthedocs.io/en/latest/advanced-usage.html#ssl-warnings
+#import urllib3
+#urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 import argparse
 import platform
@@ -21,13 +28,20 @@ else:
 SWING_DOWNLOAD = "https://github.com/wildchild-animation/swing/archive/refs/heads/main.zip"
 
 # local import wildchildanimation module by adding to the path
-WCA_ROOT = "C:/WCA"
+if "Darwin" in platform.system():
+    from pathlib import Path
+    WCA_ROOT = "{}/WCA".format(Path.home())
+else:
+    WCA_ROOT = "C:/WCA"
 
 def split_path(path):
      return os.path.splitdrive(path)
 
 def get_python_version(path = ''):
-    cmd = '{}python --version'.format(path)
+    if "Darwin" in platform.system():
+        cmd = '{}python3 --version'.format(path)
+    else:
+        cmd = '{}python --version'.format(path)
     try:
         p = os.popen(cmd)
         s = p.read()
@@ -46,7 +60,11 @@ def check_or_create_dir(dir):
 def create_venv(dir):
     print("Creating python virtual env")
     drive, tail = split_path(dir)        
-    cmd = '{} && cd {} && python -m venv env'.format(drive, dir)
+    
+    if "Darwin" in platform.system():
+        cmd = 'cd {} && python3 -m venv env'.format(dir)
+    else:
+        cmd = '{} && cd {} && python -m venv env'.format(drive, dir)
 
     p = os.popen(cmd)
     s = p.read()
@@ -57,8 +75,12 @@ def create_venv(dir):
 def update_requirements(dir):
     print("Updating requirements.txt")
     drive, tail = split_path(dir)        
-    cmd = '{} && cd {} && "env/Scripts/activate" && pip install -r swing/swing-main/requirements.txt'.format(drive, dir)
-
+    
+    if "Darwin" in platform.system():
+        cmd = 'cd {} && source env/bin/activate && pip install -r swing/swing-main/requirements.txt'.format(dir)
+    else:
+        cmd = '{} && cd {} && "env/Scripts/activate" && pip install -r swing/swing-main/requirements.txt'.format(drive, dir)
+    
     p = os.popen(cmd)
     s = p.read()
     p.close()   
@@ -72,7 +94,11 @@ def get_swing_release():
 
 def run_swing_standalone(dir):
     drive, tail = split_path(dir)        
-    cmd = '{} &&  cd {}/swing/swing-main && "{}/env/Scripts/activate" && python {}/swing/swing-main/module/wildchildanimation/plugin/swing_desktop.py'.format(drive, dir, dir, dir)
+
+    if "Darwin" in platform.system():
+        cmd = 'cd {}/swing/swing-main && source {}/env/bin/activate && python3 {}/swing/swing-main/module/wildchildanimation/plugin/swing_desktop.py'.format(dir, dir, dir)
+    else:
+        cmd = '{} &&  cd {}/swing/swing-main && "{}/env/Scripts/activate" && python {}/swing/swing-main/module/wildchildanimation/plugin/swing_desktop.py'.format(drive, dir, dir, dir)
 
     p = os.popen(cmd)
     s = p.read()
@@ -94,8 +120,8 @@ def extract_latest(download_dir, module_dir):
         zf.extractall(module_dir)
     
     return True
-
-def setup_windows(working_dir, force_update = False):
+        
+def setup_swing(working_dir, force_update = False):
     # make sure we have default directories
     check_or_create_dir(working_dir)
 
@@ -143,13 +169,13 @@ def update(working_dir, force_update = False):
 
     python_version = get_python_version()
     if not python_version:
-        print("Pleasure ensure python is in your path")
+        print("Please ensure python is in your path")
         exit(-2)
     else:
         print("Found {}".format(python_version))        
 
-    if "Windows" in platform.platform():
-        setup_windows(install_dir, force_update)
+    if "Windows" in platform.platform() or "Darwin" in platform.system():
+        setup_swing(install_dir, force_update)
     else:
         print("Not implemented yet")
 

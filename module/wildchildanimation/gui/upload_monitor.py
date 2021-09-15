@@ -70,28 +70,34 @@ class UploadMonitorDialog(QtWidgets.QDialog, Ui_UploadMonitorDialog):
         self.listView.setModel(self.model)
         self.pushButtonCancel.clicked.connect(self.close_dialog)
         self.task = task
+        self.queue = []
 
         self.progressBar.setRange(0, len(self.model.files))
+
+    def set_queue(self, queue):
+        self.queue = queue
 
     def close_dialog(self):
         self.hide()
 
     def file_loading(self, results):
+        ## print("file loading: {}".format(results))
+
         message = results["message"]
         source = results["source"]     
         status = results["status"]
 
-        if "new" in status:
-            self.model.add_item(source, "Pending")
+        if not source in self.model.files:
+            self.model.add_item(source, message)
         else:
             self.model.set_item_text(source, message)
 
     def file_loaded(self, results):
-        print("file_loaded {}: {} {} {} {}".format(len(self.model.files), results['status'], self.progressBar.value(), results['source'], results['message']))
+        ## print("file_loaded {}: {} {} {} {}".format(len(self.model.files), results['status'], self.progressBar.value(), results['source'], results['message']))
 
         status = results["status"]
         if "ok" in status:
-            print("file_loaded completed {0} files".format(self.progressBar.value()))
+            ## print("file_loaded completed {0} files".format(self.progressBar.value()))
 
             message = results["message"]
             source = results["source"]     
@@ -113,11 +119,19 @@ class UploadMonitorDialog(QtWidgets.QDialog, Ui_UploadMonitorDialog):
         self.model.add_item(source, text)         
 
     def reset_progressbar(self):
-        self.progressBar.setRange(0, len(self.model.files))      
-        self.progressBar.setValue(1)
-        print("Upload monitor created for {0} files".format(len(self.model.files)))    
+        self.progressBar.setRange(0, len(self.queue))      
+        self.progressBar.setValue(0)
+        ## print("Upload monitor created for {0} items".format(len(self.queue)))    
 
     def open_url(self, url):
         link = QtCore.QUrl(self.url)
         if not QtGui.QDesktopServices.openUrl(link):
             QtWidgets.QMessageBox.warning(self, 'Open Url', 'Could not open url')           
+
+
+if __name__ == '__main__':
+    import sys
+    app = QtWidgets.QApplication(sys.argv)
+    test = UploadMonitorDialog(None)
+    test.show()
+    sys.exit(app.exec_())

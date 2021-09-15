@@ -2,8 +2,7 @@
 import traceback
 import sys
 import os
-import re
-import json
+import platform
 
 # ==== auto Qt load ====
 try:
@@ -14,8 +13,9 @@ except ImportError:
     traceback.print_exc(file=sys.stdout)
 
     from PyQt5 import QtCore, QtWidgets
-    import sip
     qtMode = 1
+
+from pyshortcuts import make_shortcut
 
 from wildchildanimation.gui.settings_dialog import Ui_SettingsDialog
 from wildchildanimation.gui.swing_utils import save_password, load_keyring, set_button_icon
@@ -28,7 +28,9 @@ from wildchildanimation.gui.swing_utils import save_password, load_keyring, set_
 class SwingSettings(QtCore.QObject):
 
     _APP_NAME = "treehouse: swing"
-    _APP_VERSION = "0.0.0.25"
+    _APP_SHORTNAME = "swing"
+    _APP_VERSION = "0.0.0.26"
+    _APP_DESCRIPTION = "treehouse: swing"    
 
     #
     # Singleton
@@ -104,6 +106,37 @@ class SwingSettings(QtCore.QObject):
     def bin_7z(self):
         return self._7z_bin
 
+    def create_shortcut(self, install_dir = None):
+        root = sys.path[0]
+        # drive, tail = os.path.splitdrive(root)        
+
+        if "Darwin" in platform.system():
+            cmd = "swing/swing-main/bin/swing_desktop.sh"            
+            if not install_dir:
+                install_dir = os.path.expanduser("~/WCA")
+            
+            #cmd = 'cd {}/swing/swing-main && source {}/env/bin/activate && python3 {}/swing/swing-main/module/wildchildanimation/plugin/swing_desktop.py'.format(dir, dir, dir)
+            #C:\WCA\swing\swing-main\bin
+        else:
+            cmd = "swing/swing-main/bin/swing_desktop.bat"
+            if not install_dir:
+                install_dir = os.path.expanduser("C:/WCA")
+
+        command_line = "{}/{}".format(install_dir, cmd)
+        if not os.path.exists(command_line):
+            print("Error: not foud {}".format(command_line))
+            return False
+
+        resource_icon = "{}/swing/swing-main/module/wildchildanimation/resources/wca.ico".format(install_dir)        
+        if not os.path.exists(resource_icon):
+            print("Resource Icon not found: {}".format(resource_icon))
+            return False        
+
+        make_shortcut(command_line, name = SwingSettings._APP_SHORTNAME, description = SwingSettings._APP_DESCRIPTION, icon = resource_icon)
+        return True
+        #, folder = working_dir, terminal=True, desktop=True, executable=python_line)
+
+
 '''
     Settings Dialog
     ################################################################################
@@ -111,9 +144,6 @@ class SwingSettings(QtCore.QObject):
 
 class SettingsDialog(QtWidgets.QDialog, Ui_SettingsDialog):
 
-    working_dir = None
-    swing_settings = None
-    
     def __init__(self, parent = None):
         super(SettingsDialog, self).__init__(parent) # Call the inherited classes __init__ method
         self.setupUi(self)
@@ -146,6 +176,12 @@ class SettingsDialog(QtWidgets.QDialog, Ui_SettingsDialog):
         self.toolButton7zSelect.clicked.connect(self.select_7z_bin)                    
         set_button_icon(self.toolButton7zSelect, "../resources/fa-free/solid/folder.svg")
 
+        self.pushButtonShortcut.clicked.connect(self.create_shortcut)
+
+    def create_shortcut(self):
+        if SwingSettings.get_instance().create_shortcut():
+            QtWidgets.QMessageBox.information(self, SwingSettings._APP_NAME, 'Created desktop shortcut')               
+
 
     def select_projects_dir(self):
         directory = QtWidgets.QFileDialog.getExistingDirectory(self, 'Select working directory')
@@ -170,17 +206,19 @@ class SettingsDialog(QtWidgets.QDialog, Ui_SettingsDialog):
     def save_settings(self):
         self.buttonBox.accepted.disconnect()
 
-        self.swing_settings._swing_server = self.lineEditServer.text()
-        self.swing_settings._swing_user = self.lineEditEmail.text()
-        self.swing_settings._swing_password = self.lineEditPassword.text()
-        self.swing_settings._swing_root = self.lineEditProjectsFolder.text()
-        self.swing_settings._ffmpeg_bin = self.lineEditFfmpegBin.text()
-        self.swing_settings._ffprobe_bin = self.lineEditFfprobeBin.text()
-        self.swing_settings._7z_bin = self.lineEdit7zBinary.text()
+        settings = SwingSettings.get_instance()
 
-        self.swing_settings.save_settings()
+        settings._swing_server = self.lineEditServer.text()
+        settings._swing_user = self.lineEditEmail.text()
+        settings._swing_password = self.lineEditPassword.text()
+        settings._swing_root = self.lineEditProjectsFolder.text()
+        settings._ffmpeg_bin = self.lineEditFfmpegBin.text()
+        settings._ffprobe_bin = self.lineEditFfprobeBin.text()
+        settings._7z_bin = self.lineEdit7zBinary.text()
+
+        settings.save_settings()
+
         self.buttonBox.accepted.connect(self.save_settings)
-
         return True
 
 

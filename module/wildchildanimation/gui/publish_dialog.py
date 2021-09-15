@@ -11,14 +11,13 @@
 from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
+
 from wildchildanimation.gui.swing_utils import fakestr
-
-
 class Ui_PublishDialog(object):
     def setupUi(self, PublishDialog):
         if not PublishDialog.objectName():
             PublishDialog.setObjectName(u"PublishDialog")
-        PublishDialog.resize(511, 580)
+        PublishDialog.resize(557, 595)
         self.verticalLayout_6 = QVBoxLayout(PublishDialog)
         self.verticalLayout_6.setObjectName(u"verticalLayout_6")
         self.horizontalLayout_9 = QHBoxLayout()
@@ -94,7 +93,13 @@ class Ui_PublishDialog(object):
 
         self.verticalLayout_6.addLayout(self.horizontalLayout_9)
 
-        self.tabWidget = QTabWidget(PublishDialog)
+        self.groupBoxWorkingFiles = QGroupBox(PublishDialog)
+        self.groupBoxWorkingFiles.setObjectName(u"groupBoxWorkingFiles")
+        self.groupBoxWorkingFiles.setFont(font)
+        self.groupBoxWorkingFiles.setCheckable(True)
+        self.gridLayout = QGridLayout(self.groupBoxWorkingFiles)
+        self.gridLayout.setObjectName(u"gridLayout")
+        self.tabWidget = QTabWidget(self.groupBoxWorkingFiles)
         self.tabWidget.setObjectName(u"tabWidget")
         self.tab = QWidget()
         self.tab.setObjectName(u"tab")
@@ -171,28 +176,21 @@ class Ui_PublishDialog(object):
 
         self.horizontalLayoutProjectFile_4.addWidget(self.workingDirSelectButton)
 
+        self.toolButtonWorkingDirFilter = QToolButton(self.tab)
+        self.toolButtonWorkingDirFilter.setObjectName(u"toolButtonWorkingDirFilter")
+
+        self.horizontalLayoutProjectFile_4.addWidget(self.toolButtonWorkingDirFilter)
+
 
         self.verticalLayout_5.addLayout(self.horizontalLayoutProjectFile_4)
 
-        self.labelReviewFile = QLabel(self.tab)
-        self.labelReviewFile.setObjectName(u"labelReviewFile")
-        self.labelReviewFile.setAutoFillBackground(True)
-        self.labelReviewFile.setStyleSheet(u"color: rgb(0, 170, 0)")
-        self.labelReviewFile.setFrameShape(QFrame.NoFrame)
+        self.labelWorkingFilesMessage = QLabel(self.tab)
+        self.labelWorkingFilesMessage.setObjectName(u"labelWorkingFilesMessage")
+        self.labelWorkingFilesMessage.setAutoFillBackground(True)
+        self.labelWorkingFilesMessage.setStyleSheet(u"color: rgb(0, 170, 0)")
+        self.labelWorkingFilesMessage.setFrameShape(QFrame.NoFrame)
 
-        self.verticalLayout_5.addWidget(self.labelReviewFile)
-
-        self.labelZipMessage = QLabel(self.tab)
-        self.labelZipMessage.setObjectName(u"labelZipMessage")
-        self.labelZipMessage.setAutoFillBackground(True)
-        self.labelZipMessage.setStyleSheet(u"color: rgb(0, 170, 0)")
-        self.labelZipMessage.setFrameShape(QFrame.NoFrame)
-
-        self.verticalLayout_5.addWidget(self.labelZipMessage)
-
-        self.verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
-
-        self.verticalLayout_5.addItem(self.verticalSpacer)
+        self.verticalLayout_5.addWidget(self.labelWorkingFilesMessage)
 
         self.tabWidget.addTab(self.tab, "")
         self.tab_2 = QWidget()
@@ -234,7 +232,10 @@ class Ui_PublishDialog(object):
 
         self.tabWidget.addTab(self.tab_2, "")
 
-        self.verticalLayout_6.addWidget(self.tabWidget)
+        self.gridLayout.addWidget(self.tabWidget, 0, 0, 1, 1)
+
+
+        self.verticalLayout_6.addWidget(self.groupBoxWorkingFiles)
 
         self.groupBoxOutputFiles = QGroupBox(PublishDialog)
         self.groupBoxOutputFiles.setObjectName(u"groupBoxOutputFiles")
@@ -331,8 +332,22 @@ class Ui_PublishDialog(object):
 
         self.horizontalLayoutProjectFile_5.addWidget(self.outputDirSelectButton)
 
+        self.toolButtonReviewFilter = QToolButton(self.groupBoxOutputFiles)
+        self.toolButtonReviewFilter.setObjectName(u"toolButtonReviewFilter")
+        self.toolButtonReviewFilter.setFont(font1)
+
+        self.horizontalLayoutProjectFile_5.addWidget(self.toolButtonReviewFilter)
+
 
         self.verticalLayout.addLayout(self.horizontalLayoutProjectFile_5)
+
+        self.labelOutputFilesMessage = QLabel(self.groupBoxOutputFiles)
+        self.labelOutputFilesMessage.setObjectName(u"labelOutputFilesMessage")
+        self.labelOutputFilesMessage.setAutoFillBackground(True)
+        self.labelOutputFilesMessage.setStyleSheet(u"color: rgb(0, 170, 0)")
+        self.labelOutputFilesMessage.setFrameShape(QFrame.NoFrame)
+
+        self.verticalLayout.addWidget(self.labelOutputFilesMessage)
 
 
         self.verticalLayout_6.addWidget(self.groupBoxOutputFiles)
@@ -390,13 +405,14 @@ class Ui_PublishDialog(object):
         self.labelEpisode.setText(fakestr(u"For", None))
         self.labelSelection.setText(fakestr(u"Task", None))
         self.labelIcon.setText("")
+        self.groupBoxWorkingFiles.setTitle(fakestr(u"Working Files", None))
         self.labelSoftware.setText(fakestr(u"Software", None))
         self.radioButtonWorkingFile.setText(fakestr(u"Working File", None))
         self.workingFileSelectButton.setText(fakestr(u"...", None))
         self.radioButtonWorkingDir.setText(fakestr(u"Working Dir", None))
         self.workingDirSelectButton.setText(fakestr(u"...", None))
-        self.labelReviewFile.setText("")
-        self.labelZipMessage.setText("")
+        self.toolButtonWorkingDirFilter.setText(fakestr(u"[filter]", None))
+        self.labelWorkingFilesMessage.setText(fakestr(u"Working files", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), fakestr(u"Working Files", None))
         self.referencesAddPushButton.setText(fakestr(u"&Add", None))
         self.referencesRemovePushButton.setText(fakestr(u"&Remove", None))
@@ -408,6 +424,8 @@ class Ui_PublishDialog(object):
         self.outputFileSelectButton.setText(fakestr(u"...", None))
         self.radioButtonOutputDir.setText(fakestr(u"Directory", None))
         self.outputDirSelectButton.setText(fakestr(u"...", None))
+        self.toolButtonReviewFilter.setText(fakestr(u"[filter]", None))
+        self.labelOutputFilesMessage.setText(fakestr(u"Output Files", None))
         self.commentLabel.setText(fakestr(u"Comments", None))
         self.pushButtonOK.setText(fakestr(u"Publish", None))
         self.pushButtonCancel.setText(fakestr(u"Cancel", None))
