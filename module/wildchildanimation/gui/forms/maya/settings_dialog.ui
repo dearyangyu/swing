@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>470</width>
-    <height>412</height>
+    <width>361</width>
+    <height>478</height>
    </rect>
   </property>
   <property name="focusPolicy">
@@ -24,7 +24,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QLabel" name="label_9">
+    <widget class="QLabel" name="labelTreeHouse">
      <property name="font">
       <font>
        <weight>75</weight>
@@ -87,7 +87,7 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_3">
      <item>
-      <widget class="QLabel" name="label_3">
+      <widget class="QLabel" name="labelPassword">
        <property name="minimumSize">
         <size>
          <width>120</width>
@@ -127,7 +127,7 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_4">
      <item>
-      <widget class="QLabel" name="label">
+      <widget class="QLabel" name="labelProjectsFolder">
        <property name="minimumSize">
         <size>
          <width>120</width>
@@ -156,14 +156,58 @@
     </layout>
    </item>
    <item>
-    <spacer name="verticalSpacer">
+    <widget class="QLabel" name="label_14">
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Playlist</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_9">
+     <item>
+      <widget class="QLabel" name="labelEditorialFolder">
+       <property name="minimumSize">
+        <size>
+         <width>120</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Editorial Folder</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="lineEditEditorialFolder">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Root directory for projects&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;Shots will be downloaded to:&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;root/project/assets&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;Assets will be downloaded to: &lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;root/project/assets&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="toolButtonEditorialFolder">
+       <property name="text">
+        <string>...</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <spacer name="verticalSpacer_3">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
      </property>
      <property name="sizeHint" stdset="0">
       <size>
        <width>20</width>
-       <height>19</height>
+       <height>6</height>
       </size>
      </property>
     </spacer>
@@ -182,7 +226,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QLabel" name="label_7">
+    <widget class="QLabel" name="labelFfmpeg">
      <property name="text">
       <string>ffmpeg - video encoding</string>
      </property>
@@ -191,7 +235,7 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_5">
      <item>
-      <widget class="QLabel" name="label_2">
+      <widget class="QLabel" name="labelFfmpegBin">
        <property name="minimumSize">
         <size>
          <width>120</width>
@@ -222,7 +266,7 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_6">
      <item>
-      <widget class="QLabel" name="label_4">
+      <widget class="QLabel" name="labelFfprobeBin">
        <property name="minimumSize">
         <size>
          <width>120</width>
@@ -251,7 +295,7 @@
     </layout>
    </item>
    <item>
-    <widget class="QLabel" name="label_8">
+    <widget class="QLabel" name="label7Zip">
      <property name="text">
       <string>7zip - compress and extract archive</string>
      </property>
@@ -260,7 +304,7 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_7">
      <item>
-      <widget class="QLabel" name="label_5">
+      <widget class="QLabel" name="label7ZipBin">
        <property name="minimumSize">
         <size>
          <width>120</width>
@@ -289,7 +333,20 @@
     </layout>
    </item>
    <item>
-    <widget class="QLabel" name="label_11">
+    <spacer name="verticalSpacer_2">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
+    <widget class="QLabel" name="labelIntegrations">
      <property name="font">
       <font>
        <weight>75</weight>
@@ -311,7 +368,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="label_12">
+      <widget class="QLabel" name="labelDesktopShortCut">
        <property name="text">
         <string>Creates a new desktop shortcut</string>
        </property>
@@ -331,19 +388,6 @@
       </spacer>
      </item>
     </layout>
-   </item>
-   <item>
-    <spacer name="verticalSpacer_2">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>40</height>
-      </size>
-     </property>
-    </spacer>
    </item>
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">

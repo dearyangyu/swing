@@ -11,8 +11,8 @@
 from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
-
 from wildchildanimation.gui.swing_utils import fakestr
+
 class Ui_PlaylistDialog(object):
     def setupUi(self, PlaylistDialog):
         if not PlaylistDialog.objectName():
@@ -27,84 +27,66 @@ class Ui_PlaylistDialog(object):
         self.verticalLayoutProject.setObjectName(u"verticalLayoutProject")
         self.horizontalLayoutEpisodeSequence = QHBoxLayout()
         self.horizontalLayoutEpisodeSequence.setObjectName(u"horizontalLayoutEpisodeSequence")
-        self.labelPlayblastFolder = QLabel(PlaylistDialog)
-        self.labelPlayblastFolder.setObjectName(u"labelPlayblastFolder")
+        self.labelEpisode = QLabel(PlaylistDialog)
+        self.labelEpisode.setObjectName(u"labelEpisode")
         sizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.labelPlayblastFolder.sizePolicy().hasHeightForWidth())
-        self.labelPlayblastFolder.setSizePolicy(sizePolicy)
-        self.labelPlayblastFolder.setMinimumSize(QSize(100, 0))
-        self.labelPlayblastFolder.setMaximumSize(QSize(60, 16777215))
+        sizePolicy.setHeightForWidth(self.labelEpisode.sizePolicy().hasHeightForWidth())
+        self.labelEpisode.setSizePolicy(sizePolicy)
+        self.labelEpisode.setMinimumSize(QSize(100, 0))
+        self.labelEpisode.setMaximumSize(QSize(100, 16777215))
         font = QFont()
         font.setBold(False)
         font.setWeight(50)
-        self.labelPlayblastFolder.setFont(font)
-        self.labelPlayblastFolder.setAlignment(Qt.AlignCenter)
+        self.labelEpisode.setFont(font)
+        self.labelEpisode.setAlignment(Qt.AlignLeading|Qt.AlignLeft|Qt.AlignVCenter)
 
-        self.horizontalLayoutEpisodeSequence.addWidget(self.labelPlayblastFolder)
+        self.horizontalLayoutEpisodeSequence.addWidget(self.labelEpisode)
 
-        self.comboBoxEpisode = QComboBox(PlaylistDialog)
-        self.comboBoxEpisode.setObjectName(u"comboBoxEpisode")
-        self.comboBoxEpisode.setEnabled(True)
-        sizePolicy1 = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        sizePolicy1.setHorizontalStretch(0)
-        sizePolicy1.setVerticalStretch(0)
-        sizePolicy1.setHeightForWidth(self.comboBoxEpisode.sizePolicy().hasHeightForWidth())
-        self.comboBoxEpisode.setSizePolicy(sizePolicy1)
-        self.comboBoxEpisode.setMinimumSize(QSize(200, 0))
-        self.comboBoxEpisode.setMaximumSize(QSize(16777215, 25))
+        self.lineEditEpisode = QLineEdit(PlaylistDialog)
+        self.lineEditEpisode.setObjectName(u"lineEditEpisode")
 
-        self.horizontalLayoutEpisodeSequence.addWidget(self.comboBoxEpisode)
+        self.horizontalLayoutEpisodeSequence.addWidget(self.lineEditEpisode)
 
 
         self.verticalLayoutProject.addLayout(self.horizontalLayoutEpisodeSequence)
 
-        self.horizontalLayout_7 = QHBoxLayout()
-        self.horizontalLayout_7.setObjectName(u"horizontalLayout_7")
-        self.labelProjectsFolder = QLabel(PlaylistDialog)
-        self.labelProjectsFolder.setObjectName(u"labelProjectsFolder")
-        sizePolicy.setHeightForWidth(self.labelProjectsFolder.sizePolicy().hasHeightForWidth())
-        self.labelProjectsFolder.setSizePolicy(sizePolicy)
-        self.labelProjectsFolder.setMinimumSize(QSize(100, 0))
-        self.labelProjectsFolder.setMaximumSize(QSize(60, 16777215))
-        self.labelProjectsFolder.setFont(font)
-        self.labelProjectsFolder.setAlignment(Qt.AlignCenter)
-
-        self.horizontalLayout_7.addWidget(self.labelProjectsFolder)
-
-        self.comboBoxPlaylist = QComboBox(PlaylistDialog)
-        self.comboBoxPlaylist.setObjectName(u"comboBoxPlaylist")
-        sizePolicy2 = QSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
-        sizePolicy2.setHorizontalStretch(0)
-        sizePolicy2.setVerticalStretch(0)
-        sizePolicy2.setHeightForWidth(self.comboBoxPlaylist.sizePolicy().hasHeightForWidth())
-        self.comboBoxPlaylist.setSizePolicy(sizePolicy2)
-
-        self.horizontalLayout_7.addWidget(self.comboBoxPlaylist)
-
-
-        self.verticalLayoutProject.addLayout(self.horizontalLayout_7)
-
         self.gridLayout_2 = QGridLayout()
         self.gridLayout_2.setObjectName(u"gridLayout_2")
-        self.checkBox = QCheckBox(PlaylistDialog)
-        self.checkBox.setObjectName(u"checkBox")
+        self.horizontalLayout = QHBoxLayout()
+        self.horizontalLayout.setObjectName(u"horizontalLayout")
+        self.label = QLabel(PlaylistDialog)
+        self.label.setObjectName(u"label")
+        self.label.setMinimumSize(QSize(100, 0))
+        self.label.setMaximumSize(QSize(100, 16777215))
 
-        self.gridLayout_2.addWidget(self.checkBox, 1, 0, 1, 1)
+        self.horizontalLayout.addWidget(self.label)
 
-        self.checkBox_2 = QCheckBox(PlaylistDialog)
-        self.checkBox_2.setObjectName(u"checkBox_2")
+        self.lineEditFolder = QLineEdit(PlaylistDialog)
+        self.lineEditFolder.setObjectName(u"lineEditFolder")
 
-        self.gridLayout_2.addWidget(self.checkBox_2, 2, 0, 1, 1)
+        self.horizontalLayout.addWidget(self.lineEditFolder)
 
-        self.checkBoxZip = QCheckBox(PlaylistDialog)
-        self.checkBoxZip.setObjectName(u"checkBoxZip")
+        self.toolButtonSelectFolder = QToolButton(PlaylistDialog)
+        self.toolButtonSelectFolder.setObjectName(u"toolButtonSelectFolder")
 
-        self.gridLayout_2.addWidget(self.checkBoxZip, 0, 0, 1, 1)
+        self.horizontalLayout.addWidget(self.toolButtonSelectFolder)
+
+        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.horizontalLayout.addItem(self.horizontalSpacer)
+
+
+        self.gridLayout_2.addLayout(self.horizontalLayout, 1, 0, 1, 1)
 
 
         self.verticalLayoutProject.addLayout(self.gridLayout_2)
+
+        self.checkboxShowAll = QCheckBox(PlaylistDialog)
+        self.checkboxShowAll.setObjectName(u"checkboxShowAll")
+
+        self.verticalLayoutProject.addWidget(self.checkboxShowAll)
 
 
         self.horizontalLayoutProject.addLayout(self.verticalLayoutProject)
@@ -116,11 +98,11 @@ class Ui_PlaylistDialog(object):
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
         self.tableView = QTableView(PlaylistDialog)
         self.tableView.setObjectName(u"tableView")
-        sizePolicy3 = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.MinimumExpanding)
-        sizePolicy3.setHorizontalStretch(0)
-        sizePolicy3.setVerticalStretch(10)
-        sizePolicy3.setHeightForWidth(self.tableView.sizePolicy().hasHeightForWidth())
-        self.tableView.setSizePolicy(sizePolicy3)
+        sizePolicy1 = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.MinimumExpanding)
+        sizePolicy1.setHorizontalStretch(0)
+        sizePolicy1.setVerticalStretch(10)
+        sizePolicy1.setHeightForWidth(self.tableView.sizePolicy().hasHeightForWidth())
+        self.tableView.setSizePolicy(sizePolicy1)
         self.tableView.setSizeIncrement(QSize(0, 0))
         font1 = QFont()
         font1.setPointSize(9)
@@ -136,10 +118,10 @@ class Ui_PlaylistDialog(object):
 
         self.horizontalLayout_4 = QHBoxLayout()
         self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
-        self.pushButtonCreate = QPushButton(PlaylistDialog)
-        self.pushButtonCreate.setObjectName(u"pushButtonCreate")
+        self.pushButtonProcess = QPushButton(PlaylistDialog)
+        self.pushButtonProcess.setObjectName(u"pushButtonProcess")
 
-        self.horizontalLayout_4.addWidget(self.pushButtonCreate)
+        self.horizontalLayout_4.addWidget(self.pushButtonProcess)
 
         self.progressBar = QProgressBar(PlaylistDialog)
         self.progressBar.setObjectName(u"progressBar")
@@ -157,11 +139,6 @@ class Ui_PlaylistDialog(object):
 
         self.verticalLayout.addLayout(self.horizontalLayout_4)
 
-        self.lineEdit = QLineEdit(PlaylistDialog)
-        self.lineEdit.setObjectName(u"lineEdit")
-
-        self.verticalLayout.addWidget(self.lineEdit)
-
 
         self.retranslateUi(PlaylistDialog)
 
@@ -169,16 +146,15 @@ class Ui_PlaylistDialog(object):
     # setupUi
 
     def retranslateUi(self, PlaylistDialog):
-        PlaylistDialog.setWindowTitle(fakestr(u"Shot Breakout", None))
+        PlaylistDialog.setWindowTitle(fakestr(u"swing: playlists", None))
 #if QT_CONFIG(tooltip)
-        PlaylistDialog.setToolTip(fakestr(u"Select playblast and project file directories to upload as Layout", None))
+        PlaylistDialog.setToolTip(fakestr(u"Episode Playlist", None))
 #endif // QT_CONFIG(tooltip)
-        self.labelPlayblastFolder.setText(fakestr(u"Episode", None))
-        self.labelProjectsFolder.setText(fakestr(u"Playlist", None))
-        self.checkBox.setText(fakestr(u"CheckBox", None))
-        self.checkBox_2.setText(fakestr(u"CheckBox", None))
-        self.checkBoxZip.setText(fakestr(u"Zip projects folder", None))
-        self.pushButtonCreate.setText(fakestr(u"Create Shots", None))
+        self.labelEpisode.setText(fakestr(u"Episode", None))
+        self.label.setText(fakestr(u"Folder", None))
+        self.toolButtonSelectFolder.setText(fakestr(u"...", None))
+        self.checkboxShowAll.setText(fakestr(u"Show all versions", None))
+        self.pushButtonProcess.setText(fakestr(u"Sync", None))
         self.pushButtonCancel.setText(fakestr(u"Close", None))
     # retranslateUi
 

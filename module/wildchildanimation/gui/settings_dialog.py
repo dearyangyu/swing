@@ -11,26 +11,26 @@
 from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
-from wildchildanimation.gui.swing_utils import fakestr
 
+from wildchildanimation.gui.swing_utils import fakestr
 class Ui_SettingsDialog(object):
     def setupUi(self, SettingsDialog):
         if not SettingsDialog.objectName():
             SettingsDialog.setObjectName(u"SettingsDialog")
         SettingsDialog.setWindowModality(Qt.ApplicationModal)
-        SettingsDialog.resize(470, 412)
+        SettingsDialog.resize(361, 478)
         SettingsDialog.setFocusPolicy(Qt.StrongFocus)
         SettingsDialog.setModal(True)
         self.verticalLayout = QVBoxLayout(SettingsDialog)
         self.verticalLayout.setObjectName(u"verticalLayout")
-        self.label_9 = QLabel(SettingsDialog)
-        self.label_9.setObjectName(u"label_9")
+        self.labelTreeHouse = QLabel(SettingsDialog)
+        self.labelTreeHouse.setObjectName(u"labelTreeHouse")
         font = QFont()
         font.setBold(True)
         font.setWeight(75)
-        self.label_9.setFont(font)
+        self.labelTreeHouse.setFont(font)
 
-        self.verticalLayout.addWidget(self.label_9)
+        self.verticalLayout.addWidget(self.labelTreeHouse)
 
         self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setObjectName(u"horizontalLayout")
@@ -66,11 +66,11 @@ class Ui_SettingsDialog(object):
 
         self.horizontalLayout_3 = QHBoxLayout()
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
-        self.label_3 = QLabel(SettingsDialog)
-        self.label_3.setObjectName(u"label_3")
-        self.label_3.setMinimumSize(QSize(120, 0))
+        self.labelPassword = QLabel(SettingsDialog)
+        self.labelPassword.setObjectName(u"labelPassword")
+        self.labelPassword.setMinimumSize(QSize(120, 0))
 
-        self.horizontalLayout_3.addWidget(self.label_3)
+        self.horizontalLayout_3.addWidget(self.labelPassword)
 
         self.lineEditPassword = QLineEdit(SettingsDialog)
         self.lineEditPassword.setObjectName(u"lineEditPassword")
@@ -89,11 +89,11 @@ class Ui_SettingsDialog(object):
 
         self.horizontalLayout_4 = QHBoxLayout()
         self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
-        self.label = QLabel(SettingsDialog)
-        self.label.setObjectName(u"label")
-        self.label.setMinimumSize(QSize(120, 0))
+        self.labelProjectsFolder = QLabel(SettingsDialog)
+        self.labelProjectsFolder.setObjectName(u"labelProjectsFolder")
+        self.labelProjectsFolder.setMinimumSize(QSize(120, 0))
 
-        self.horizontalLayout_4.addWidget(self.label)
+        self.horizontalLayout_4.addWidget(self.labelProjectsFolder)
 
         self.lineEditProjectsFolder = QLineEdit(SettingsDialog)
         self.lineEditProjectsFolder.setObjectName(u"lineEditProjectsFolder")
@@ -108,9 +108,36 @@ class Ui_SettingsDialog(object):
 
         self.verticalLayout.addLayout(self.horizontalLayout_4)
 
-        self.verticalSpacer = QSpacerItem(20, 19, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.label_14 = QLabel(SettingsDialog)
+        self.label_14.setObjectName(u"label_14")
+        self.label_14.setFont(font)
 
-        self.verticalLayout.addItem(self.verticalSpacer)
+        self.verticalLayout.addWidget(self.label_14)
+
+        self.horizontalLayout_9 = QHBoxLayout()
+        self.horizontalLayout_9.setObjectName(u"horizontalLayout_9")
+        self.labelEditorialFolder = QLabel(SettingsDialog)
+        self.labelEditorialFolder.setObjectName(u"labelEditorialFolder")
+        self.labelEditorialFolder.setMinimumSize(QSize(120, 0))
+
+        self.horizontalLayout_9.addWidget(self.labelEditorialFolder)
+
+        self.lineEditEditorialFolder = QLineEdit(SettingsDialog)
+        self.lineEditEditorialFolder.setObjectName(u"lineEditEditorialFolder")
+
+        self.horizontalLayout_9.addWidget(self.lineEditEditorialFolder)
+
+        self.toolButtonEditorialFolder = QToolButton(SettingsDialog)
+        self.toolButtonEditorialFolder.setObjectName(u"toolButtonEditorialFolder")
+
+        self.horizontalLayout_9.addWidget(self.toolButtonEditorialFolder)
+
+
+        self.verticalLayout.addLayout(self.horizontalLayout_9)
+
+        self.verticalSpacer_3 = QSpacerItem(20, 6, QSizePolicy.Minimum, QSizePolicy.Expanding)
+
+        self.verticalLayout.addItem(self.verticalSpacer_3)
 
         self.label_6 = QLabel(SettingsDialog)
         self.label_6.setObjectName(u"label_6")
@@ -118,18 +145,18 @@ class Ui_SettingsDialog(object):
 
         self.verticalLayout.addWidget(self.label_6)
 
-        self.label_7 = QLabel(SettingsDialog)
-        self.label_7.setObjectName(u"label_7")
+        self.labelFfmpeg = QLabel(SettingsDialog)
+        self.labelFfmpeg.setObjectName(u"labelFfmpeg")
 
-        self.verticalLayout.addWidget(self.label_7)
+        self.verticalLayout.addWidget(self.labelFfmpeg)
 
         self.horizontalLayout_5 = QHBoxLayout()
         self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
-        self.label_2 = QLabel(SettingsDialog)
-        self.label_2.setObjectName(u"label_2")
-        self.label_2.setMinimumSize(QSize(120, 0))
+        self.labelFfmpegBin = QLabel(SettingsDialog)
+        self.labelFfmpegBin.setObjectName(u"labelFfmpegBin")
+        self.labelFfmpegBin.setMinimumSize(QSize(120, 0))
 
-        self.horizontalLayout_5.addWidget(self.label_2)
+        self.horizontalLayout_5.addWidget(self.labelFfmpegBin)
 
         self.lineEditFfmpegBin = QLineEdit(SettingsDialog)
         self.lineEditFfmpegBin.setObjectName(u"lineEditFfmpegBin")
@@ -146,11 +173,11 @@ class Ui_SettingsDialog(object):
 
         self.horizontalLayout_6 = QHBoxLayout()
         self.horizontalLayout_6.setObjectName(u"horizontalLayout_6")
-        self.label_4 = QLabel(SettingsDialog)
-        self.label_4.setObjectName(u"label_4")
-        self.label_4.setMinimumSize(QSize(120, 0))
+        self.labelFfprobeBin = QLabel(SettingsDialog)
+        self.labelFfprobeBin.setObjectName(u"labelFfprobeBin")
+        self.labelFfprobeBin.setMinimumSize(QSize(120, 0))
 
-        self.horizontalLayout_6.addWidget(self.label_4)
+        self.horizontalLayout_6.addWidget(self.labelFfprobeBin)
 
         self.lineEditFfprobeBin = QLineEdit(SettingsDialog)
         self.lineEditFfprobeBin.setObjectName(u"lineEditFfprobeBin")
@@ -165,18 +192,18 @@ class Ui_SettingsDialog(object):
 
         self.verticalLayout.addLayout(self.horizontalLayout_6)
 
-        self.label_8 = QLabel(SettingsDialog)
-        self.label_8.setObjectName(u"label_8")
+        self.label7Zip = QLabel(SettingsDialog)
+        self.label7Zip.setObjectName(u"label7Zip")
 
-        self.verticalLayout.addWidget(self.label_8)
+        self.verticalLayout.addWidget(self.label7Zip)
 
         self.horizontalLayout_7 = QHBoxLayout()
         self.horizontalLayout_7.setObjectName(u"horizontalLayout_7")
-        self.label_5 = QLabel(SettingsDialog)
-        self.label_5.setObjectName(u"label_5")
-        self.label_5.setMinimumSize(QSize(120, 0))
+        self.label7ZipBin = QLabel(SettingsDialog)
+        self.label7ZipBin.setObjectName(u"label7ZipBin")
+        self.label7ZipBin.setMinimumSize(QSize(120, 0))
 
-        self.horizontalLayout_7.addWidget(self.label_5)
+        self.horizontalLayout_7.addWidget(self.label7ZipBin)
 
         self.lineEdit7zBinary = QLineEdit(SettingsDialog)
         self.lineEdit7zBinary.setObjectName(u"lineEdit7zBinary")
@@ -191,11 +218,15 @@ class Ui_SettingsDialog(object):
 
         self.verticalLayout.addLayout(self.horizontalLayout_7)
 
-        self.label_11 = QLabel(SettingsDialog)
-        self.label_11.setObjectName(u"label_11")
-        self.label_11.setFont(font)
+        self.verticalSpacer_2 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
 
-        self.verticalLayout.addWidget(self.label_11)
+        self.verticalLayout.addItem(self.verticalSpacer_2)
+
+        self.labelIntegrations = QLabel(SettingsDialog)
+        self.labelIntegrations.setObjectName(u"labelIntegrations")
+        self.labelIntegrations.setFont(font)
+
+        self.verticalLayout.addWidget(self.labelIntegrations)
 
         self.horizontalLayout_8 = QHBoxLayout()
         self.horizontalLayout_8.setObjectName(u"horizontalLayout_8")
@@ -204,10 +235,10 @@ class Ui_SettingsDialog(object):
 
         self.horizontalLayout_8.addWidget(self.pushButtonShortcut)
 
-        self.label_12 = QLabel(SettingsDialog)
-        self.label_12.setObjectName(u"label_12")
+        self.labelDesktopShortCut = QLabel(SettingsDialog)
+        self.labelDesktopShortCut.setObjectName(u"labelDesktopShortCut")
 
-        self.horizontalLayout_8.addWidget(self.label_12)
+        self.horizontalLayout_8.addWidget(self.labelDesktopShortCut)
 
         self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
@@ -215,10 +246,6 @@ class Ui_SettingsDialog(object):
 
 
         self.verticalLayout.addLayout(self.horizontalLayout_8)
-
-        self.verticalSpacer_2 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
-
-        self.verticalLayout.addItem(self.verticalSpacer_2)
 
         self.buttonBox = QDialogButtonBox(SettingsDialog)
         self.buttonBox.setObjectName(u"buttonBox")
@@ -237,7 +264,7 @@ class Ui_SettingsDialog(object):
 
     def retranslateUi(self, SettingsDialog):
         SettingsDialog.setWindowTitle(fakestr(u"Swing: Application Settings", None))
-        self.label_9.setText(fakestr(u"Treehouse:", None))
+        self.labelTreeHouse.setText(fakestr(u"Treehouse:", None))
         self.labelServer.setText(fakestr(u"Server", None))
 #if QT_CONFIG(tooltip)
         self.lineEditServer.setToolTip(fakestr(u"Server URL - https://example.wildchildanimation.com", None))
@@ -246,36 +273,42 @@ class Ui_SettingsDialog(object):
 #if QT_CONFIG(tooltip)
         self.lineEditEmail.setToolTip(fakestr(u"Logon email address", None))
 #endif // QT_CONFIG(tooltip)
-        self.label_3.setText(fakestr(u"Password", None))
+        self.labelPassword.setText(fakestr(u"Password", None))
 #if QT_CONFIG(tooltip)
         self.lineEditPassword.setToolTip(fakestr(u"Logon password", None))
 #endif // QT_CONFIG(tooltip)
         self.label_10.setText(fakestr(u"Storage:", None))
-        self.label.setText(fakestr(u"Projects Folder", None))
+        self.labelProjectsFolder.setText(fakestr(u"Projects Folder", None))
 #if QT_CONFIG(tooltip)
         self.lineEditProjectsFolder.setToolTip(fakestr(u"<html><head/><body><p>Root directory for projects</p><p><br/></p><p>Shots will be downloaded to:</p><p><span style=\" font-weight:600;\">root/project/assets</span></p><p><br/></p><p>Assets will be downloaded to: </p><p><span style=\" font-weight:600;\">root/project/assets</span></p></body></html>", None))
 #endif // QT_CONFIG(tooltip)
         self.toolButtonProjectsFolder.setText(fakestr(u"...", None))
+        self.label_14.setText(fakestr(u"Playlist", None))
+        self.labelEditorialFolder.setText(fakestr(u"Editorial Folder", None))
+#if QT_CONFIG(tooltip)
+        self.lineEditEditorialFolder.setToolTip(fakestr(u"<html><head/><body><p>Root directory for projects</p><p><br/></p><p>Shots will be downloaded to:</p><p><span style=\" font-weight:600;\">root/project/assets</span></p><p><br/></p><p>Assets will be downloaded to: </p><p><span style=\" font-weight:600;\">root/project/assets</span></p></body></html>", None))
+#endif // QT_CONFIG(tooltip)
+        self.toolButtonEditorialFolder.setText(fakestr(u"...", None))
         self.label_6.setText(fakestr(u"Applications:", None))
-        self.label_7.setText(fakestr(u"ffmpeg - video encoding", None))
-        self.label_2.setText(fakestr(u"ffmpeg binary", None))
+        self.labelFfmpeg.setText(fakestr(u"ffmpeg - video encoding", None))
+        self.labelFfmpegBin.setText(fakestr(u"ffmpeg binary", None))
 #if QT_CONFIG(tooltip)
         self.lineEditFfmpegBin.setToolTip(fakestr(u"<html><head/><body><p>Location of ffmpeg executable, usually something like </p><p><br/></p><p>C:\\ffmpeg\\ffmpeg-20200831-4a11a6f-win64-static\\bin\\ffmpeg.exe</p></body></html>", None))
 #endif // QT_CONFIG(tooltip)
         self.toolButtonFfmpegBin.setText(fakestr(u"...", None))
-        self.label_4.setText(fakestr(u"ffprobe binary", None))
+        self.labelFfprobeBin.setText(fakestr(u"ffprobe binary", None))
 #if QT_CONFIG(tooltip)
         self.lineEditFfprobeBin.setToolTip(fakestr(u"<html><head/><body><p>Location of ffmpeg executable, usually something like </p><p><br/></p><p>C:\\ffmpeg\\ffmpeg-20200831-4a11a6f-win64-static\\bin\\ffmpeg.exe</p></body></html>", None))
 #endif // QT_CONFIG(tooltip)
         self.toolButtonFfprobeBin.setText(fakestr(u"...", None))
-        self.label_8.setText(fakestr(u"7zip - compress and extract archive", None))
-        self.label_5.setText(fakestr(u"7zip binary", None))
+        self.label7Zip.setText(fakestr(u"7zip - compress and extract archive", None))
+        self.label7ZipBin.setText(fakestr(u"7zip binary", None))
 #if QT_CONFIG(tooltip)
         self.lineEdit7zBinary.setToolTip(fakestr(u"<html><head/><body><p>Location of ffmpeg executable, usually something like </p><p><br/></p><p>C:\\ffmpeg\\ffmpeg-20200831-4a11a6f-win64-static\\bin\\ffmpeg.exe</p></body></html>", None))
 #endif // QT_CONFIG(tooltip)
         self.toolButton7zSelect.setText(fakestr(u"...", None))
-        self.label_11.setText(fakestr(u"Integrations:", None))
+        self.labelIntegrations.setText(fakestr(u"Integrations:", None))
         self.pushButtonShortcut.setText(fakestr(u"Desktop Shortcut", None))
-        self.label_12.setText(fakestr(u"Creates a new desktop shortcut", None))
+        self.labelDesktopShortCut.setText(fakestr(u"Creates a new desktop shortcut", None))
     # retranslateUi
 

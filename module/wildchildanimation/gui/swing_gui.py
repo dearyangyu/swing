@@ -900,7 +900,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
     def playlist_dialog(self):
         if self.nav.get_project() and self.nav.get_episode():
             dialog = PlaylistDialog(self)
-            dialog.set_project_episode(self.nav.get_project(), self.nav.get_episode())
+            dialog.set_project_episode(self.nav.get_project(), self.nav.get_episode(), self.nav.get_task_types())
 
             dialog.exec_()
         else:

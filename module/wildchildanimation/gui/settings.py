@@ -29,7 +29,7 @@ class SwingSettings(QtCore.QObject):
 
     _APP_NAME = "treehouse: swing"
     _APP_SHORTNAME = "swing"
-    _APP_VERSION = "0.0.0.26"
+    _APP_VERSION = "0.0.0.27"
     _APP_DESCRIPTION = "treehouse: swing"    
 
     #
@@ -46,6 +46,7 @@ class SwingSettings(QtCore.QObject):
     _swing_user = None
     _swing_password = None
     _swing_root = None
+    _edit_root = None
 
     _ffmpeg_bin = None
     _ffprobe_bin = None
@@ -70,6 +71,7 @@ class SwingSettings(QtCore.QObject):
         self._ffmpeg_bin = _settings.value("ffmpeg_bin", "")
         self._ffprobe_bin = _settings.value("ffprobe_bin", "")
         self._7z_bin = _settings.value("7z_bin", "")
+        self._edit_root = _settings.value("edit_root", os.path.expanduser("~"))
 
     def save_settings(self):
         save_password('swing', 'password', self.swing_password())
@@ -81,6 +83,7 @@ class SwingSettings(QtCore.QObject):
         _settings.setValue("ffmpeg_bin", self.bin_ffmpeg())    
         _settings.setValue("ffprobe_bin", self.bin_ffprobe())          
         _settings.setValue("7z_bin", self.bin_7z())          
+        _settings.setValue("edit_root", self.edit_root())
         _settings.sync()        
 
         self.load_settings()
@@ -105,6 +108,9 @@ class SwingSettings(QtCore.QObject):
 
     def bin_7z(self):
         return self._7z_bin
+
+    def edit_root(self):
+        return self._edit_root
 
     def create_shortcut(self, install_dir = None):
         root = sys.path[0]
@@ -178,6 +184,10 @@ class SettingsDialog(QtWidgets.QDialog, Ui_SettingsDialog):
 
         self.pushButtonShortcut.clicked.connect(self.create_shortcut)
 
+        set_button_icon(self.toolButtonEditorialFolder, "../resources/fa-free/solid/folder.svg")
+        self.toolButtonEditorialFolder.clicked.connect(self.select_editorial_dir)
+
+
     def create_shortcut(self):
         if SwingSettings.get_instance().create_shortcut():
             QtWidgets.QMessageBox.information(self, SwingSettings._APP_NAME, 'Created desktop shortcut')               
@@ -187,6 +197,11 @@ class SettingsDialog(QtWidgets.QDialog, Ui_SettingsDialog):
         directory = QtWidgets.QFileDialog.getExistingDirectory(self, 'Select working directory')
         if directory:
             self.lineEditProjectsFolder.setText(directory)
+
+    def select_editorial_dir(self):
+        directory = QtWidgets.QFileDialog.getExistingDirectory(self, 'Select editorial directory')
+        if directory:
+            self.lineEditEditorialFolder.setText(directory)
 
     def select_ffmpeg_bin(self):
         binary = QtWidgets.QFileDialog.getOpenFileName(self, 'Select ffmpeg binary')

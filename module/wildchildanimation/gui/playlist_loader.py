@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import requests
+import gazu
 from wildchildanimation.gui.settings import SwingSettings
 
 # ==== auto Qt load ====
@@ -28,6 +29,8 @@ class PlaylistLoader(QtCore.QRunnable):
         self.callback = PlaylistLoaderSignal()            
 
     def run(self):
+        response = {}
+
         params = { 
             "username": self.settings.swing_user(),
             "password": self.settings.swing_password(),
@@ -41,6 +44,11 @@ class PlaylistLoader(QtCore.QRunnable):
         if rq.status_code == 200:
             results = rq.json()
 
-        self.callback.loaded.emit(results)                        
+        project = gazu.project.get_project(self.project_id)
+
+        response["items"] = results
+        response["project"] = project
+
+        self.callback.loaded.emit(response)                        
         return results       
 
