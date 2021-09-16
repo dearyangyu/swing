@@ -11,8 +11,8 @@
 from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
-from wildchildanimation.gui.swing_utils import fakestr
 
+from wildchildanimation.gui.swing_utils import fakestr
 
 class Ui_SwingMain(object):
     def setupUi(self, SwingMain):
@@ -68,6 +68,11 @@ class Ui_SwingMain(object):
         self.toolButtonLayout.setMinimumSize(QSize(80, 0))
 
         self.connectionLayout.addWidget(self.toolButtonLayout)
+
+        self.toolButtonUploads = QToolButton(SwingMain)
+        self.toolButtonUploads.setObjectName(u"toolButtonUploads")
+
+        self.connectionLayout.addWidget(self.toolButtonUploads)
 
         self.toolButtonSearchFiles = QToolButton(SwingMain)
         self.toolButtonSearchFiles.setObjectName(u"toolButtonSearchFiles")
@@ -402,6 +407,7 @@ class Ui_SwingMain(object):
         self.toolButtonLayout.setToolTip(fakestr(u"Open Shot Breakout", None))
 #endif // QT_CONFIG(tooltip)
         self.toolButtonLayout.setText(fakestr(u"Layout", None))
+        self.toolButtonUploads.setText(fakestr(u"Uploads", None))
 #if QT_CONFIG(tooltip)
         self.toolButtonSearchFiles.setToolTip(fakestr(u"Search for files", None))
 #endif // QT_CONFIG(tooltip)

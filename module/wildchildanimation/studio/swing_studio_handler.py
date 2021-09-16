@@ -78,8 +78,9 @@ class SwingStudioHandler(StudioInterface):
         task = kwargs["task"] 
         task_types = kwargs["task_types"]
         project_dir = kwargs["project_dir"]
+        upload_monitor = kwargs["monitor"]
 
-        self.publishDialog = PublishDialogGUI(parent = parent, task = task, task_types = task_types)
+        self.publishDialog = PublishDialogGUI(parent = parent, task = task, task_types = task_types, upload_monitor = upload_monitor)
 
         self.publishDialog.set_wf_exclude(StudioInterface.WF_DEFAULT_EXCLUDE)
         self.publishDialog.set_of_include(StudioInterface.OF_DEFAULT_INCLUDE)

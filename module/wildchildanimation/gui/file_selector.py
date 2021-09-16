@@ -174,7 +174,7 @@ class CheckableFileSystemModel(QtWidgets.QFileSystemModel):
             walker.callback.walked.connect(callback)
 
         self.threadpool.start(walker)
-        self.threadpool.waitForDone()
+        #self.threadpool.waitForDone()
         #walker.run()
 
 
@@ -184,7 +184,7 @@ class CheckableFileSystemModel(QtWidgets.QFileSystemModel):
             walker.callback.walked.connect(callback)
 
         self.threadpool.start(walker)        
-        self.threadpool.waitForDone()
+        #self.threadpool.waitForDone()
 
         #walker.run()
 

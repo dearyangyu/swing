@@ -41,6 +41,7 @@ from wildchildanimation.gui.project_nav import ProjectNavWidget
 from wildchildanimation.studio.studio_interface import StudioInterface
 
 from wildchildanimation.gui.settings import SwingSettings, SettingsDialog
+from wildchildanimation.gui.upload_monitor import UploadMonitorDialog
 
 '''
     SwingGUI Main class
@@ -69,6 +70,8 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
     selected_file = None
     selected_task = None
+
+    file_monitor = None
 
     @classmethod
     def get_instance(cls, handler = StudioInterface()):
@@ -163,6 +166,8 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.toolButtonFileSelectNone.clicked.connect(self.select_no_files)
         set_button_icon(self.toolButtonFileSelectNone, "../resources/fa-free/solid/minus.svg")
 
+        self.toolButtonUploads.clicked.connect(self.show_upload_monitor)
+
         self.tabWidget.currentChanged.connect(self.tab_changed)
 
         self.read_settings()
@@ -179,6 +184,14 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
         ## Don't do playlists yet
         self.toolButtonPlaylists.setVisible(False)
+
+    def get_file_monitor(self):
+        if self.file_monitor == None:
+            self.file_monitor = UploadMonitorDialog(self)
+        return self.file_monitor
+
+    def show_upload_monitor(self):
+        self.get_file_monitor().show()
 
     def set_enabled(self, enabled):
         self.toolButtonPlayblast.setEnabled(enabled)
@@ -983,7 +996,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
         if self.selected_task:        
             project_dir = self.selected_task["project_dir"]            
-            self.handler.on_publish(parent = self, task = self.selected_task, project_dir = project_dir, task_types = task_types, status_types = status_types)
+            self.handler.on_publish(parent = self, task = self.selected_task, project_dir = project_dir, task_types = task_types, status_types = status_types, monitor = self.get_file_monitor())
  
     def on_create(self):
         if self.selected_task:

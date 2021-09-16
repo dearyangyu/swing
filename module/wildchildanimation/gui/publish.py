@@ -42,13 +42,14 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
     wf_excluded = []
     of_included = []
 
-    def __init__(self, parent = None, task = None, task_types = None, status_types = None):
+    def __init__(self, parent = None, task = None, task_types = None, status_types = None, upload_monitor = None):
         super(PublishDialogGUI, self).__init__(parent) # Call the inherited classes __init__ method    
 
         self.setupUi(self)
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
         self.setAcceptDrops(True)
         self.read_settings()
+        self.monitor = upload_monitor
 
         self.task = task
         if not task_types:
@@ -437,7 +438,6 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         server = SwingSettings.get_instance().swing_server()
         edit_api = "{}/edit".format(server)        
 
-        dialog = UploadMonitorDialog(self, self.task)
 
         task_comments = self.commentEdit.toPlainText().strip()
 
@@ -455,8 +455,8 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
 
                     worker = WorkingFileUploader(self, edit_api, self.task, source, file_name, self.get_software()["name"], 
                         comment = task_comments, mode = "working", task_status = self.comboBoxTaskStatus.currentData(QtCore.Qt.UserRole)["id"])
-                    worker.callback.progress.connect(dialog.file_loading)
-                    worker.callback.done.connect(dialog.file_loaded)
+                    worker.callback.progress.connect(self.monitor.file_loading)
+                    worker.callback.done.connect(self.monitor.file_loaded)
 
                     ## dialog.add_item(source, "Pending")
 
@@ -477,8 +477,8 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
                     worker = WorkingFileUploader(self, edit_api, self.task, source, file_name, software_name = self.get_software()["name"], 
                         comment = task_comments, mode = "working", file_model = self.working_filter.treeView.model(), task_status = self.comboBoxTaskStatus.currentData(QtCore.Qt.UserRole)["id"])
 
-                    worker.callback.progress.connect(dialog.file_loading)
-                    worker.callback.done.connect(dialog.file_loaded)
+                    worker.callback.progress.connect(self.monitor.file_loading)
+                    worker.callback.done.connect(self.monitor.file_loaded)
 
                     target = "{}/{}.zip".format(os.path.dirname(source), file_base)
                     ## dialog.add_item(target, "Pending")
@@ -503,8 +503,8 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
                     worker = WorkingFileUploader(self, edit_api, self.task, source, file_name, self.get_software()["name"],  
                         comment=task_comments, mode = self.output_mode, task_status = self.comboBoxTaskStatus.currentData(QtCore.Qt.UserRole)["id"])
 
-                    worker.callback.progress.connect(dialog.file_loading)
-                    worker.callback.done.connect(dialog.file_loaded)
+                    worker.callback.progress.connect(self.monitor.file_loading)
+                    worker.callback.done.connect(self.monitor.file_loaded)
                     ## dialog.add_item(source, "Pending")    
 
                     self.process_count += 1
@@ -521,8 +521,8 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
                     worker = WorkingFileUploader(self, edit_api, self.task, source, file_name, software_name = self.get_software()["name"], 
                         comment=task_comments, mode = self.output_mode, file_model = self.output_filter.treeView.model(), task_status = self.comboBoxTaskStatus.currentData(QtCore.Qt.UserRole)["id"])
 
-                    worker.callback.progress.connect(dialog.file_loading)
-                    worker.callback.done.connect(dialog.file_loaded)
+                    worker.callback.progress.connect(self.monitor.file_loading)
+                    worker.callback.done.connect(self.monitor.file_loaded)
                     ## dialog.add_item(source, "Pending")    
 
                     self.process_count += 1
@@ -542,8 +542,8 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
                     worker = WorkingFileUploader(self, edit_api, self.task, source, file_name, self.get_software()["name"], comment=task_comments, 
                         mode = mode, task_status = self.comboBoxTaskStatus.currentData(QtCore.Qt.UserRole)["id"])                    
                         
-                    worker.callback.progress.connect(dialog.file_loading)
-                    worker.callback.done.connect(dialog.file_loaded)
+                    worker.callback.progress.connect(self.monitor.file_loading)
+                    worker.callback.done.connect(self.monitor.file_loaded)
                     ## dialog.add_item(source, "Pending")   
 
                     self.process_count += 1
@@ -551,9 +551,9 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
                     self.queue.append(worker)                     
 
         if len(self.queue) > 0:
-            dialog.set_queue(self.queue)
-            dialog.reset_progressbar()            
-            dialog.show()
+            self.monitor.set_queue(self.queue)
+            self.monitor.reset_progressbar()            
+            self.monitor.show()
 
             self.hide()            
 

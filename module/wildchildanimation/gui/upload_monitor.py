@@ -60,7 +60,7 @@ class UploadListModel(QtCore.QAbstractListModel):
 
 class UploadMonitorDialog(QtWidgets.QDialog, Ui_UploadMonitorDialog):
 
-    def __init__(self, parent = None, task = None):
+    def __init__(self, parent = None):
         super(UploadMonitorDialog, self).__init__(parent) # Call the inherited classes __init__ method    
         self.setupUi(self)
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
@@ -69,13 +69,11 @@ class UploadMonitorDialog(QtWidgets.QDialog, Ui_UploadMonitorDialog):
         self.model = UploadListModel(self.listView)
         self.listView.setModel(self.model)
         self.pushButtonCancel.clicked.connect(self.close_dialog)
-        self.task = task
         self.queue = []
-
-        self.progressBar.setRange(0, len(self.model.files))
+        #self.progressBar.setRange(0, len(self.model.files))
 
     def set_queue(self, queue):
-        self.queue = queue
+        self.queue.extend(queue)
 
     def close_dialog(self):
         self.hide()

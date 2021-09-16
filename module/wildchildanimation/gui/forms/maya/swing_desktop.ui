@@ -145,6 +145,13 @@
       </widget>
      </item>
      <item>
+      <widget class="QToolButton" name="toolButtonUploads">
+       <property name="text">
+        <string>Uploads</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QToolButton" name="toolButtonSearchFiles">
        <property name="minimumSize">
         <size>
