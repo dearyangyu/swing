@@ -429,7 +429,7 @@ class SwingMaya(QtCore.QObject):
 
     def get_audio_attributes(self):
         try:
-            sound_node = mel.eval("timeControl -q sound $gPlayBackSlider;")
+            sound_node = mel.eval("timeControl -q -sound $gPlayBackSlider;")
             if sound_node:
                 file_path = cmds.getAttr("{0}.filename".format(sound_node))
                 file_info = QtCore.QFileInfo(file_path)

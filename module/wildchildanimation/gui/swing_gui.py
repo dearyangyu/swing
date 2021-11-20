@@ -135,7 +135,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.toolButtonNew.clicked.connect(self.on_create)
         
         self.toolButtonLayout.clicked.connect(self.breakout_dialog)
-        self.toolButtonPlaylists.clicked.connect(self.playlist_dialog)
+        self.toolButtonPlaylists.clicked.connect(self.on_playlists)
         self.toolButtonSearchFiles.clicked.connect(self.on_search)
 
         self.nav.comboBoxProject.currentIndexChanged.connect(self.project_changed)
@@ -183,7 +183,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             self.set_enabled(True)
 
         ## Don't do playlists yet
-        self.toolButtonPlaylists.setVisible(False)
+        ##self.toolButtonPlaylists.setVisible(False)
 
     def get_file_monitor(self):
         if self.file_monitor == None:
@@ -428,7 +428,10 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         selected = self.selected_shot()
         if selected:
             self.settings.setValue("last_shot", selected["shot"])
-        
+
+        self.settings.endGroup()  
+
+        self.settings.beginGroup(ProjectNavWidget.__class__.__name__)
         self.settings.setValue("task_types", self.nav._user_task_types)
         self.settings.setValue("status_codes", self.nav._user_task_status)
         self.settings.endGroup()              
@@ -882,9 +885,6 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
                         open_folder(project_dir)
                 else:
                     self.handler.on_create(parent = self, handler = self.handler, task = self.selected_task)
-                    #dialog = SwingCreateDialog(self, self.handler, self.selected_task)
-                    #dialog.setWorkingDir(project_dir)
-                    #dialog.show()                     
 
 
     def breakout_dialog(self):
@@ -897,12 +897,12 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         else:
             QtWidgets.QMessageBox.information(self, 'Break Out', 'Please select a project and an episode first')  
 
-    def playlist_dialog(self):
+    def on_playlists(self):
         if self.nav.get_project() and self.nav.get_episode():
-            dialog = PlaylistDialog(self)
-            dialog.set_project_episode(self.nav.get_project(), self.nav.get_episode(), self.nav.get_task_types())
+            self.playlist_dialog = PlaylistDialog(self)
+            self.playlist_dialog.set_project_episode(self.nav.get_project()["project_id"], self.nav.get_episode()["episode_id"], self.nav.get_task_types())
 
-            dialog.exec_()
+            self.playlist_dialog.exec_()
         else:
             QtWidgets.QMessageBox.information(self, 'Playlists', 'Please select a project and an episode first')  
 
@@ -920,7 +920,6 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         else:
             self.downloadDialog = DownloadDialogGUI(parent = self, handler = self.handler, file_list=files)
 
-        #dialog.resize(self.size())
         self.downloadDialog.show()
 
     def load_asset(self):
@@ -930,19 +929,10 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
     def load_shot_info(self):
 
         self.handler.on_entity_info(parent = self, entity_id = self.selected_shot()["shot_id"], task_types = self.nav.get_task_types())
-        #self.set_to_shot()
-        #if self.selected_shot():
-        #    dialog = EntityInfoDialog(self, self.selected_shot(),  self.handler)
-        #    dialog.resize(self.size())
-        #    dialog.show()
 
     def load_asset_info(self):
+
         self.handler.on_entity_info(parent = self, entity_id = self.selected_asset()["id"], task_types = self.nav.get_task_types())
-        #self.set_to_asset()
-        #if self.selected_asset():
-        #    dialog = EntityInfoDialog(self, self.selected_asset(), self.handler)
-        #    dialog.resize(self.size())
-        #    dialog.show()        
 
     def on_search(self):
         if self.nav.is_task_types_filtered():

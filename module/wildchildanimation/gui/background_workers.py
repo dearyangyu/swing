@@ -544,7 +544,7 @@ class FileDownloader(QtCore.QRunnable):
                 return
 
             if os.path.exists(os.path.join(working_dir, filename)):
-                write_log("Working path exists {}".format(os.path.join(self.working_dir, filename)))
+                write_log("Working path exists {}".format(os.path.join(working_dir, filename)))
 
                 if os.path.isfile(os.path.join(working_dir, filename)):
                     size = os.path.getsize(self.target)                

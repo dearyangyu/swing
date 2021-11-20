@@ -135,6 +135,7 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
                 self.tableView.model().setData(index, download_status, QtCore.Qt.EditRole)     
                 self.tableView.model().dataChanged.emit(index, index, QtCore.Qt.DisplayRole)                 
                 self.tableView.viewport().update()
+                break
 
         self.downloads -= 1
         if self.downloads <= 0:
@@ -165,6 +166,7 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
                 self.tableView.model().setData(index, download_status, QtCore.Qt.EditRole) 
                 self.tableView.model().dataChanged.emit(index, index, QtCore.Qt.DisplayRole)           
                 self.tableView.viewport().update()      
+                break
 
     def load_files(self, file_list):
         self.tableModelFiles = FileTableModel(self, working_dir = SwingSettings.get_instance().swing_root(), items = file_list)

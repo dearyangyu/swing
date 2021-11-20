@@ -48,7 +48,7 @@ class StudioInterface(QtCore.QObject):
     OF_DEFAULT_INCLUDE = [ "_export", ".zip", ".mov", ".mp4" ]
 
     SUPPORTED_TYPES = [ ]
-    UNARCHIVE_TYPES = [ ".zip", ".rar" ]
+    UNARCHIVE_TYPES = [ ".zip", ".rar", ".7z" ]
 
     def get_param(self, option, value):
         # return key / value pairs

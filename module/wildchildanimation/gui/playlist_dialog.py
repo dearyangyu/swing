@@ -18,7 +18,7 @@ class Ui_PlaylistDialog(object):
         if not PlaylistDialog.objectName():
             PlaylistDialog.setObjectName(u"PlaylistDialog")
         PlaylistDialog.setEnabled(True)
-        PlaylistDialog.resize(920, 414)
+        PlaylistDialog.resize(1033, 338)
         self.verticalLayout = QVBoxLayout(PlaylistDialog)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.horizontalLayoutProject = QHBoxLayout()
@@ -49,12 +49,16 @@ class Ui_PlaylistDialog(object):
 
         self.horizontalLayoutEpisodeSequence.addWidget(self.lineEditEpisode)
 
+        self.toolButtonRefresh = QToolButton(PlaylistDialog)
+        self.toolButtonRefresh.setObjectName(u"toolButtonRefresh")
+
+        self.horizontalLayoutEpisodeSequence.addWidget(self.toolButtonRefresh)
+
 
         self.verticalLayoutProject.addLayout(self.horizontalLayoutEpisodeSequence)
 
-        self.gridLayout_2 = QGridLayout()
-        self.gridLayout_2.setObjectName(u"gridLayout_2")
         self.horizontalLayout = QHBoxLayout()
+        self.horizontalLayout.setSpacing(6)
         self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.label = QLabel(PlaylistDialog)
         self.label.setObjectName(u"label")
@@ -78,15 +82,74 @@ class Ui_PlaylistDialog(object):
         self.horizontalLayout.addItem(self.horizontalSpacer)
 
 
-        self.gridLayout_2.addLayout(self.horizontalLayout, 1, 0, 1, 1)
+        self.verticalLayoutProject.addLayout(self.horizontalLayout)
+
+        self.gridLayout_2 = QGridLayout()
+        self.gridLayout_2.setObjectName(u"gridLayout_2")
+        self.horizontalLayout_2 = QHBoxLayout()
+        self.horizontalLayout_2.setSpacing(6)
+        self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
+        self.toolButtonSelectAll = QToolButton(PlaylistDialog)
+        self.toolButtonSelectAll.setObjectName(u"toolButtonSelectAll")
+
+        self.horizontalLayout_2.addWidget(self.toolButtonSelectAll)
+
+        self.toolButtonSelectNone = QToolButton(PlaylistDialog)
+        self.toolButtonSelectNone.setObjectName(u"toolButtonSelectNone")
+
+        self.horizontalLayout_2.addWidget(self.toolButtonSelectNone)
+
+        self.radioButtonLatestVersion = QRadioButton(PlaylistDialog)
+        self.radioButtonLatestVersion.setObjectName(u"radioButtonLatestVersion")
+
+        self.horizontalLayout_2.addWidget(self.radioButtonLatestVersion)
+
+        self.radioButtonLastDay = QRadioButton(PlaylistDialog)
+        self.radioButtonLastDay.setObjectName(u"radioButtonLastDay")
+
+        self.horizontalLayout_2.addWidget(self.radioButtonLastDay)
+
+        self.radioButtonShowAll = QRadioButton(PlaylistDialog)
+        self.radioButtonShowAll.setObjectName(u"radioButtonShowAll")
+
+        self.horizontalLayout_2.addWidget(self.radioButtonShowAll)
+
+        self.checkBoxSkipExisting = QCheckBox(PlaylistDialog)
+        self.checkBoxSkipExisting.setObjectName(u"checkBoxSkipExisting")
+        self.checkBoxSkipExisting.setChecked(True)
+
+        self.horizontalLayout_2.addWidget(self.checkBoxSkipExisting)
+
+        self.checkBoxExtractZip = QCheckBox(PlaylistDialog)
+        self.checkBoxExtractZip.setObjectName(u"checkBoxExtractZip")
+        self.checkBoxExtractZip.setChecked(True)
+
+        self.horizontalLayout_2.addWidget(self.checkBoxExtractZip)
+
+        self.horizontalSpacer_2 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.horizontalLayout_2.addItem(self.horizontalSpacer_2)
+
+        self.label_2 = QLabel(PlaylistDialog)
+        self.label_2.setObjectName(u"label_2")
+
+        self.horizontalLayout_2.addWidget(self.label_2)
+
+        self.lineEditSearch = QLineEdit(PlaylistDialog)
+        self.lineEditSearch.setObjectName(u"lineEditSearch")
+        sizePolicy1 = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        sizePolicy1.setHorizontalStretch(0)
+        sizePolicy1.setVerticalStretch(0)
+        sizePolicy1.setHeightForWidth(self.lineEditSearch.sizePolicy().hasHeightForWidth())
+        self.lineEditSearch.setSizePolicy(sizePolicy1)
+
+        self.horizontalLayout_2.addWidget(self.lineEditSearch)
+
+
+        self.gridLayout_2.addLayout(self.horizontalLayout_2, 0, 0, 1, 1)
 
 
         self.verticalLayoutProject.addLayout(self.gridLayout_2)
-
-        self.checkboxShowAll = QCheckBox(PlaylistDialog)
-        self.checkboxShowAll.setObjectName(u"checkboxShowAll")
-
-        self.verticalLayoutProject.addWidget(self.checkboxShowAll)
 
 
         self.horizontalLayoutProject.addLayout(self.verticalLayoutProject)
@@ -98,18 +161,17 @@ class Ui_PlaylistDialog(object):
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
         self.tableView = QTableView(PlaylistDialog)
         self.tableView.setObjectName(u"tableView")
-        sizePolicy1 = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.MinimumExpanding)
-        sizePolicy1.setHorizontalStretch(0)
-        sizePolicy1.setVerticalStretch(10)
-        sizePolicy1.setHeightForWidth(self.tableView.sizePolicy().hasHeightForWidth())
-        self.tableView.setSizePolicy(sizePolicy1)
+        sizePolicy2 = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.MinimumExpanding)
+        sizePolicy2.setHorizontalStretch(0)
+        sizePolicy2.setVerticalStretch(10)
+        sizePolicy2.setHeightForWidth(self.tableView.sizePolicy().hasHeightForWidth())
+        self.tableView.setSizePolicy(sizePolicy2)
         self.tableView.setSizeIncrement(QSize(0, 0))
         font1 = QFont()
         font1.setPointSize(9)
         self.tableView.setFont(font1)
         self.tableView.setAlternatingRowColors(True)
         self.tableView.setSelectionBehavior(QAbstractItemView.SelectRows)
-        self.tableView.setWordWrap(False)
 
         self.horizontalLayout_3.addWidget(self.tableView)
 
@@ -151,9 +213,17 @@ class Ui_PlaylistDialog(object):
         PlaylistDialog.setToolTip(fakestr(u"Episode Playlist", None))
 #endif // QT_CONFIG(tooltip)
         self.labelEpisode.setText(fakestr(u"Episode", None))
+        self.toolButtonRefresh.setText(fakestr(u"Refresh", None))
         self.label.setText(fakestr(u"Folder", None))
         self.toolButtonSelectFolder.setText(fakestr(u"...", None))
-        self.checkboxShowAll.setText(fakestr(u"Show all versions", None))
+        self.toolButtonSelectAll.setText(fakestr(u"+", None))
+        self.toolButtonSelectNone.setText(fakestr(u"-", None))
+        self.radioButtonLatestVersion.setText(fakestr(u"Latest", None))
+        self.radioButtonLastDay.setText(fakestr(u"24H", None))
+        self.radioButtonShowAll.setText(fakestr(u"All", None))
+        self.checkBoxSkipExisting.setText(fakestr(u"Skip Existing Files", None))
+        self.checkBoxExtractZip.setText(fakestr(u"Extract Zip Files", None))
+        self.label_2.setText(fakestr(u"Search:", None))
         self.pushButtonProcess.setText(fakestr(u"Sync", None))
         self.pushButtonCancel.setText(fakestr(u"Close", None))
     # retranslateUi

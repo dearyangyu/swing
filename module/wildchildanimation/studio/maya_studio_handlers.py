@@ -7,13 +7,14 @@ import glob
 import csv
 import sys
 import traceback
-from pymel.core.system import reference
+
+from PySide2 import QtCore
+
 from wildchildanimation.gui.background_workers import TaskFileInfoThread
 
 from wildchildanimation.gui.loader import LoaderDialogGUI
 from wildchildanimation.gui.publish import PublishDialogGUI
 from wildchildanimation.gui.settings import SwingSettings
-
 
 _maya_loaded = False    
 try:
@@ -284,18 +285,16 @@ class MayaStudioHandler(StudioInterface, SwingMaya):
     def on_show_swing(self):
         SwingGUI.show_dialog(self)
 
-    def on_create(self, **kwargs):
-        parent = kwargs["parent"]
+    def on_task_create(self, results):
 
-        task_info = kwargs["task_info"]
-        task_dir = task_info["project_dir"]
-        task = task_info["task"]
+        task_dir = results["project_dir"]
+        task = results["task"]
         
         working_file = friendly_string("_".join(self.get_task_sections(task)).lower())    
 
         #add software
         working_file_name = "{}.ma".format(working_file)
-        self.createDialog = SwingCreateDialog(parent = parent, task_id = task["id"], entity_id = task["entity"]["id"])
+        self.createDialog = SwingCreateDialog(parent = None, task_id = task["id"], entity_id = task["entity"]["id"])
 
         existingFile = None
         if os.path.exists(task_dir):
@@ -368,6 +367,13 @@ class MayaStudioHandler(StudioInterface, SwingMaya):
             self.log_output("create_file complete")
         return True 
 
+    def on_create(self, **kwargs):
+        task = kwargs["task"]
+
+        self.taskLoader = TaskFileInfoThread(parent = self, task = task["id"], project_root = SwingSettings.get_instance().swing_root())
+        self.taskLoader.callback.loaded.connect(self.on_task_create)
+        QtCore.QThreadPool.globalInstance().start(self.taskLoader)
+
     def on_load(self, **kwargs):
         parent = kwargs["parent"]
         entity = kwargs["entity"]
@@ -417,9 +423,10 @@ class MayaStudioHandler(StudioInterface, SwingMaya):
         return file_list
 
     def on_publish(self, **kwargs):
-        task_info = kwargs["task_info"]
-        task_dir = task_info["project_dir"]
-        task = task_info["task"]
+        print("on_publish: {}".format(kwargs)) 
+    
+        task_dir = kwargs["project_dir"]
+        task = kwargs["task"]
 
         if "task_types" in kwargs:
             task_types = kwargs["task_types"]

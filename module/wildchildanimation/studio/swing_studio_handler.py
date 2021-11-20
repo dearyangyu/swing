@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 # 
 import os
+import platform
 import sys
 import traceback
 from wildchildanimation.gui.downloads import DownloadDialogGUI
 from wildchildanimation.gui.loader import LoaderDialogGUI
 from wildchildanimation.gui.publish import PublishDialogGUI
+from wildchildanimation.gui.settings import SwingSettings
 
 from wildchildanimation.gui.swing_create import SwingCreateDialog
 from wildchildanimation.studio.studio_interface import StudioInterface
@@ -138,3 +140,35 @@ class SwingStudioHandler(StudioInterface):
 
         dialog = EntityInfoDialog(parent, entity = entity_id, handler = self, task_types = task_types)
         dialog.show()            
+
+'''
+    def create_shortcut(self, install_dir = None):
+        root = sys.path[0]
+        # drive, tail = os.path.splitdrive(root)        
+
+        if "Darwin" in platform.system():
+            cmd = "swing/swing-main/bin/swing_desktop.sh"            
+            if not install_dir:
+                install_dir = os.path.expanduser("~/WCA")
+            
+            #cmd = 'cd {}/swing/swing-main && source {}/env/bin/activate && python3 {}/swing/swing-main/module/wildchildanimation/plugin/swing_desktop.py'.format(dir, dir, dir)
+            #C:\WCA\swing\swing-main\bin
+        else:
+            cmd = "swing/swing-main/bin/swing_desktop.bat"
+            if not install_dir:
+                install_dir = os.path.expanduser("C:/WCA")
+
+        command_line = "{}/{}".format(install_dir, cmd)
+        if not os.path.exists(command_line):
+            print("Error: not foud {}".format(command_line))
+            return False
+
+        resource_icon = "{}/swing/swing-main/module/wildchildanimation/resources/wca.ico".format(install_dir)        
+        if not os.path.exists(resource_icon):
+            print("Resource Icon not found: {}".format(resource_icon))
+            return False        
+
+        make_shortcut(command_line, name = SwingSettings._APP_SHORTNAME, description = SwingSettings._APP_DESCRIPTION, icon = resource_icon)
+        return True
+        #, folder = working_dir, terminal=True, desktop=True, executable=python_line)        
+'''        

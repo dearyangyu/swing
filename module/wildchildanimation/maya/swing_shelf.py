@@ -1,8 +1,6 @@
 import maya.cmds as mc
 import maya.OpenMaya as om
 
-from wildchildanimation.gui.settings import SwingSettings
-
 from wildchildanimation.maya.maya_shelf import _shelf
 from wildchildanimation.gui.swing_gui import SwingGUI
 

@@ -551,7 +551,7 @@ class SwingPlayblastUi(QtWidgets.QDialog, Ui_PlayblastDialog):
     _caption = False
 
     CONTAINER_PRESETS = [
-        "mov",
+        # "mov",
         "mp4",
         "Image",
     ]
@@ -774,19 +774,17 @@ class SwingPlayblastUi(QtWidgets.QDialog, Ui_PlayblastDialog):
 
         selected_file = os.path.normpath(current_filename)
 
-        file_info = QtCore.QFileInfo(selected_file)
+        #file_info = QtCore.QFileInfo(selected_file)
 
-        if not file_info.exists():
-            current_dir_path = self._playblast.get_project_dir_path()
+        #if not file_info.exists():
+        #    current_dir_path = self._playblast.get_project_dir_path()
 
         format = self.encoding_container_cmb.currentText()
         filter = ""
         if "Image" in format:
             filter = "images (*.png);;All files (*.*)"
-        elif "mov" in format:
-            filter = "mov (*.mov);;All files (*.*)"
         else:
-            filter = "mp4 (*.mov);;All files (*.*)"
+            filter = "mp4 (*.mp4);;All files (*.*)"
 
         new_filename = QtWidgets.QFileDialog.getSaveFileName(self, "Select file name", selected_file, filter)
         if new_filename:

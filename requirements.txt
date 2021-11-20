@@ -1,9 +1,10 @@
 pip
 gazu
+sip
 keyring
 PyQt5
 PySide2
 requests_toolbelt
 qdarkstyle
 six
-pyshortcuts
+# pyshortcuts

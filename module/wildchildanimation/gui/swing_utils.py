@@ -250,11 +250,11 @@ def zip_directory(dir_name):
     write_log("Created {0}.zip".format(dir_name))
     return 
 
-def extract_archive(prog_name, archive, directory):
+def extract_archive(prog_name, archive, directory, extract_mode = "x"):
 
     if prog_name and len(prog_name) > 0:
         if os.path.exists(prog_name) and os.path.isfile(prog_name):
-            return external_extract(prog_name, archive, directory)
+            return external_extract(prog_name, archive, directory, extract_mode=extract_mode)
     else:
         try:
             os.chdir(directory)
@@ -269,8 +269,20 @@ def extract_archive(prog_name, archive, directory):
             # extract all items in 64bit
     # open zip file in read binary
 
+def scan_archive(archive):
+    try:
+        # os.chdir(directory)
+        with zipfile.ZipFile(archive, 'r') as zipObj:
+            # Return a list of the files in the archive
+            return zipObj.filelist
+    except:
+        traceback.print_exc(file=sys.stdout)
+        return False
+        # extract all items in 64bit
+# open zip file in read binary    
+
 # extract archive using 7zip
-def external_extract(program, archive, directory):
+def external_extract(program, archive, directory, extract_mode = "x" ):
     #
     ## Usage: 7z <command> [<switches>...] <archive_name> [<file_names>...] [@listfile]
     
@@ -314,10 +326,12 @@ def external_extract(program, archive, directory):
     # -x[r[-|0]]{@listfile|!wildcard} : eXclude filenames
     # -y : assume Yes on all queries
     try:
+        #drive_name = directory[:1]
+        #os.chdir("{}:".format(drive_name))
         os.chdir(directory)
 
-        with subprocess.Popen([program, "x", "-y", archive], stdout=subprocess.PIPE) as proc:
-            print(proc.stdout.read())
+        with subprocess.Popen([program, extract_mode, "-y", archive], stdout=subprocess.PIPE) as proc:
+            print(proc.stdout.read().splitlines())
 
         return True
     except:

@@ -2,7 +2,6 @@
 import traceback
 import sys
 import os
-import platform
 
 # ==== auto Qt load ====
 try:
@@ -14,8 +13,6 @@ except ImportError:
 
     from PyQt5 import QtCore, QtWidgets
     qtMode = 1
-
-from pyshortcuts import make_shortcut
 
 from wildchildanimation.gui.settings_dialog import Ui_SettingsDialog
 from wildchildanimation.gui.swing_utils import save_password, load_keyring, set_button_icon
@@ -112,35 +109,7 @@ class SwingSettings(QtCore.QObject):
     def edit_root(self):
         return self._edit_root
 
-    def create_shortcut(self, install_dir = None):
-        root = sys.path[0]
-        # drive, tail = os.path.splitdrive(root)        
 
-        if "Darwin" in platform.system():
-            cmd = "swing/swing-main/bin/swing_desktop.sh"            
-            if not install_dir:
-                install_dir = os.path.expanduser("~/WCA")
-            
-            #cmd = 'cd {}/swing/swing-main && source {}/env/bin/activate && python3 {}/swing/swing-main/module/wildchildanimation/plugin/swing_desktop.py'.format(dir, dir, dir)
-            #C:\WCA\swing\swing-main\bin
-        else:
-            cmd = "swing/swing-main/bin/swing_desktop.bat"
-            if not install_dir:
-                install_dir = os.path.expanduser("C:/WCA")
-
-        command_line = "{}/{}".format(install_dir, cmd)
-        if not os.path.exists(command_line):
-            print("Error: not foud {}".format(command_line))
-            return False
-
-        resource_icon = "{}/swing/swing-main/module/wildchildanimation/resources/wca.ico".format(install_dir)        
-        if not os.path.exists(resource_icon):
-            print("Resource Icon not found: {}".format(resource_icon))
-            return False        
-
-        make_shortcut(command_line, name = SwingSettings._APP_SHORTNAME, description = SwingSettings._APP_DESCRIPTION, icon = resource_icon)
-        return True
-        #, folder = working_dir, terminal=True, desktop=True, executable=python_line)
 
 
 '''
@@ -164,6 +133,7 @@ class SettingsDialog(QtWidgets.QDialog, Ui_SettingsDialog):
         self.lineEditEmail.setText(self.swing_settings.swing_user())
         self.lineEditPassword.setText(self.swing_settings.swing_password())
         self.lineEditProjectsFolder.setText(self.swing_settings.swing_root())
+        self.lineEditEditorialFolder.setText(self.swing_settings.swing_root())
 
         set_button_icon(self.toolButtonProjectsFolder, "../resources/fa-free/solid/folder.svg")
         self.toolButtonProjectsFolder.clicked.connect(self.select_projects_dir)    
@@ -182,16 +152,8 @@ class SettingsDialog(QtWidgets.QDialog, Ui_SettingsDialog):
         self.toolButton7zSelect.clicked.connect(self.select_7z_bin)                    
         set_button_icon(self.toolButton7zSelect, "../resources/fa-free/solid/folder.svg")
 
-        self.pushButtonShortcut.clicked.connect(self.create_shortcut)
-
         set_button_icon(self.toolButtonEditorialFolder, "../resources/fa-free/solid/folder.svg")
         self.toolButtonEditorialFolder.clicked.connect(self.select_editorial_dir)
-
-
-    def create_shortcut(self):
-        if SwingSettings.get_instance().create_shortcut():
-            QtWidgets.QMessageBox.information(self, SwingSettings._APP_NAME, 'Created desktop shortcut')               
-
 
     def select_projects_dir(self):
         directory = QtWidgets.QFileDialog.getExistingDirectory(self, 'Select working directory')
@@ -229,6 +191,7 @@ class SettingsDialog(QtWidgets.QDialog, Ui_SettingsDialog):
         settings._swing_root = self.lineEditProjectsFolder.text()
         settings._ffmpeg_bin = self.lineEditFfmpegBin.text()
         settings._ffprobe_bin = self.lineEditFfprobeBin.text()
+        settings._edit_root = self.lineEditEditorialFolder.text()
         settings._7z_bin = self.lineEdit7zBinary.text()
 
         settings.save_settings()

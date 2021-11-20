@@ -6,28 +6,22 @@ import os
 import glob
 
 from wildchildanimation.gui.settings import SwingSettings
-from wildchildanimation.gui.swing_tables import CheckBoxDelegate, SecondaryAssetsFileTableModel
+from wildchildanimation.gui.swing_tables import SecondaryAssetsFileTableModel
 
 # ==== auto Qt load ====
 try:
-    from PySide2 import QtGui
     from PySide2 import QtCore
     from PySide2 import QtWidgets
     qtMode = 0
 except ImportError:
-    traceback.print_exc(file=sys.stdout)
-
-    from PyQt5 import QtGui, QtCore, QtWidgets
+    from PyQt5 import QtCore, QtWidgets
     qtMode = 1
 
 from wildchildanimation.gui.background_workers import SoftwareLoader, StatusTypeLoader, TaskFileInfoThread, TaskTypeLoader, WorkingFileUploader
 from wildchildanimation.gui.swing_utils import set_button_icon
 from wildchildanimation.gui.image_loader import PreviewImageLoader
 from wildchildanimation.gui.publish_dialog import Ui_PublishDialog
-from wildchildanimation.gui.upload_monitor import UploadMonitorDialog
 from wildchildanimation.gui.file_selector import FileSelectDialog
-
-## from wildchildanimation.gui.swing_workpacket import WorkPacket
 
 class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
 
@@ -246,8 +240,6 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         :param e:
         :return:
         """
-        print(e.source())
-        print(e.pos())
 
         if e.mimeData().hasUrls:        
             files = []
@@ -358,7 +350,6 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         #    self.set_output_file(self.media_files[len(self.media_files)-1])
 
         self.labelOutputFilesMessage.setText("Compress and upload directory: {}".format(directory))
-
 
     # save main dialog state
     def write_settings(self):

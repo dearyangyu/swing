@@ -75,12 +75,18 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
         self.comboBoxEpisode.currentIndexChanged.connect(self.episode_changed)
         self.comboBoxSequence.currentIndexChanged.connect(self.sequence_changed)
 
+        # fix for MacOS combo dropdown 
+        delegate = QtWidgets.QStyledItemDelegate()
+        self.comboBoxProject.setItemDelegate(delegate)        
+        self.comboBoxEpisode.setItemDelegate(delegate)        
+        self.comboBoxSequence.setItemDelegate(delegate)        
+
         self.toggle_filter_buttons()
 
     # load main dialog state
     def read_settings(self):
         self.settings = QtCore.QSettings()
-        self.settings.beginGroup(self.__class__.__name__)
+        self.settings.beginGroup(ProjectNavWidget.__class__.__name__)
         
         self._user_task_types = self.settings.value("task_types", [])
         self._user_task_status = self.settings.value("status_codes", [])

@@ -222,28 +222,8 @@ class Ui_SettingsDialog(object):
 
         self.verticalLayout.addItem(self.verticalSpacer_2)
 
-        self.labelIntegrations = QLabel(SettingsDialog)
-        self.labelIntegrations.setObjectName(u"labelIntegrations")
-        self.labelIntegrations.setFont(font)
-
-        self.verticalLayout.addWidget(self.labelIntegrations)
-
         self.horizontalLayout_8 = QHBoxLayout()
         self.horizontalLayout_8.setObjectName(u"horizontalLayout_8")
-        self.pushButtonShortcut = QPushButton(SettingsDialog)
-        self.pushButtonShortcut.setObjectName(u"pushButtonShortcut")
-
-        self.horizontalLayout_8.addWidget(self.pushButtonShortcut)
-
-        self.labelDesktopShortCut = QLabel(SettingsDialog)
-        self.labelDesktopShortCut.setObjectName(u"labelDesktopShortCut")
-
-        self.horizontalLayout_8.addWidget(self.labelDesktopShortCut)
-
-        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
-
-        self.horizontalLayout_8.addItem(self.horizontalSpacer)
-
 
         self.verticalLayout.addLayout(self.horizontalLayout_8)
 
@@ -307,8 +287,5 @@ class Ui_SettingsDialog(object):
         self.lineEdit7zBinary.setToolTip(fakestr(u"<html><head/><body><p>Location of ffmpeg executable, usually something like </p><p><br/></p><p>C:\\ffmpeg\\ffmpeg-20200831-4a11a6f-win64-static\\bin\\ffmpeg.exe</p></body></html>", None))
 #endif // QT_CONFIG(tooltip)
         self.toolButton7zSelect.setText(fakestr(u"...", None))
-        self.labelIntegrations.setText(fakestr(u"Integrations:", None))
-        self.pushButtonShortcut.setText(fakestr(u"Desktop Shortcut", None))
-        self.labelDesktopShortCut.setText(fakestr(u"Creates a new desktop shortcut", None))
     # retranslateUi
 

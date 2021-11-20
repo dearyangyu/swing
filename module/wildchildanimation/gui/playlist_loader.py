@@ -45,9 +45,11 @@ class PlaylistLoader(QtCore.QRunnable):
             results = rq.json()
 
         project = gazu.project.get_project(self.project_id)
+        episode = gazu.shot.get_episode(self.episode_id)
 
         response["items"] = results
         response["project"] = project
+        response["episode"] = episode
 
         self.callback.loaded.emit(response)                        
         return results       
