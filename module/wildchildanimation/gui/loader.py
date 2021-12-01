@@ -205,14 +205,15 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
                 self.project_name = self.project["code"]
             else:
                 self.project_name = self.project["name"]
+            sections.append(self.project_name)                                
                 
             if "episode_name" in self.shot:
                 self.episode_name = self.shot["episode_name"]
-                #sections.append(self.episode_name)
+                sections.append(self.episode_name)
 
             if "sequence_name" in self.shot:
                 self.sequence_name = self.shot["sequence_name"]
-                #sections.append(self.sequence_name)
+                sections.append(self.sequence_name)
 
             self.shot_name = self.shot["name"] 
             sections.append(self.shot_name)
@@ -248,9 +249,11 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
                 self.project_name = self.project["code"]
             else:
                 self.project_name = self.project["name"]
+            sections.append(self.project_name)                
 
             if "asset_type_name" in self.asset:
                 self.asset_type_name = self.asset["asset_type_name"].strip()
+                sections.append(self.asset_type_name)
 
             try:
                 self.asset_name = self.entity["name"].strip() 
@@ -365,38 +368,74 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
         self.target_path = os.path.split(self.lineEditTarget.text().strip())
         self.target_name = self.target_path[1]
 
-        target_dir = self.target_path[0]
-
         item = self.files[self.comboBoxWorkingFile.currentIndex()]
-        
-        if "library-file" in item['file_type']:
-            url = "{}/api/library_file/{}".format(edit_api, item["entity_id"])
-            ## set_target(item, self.working_dir)
-            worker = FileDownloader(self, item["file_id"], url, target, self.checkBoxSkipExisting.isChecked(), self.checkBoxExtractZips.isChecked(), { "fn": item['file_name'] } )
-        elif "working-file" in item["file_type"]:
-            #target_name = os.path.normpath(os.path.join(target_name_dir, item["name"]))
-            url = "{}/api/working_file/{}".format(edit_api, item["file_id"])
-            ## set_target_name(item, target_name_dir)
 
-            worker = FileDownloader(self, item["file_id"], url, target, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
+        self.mode = 'REMOTE'
+
+        # check if we can load the file directly without having to download it
+        # should also work to just reference a file in directly after a search
+        #
+        if self.is_handled():
+            try:
+                #edit_root = SwingSettings.get_instance().edit_root()
+                test_path = item.replace("/mnt/content/productions", "Z://productions")
+
+                if os.path.exists(test_path):
+                    self.mode = "LAN"
+            except:
+                self.mode = "REMOTE"        
+
+        if self.mode == 'LAN':
+            self.labelTarget.setText("Source:")
+            self.lineEditTarget.setText(test_path)
+
+            if self.openRb.isChecked():
+                # call handler, open downloaded file
+
+                print("Call: Load File ... ")
+                self.load_file(test_path, self.target_path)
+                
+            elif self.importRb.isChecked():
+                # call handler importing downloaded file
+
+                print("Call: Import  File ... ")
+                self.load_file(test_path, self.target_path)
+
+            else:
+                # reference file
+                print("Call: Import Ref ... ")
+                self.import_ref(test_path, self.target_path)
+
         else:
-            #target_name = os.path.normpath(os.path.join(target_name_dir, item["name"]))
-            url = "{}/api/output_file/{}".format(edit_api, item["file_id"])
-            ## set_target_name(item, target_name_dir)
+            if "library-file" in item['file_type']:
+                url = "{}/api/library_file/{}".format(edit_api, item["entity_id"])
+                ## set_target(item, self.working_dir)
+                worker = FileDownloader(self, item["file_id"], url, target, self.checkBoxSkipExisting.isChecked(), self.checkBoxExtractZips.isChecked(), { "fn": item['file_name'] } )
+            elif "working-file" in item["file_type"]:
+                #target_name = os.path.normpath(os.path.join(target_name_dir, item["name"]))
+                url = "{}/api/working_file/{}".format(edit_api, item["file_id"])
+                ## set_target_name(item, target_name_dir)
 
-            worker = FileDownloader(self, item["file_id"], url,  target, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
-        # file type
+                worker = FileDownloader(self, item["file_id"], url, target, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
+            else:
+                #target_name = os.path.normpath(os.path.join(target_name_dir, item["name"]))
+                url = "{}/api/output_file/{}".format(edit_api, item["file_id"])
+                ## set_target_name(item, target_name_dir)
 
-        self.append_status("{}: downloading to {}".format(self.target_name, target))
+                worker = FileDownloader(self, item["file_id"], url,  target, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
+            # file type
 
-        worker.callback.progress.connect(self.file_loading)
-        worker.callback.done.connect(self.file_loaded)
-        
-        item["status"] = "Busy"    
+            self.append_status("{}: downloading to {}".format(self.target_name, target))
 
-        ##worker.run() # debug
-        self.set_enabled(False)
-        self.threadpool.start(worker)
+            worker.callback.progress.connect(self.file_loading)
+            worker.callback.done.connect(self.file_loaded)
+            
+            item["status"] = "Busy"    
+
+            ##worker.run() # debug
+            self.set_enabled(False)
+            self.threadpool.start(worker)
+        # if the file is on our local network, just copy / reference it in
 
     # process
 

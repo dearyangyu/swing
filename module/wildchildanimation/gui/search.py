@@ -1,16 +1,11 @@
 # -*- coding: utf-8 -*-
 
-import traceback
-import sys
-
 # ==== auto Qt load ====
 try:
     from PySide2 import QtCore
     from PySide2 import QtWidgets
     qtMode = 0
 except ImportError:
-    traceback.print_exc(file=sys.stdout)
-
     from PyQt5 import QtCore, QtWidgets
     import sip
     qtMode = 1
@@ -18,8 +13,6 @@ except ImportError:
 from wildchildanimation.gui.background_workers import SearchFn
 from wildchildanimation.gui.search_files_dialog import Ui_SearchFilesDialog
 from wildchildanimation.gui.settings import SwingSettings
-
-from wildchildanimation.gui.swing_utils import set_target
 
 class SearchFilesDialog(QtWidgets.QDialog, Ui_SearchFilesDialog):
 
