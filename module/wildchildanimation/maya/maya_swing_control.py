@@ -23,12 +23,12 @@ except ImportError:
     qtMode = 1
 
 from wildchildanimation.maya.workspace_control import WorkspaceControl
-from wildchildanimation.studio.maya_studio_handlers import MayaStudioHandler, maya_main_window
+from wildchildanimation.studio.maya_studio_handlers import MayaStudioHandler
 from wildchildanimation.maya.swing_maya_control_ui import Ui_SwingControlWidget
 
 class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
 
-    WINDOW_TITLE = "Swing: Tasks"
+    WINDOW_TITLE = "Treehouse: Swing"
     UI_NAME = "SwingMayaUI"
 
     ui_instance = None
@@ -43,20 +43,24 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
 
     @classmethod
     def display(cls):
-        if cls.ui_instance:
-            cls.ui_instance.show_workspace_control()
-        else:
-            cls.ui_instance = SwingMayaUI()
+        try:
+            if cls.ui_instance:
+                cls.ui_instance.show_workspace_control()
+            else:
+                cls.ui_instance = SwingMayaUI()
+        except:
+            traceback.print_exc(file=sys.stdout)
 
     @classmethod
     def get_workspace_control_name(cls):
         return "{0}".format(cls.UI_NAME)
 
-    def __init__(self, parent = maya_main_window()):
+    #def __init__(self, parent = maya_main_window()):
+    def __init__(self, parent = None):
         super(SwingMayaUI, self).__init__(parent)
 
         self.setObjectName(self.__class__.UI_NAME)
-        self.setMinimumSize(200, 60)
+        self.setMinimumSize(600, 75)
         self.create_workspace_control()
         self.setupUi(self)
 
@@ -109,14 +113,18 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
 
     def create_workspace_control(self):
         self.workspace_control_instance = WorkspaceControl(self.get_workspace_control_name())
+        self.workspace_control_instance.log_output("Swing: Loaded WorkspaceControl")
 
         if self.workspace_control_instance.exists():
+            self.workspace_control_instance.log_output("Swing: Found existing workspace control, restoring")            
             self.workspace_control_instance.restore(self)
         else:
+            self.workspace_control_instance.log_output("Swing: Creating new workspace control instance")            
             self.workspace_control_instance.create(self.WINDOW_TITLE, self, ui_script='from wildchildanimation.maya.maya_swing_control import SwingMayaUI\nSwingMayaUI()\n')
 
     def show_workspace_control(self):
         self.workspace_control_instance.set_visible(True)
+        self.connect()
 
     def connect(self):
         self.toolButtonRefresh.setEnabled(False)
@@ -300,11 +308,9 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
     def on_create(self):
         if not self.task_info:
             self.workspace_control_instance.log_output("on_create::task_info not found")
-
             return 
         try:
-            #self.workspace_control_instance.log_output("handler: {}".format(self.handler))
-
+            #self.workspace_control_instance.log_output("handler: {}".format(self.task_info))
             self.handler.on_create(parent = None, task_info = self.task_info)
         except:
             self.workspace_control_instance.log_output("on_create:: {}".format("Exception"))
@@ -313,7 +319,6 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
     def on_publish(self):
         if not self.task_info:
             self.workspace_control_instance.log_output("on_publish: Task not found")
-
             return 
         try:
             self.handler.on_publish(parent = None, task_info = self.task_info, task_types = self.task_types)        

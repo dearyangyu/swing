@@ -47,6 +47,7 @@ from wildchildanimation.gui.entity_info import EntityInfoDialog
 
 from wildchildanimation.gui.swing_gui import SwingGUI
 
+'''
 def maya_main_window():
     """
     Return the Maya main window widget as a Python object
@@ -56,6 +57,7 @@ def maya_main_window():
         return wrapInstance(int(main_window_ptr), QtWidgets.QWidget)
     else:
         return wrapInstance(long(main_window_ptr), QtWidgets.QWidget)
+'''
 
 class MayaStudioHandler(StudioInterface, SwingMaya):
 
@@ -193,7 +195,7 @@ class MayaStudioHandler(StudioInterface, SwingMaya):
             prompt_val = cmds.file(prompt=True, q=True)
             try:
                 if not force and cmds.file(q = True, modified = True):
-                    if QtWidgets.QMessageBox.question(maya_main_window(), 'Unsaved changes', 'Current scene has unsaved changes. Continue?') == QtWidgets.QMessageBox.StandardButton.Yes:
+                    if QtWidgets.QMessageBox.question(None, 'Unsaved changes', 'Current scene has unsaved changes. Continue?') == QtWidgets.QMessageBox.StandardButton.Yes:
                         force = True
                     else:
                         self.log_output("Aborted load file")
@@ -309,7 +311,7 @@ class MayaStudioHandler(StudioInterface, SwingMaya):
 
             if existingFile and not self.createDialog.checkBoxLoadExisting.isChecked():
 
-                if QtWidgets.QMessageBox.question(maya_main_window(), 'Warning: Existing file found', 'If you continue, this file will be lost, are you sure?') != QtWidgets.QMessageBox.StandardButton.Yes:
+                if QtWidgets.QMessageBox.question(None, 'Warning: Existing file found', 'If you continue, this file will be lost, are you sure?') != QtWidgets.QMessageBox.StandardButton.Yes:
                     self.log_output("Aborted load file")
                     return
 
@@ -349,9 +351,17 @@ class MayaStudioHandler(StudioInterface, SwingMaya):
 
                         self.log_output("setting animation range from {} to {}".format(frame_in, frame_out))
                         cmds.playbackOptions(edit=True, animationStartTime = frame_in, animationEndTime = frame_out)
+                        cmds.playbackOptions(edit=True, minTime = frame_in, maxTime = frame_out)
 
-                        self.log_output("set frame rate to {}".format(frame_rate))
+                        start = cmds.playbackOptions(q=True, min=True)
+                        self.log_output("set start to {}".format(start))
+                        cmds.currentTime(start, edit = True)
+
+                        self.log_output("save file {}".format(project_file))
                         cmds.file(save = True)
+
+                        #playButtonStart;
+                        #timeField -edit -value `currentTime -query` TimeSlider|MainTimeSliderLayout|formLayout8|timeField1;
 
                         self.log_output("on_create <-- {}".format(project_file))
                     except:
@@ -368,7 +378,8 @@ class MayaStudioHandler(StudioInterface, SwingMaya):
         return True 
 
     def on_create(self, **kwargs):
-        task = kwargs["task"]
+        task_info = kwargs["task_info"]
+        task = task_info["task"]
 
         self.taskLoader = TaskFileInfoThread(parent = self, task = task["id"], project_root = SwingSettings.get_instance().swing_root())
         self.taskLoader.callback.loaded.connect(self.on_task_create)
@@ -423,10 +434,11 @@ class MayaStudioHandler(StudioInterface, SwingMaya):
         return file_list
 
     def on_publish(self, **kwargs):
-        print("on_publish: {}".format(kwargs)) 
-    
-        task_dir = kwargs["project_dir"]
-        task = kwargs["task"]
+        print("on_publish: {}".format(kwargs))
+
+        task_info = kwargs["task_info"]
+        task = task_info["task"]         
+        task_dir = task_info["project_dir"]
 
         if "task_types" in kwargs:
             task_types = kwargs["task_types"]

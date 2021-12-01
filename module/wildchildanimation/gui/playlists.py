@@ -353,7 +353,7 @@ class PlaylistModel(QtCore.QAbstractTableModel):
                     shots = shot["task_type"][col_header]["shots"]
 
                     # sort by latest shot
-                    shots = sorted(shots, key = lambda x: x["updated_at"])
+                    shots = sorted(shots, key = lambda x: x["updated_at"], reverse=True)
 
                     revision = len(shots)
 

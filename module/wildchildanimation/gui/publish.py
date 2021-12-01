@@ -22,6 +22,7 @@ from wildchildanimation.gui.swing_utils import set_button_icon
 from wildchildanimation.gui.image_loader import PreviewImageLoader
 from wildchildanimation.gui.publish_dialog import Ui_PublishDialog
 from wildchildanimation.gui.file_selector import FileSelectDialog
+from wildchildanimation.gui.upload_monitor import UploadMonitorDialog
 
 class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
 
@@ -43,7 +44,11 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
         self.setAcceptDrops(True)
         self.read_settings()
-        self.monitor = upload_monitor
+
+        if not upload_monitor:
+            self.monitor = UploadMonitorDialog(self)
+        else:
+            self.monitor = upload_monitor
 
         self.task = task
         if not task_types:

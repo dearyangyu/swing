@@ -19,7 +19,7 @@ except ImportError:
 
 
 from wildchildanimation.gui.settings import SwingSettings
-from wildchildanimation.gui.background_workers import EntityFileLoader, EntityLoaderThread, FileDownloader
+from wildchildanimation.gui.background_workers import FileDownloader
 from wildchildanimation.gui.loader import LoaderDialogGUI
 from wildchildanimation.gui.download_dialog import Ui_DownloadDialog
 
@@ -39,6 +39,7 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
         self.setMinimumWidth(600)
 
         self.handler = handler
+        self.entity = None
 
         self.threadpool = QtCore.QThreadPool.globalInstance()
         self.file_list = file_list

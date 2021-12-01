@@ -50,7 +50,7 @@ class Ui_SwingControlWidget(object):
 
         self.comboBoxTask = QComboBox(SwingControlWidget)
         self.comboBoxTask.setObjectName(u"comboBoxTask")
-        self.comboBoxTask.setMinimumSize(QSize(300, 0))
+        self.comboBoxTask.setMinimumSize(QSize(350, 0))
 
         self.horizontalLayout_3.addWidget(self.comboBoxTask)
 
