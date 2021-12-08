@@ -17,7 +17,7 @@ except ImportError:
 class StudioInterface(QtCore.QObject):
 
     NAME = "StudioInterface"
-    VERSION = "0.0.5"    
+    VERSION = "0.0.6"    
 
     def __init__(self):
         super(StudioInterface, self).__init__()
@@ -44,8 +44,8 @@ class StudioInterface(QtCore.QObject):
         "Custom"
     ]  
 
-    WF_DEFAULT_EXCLUDE = [ "_export", ".zip", ".mov", ".mp4", ".DS_Store", "playblasts", ".7z" ]
-    OF_DEFAULT_INCLUDE = [ "_export", ".zip", ".mov", ".mp4" ]
+    WF_DEFAULT_EXCLUDE = [ "_export", ".zip", ".mov", ".mp4", ".DS_Store", "playblasts", ".7z", "_txl" ]
+    OF_DEFAULT_INCLUDE = [ "_export", ".zip", ".mov", ".mp4", "_txl" ]
 
     SUPPORTED_TYPES = [ ]
     UNARCHIVE_TYPES = [ ".zip", ".rar", ".7z" ]

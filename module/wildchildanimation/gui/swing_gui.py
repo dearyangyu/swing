@@ -5,8 +5,6 @@
 # date: 18 Feb 2021
 #
 #############################
-import traceback
-import sys
 import os
 
 # Qt High DPI 
@@ -19,8 +17,6 @@ try:
     from PySide2 import QtWidgets
     qtMode = 0
 except ImportError:
-    traceback.print_exc(file=sys.stdout)
-
     from PyQt5 import QtGui, QtCore, QtWidgets
     qtMode = 1
 

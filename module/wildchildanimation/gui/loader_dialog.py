@@ -13,12 +13,13 @@ from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
 from wildchildanimation.gui.swing_utils import fakestr
+
 class Ui_LoaderDialog(object):
     def setupUi(self, LoaderDialog):
         if not LoaderDialog.objectName():
             LoaderDialog.setObjectName(u"LoaderDialog")
         LoaderDialog.setEnabled(True)
-        LoaderDialog.resize(874, 473)
+        LoaderDialog.resize(651, 598)
         self.verticalLayout = QVBoxLayout(LoaderDialog)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.verticalLayoutEntity = QVBoxLayout()
@@ -139,11 +140,12 @@ class Ui_LoaderDialog(object):
 
         self.horizontalLayoutProjectDir = QHBoxLayout()
         self.horizontalLayoutProjectDir.setObjectName(u"horizontalLayoutProjectDir")
-        self.labelTarget = QLabel(LoaderDialog)
-        self.labelTarget.setObjectName(u"labelTarget")
-        self.labelTarget.setMinimumSize(QSize(100, 0))
+        self.cbDownloadTarget = QCheckBox(LoaderDialog)
+        self.cbDownloadTarget.setObjectName(u"cbDownloadTarget")
+        self.cbDownloadTarget.setMinimumSize(QSize(120, 0))
+        self.cbDownloadTarget.setAutoExclusive(False)
 
-        self.horizontalLayoutProjectDir.addWidget(self.labelTarget)
+        self.horizontalLayoutProjectDir.addWidget(self.cbDownloadTarget)
 
         self.lineEditTarget = QLineEdit(LoaderDialog)
         self.lineEditTarget.setObjectName(u"lineEditTarget")
@@ -158,8 +160,41 @@ class Ui_LoaderDialog(object):
 
         self.verticalLayoutEntity.addLayout(self.horizontalLayoutProjectDir)
 
+        self.horizontalLayout_5 = QHBoxLayout()
+        self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
+        self.cbNetworkSource = QCheckBox(LoaderDialog)
+        self.cbNetworkSource.setObjectName(u"cbNetworkSource")
+        self.cbNetworkSource.setMinimumSize(QSize(120, 0))
+        self.cbNetworkSource.setAutoExclusive(False)
+
+        self.horizontalLayout_5.addWidget(self.cbNetworkSource)
+
+        self.lineEditNetworkSource = QLineEdit(LoaderDialog)
+        self.lineEditNetworkSource.setObjectName(u"lineEditNetworkSource")
+
+        self.horizontalLayout_5.addWidget(self.lineEditNetworkSource)
+
+
+        self.verticalLayoutEntity.addLayout(self.horizontalLayout_5)
+
 
         self.verticalLayout.addLayout(self.verticalLayoutEntity)
+
+        self.verticalLayout_2 = QVBoxLayout()
+        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
+        self.labelNetworkMessage = QLabel(LoaderDialog)
+        self.labelNetworkMessage.setObjectName(u"labelNetworkMessage")
+        self.labelNetworkMessage.setStyleSheet(u"")
+
+        self.verticalLayout_2.addWidget(self.labelNetworkMessage)
+
+        self.labelArchiveMessage = QLabel(LoaderDialog)
+        self.labelArchiveMessage.setObjectName(u"labelArchiveMessage")
+
+        self.verticalLayout_2.addWidget(self.labelArchiveMessage)
+
+
+        self.verticalLayout.addLayout(self.verticalLayout_2)
 
         self.verticalLayoutOptions = QVBoxLayout()
         self.verticalLayoutOptions.setObjectName(u"verticalLayoutOptions")
@@ -187,6 +222,7 @@ class Ui_LoaderDialog(object):
         self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
         self.openRb = QRadioButton(LoaderDialog)
         self.openRb.setObjectName(u"openRb")
+        self.openRb.setChecked(True)
 
         self.horizontalLayout_4.addWidget(self.openRb)
 
@@ -254,11 +290,13 @@ class Ui_LoaderDialog(object):
 
         self.pushButtonImport = QPushButton(LoaderDialog)
         self.pushButtonImport.setObjectName(u"pushButtonImport")
+        self.pushButtonImport.setMinimumSize(QSize(80, 0))
 
         self.horizontalLayout.addWidget(self.pushButtonImport)
 
         self.pushButtonCancel = QPushButton(LoaderDialog)
         self.pushButtonCancel.setObjectName(u"pushButtonCancel")
+        self.pushButtonCancel.setMinimumSize(QSize(80, 0))
 
         self.horizontalLayout.addWidget(self.pushButtonCancel)
 
@@ -272,7 +310,7 @@ class Ui_LoaderDialog(object):
     # setupUi
 
     def retranslateUi(self, LoaderDialog):
-        LoaderDialog.setWindowTitle(fakestr(u"swing: load files", None))
+        LoaderDialog.setWindowTitle(fakestr(u"swing: downloader", None))
         self.labelEntity.setText(fakestr(u"Entity", None))
 #if QT_CONFIG(tooltip)
         self.toolButtonWeb.setToolTip(fakestr(u"Opens link in Kitsu", None))
@@ -284,24 +322,27 @@ class Ui_LoaderDialog(object):
         self.labelFrameOut.setText(fakestr(u"Out", None))
         self.labelFrameCount.setText(fakestr(u"Count", None))
         self.label.setText(fakestr(u"Notes and Comments", None))
-        self.labelTarget.setText(fakestr(u"Target", None))
+        self.cbDownloadTarget.setText(fakestr(u"Download Target:", None))
         self.toolButtonTargetDir.setText(fakestr(u"...", None))
+        self.cbNetworkSource.setText(fakestr(u"Network Source:", None))
+        self.labelNetworkMessage.setText("")
+        self.labelArchiveMessage.setText("")
         self.checkBoxSkipExisting.setText(fakestr(u"Skip existing files", None))
         self.checkBoxExtractZips.setText(fakestr(u"Extract zip files automatically", None))
         self.checkBoxForce.setText(fakestr(u"Force load (Ignore unsaved changed)", None))
-        self.openRb.setText(fakestr(u"&Open File", None))
+        self.openRb.setText(fakestr(u"Open File", None))
 #if QT_CONFIG(shortcut)
         self.openRb.setShortcut(fakestr(u"Alt+O", None))
 #endif // QT_CONFIG(shortcut)
-        self.importRb.setText(fakestr(u"&Import File", None))
+        self.importRb.setText(fakestr(u"Import File", None))
 #if QT_CONFIG(shortcut)
         self.importRb.setShortcut(fakestr(u"Alt+I", None))
 #endif // QT_CONFIG(shortcut)
-        self.referenceRb.setText(fakestr(u"Re&ference File", None))
+        self.referenceRb.setText(fakestr(u"Reference File", None))
 #if QT_CONFIG(shortcut)
         self.referenceRb.setShortcut(fakestr(u"Alt+F", None))
 #endif // QT_CONFIG(shortcut)
-        self.checkBoxNamespace.setText(fakestr(u"Set &Namespace", None))
+        self.checkBoxNamespace.setText(fakestr(u"Set Namespace", None))
 #if QT_CONFIG(shortcut)
         self.checkBoxNamespace.setShortcut(fakestr(u"Alt+N", None))
 #endif // QT_CONFIG(shortcut)

@@ -90,9 +90,6 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
 
 
         self.comboBoxSoftware.currentIndexChanged.connect(self.software_changed)  
-        ##self.projectFileToolButton.clicked.connect(self.select_working_file)
-        #self.fbxFileToolButton.clicked.connect(self.select_fbx_file)
-        #self.reviewFileToolButton.clicked.connect(self.select_output_file)
         self.referencesAddPushButton.clicked.connect(self.select_references)
         self.referencesRemovePushButton.clicked.connect(self.remove_references)
 
@@ -108,8 +105,6 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         task_loader = TaskFileInfoThread(self, self.task, self.project_root)
         task_loader.callback.loaded.connect(self.task_loaded)
         self.threadpool.start(task_loader)  
-
-        # QtCore.QTimer.singleShot(0, lambda: self.treeView.expandRecursively(model.index(root_dir.path()), 10))      
 
     def set_wf_exclude(self, excluded):
         self.wf_excluded = excluded

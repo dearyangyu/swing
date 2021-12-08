@@ -12,7 +12,7 @@ from PySide2 import QtCore
 
 from wildchildanimation.gui.background_workers import TaskFileInfoThread
 
-from wildchildanimation.gui.loader import LoaderDialogGUI
+from wildchildanimation.gui.maya_resource_loader import ResourceLoaderDialogGUI
 from wildchildanimation.gui.publish import PublishDialogGUI
 from wildchildanimation.gui.settings import SwingSettings
 
@@ -62,7 +62,7 @@ def maya_main_window():
 class MayaStudioHandler(StudioInterface, SwingMaya):
 
     NAME = "MayaStudioHandler"
-    VERSION = "0.0.4"
+    VERSION = "0.0.6"
     SUPPORTED_TYPES = [".ma", ".mb", ".fbx", ".obj", ".mov", ".mp4", ".wav", ".jpg", ".png", ".abc" ]
 
     def __init__(self):
@@ -155,7 +155,7 @@ class MayaStudioHandler(StudioInterface, SwingMaya):
     # Author: Miruna D. Mateescu
     # Last Modified: 2021/04/05
     #
-    def export_to_csv(csv_filename, file_prefix = "hby_204_", shot_start = 10, shot_step = 10):
+    def export_to_csv(self, csv_filename, file_prefix = "hby_204_", shot_start = 10, shot_step = 10):
         all_shots = cmds.ls(type="shot")
         shot_no = shot_start        
         with open(csv_filename, 'w') as csv_file:
@@ -183,11 +183,11 @@ class MayaStudioHandler(StudioInterface, SwingMaya):
     def load_file(self, **kwargs):
         source = kwargs["source"]
         force = kwargs["force"]
-        working_dir = kwargs["working_dir"]
+        #working_dir = kwargs["working_dir"]
 
-        self.log_output("load_file:: {0} to {1}".format(source, working_dir))
-        self.log_output("Source  {0}".format(working_dir))
-        self.log_output("Working Dir {0}".format(working_dir))
+        #self.log_output("load_file:: {0} to {1}".format(source, working_dir))
+        #self.log_output("Source  {0}".format(working_dir))
+        #self.log_output("Working Dir {0}".format(working_dir))
 
         filename, file_extension = os.path.splitext(source)
 
@@ -218,11 +218,11 @@ class MayaStudioHandler(StudioInterface, SwingMaya):
     # tries to import the file specified in source into the currently open scene
     def import_file(self, **kwargs):
         source = kwargs["source"]
-        working_dir = kwargs["working_dir"]
+        #working_dir = kwargs["working_dir"]
 
-        self.log_output("import_file:: {0} to {1}".format(source, working_dir))
-        self.log_output("Source  {0}".format(working_dir))
-        self.log_output("Working Dir {0}".format(working_dir))
+        #self.log_output("import_file:: {0} to {1}".format(source, working_dir))
+        #self.log_output("Source  {0}".format(working_dir))
+        #self.log_output("Working Dir {0}".format(working_dir))
 
         filename, file_extension = os.path.splitext(source)
 
@@ -244,12 +244,12 @@ class MayaStudioHandler(StudioInterface, SwingMaya):
     # tries to import the file specified in source into the currently open scene
     def import_reference(self, **kwargs):
         source = kwargs["source"]
-        working_dir = kwargs["working_dir"]
+        #working_dir = kwargs["working_dir"]
         namespace = kwargs["namespace"]
 
-        self.log_output("load_reference:: {0}".format(source, working_dir))
-        self.log_output("Source  {0}".format(working_dir))
-        self.log_output("Working Dir {0}".format(working_dir))
+        #self.log_output("load_reference:: {0}".format(source, working_dir))
+        #self.log_output("Source  {0}".format(working_dir))
+        #self.log_output("Working Dir {0}".format(working_dir))
         self.log_output("Namespace {0}".format(namespace))
 
         filename, file_extension = os.path.splitext(source)
@@ -288,7 +288,6 @@ class MayaStudioHandler(StudioInterface, SwingMaya):
         SwingGUI.show_dialog(self)
 
     def on_task_create(self, results):
-
         task_dir = results["project_dir"]
         task = results["task"]
         
@@ -386,14 +385,17 @@ class MayaStudioHandler(StudioInterface, SwingMaya):
         QtCore.QThreadPool.globalInstance().start(self.taskLoader)
 
     def on_load(self, **kwargs):
+        # we need parent so dialog doesn't go awol
+        # we need entity for name space management
+
         parent = kwargs["parent"]
         entity = kwargs["entity"]
-        files = kwargs["files"]
+        #files = kwargs["files"]
         selected = kwargs["selected"]
 
-        loaderDialog = LoaderDialogGUI(parent = parent, handler = self, entity = entity)
-        loaderDialog.load_files(files)
-        loaderDialog.set_selected(selected)
+        loaderDialog = ResourceLoaderDialogGUI(parent = parent, handler = self, resource = selected, entity = entity)
+        #loaderDialog.load_files(files)
+        #loaderDialog.set_selected(selected)
         loaderDialog.show()        
 
     def on_search(self, **kwargs):

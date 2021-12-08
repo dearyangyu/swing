@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>627</width>
+    <width>651</width>
     <height>598</height>
    </rect>
   </property>
@@ -188,15 +188,18 @@
      <item>
       <layout class="QHBoxLayout" name="horizontalLayoutProjectDir">
        <item>
-        <widget class="QLabel" name="labelTarget">
+        <widget class="QCheckBox" name="cbDownloadTarget">
          <property name="minimumSize">
           <size>
-           <width>100</width>
+           <width>120</width>
            <height>0</height>
           </size>
          </property>
          <property name="text">
-          <string>Target</string>
+          <string>Download Target:</string>
+         </property>
+         <property name="autoExclusive">
+          <bool>false</bool>
          </property>
         </widget>
        </item>
@@ -211,6 +214,50 @@
         </widget>
        </item>
       </layout>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_5">
+       <item>
+        <widget class="QCheckBox" name="cbNetworkSource">
+         <property name="minimumSize">
+          <size>
+           <width>120</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Network Source:</string>
+         </property>
+         <property name="autoExclusive">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="lineEditNetworkSource"/>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QVBoxLayout" name="verticalLayout_2">
+     <item>
+      <widget class="QLabel" name="labelNetworkMessage">
+       <property name="styleSheet">
+        <string notr="true"/>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="labelArchiveMessage">
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
@@ -267,6 +314,9 @@
          </property>
          <property name="shortcut">
           <string>Alt+O</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
          </property>
         </widget>
        </item>

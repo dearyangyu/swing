@@ -4,6 +4,7 @@ import traceback
 import sys
 import os
 import copy
+import gazu
 
 # ==== auto Qt load ====
 try:
@@ -47,6 +48,14 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
         self.asset = None
         self.url = None
 
+        # working remotely - remember file name 
+        self.target_path = None
+        self.target_item = None
+
+        # working locally - remember file name
+        self.source_path = None
+        self.source_item = None
+
         self.threadpool = QtCore.QThreadPool.globalInstance()
         if self.entity:
             if isinstance(entity, dict):
@@ -73,11 +82,20 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
         self.pushButtonCancel.clicked.connect(self.close_dialog)
         self.pushButtonImport.clicked.connect(self.process)
 
+        self.cbDownloadTarget.clicked.connect(self.download_target_checked)
+        self.cbNetworkSource.clicked.connect(self.source_target_checked)
+
         self.working_dir = SwingSettings.get_instance().swing_root()
         self.set_enabled_handlers(self.is_handled())
 
     def is_handled(self):
         return self.handler and "Maya" in self.handler.NAME
+
+    def download_target_checked(self):
+        self.cbNetworkSource.setChecked(not self.cbDownloadTarget.isChecked)
+
+    def source_target_checked(self):
+        self.cbDownloadTarget.setChecked(not self.cbNetworkSource.isChecked)
 
     def set_enabled_handlers(self, status):
         self.checkBoxForce.setEnabled(status)
@@ -110,6 +128,8 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
         # DCC handlers
         if self.is_handled():
             self.set_enabled_handlers(status)
+        else:
+            self.openRb.setChecked(True)
         # DCC
 
     # save main dialog state
@@ -173,6 +193,8 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
 
         if item and target_dir:
             self.lineEditTarget.setText(item['target_path'])
+            
+        self.check_network(item)            
 
     def open_url(self, url):
         link = QtCore.QUrl(self.url)
@@ -255,6 +277,8 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
                 self.asset_type_name = self.asset["asset_type_name"].strip()
                 sections.append(self.asset_type_name)
 
+            if isinstance(self.entity, str):
+                self.entity = gazu.entity.get_entity(self.entity)
             try:
                 self.asset_name = self.entity["name"].strip() 
                 sections.append(self.asset_name)
@@ -317,6 +341,7 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
         if item and target_dir:
             self.lineEditTarget.setText(resolve_content_path(item['file_path'], target_dir))
 
+
     def close_dialog(self):
         self.write_settings()
         self.close()
@@ -346,9 +371,83 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
     def file_loading(self, result):
         message = result["message"]
         size = result["size"]
-        target = result["target"]
+        # target = result["target"]
 
-        self.set_status_text("{}: {} {}".format(self.target_name, message, human_size(size)))
+        self.set_status_text("{}: {} {}".format(self.target_item["target_path"], message, human_size(size)))
+
+    #
+    # returns true if the file is available on the network
+    # sets up pathing
+    #
+    def check_network(self, file_item):
+
+        # working remotely - remember file name 
+        #self.target_path = None
+        #self.target_item = None
+
+        # working locally - remember file name
+        #self.source_path = None
+        #self.source_item = None
+        try:
+            source_item = file_item["file_path"]
+
+            if not source_item.endswith(file_item["file_name"]):
+                source_item = os.path.join(file_item["file_path"], file_item["file_name"])
+
+            test_path = os.path.normpath(source_item.replace("/mnt/content/productions", "Z://productions"))
+            fn, ext = os.path.splitext(source_item)
+
+            print("Checking if file {}{} exists on LAN: {}".format(fn, ext, source_item))
+
+            if os.path.exists(test_path):
+                self.cbNetworkSource.setEnabled(True)
+                self.cbNetworkSource.setChecked(True)
+
+                self.lineEditNetworkSource.setText(test_path)
+
+                self.labelNetworkMessage.setText("This file is available locally and can be referenced or imported directly")
+                self.labelNetworkMessage.setStyleSheet(u"color: rgb(0, 170, 0)")
+
+                if ext in self.handler.UNARCHIVE_TYPES:
+                    self.labelArchiveMessage.setText("This file is an archive and has to be uncompressed to a local workspace")
+                    self.labelArchiveMessage.setStyleSheet(u"color: rgb(170, 0, 0)")
+                else:
+                    self.labelArchiveMessage.setText("")
+                    self.labelArchiveMessage.setStyleSheet(None)
+
+                self.source_item = file_item
+                self.source_path = test_path
+
+                self.target_item = None
+                self.target_path = None
+
+                self.working_dir = file_item["target_path"]
+            else:
+                self.cbNetworkSource.setEnabled(False)
+                self.cbDownloadTarget.setChecked(True)
+
+                self.lineEditNetworkSource.setText("")
+
+                self.labelNetworkMessage.setText("This file needs to be downloaded to your local workspace")
+                self.labelNetworkMessage.setStyleSheet(None)
+
+                if ext in self.handler.UNARCHIVE_TYPES:
+                    self.labelArchiveMessage.setText("This file is an archive and has to be uncompressed to a local workspace")
+                    self.labelArchiveMessage.setStyleSheet(u"color: rgb(170, 0, 0)")
+                else:
+                    self.labelArchiveMessage.setText("")                
+                    self.labelArchiveMessage.setStyleSheet(None)
+
+
+                self.source_item = None
+                self.source_path = None
+
+                self.target_item = file_item
+                self.target_path = os.path.split(file_item["target_path"])
+
+        except:
+            traceback.print_exc(file=sys.stdout)            
+        return False
 
     # first download and extract the file
     def process(self):
@@ -362,80 +461,115 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
         server = SwingSettings.get_instance().swing_server()
         edit_api = "{}/edit".format(server)
 
-        # download the currently selected file to the item selected in editTarget
-        target = self.lineEditTarget.text().strip()
-
-        self.target_path = os.path.split(self.lineEditTarget.text().strip())
-        self.target_name = self.target_path[1]
-
-        item = self.files[self.comboBoxWorkingFile.currentIndex()]
-
-        self.mode = 'REMOTE'
-
         # check if we can load the file directly without having to download it
         # should also work to just reference a file in directly after a search
         #
-        if self.is_handled():
-            try:
-                #edit_root = SwingSettings.get_instance().edit_root()
-                test_path = item.replace("/mnt/content/productions", "Z://productions")
+        item = self.comboBoxWorkingFile.currentData()
 
-                if os.path.exists(test_path):
-                    self.mode = "LAN"
-            except:
-                self.mode = "REMOTE"        
+        '''
+            Checking item {'asset_instance_id': None, 'canceled': False, 
+                'checksum': None, 
+                'comment': 'Fix wings control orientation', 
+                'created_at': '2021-12-03T10:32:47.277878', 
+                'data': None, 'description': None, 
+                'entity': 'Bees', 
+                'entity_id': 'c9efd8c0-5571-490f-a21b-a821ef3e2b13', 
+                'extension': '', 
+                'file_comment': 'Fix wings control orientation', 
+                'file_data': None, 'file_description': None, 
+                'file_id': 'dbc0c834-8a41-4f44-b516-dd8d110bf147', 
+                'file_name': 'bee_rig_v002.ma', 
+                'file_path': '/mnt/content/productions/wotw/wotw_build/assets/ch_rig/bees/bee_rig_v002.ma', 
+                'file_revision': 1, 'file_size': 1855034, 
+                'file_status_id': '2b16314c-92c9-4f06-85d4-9951a06bb2a0', 
+                'file_type': 'output-file', 
+                'file_updated_at': '2021-12-03T10:32:47.358335', 
+                'first_name': None, 'id': 'dbc0c834-8a41-4f44-b516-dd8d110bf147', 
+                'last_name': None, 'name': 'bee_rig_v002.ma', 'nb_elements': 1, 
+                'output_type_id': '048c1f11-8160-41c7-90f9-ff8e1527759e', 
+                'parent': None, 
+                'path': '/mnt/content/productions/wotw/wotw_build/assets/ch_rig/bees/bee_rig_v002.ma', 
+                'person': '', 
+                'person_id': 'dcc58ac3-3373-4738-8941-72fb22f4ad42', 
+                'project': 'witw', 'representation': '', 
+                'revision': 1, 'shotgun_id': None, 'size': 1855034, 
+                'source': None, 'source_file_id': None, 
+                'target_path': 'D:\\Productions\\wotw\\wotw_build\\assets\\ch_rig\\bees\\bee_rig_v002.ma', 
+                'task_status_id': None, 
+                'task_type': {
+                    'allow_timelog': True, 
+                    'color': '#43A047', 
+                    'created_at': '2019-10-02T05:06:18', 
+                    'department_id': None, 'for_entity': 
+                    'Asset', 'for_shots': False, 'id': '665de9df-2b35-4118-9e9c-d054448496f6', 
+                    'name': 'Ch Rig', 'priority': 11, 'short_name': 'rig', 'shotgun_id': None, 
+                    'type': 'TaskType', 'updated_at': '2021-10-01T15:47:41'}, 
+                    'task_type_id': '665de9df-2b35-4118-9e9c-d054448496f6', 
+                    'temporal_entity_id': None, 
+                    'type': 'Character', 'updated_at': '2021-12-03T10:32:47.358335'
+                }
+        '''
 
-        if self.mode == 'LAN':
-            self.labelTarget.setText("Source:")
-            self.lineEditTarget.setText(test_path)
+        if self.cbNetworkSource.isEnabled() and self.cbNetworkSource.isChecked():
+            name, ext = os.path.splitext(item['file_path'])
 
-            if self.openRb.isChecked():
-                # call handler, open downloaded file
+            if ext in self.handler.SUPPORTED_TYPES:
+                print("Handler can handle this file type ... ")
 
-                print("Call: Load File ... ")
-                self.load_file(test_path, self.target_path)
-                
-            elif self.importRb.isChecked():
-                # call handler importing downloaded file
+                #if self.openRb.isChecked():
+                #    # call handler, open downloaded file
+                #
+                #    print("Call: Load File ... ")
+                #    self.load_file(file_item, self.target_path)
+                #    
+                if self.importRb.isChecked():
+                    print("Will import file {} {}".format(name, self.source_path))
+                    # call handler importing downloaded file
 
-                print("Call: Import  File ... ")
-                self.load_file(test_path, self.target_path)
+                    print("Call: Import  File ... ")
+                    self.import_file(self.source_path, self.target_path)
+                    return True
 
-            else:
-                # reference file
-                print("Call: Import Ref ... ")
-                self.import_ref(test_path, self.target_path)
+                elif self.referenceRb.isChecked():
+                    print("Will reference in file {} {}".format(name, self.source_path))
 
+                    # reference file
+                    print("Call: Import Ref ... ")
+                    self.import_ref(self.source_path, self.target_path)
+                    return True
         else:
-            if "library-file" in item['file_type']:
-                url = "{}/api/library_file/{}".format(edit_api, item["entity_id"])
-                ## set_target(item, self.working_dir)
-                worker = FileDownloader(self, item["file_id"], url, target, self.checkBoxSkipExisting.isChecked(), self.checkBoxExtractZips.isChecked(), { "fn": item['file_name'] } )
-            elif "working-file" in item["file_type"]:
-                #target_name = os.path.normpath(os.path.join(target_name_dir, item["name"]))
-                url = "{}/api/working_file/{}".format(edit_api, item["file_id"])
-                ## set_target_name(item, target_name_dir)
+            print("File not available locally: {}".format(item))
 
-                worker = FileDownloader(self, item["file_id"], url, target, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
-            else:
-                #target_name = os.path.normpath(os.path.join(target_name_dir, item["name"]))
-                url = "{}/api/output_file/{}".format(edit_api, item["file_id"])
-                ## set_target_name(item, target_name_dir)
+        if "library-file" in item['file_type']:
+            url = "{}/api/library_file/{}".format(edit_api, item["entity_id"])
+            ## set_target(item, self.working_dir)
+            worker = FileDownloader(self, item["file_id"], url, self.target_item["target_path"], self.checkBoxSkipExisting.isChecked(), self.checkBoxExtractZips.isChecked(), { "fn": item['file_name'] } )
 
-                worker = FileDownloader(self, item["file_id"], url,  target, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
+        elif "working-file" in item["file_type"]:
+            #target_name = os.path.normpath(os.path.join(target_name_dir, item["name"]))
+            url = "{}/api/working_file/{}".format(edit_api, item["file_id"])
+            ## set_target_name(item, target_name_dir)
+
+            worker = FileDownloader(self, item["file_id"], url, self.target_item["target_path"], skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
+        else:
+            #target_name = os.path.normpath(os.path.join(target_name_dir, item["name"]))
+            url = "{}/api/output_file/{}".format(edit_api, item["file_id"])
+            ## set_target_name(item, target_name_dir)
+
+            worker = FileDownloader(self, item["file_id"], url,  self.target_item["target_path"], skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
             # file type
 
-            self.append_status("{}: downloading to {}".format(self.target_name, target))
+        self.append_status("{}: downloading to {}".format(self.target_item["file_name"], self.target_item["target_path"]))
 
-            worker.callback.progress.connect(self.file_loading)
-            worker.callback.done.connect(self.file_loaded)
-            
-            item["status"] = "Busy"    
+        worker.callback.progress.connect(self.file_loading)
+        worker.callback.done.connect(self.file_loaded)
+        
+        item["status"] = "Busy"    
 
-            ##worker.run() # debug
-            self.set_enabled(False)
-            self.threadpool.start(worker)
-        # if the file is on our local network, just copy / reference it in
+        ##worker.run() # debug
+        self.set_enabled(False)
+        self.threadpool.start(worker)
+        # if the file is on our local network, can import or reference it in
 
     # process
 
@@ -485,6 +619,8 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
         else:
             self.append_status("Loading error", True)
 
+        self.set_enabled(True)
+
     def import_file(self, file_name, wcd):
         self.append_status("{}: import_file".format(self.target_name))
         
@@ -492,6 +628,8 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
             self.append_status("Loading done")
         else:
             self.append_status("Loading error", True)
+
+        self.set_enabled(True)
 
     def import_ref(self, file_name, wcd):
         self.append_status("{}: import_ref".format(self.target_name))
@@ -510,4 +648,6 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
                 self.append_status("{}: added ref {}".format(file_name, ref_namespace))
             else:
                 self.append_status("Import error", True)
+
+        self.set_enabled(True)
 

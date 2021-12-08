@@ -1130,7 +1130,6 @@ class EntityFileLoader(QtCore.QRunnable):
         self.server = settings.swing_server()
 
         self.edit_api = "{}/edit".format(self.server)
-        ##self.edit_api = "http://10.147.19.55:8202/edit"
 
     def run(self):
         url = "{}/{}/{}".format(self.edit_api, "entity_info", self.entity_id)
@@ -1148,7 +1147,6 @@ class EntityFileLoader(QtCore.QRunnable):
         params = { 
             "username": self.email,
             "password": self.password,
-#            "project": self.entity["project_id"],
             "task_types": json.dumps(task_types), 
             "task_status": json.dumps(status_types),            
             "output": "json",
@@ -1246,7 +1244,4 @@ class EntityTagLoader(QtCore.QRunnable):
 
         self.callback.loaded.emit(results)                        
         return results       
-
-
-
 
