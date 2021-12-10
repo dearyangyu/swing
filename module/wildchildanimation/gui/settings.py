@@ -9,8 +9,6 @@ try:
     from PySide2 import QtWidgets
     qtMode = 0
 except ImportError:
-    traceback.print_exc(file=sys.stdout)
-
     from PyQt5 import QtCore, QtWidgets
     qtMode = 1
 
@@ -26,7 +24,7 @@ class SwingSettings(QtCore.QObject):
 
     _APP_NAME = "treehouse: swing"
     _APP_SHORTNAME = "swing"
-    _APP_VERSION = "0.0.0.27"
+    _APP_VERSION = "0.0.0.28"
     _APP_DESCRIPTION = "treehouse: swing"    
 
     #
