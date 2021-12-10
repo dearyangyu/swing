@@ -156,28 +156,33 @@ class MayaStudioHandler(StudioInterface, SwingMaya):
     # Last Modified: 2021/04/05
     #
     def export_to_csv(self, csv_filename, file_prefix = "hby_204_", shot_start = 10, shot_step = 10):
-        all_shots = cmds.ls(type="shot")
-        shot_no = shot_start        
-        with open(csv_filename, 'w') as csv_file:
-            writer = csv.writer(csv_file)            
-            for crt_shot in all_shots:
-                shot_start = cmds.getAttr(crt_shot+".startFrame")
-                shot_end = cmds.getAttr(crt_shot+".endFrame")
-                shot_cam = cmds.listConnections(crt_shot+".currentCamera")                
-                cmds.playbackOptions(animationStartTime=shot_start, minTime=shot_start, animationEndTime=shot_end, maxTime=shot_end)
-                cmds.lookThru(shot_cam)
-                cmds.currentTime(shot_start)                
-                if "shot_" in crt_shot:
-                    if shot_no < 100:
-                        padding = "0"
-                    else:
-                        padding = ""                    
-                    shot_name = "SH"+padding+str(shot_no)
-                    cmds.rename(crt_shot, shot_name)
-                    cmds.file(rn=file_prefix+shot_name+".ma")
-                    cmds.file(save=True)                    
-                    writer.writerow([shot_name, shot_start, shot_end, shot_cam])
-                    shot_no += shot_step
+        try:
+            all_shots = cmds.ls(type="shot")
+            shot_no = shot_start        
+            with open(csv_filename, 'w') as csv_file:
+                writer = csv.writer(csv_file)            
+                for crt_shot in all_shots:
+                    shot_start = cmds.getAttr(crt_shot+".startFrame")
+                    shot_end = cmds.getAttr(crt_shot+".endFrame")
+                    shot_cam = cmds.listConnections(crt_shot+".currentCamera")                
+                    cmds.playbackOptions(animationStartTime=shot_start, minTime=shot_start, animationEndTime=shot_end, maxTime=shot_end)
+                    cmds.lookThru(shot_cam)
+                    cmds.currentTime(shot_start)                
+                    if "shot_" in crt_shot:
+                        if shot_no < 100:
+                            padding = "0"
+                        else:
+                            padding = ""                    
+                        shot_name = "SH"+padding+str(shot_no)
+                        cmds.rename(crt_shot, shot_name)
+                        cmds.file(rn=file_prefix+shot_name+".ma")
+                        cmds.file(save=True)                    
+                        writer.writerow([shot_name, shot_start, shot_end, shot_cam])
+                        shot_no += shot_step
+        except:
+            traceback.print_exc(file=sys.stdout)
+            self.log_error("export_to_csv: args {}".format(csv_filename))               
+
 
     # tries to import the file specified in source into the currently open scene
     def load_file(self, **kwargs):
@@ -377,55 +382,73 @@ class MayaStudioHandler(StudioInterface, SwingMaya):
         return True 
 
     def on_create(self, **kwargs):
-        task_info = kwargs["task_info"]
-        task = task_info["task"]
+        try:
+            task = kwargs["task"]
+            #task = task_info["task"]
 
-        self.taskLoader = TaskFileInfoThread(parent = self, task = task["id"], project_root = SwingSettings.get_instance().swing_root())
-        self.taskLoader.callback.loaded.connect(self.on_task_create)
-        QtCore.QThreadPool.globalInstance().start(self.taskLoader)
+            self.log_output("task: {}".format(task))
+            self.log_output("task: {}".format(task["id"]))
 
-    def on_load(self, **kwargs):
-        # we need parent so dialog doesn't go awol
-        # we need entity for name space management
+            self.taskLoader = TaskFileInfoThread(parent = self, task = task["id"], project_root = SwingSettings.get_instance().swing_root())
+            self.taskLoader.callback.loaded.connect(self.on_task_create)
+            QtCore.QThreadPool.globalInstance().start(self.taskLoader)
+        except:
+            traceback.print_exc(file=sys.stdout)
+            
+            self.log_error("on_create: args {}".format(kwargs))
 
-        parent = kwargs["parent"]
-        entity = kwargs["entity"]
-        #files = kwargs["files"]
-        selected = kwargs["selected"]
-
-        loaderDialog = ResourceLoaderDialogGUI(parent = parent, handler = self, resource = selected, entity = entity)
-        #loaderDialog.load_files(files)
-        #loaderDialog.set_selected(selected)
-        loaderDialog.show()        
 
     def on_search(self, **kwargs):
-        self.log_output("on_search::")
-        project = kwargs["project"]
+        try:
+            self.log_output("on_search::")
+            project = kwargs["project"]
 
-        if "text" in kwargs:
-            text = kwargs["text"]
-        else:
-            text = ''
+            if "text" in kwargs:
+                text = kwargs["text"]
+            else:
+                text = ''
 
-        if "task_types" in kwargs:
-            task_types = kwargs["task_types"]
-        else:
-            task_types = None
+            if "task_types" in kwargs:
+                task_types = kwargs["task_types"]
+            else:
+                task_types = None
 
-        if "status_types" in kwargs:
-            status_types = kwargs["status_types"]
-        else:
-            status_types = None
-        
-        self.searchDialog = SearchFilesDialog(parent = None, text = text, project = project, task_types = task_types, status_types = status_types)
-        if len(text) > 0:
-            self.searchDialog.process()
-        result = self.searchDialog.exec_()
+            if "status_types" in kwargs:
+                status_types = kwargs["status_types"]
+            else:
+                status_types = None
+            
+            self.searchDialog = SearchFilesDialog(parent = None, text = text, project = project, task_types = task_types, status_types = status_types)
+            if len(text) > 0:
+                self.searchDialog.process()
+            result = self.searchDialog.exec_()
 
-        if result:
-            self.downloadDialog = DownloadDialogGUI(parent = None, handler = self, file_list = self.searchDialog.get_file_list())
-            self.downloadDialog.show()       
+            if result:
+                self.downloadDialog = DownloadDialogGUI(parent = None, handler = self, file_list = self.searchDialog.get_file_list())
+                self.downloadDialog.show()          
+        except:
+            traceback.print_exc(file=sys.stdout)
+            self.log_error("on_search: args {}".format(kwargs))
 
+
+    def on_load(self, **kwargs):
+        try:
+            # we need parent so dialog doesn't go awol
+            # we need entity for name space management
+
+            parent = kwargs["parent"]
+            entity = kwargs["entity"]
+            #files = kwargs["files"]
+            selected = kwargs["selected"]
+
+            loaderDialog = ResourceLoaderDialogGUI(parent = parent, handler = self, resource = selected, entity = entity)
+            #loaderDialog.load_files(files)
+            #loaderDialog.set_selected(selected)
+            loaderDialog.show()        
+        except:
+            traceback.print_exc(file=sys.stdout)
+            self.log_error("on_load: args {}".format(kwargs))
+     
     def scan_working_dir(self, directory, ext):
         print("Searching {} for {}".format(directory, ext))
         file_list = []
@@ -436,42 +459,47 @@ class MayaStudioHandler(StudioInterface, SwingMaya):
         return file_list
 
     def on_publish(self, **kwargs):
-        print("on_publish: {}".format(kwargs))
+        try:
+            print("on_publish: {}".format(kwargs))
 
-        task_info = kwargs["task_info"]
-        task = task_info["task"]         
-        task_dir = task_info["project_dir"]
+            task = kwargs["task"]
+            #task = task_info["task"]         
+            #task_dir = task["project_dir"]
+            task_dir = self.get_project_dir_path()
 
-        if "task_types" in kwargs:
-            task_types = kwargs["task_types"]
-        else:
-            task_types = None   
-
-        self.publishDialog = PublishDialogGUI(task = task, task_types = task_types)            
-
-        file_path = cmds.file(q = True, sn = True)
-        self.publishDialog.set_working_file(file_path)        
-
-        cached_dir = os.path.join(task_dir, 'cache')
-        if os.path.exists(cached_dir):
-            print("Checking alembics: {}".format(cached_dir))
-
-            file_list = self.scan_working_dir(cached_dir, '*.abc')
-            if len(file_list) > 0:
-                self.publishDialog.add_reference_file(file_list[0], 'Alembic')
-                self.publishDialog.load_reference_table()
+            if "task_types" in kwargs:
+                task_types = kwargs["task_types"]
             else:
-                print("No alembic files found")
+                task_types = None   
 
-        playblast_dir = os.path.join(task_dir, 'playblasts')
-        if os.path.exists(playblast_dir):
-            print("Checking playblast_dir: {}".format(playblast_dir))
-            file_list = self.scan_working_dir(playblast_dir, '*.mp4')
-            if len(file_list) > 0:
-                self.log_output("Adding playblast: {}".format(file_list[0]))
-                self.publishDialog.set_output_file(file_list[0])
+            self.publishDialog = PublishDialogGUI(task = task, task_types = task_types)            
 
-        self.publishDialog.show()        
+            file_path = cmds.file(q = True, sn = True)
+            self.publishDialog.set_working_file(file_path)        
+
+            cached_dir = os.path.join(task_dir, 'cache')
+            if os.path.exists(cached_dir):
+                print("Checking alembics: {}".format(cached_dir))
+
+                file_list = self.scan_working_dir(cached_dir, '*.abc')
+                if len(file_list) > 0:
+                    self.publishDialog.add_reference_file(file_list[0], 'Alembic')
+                    self.publishDialog.load_reference_table()
+                else:
+                    print("No alembic files found")
+
+            playblast_dir = os.path.join(task_dir, 'playblasts')
+            if os.path.exists(playblast_dir):
+                print("Checking playblast_dir: {}".format(playblast_dir))
+                file_list = self.scan_working_dir(playblast_dir, '*.mp4')
+                if len(file_list) > 0:
+                    self.log_output("Adding playblast: {}".format(file_list[0]))
+                    self.publishDialog.set_output_file(file_list[0])
+
+            self.publishDialog.show()     #
+        except:
+            traceback.print_exc(file=sys.stdout)
+            self.log_error("on_publish: args {}".format(kwargs))               
 
     def on_export(self, **kwargs):
         try:
@@ -488,20 +516,27 @@ class MayaStudioHandler(StudioInterface, SwingMaya):
             self.exportDialog.show()
         except:
             traceback.print_exc(file=sys.stdout)
+            self.log_error("on_export: args {}".format(kwargs))               
+
         return True        
 
     def on_save(self, **kwargs):
-        file_path = cmds.file(q = True, sn = True)
-        file_base = os.path.basename(file_path)
-        file_name, file_ext = os.path.splitext(file_base)
+        try:
+            file_path = cmds.file(q = True, sn = True)
+            file_base = os.path.basename(file_path)
+            file_name, file_ext = os.path.splitext(file_base)
 
-        request = {
-            "source": file_base,
-            "file_path": file_path,
-            "file_name": file_name,
-            "file_ext": file_ext,            
-        }
-        return request
+            request = {
+                "source": file_base,
+                "file_path": file_path,
+                "file_name": file_name,
+                "file_ext": file_ext,            
+            }
+            return request
+        except:
+            traceback.print_exc(file=sys.stdout)
+            self.log_error("on_save: args {}".format(kwargs))               
+
 
     def on_entity_info(self, **kwargs):
         try:
@@ -511,41 +546,50 @@ class MayaStudioHandler(StudioInterface, SwingMaya):
             self.entityDialog.show()              
         except:
             traceback.print_exc(file=sys.stdout)
+            self.log_error("on_entity_info: args {}".format(kwargs))               
+
             return False 
 
         return True            
 
     def on_playblast(self, **kwargs):
-        task_info = kwargs["task_info"]
-        task_dir = task_info["project_dir"]
-        task = task_info["task"]
-
-        working_file = friendly_string("_".join(self.get_task_sections(task)))
-
-        playblast_count = 1
-        if os.path.exists(task_dir):
-            playblasts = os.path.join(task_dir, "playblasts")
-            if os.path.exists(playblasts):
-                playblast_count = fcount(playblasts)
-
-        playblast_version ="{}".format(playblast_count).zfill(3)
-        playblast_filename = "{}_v{}".format(working_file, playblast_version)
-        playblast_target = os.path.join(task_dir, "playblasts", playblast_filename)
-
-        self.log_output("open: {} {} {}".format(playblast_version, playblast_filename, playblast_target))
         try:
-            dialog = SwingPlayblastUi()
-            dialog.set_caption_text(" ".join(self.get_task_sections(task)))
-            dialog.set_output_file_name(playblast_target)
-            dialog.show()
+            task = kwargs["task"]
+            #task_info = kwargs["task_info"]
+            #task_dir = task_info["project_dir"]
+            #task = task_info["task"]
+            task_dir = task["project_dir"]
 
-            self.log_output("open: playblast")
+            working_file = friendly_string("_".join(self.get_task_sections(task)))
+
+            playblast_count = 1
+            if os.path.exists(task_dir):
+                playblasts = os.path.join(task_dir, "playblasts")
+                if os.path.exists(playblasts):
+                    playblast_count = fcount(playblasts)
+
+            playblast_version ="{}".format(playblast_count).zfill(3)
+            playblast_filename = "{}_v{}".format(working_file, playblast_version)
+            playblast_target = os.path.join(task_dir, "playblasts", playblast_filename)
+
+            self.log_output("open: {} {} {}".format(playblast_version, playblast_filename, playblast_target))
+            try:
+                dialog = SwingPlayblastUi()
+                dialog.set_caption_text(" ".join(self.get_task_sections(task)))
+                dialog.set_output_file_name(playblast_target)
+                dialog.show()
+
+                self.log_output("open: playblast")
+            except:
+                traceback.print_exc(file=sys.stdout)
+                return False 
+
+            return True
+            # playblast  -format avi -sequenceTime 0 -clearCache 1 -viewer 1 -showOrnaments 1 -fp 4 -percent 50 -compression "none" -quality 70;
         except:
             traceback.print_exc(file=sys.stdout)
-            return False 
+            self.log_error("on_playblast: args {}".format(kwargs))               
 
-        return True
-        # playblast  -format avi -sequenceTime 0 -clearCache 1 -viewer 1 -showOrnaments 1 -fp 4 -percent 50 -compression "none" -quality 70;
 
 
     def load_task(self, task_id):

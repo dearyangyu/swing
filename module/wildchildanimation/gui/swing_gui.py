@@ -131,7 +131,11 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.toolButtonNew.clicked.connect(self.on_create)
         
         self.toolButtonLayout.clicked.connect(self.breakout_dialog)
+        self.toolButtonLayout.setEnabled(False)
+
         self.toolButtonPlaylists.clicked.connect(self.on_playlists)
+        self.toolButtonPlaylists.setEnabled(False)
+
         self.toolButtonSearchFiles.clicked.connect(self.on_search)
 
         self.nav.comboBoxProject.currentIndexChanged.connect(self.project_changed)
@@ -584,7 +588,9 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
         parent_id = None
         if parent:
-            if "shot_id" in parent:
+            if episode_id == 'All':
+                parent_id = None
+            elif "shot_id" in parent:
                 parent_id = parent["shot_id"]
             else:
                 parent_id = parent["id"]            
@@ -603,8 +609,6 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.threadpool.start(task_loader)
 
     def episode_changed(self, index):
-        #write_log("[episode_changed]")
-
         self.currentEpisode = self.nav.get_episode()
         if self.currentEpisode:
             self.currentEpisodeIndex = index
@@ -622,10 +626,14 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             asset_loader.callback.loaded.connect(self.asset_types_loaded)
             self.threadpool.start(asset_loader)     
 
+        if self.currentEpisode:
+            is_main_pack = self.currentEpisode["episode"] == "all"
+            self.toolButtonLayout.setEnabled(not is_main_pack)
+            self.toolButtonPlaylists.setEnabled(not is_main_pack)
+
         self.tasks_changed()
 
     def asset_types_loaded(self, data): 
-        #write_log("[asset_types_loaded]")
         self.asset_types = data
         self.comboBoxAssetType = load_combo(self.comboBoxAssetType, self.asset_types)
 
@@ -633,7 +641,6 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             self.asset_type_changed(0)
 
     def sequence_changed(self, index):
-        #write_log("[sequence_changed]")
         sequence = self.nav.get_sequence()
 
         if not sequence:
@@ -654,6 +661,8 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             self.comboBoxShot.setEnabled(True)
         else:
             self.comboBoxShot.setEnabled(False)
+
+
 
         self.comboBoxShot.blockSignals(False)    
         self.tasks_changed()             
@@ -930,6 +939,13 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
         self.handler.on_entity_info(parent = self, entity_id = self.selected_asset()["id"], task_types = self.nav.get_task_types())
 
+    # Studio Handlers 
+    def on_create(self):
+        if self.selected_task:
+            self.handler.on_create(parent = self, handler = self.handler, task = self.selected_task)
+            #dialog = SwingCreateDialog(self, self.handler, self.selected_task)
+            #dialog.show()         
+
     def on_search(self):
         if self.nav.is_task_types_filtered():
             task_types = self.nav.get_task_types()
@@ -984,13 +1000,6 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             project_dir = self.selected_task["project_dir"]            
             self.handler.on_publish(parent = self, task = self.selected_task, project_dir = project_dir, task_types = task_types, status_types = status_types, monitor = self.get_file_monitor())
  
-    def on_create(self):
-        if self.selected_task:
-
-            self.handler.on_create(parent = self, handler = self.handler, task = self.selected_task)
-            #dialog = SwingCreateDialog(self, self.handler, self.selected_task)
-            #dialog.show() 
-
     def task_info(self):
         if self.selected_task:
             entity_id = self.selected_task["entity_id"]

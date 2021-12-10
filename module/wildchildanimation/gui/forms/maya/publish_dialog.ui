@@ -226,6 +226,13 @@
               </property>
              </widget>
             </item>
+            <item>
+             <widget class="QToolButton" name="toolButtonWorkingFileList">
+              <property name="text">
+               <string>[files]</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </item>
           <item>

@@ -44,7 +44,10 @@ class StudioInterface(QtCore.QObject):
         "Custom"
     ]  
 
+    # By default exclude any working files containing this text when scanning for working files
     WF_DEFAULT_EXCLUDE = [ "_export", ".zip", ".mov", ".mp4", ".DS_Store", "playblasts", ".7z", "_txl" ]
+
+    # By default include any output files containing this text wh en scanning for output files
     OF_DEFAULT_INCLUDE = [ "_export", ".zip", ".mov", ".mp4", "_txl" ]
 
     SUPPORTED_TYPES = [ ]

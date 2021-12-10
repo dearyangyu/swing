@@ -60,7 +60,7 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
         super(SwingMayaUI, self).__init__(parent)
 
         self.setObjectName(self.__class__.UI_NAME)
-        self.setMinimumSize(600, 75)
+        self.setMinimumSize(600, 60)
         self.create_workspace_control()
         self.setupUi(self)
 
@@ -311,17 +311,28 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
             return 
         try:
             #self.workspace_control_instance.log_output("handler: {}".format(self.task_info))
-            self.handler.on_create(parent = None, task_info = self.task_info)
+            self.handler.on_create(parent = None, task = self.task)
         except:
             self.workspace_control_instance.log_output("on_create:: {}".format("Exception"))
             traceback.print_exc(file=sys.stdout)
+
+    def on_search(self):
+        try:
+            project_id = self.comboBoxProject.currentData()["project_id"]
+            entity = self.comboBoxTask.currentData()
+
+            self.handler.on_search(parent = self.workspace_control_instance, project = project_id, text = self.lineEditSearch.text() )
+        except:
+            self.workspace_control_instance.log_output("on_search:: {}".format("Exception"))
+            traceback.print_exc(file=sys.stdout)
+
 
     def on_publish(self):
         if not self.task_info:
             self.workspace_control_instance.log_output("on_publish: Task not found")
             return 
         try:
-            self.handler.on_publish(parent = None, task_info = self.task_info, task_types = self.task_types)        
+            self.handler.on_publish(parent = None, task = self.task, task_types = self.task_types)        
         except:
             self.workspace_control_instance.log_output("on_publish:: {}".format("Exception"))
             traceback.print_exc(file=sys.stdout)            
@@ -361,15 +372,6 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
             self.workspace_control_instance.log_output("on_export:: {}".format("Exception"))
             traceback.print_exc(file=sys.stdout)
 
-    def on_search(self):
-        try:
-            project_id = self.comboBoxProject.currentData()["project_id"]
-            entity = self.comboBoxTask.currentData()
-
-            self.handler.on_search(parent = self.workspace_control_instance, project = project_id, text = self.lineEditSearch.text() )
-        except:
-            self.workspace_control_instance.log_output("on_search:: {}".format("Exception"))
-            traceback.print_exc(file=sys.stdout)
 
 
 

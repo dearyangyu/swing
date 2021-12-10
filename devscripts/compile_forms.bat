@@ -23,6 +23,10 @@ C:\dev\swing\env\Lib\site-packages\PySide2\uic --tr fakestr -g python -o C:\dev\
 echo "Compling publish dialog"
 C:\dev\swing\env\Lib\site-packages\PySide2\uic --tr fakestr -g python -o C:\dev\swing\module\wildchildanimation\gui\publish_dialog.py C:\dev\swing\module\wildchildanimation\gui\forms\maya\publish_dialog.ui
 
+echo "Compling File List dialog"
+C:\dev\swing\env\Lib\site-packages\PySide2\uic --tr fakestr -g python -o C:\dev\swing\module\wildchildanimation\gui\file_list_dialog.py C:\dev\swing\module\wildchildanimation\gui\forms\maya\file_list_dialog.ui
+
+
 echo "Compling loader dialog"
 C:\dev\swing\env\Lib\site-packages\PySide2\uic --tr fakestr -g python -o C:\dev\swing\module\wildchildanimation\gui\loader_dialog.py C:\dev\swing\module\wildchildanimation\gui\forms\maya\loader_dialog.ui
 C:\dev\swing\env\Lib\site-packages\PySide2\uic --tr fakestr -g python -o C:\dev\swing\module\wildchildanimation\gui\maya_resource_loader_dialog.py C:\dev\swing\module\wildchildanimation\gui\forms\maya\maya_resource_loader_dialog.ui

@@ -13,6 +13,7 @@ from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
 from wildchildanimation.gui.swing_utils import fakestr
+
 class Ui_PublishDialog(object):
     def setupUi(self, PublishDialog):
         if not PublishDialog.objectName():
@@ -151,6 +152,11 @@ class Ui_PublishDialog(object):
         self.workingFileSelectButton.setMaximumSize(QSize(40, 16777215))
 
         self.horizontalLayoutProjectFile.addWidget(self.workingFileSelectButton)
+
+        self.toolButtonWorkingFileList = QToolButton(self.tab)
+        self.toolButtonWorkingFileList.setObjectName(u"toolButtonWorkingFileList")
+
+        self.horizontalLayoutProjectFile.addWidget(self.toolButtonWorkingFileList)
 
 
         self.verticalLayout_5.addLayout(self.horizontalLayoutProjectFile)
@@ -409,6 +415,7 @@ class Ui_PublishDialog(object):
         self.labelSoftware.setText(fakestr(u"Software", None))
         self.radioButtonWorkingFile.setText(fakestr(u"Working File", None))
         self.workingFileSelectButton.setText(fakestr(u"...", None))
+        self.toolButtonWorkingFileList.setText(fakestr(u"[files]", None))
         self.radioButtonWorkingDir.setText(fakestr(u"Working Dir", None))
         self.workingDirSelectButton.setText(fakestr(u"...", None))
         self.toolButtonWorkingDirFilter.setText(fakestr(u"[filter]", None))

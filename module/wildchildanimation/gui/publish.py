@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
-
-import traceback
-import sys
 import os
-import glob
 
+from wildchildanimation.gui.file_list import FileListDialog
 from wildchildanimation.gui.settings import SwingSettings
 from wildchildanimation.gui.swing_tables import SecondaryAssetsFileTableModel
 
@@ -36,6 +33,8 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
 
     wf_excluded = []
     of_included = []
+
+    working_files = []
 
     def __init__(self, parent = None, task = None, task_types = None, status_types = None, upload_monitor = None):
         super(PublishDialogGUI, self).__init__(parent) # Call the inherited classes __init__ method    
@@ -71,6 +70,9 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         self.workingFileSelectButton.clicked.connect(self.select_working_file)
         set_button_icon(self.workingFileSelectButton, "../resources/fa-free/solid/folder.svg")
 
+        self.toolButtonWorkingFileList.clicked.connect(self.show_working_file_list)
+        set_button_icon(self.toolButtonWorkingFileList, "../resources/fa-free/solid/list.svg")
+
         self.workingDirSelectButton.clicked.connect(self.select_working_dir)
         set_button_icon(self.workingDirSelectButton, "../resources/fa-free/solid/folder.svg")
 
@@ -87,7 +89,6 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
 
         self.toolButtonReviewFilter.clicked.connect(self.show_output_filter)
         set_button_icon(self.toolButtonReviewFilter, "../resources/fa-free/solid/list.svg")
-
 
         self.comboBoxSoftware.currentIndexChanged.connect(self.software_changed)  
         self.referencesAddPushButton.clicked.connect(self.select_references)
@@ -142,7 +143,6 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         self.commentEdit.setEnabled(enabled)        
         self.pushButtonOK.setEnabled(enabled)        
 
-    
     def software_changed(self, index):
         self.settings = QtCore.QSettings()
         self.settings.beginGroup(self.__class__.__name__)
@@ -417,7 +417,21 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         if self.output_filter.show():
             for item in self.output_filter.treeView.model().checkStates:
                 print(item)                
-        
+
+    def show_working_file_list(self):
+        dialog = FileListDialog(self, self.working_files)
+
+        dialog.exec_()
+        if dialog.status == 'OK':
+            self.working_files = dialog.file_list
+
+            if len(self.working_files) == 0:            
+                self.set_working_file("")
+            elif len(self.working_files) == 1:
+                self.set_working_file(self.working_files[0])
+            else:
+                self.set_working_file("[Multiple files selected]")
+
 
     # ToDo: Desktop Only, Move to Swing Studio Handler
     def process(self):
@@ -429,7 +443,6 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         server = SwingSettings.get_instance().swing_server()
         edit_api = "{}/edit".format(server)        
 
-
         task_comments = self.commentEdit.toPlainText().strip()
 
         if self.groupBoxWorkingFiles.isChecked():        
@@ -437,23 +450,26 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
             #
             # working files
             #
-            if len(self.workingFileEdit.text()) > 0:
-                source = self.workingFileEdit.text()
+            if len(self.working_files) > 0:
+                for source in self.working_files:
+                    #source = self.workingFileEdit.text()
 
-                if os.path.exists(source):
-                    file_base = os.path.basename(source)
-                    file_name, file_ext = os.path.splitext(file_base)                
+                    if os.path.exists(source):
+                        file_base = os.path.basename(source)
+                        file_name, file_ext = os.path.splitext(file_base)                
 
-                    worker = WorkingFileUploader(self, edit_api, self.task, source, file_name, self.get_software()["name"], 
-                        comment = task_comments, mode = "working", task_status = self.comboBoxTaskStatus.currentData(QtCore.Qt.UserRole)["id"])
-                    worker.callback.progress.connect(self.monitor.file_loading)
-                    worker.callback.done.connect(self.monitor.file_loaded)
+                        worker = WorkingFileUploader(self, edit_api, self.task, source, file_name, self.get_software()["name"], 
+                            comment = task_comments, mode = "working", task_status = self.comboBoxTaskStatus.currentData(QtCore.Qt.UserRole)["id"])
+                        worker.callback.progress.connect(self.monitor.file_loading)
+                        worker.callback.done.connect(self.monitor.file_loaded)
 
-                    ## dialog.add_item(source, "Pending")
+                        ## dialog.add_item(source, "Pending")
 
-                    self.process_count += 1       
-                    self.queue.append(worker)         
-                    #self.threadpool.start(worker)
+                        self.process_count += 1       
+                        self.queue.append(worker)         
+                        #self.threadpool.start(worker)
+
+                # loop through all selected working files
             #
             # working dir
             #
@@ -630,10 +646,17 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         self.load_reference_table()
 
     def select_working_file(self):
-        q = QtWidgets.QFileDialog.getOpenFileName(self, "Select Working File for Task", self.last_work_dir, "Maya Ascii (*.ma), Maya Binary (*.mb), All Files (*.*)")
-        if (q and q[0] != ''):        
-            self.last_work_dir = q[0]
-            self.set_working_file(q[0])
+        software = self.get_software()
+        filter = "{} (*{});; All Files (*.*)".format(software["short_name"], software["file_extension"])
+        working_dir = self.workingDirEdit.text()
+        q = QtWidgets.QFileDialog.getOpenFileNames(self, "Select {}  working file(s)".format(software["name"]), working_dir, filter)
+        if q and len(q[0]) > 0:
+            self.working_files = q[0]
+
+            if len(self.working_files) == 1:
+                self.set_working_file(q[0][0])
+            else:
+                self.set_working_file("[Multiple files selected]")
 
     def select_working_dir(self):
         working_dir = self.workingDirEdit.text()
@@ -642,15 +665,14 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
             self.last_work_dir = q
             self.set_working_dir(q)
 
-
     def select_fbx_file(self):
-        q = QtWidgets.QFileDialog.getOpenFileName(self, "Open Output File", self.last_work_dir, "FBX (*.fbx), All Files (*.*)")
+        q = QtWidgets.QFileDialog.getOpenFileName(self, "Open Output File", self.last_work_dir, "FBX (*.fbx);; All Files (*.*)")
         if (q and q[0] != ''):     
             self.fbxFileEdit.setText(q[0])
             self.last_work_dir = q[0]
 
     def select_output_file(self):
-        q = QtWidgets.QFileDialog.getOpenFileName(self, "Open Review File", self.last_output_dir, "Images (*.bmp, *.jpg, *.png), Videos (*.mp4), All Files (*.*)")
+        q = QtWidgets.QFileDialog.getOpenFileName(self, "Open Review File", self.last_output_dir, "Images (*.bmp, *.jpg, *.png);; Videos (*.mp4);; All Files (*.*)")
         if (q and q[0] != ''):     
             self.last_output_dir = q[0]
             self.set_output_file(q[0])
