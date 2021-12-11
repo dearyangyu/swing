@@ -2,6 +2,8 @@
 #
 # Studio Handler callback methods from Treehouse Swing
 #
+
+import time
 import os
 import glob
 import csv
@@ -45,8 +47,6 @@ from wildchildanimation.gui.swing_playblast import SwingPlayblastUi
 from wildchildanimation.maya.swing_export import SwingExportDialog
 from wildchildanimation.gui.entity_info import EntityInfoDialog
 
-from wildchildanimation.gui.swing_gui import SwingGUI
-
 '''
 def maya_main_window():
     """
@@ -67,6 +67,7 @@ class MayaStudioHandler(StudioInterface, SwingMaya):
 
     def __init__(self):
         super(MayaStudioHandler, self).__init__()
+
 
     def log_error(self, text):
         if _maya_loaded:
@@ -183,6 +184,84 @@ class MayaStudioHandler(StudioInterface, SwingMaya):
             traceback.print_exc(file=sys.stdout)
             self.log_error("export_to_csv: args {}".format(csv_filename))               
 
+    def remove_prefix(self, text, prefix):
+        return text[text.startswith(prefix) and len(prefix):]
+
+    '''
+        Derik vd Berg
+        Prepares layout scene for anim
+        - Remove unused cameras
+        - Sets start and End of Shots
+        - Shifts keys to frame 0 and removes out of shot keys
+
+    '''
+    def animprep(self, prefix):
+        all_shots = cmds.ls(type = 'shot')
+
+        filename = cmds.file(q=True, sn=True, shn=True)
+        raw_name, extension = os.path.splitext(filename)
+        shot_name = self.remove_prefix(raw_name, prefix)
+        
+        # delete unused cameras
+        cameras = cmds.ls(type = 'camera')
+        for cam in cameras:
+            cam_trans = cmds.listRelatives(cam,p = True)
+            if shot_name in str(cam_trans):
+                pass
+            else:
+                print(cam_trans)
+                cmds.delete(cam_trans)    
+
+        # delete unused sequencer shot nodes    
+        for cur_shot in all_shots:
+            if cur_shot != shot_name:
+                cmds.delete(cur_shot)
+
+        start = cmds.getAttr(shot_name + '.startFrame')
+        end = cmds.getAttr(shot_name + '.endFrame')
+        
+        animCurves = cmds.ls(type = 'animCurve')
+        allAnimCurves = cmds.ls(type = 'animCurve')
+
+        cmds.select( clear=True ) 
+
+        animCurves = []
+        for curveNode in allAnimCurves:
+            if cmds.referenceQuery( curveNode, isNodeReferenced=True ):
+                pass
+            else:
+                animCurves.append(curveNode)
+        for animCurve in animCurves:
+            cmds.select(animCurve, add = True)
+            
+        #Key start and end of shot    
+        cmds.currentTime( start )
+        cmds.setKeyframe()
+        cmds.currentTime( end )
+        cmds.setKeyframe()
+        cmds.currentTime( start -1 )
+        cmds.setKeyframe()
+        cmds.currentTime( end +1 )
+        cmds.setKeyframe()
+        
+        #shift Keys to frame 0
+        cmds.keyframe(edit=True,iub= False ,an = 'objects', o = 'move',fc = 0, relative=True,timeChange=-(start),time=((-500),(5000000)))
+        cmds.playbackOptions(animationStartTime=0, minTime=0, animationEndTime=(end - start), maxTime=(end - start))
+        
+        #delete keys outside shot range
+        frontcut_start = -5000
+        frontcut_end = -2
+        backcut_start = end - start + 2
+        backcut_end = 10000000
+        cmds.cutKey( time=(frontcut_start,frontcut_end), clear = True )
+        cmds.cutKey( time=(backcut_start,backcut_end), clear = True )
+
+        #Delete current shot sequencer node    
+        cmds.delete(shot_name)
+
+        #Save file    
+        cmds.file(save = True)        
+
 
     # tries to import the file specified in source into the currently open scene
     def load_file(self, **kwargs):
@@ -218,7 +297,6 @@ class MayaStudioHandler(StudioInterface, SwingMaya):
             self.log_error("File extension not valid {0}".format(file_extension))                
 
         write_log("load_file complete")
-        return True    
 
     # tries to import the file specified in source into the currently open scene
     def import_file(self, **kwargs):
@@ -277,21 +355,18 @@ class MayaStudioHandler(StudioInterface, SwingMaya):
             self.log_error("File extension not valid {0}".format(file_extension))
 
         write_log("import_reference complete")
-        return True      
-
 
     def create_folder(self, directory):
         if not os.path.exists(directory):
             os.makedirs(directory)  
 
+    def last_modified(self, file_item):
+        # returns last time inode changed in string
+        return time.ctime(os.path.getmtime(file_item))
+
     #
     # Swing API Handlers
     #
-
-    # create a new maya project file
-    def on_show_swing(self):
-        SwingGUI.show_dialog(self)
-
     def on_task_create(self, results):
         task_dir = results["project_dir"]
         task = results["task"]
@@ -306,20 +381,23 @@ class MayaStudioHandler(StudioInterface, SwingMaya):
         if os.path.exists(task_dir):
             if os.path.exists(os.path.join(task_dir, working_file_name)):
                 existingFile = os.path.join(task_dir, working_file_name)
-                self.createDialog.checkBoxLoadExisting.setVisible(True)
+
+                # self.createDialog.checkBoxLoadExisting.setVisible(True)
+                self.createDialog.labelFileDetails.setText("Existing file last modified: {}".format(self.last_modified(existingFile)))
+                self.createDialog.rbOpenExisting.setChecked(True)
 
         result = self.createDialog.exec_()
         if result:
             working_dir = self.createDialog.get_working_dir()
             file_name = self.createDialog.get_file_name()
 
-            if existingFile and not self.createDialog.checkBoxLoadExisting.isChecked():
+            if existingFile and not self.createDialog.rbOpenExisting.isChecked():
 
                 if QtWidgets.QMessageBox.question(None, 'Warning: Existing file found', 'If you continue, this file will be lost, are you sure?') != QtWidgets.QMessageBox.StandardButton.Yes:
                     self.log_output("Aborted load file")
                     return
 
-            if existingFile and self.createDialog.checkBoxLoadExisting.isChecked():
+            if existingFile and self.createDialog.rbOpenExisting.isChecked():
                 self.load_file(source = existingFile, working_dir = working_dir, force = True)
             else:
                 frame_in = self.createDialog.get_start_frame()
@@ -555,11 +633,7 @@ class MayaStudioHandler(StudioInterface, SwingMaya):
     def on_playblast(self, **kwargs):
         try:
             task = kwargs["task"]
-            #task_info = kwargs["task_info"]
-            #task_dir = task_info["project_dir"]
-            #task = task_info["task"]
-            task_dir = task["project_dir"]
-
+            task_dir = self.get_scene_path()
             working_file = friendly_string("_".join(self.get_task_sections(task)))
 
             playblast_count = 1
@@ -595,6 +669,16 @@ class MayaStudioHandler(StudioInterface, SwingMaya):
     def load_task(self, task_id):
         self.taskLoader = TaskFileInfoThread(parent = self, task = task_id, project_root=SwingSettings.get_instance().swing_root())
         return self.taskLoader.run()
+
+
+    def reset_workspace_control(self):
+        self.log_output("reset_workspace_control")
+        try:
+            from wildchildanimation.maya.maya_swing_control import SwingMayaUI
+            SwingMayaUI.display()
+        except:
+            traceback.print_exc(file=sys.stdout)
+            self.log_error("reset_workspace_control")               
 
 '''
         # exports current selected

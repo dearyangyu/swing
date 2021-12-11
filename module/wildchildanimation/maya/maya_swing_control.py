@@ -18,13 +18,14 @@ try:
     from PySide2 import QtWidgets, QtCore
     qtMode = 0
 except ImportError:
-    traceback.print_exc(file=sys.stdout)
     from PyQt5 import QtWidgets, QtCore
     qtMode = 1
 
 from wildchildanimation.maya.workspace_control import WorkspaceControl
 from wildchildanimation.studio.maya_studio_handlers import MayaStudioHandler
 from wildchildanimation.maya.swing_maya_control_ui import Ui_SwingControlWidget
+
+from wildchildanimation.gui.swing_gui import SwingGUI
 
 class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
 
@@ -115,16 +116,21 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
         self.workspace_control_instance = WorkspaceControl(self.get_workspace_control_name())
         self.workspace_control_instance.log_output("Swing: Loaded WorkspaceControl")
 
-        if self.workspace_control_instance.exists():
+        if self.restore_workspace_control():
             self.workspace_control_instance.log_output("Swing: Found existing workspace control, restoring")            
-            self.workspace_control_instance.restore(self)
         else:
             self.workspace_control_instance.log_output("Swing: Creating new workspace control instance")            
             self.workspace_control_instance.create(self.WINDOW_TITLE, self, ui_script='from wildchildanimation.maya.maya_swing_control import SwingMayaUI\nSwingMayaUI()\n')
 
+    def restore_workspace_control(self):
+        if self.workspace_control_instance.exists():
+            self.workspace_control_instance.restore(self)
+            return True
+        return False        
+
     def show_workspace_control(self):
         self.workspace_control_instance.set_visible(True)
-        self.connect()
+        # self.connect()
 
     def connect(self):
         self.toolButtonRefresh.setEnabled(False)
@@ -212,52 +218,61 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
         self.task_types = self.handler.load_task_types()["results"]
 
     def project_changed(self, index):
-        self.comboBoxEpisode.blockSignals(True)
-        self.comboBoxEpisode.setEnabled(False)
-        self.comboBoxEpisode.clear()
+        try:
+            self.comboBoxEpisode.blockSignals(True)
+            self.comboBoxEpisode.setEnabled(False)
+            self.comboBoxEpisode.clear()
 
-        self.comboBoxTask.blockSignals(True)
-        self.comboBoxTask.setEnabled(False)
-        self.comboBoxTask.clear()   
+            self.comboBoxTask.blockSignals(True)
+            self.comboBoxTask.setEnabled(False)
+            self.comboBoxTask.clear()   
 
-        project = self.comboBoxProject.currentText()
-        episodes = self.projects[project]["episodes"]
+            project = self.comboBoxProject.currentText()
+            episodes = self.projects[project]["episodes"]
 
-        #self.comboBoxEpisode.addItem("MP", userData = {"episode": "all", "episode_id": "All"} )
-        for item in episodes:
-            self.comboBoxEpisode.addItem(item["episode"], userData = item)
+            #self.comboBoxEpisode.addItem("MP", userData = {"episode": "all", "episode_id": "All"} )
+            for item in episodes:
+                self.comboBoxEpisode.addItem(item["episode"], userData = item)
 
-        self.comboBoxEpisode.blockSignals(False)
-        self.comboBoxEpisode.setEnabled(True)
+            self.comboBoxEpisode.blockSignals(False)
+            self.comboBoxEpisode.setEnabled(True)
 
-        self.comboBoxTask.blockSignals(False)
-        self.comboBoxTask.setEnabled(True)
+            self.comboBoxTask.blockSignals(False)
+            self.comboBoxTask.setEnabled(True)
 
-        self.comboBoxEpisode.setCurrentIndex(0)  
-        self.episode_changed(self.comboBoxEpisode.currentIndex())              
+            self.comboBoxEpisode.setCurrentIndex(0)  
+            self.episode_changed(self.comboBoxEpisode.currentIndex())              
+        except:
+            self.workspace_control_instance.log_error("project_changed:: {}".format("Exception"))
+            traceback.print_exc(file=sys.stdout)            
 
     def episode_changed(self, index):
-        self.comboBoxTask.blockSignals(True)
-        self.comboBoxTask.setEnabled(False)
-        self.comboBoxTask.clear()           
+        try:
+            self.comboBoxTask.blockSignals(True)
+            self.comboBoxTask.setEnabled(False)
+            self.comboBoxTask.clear()           
 
-        project = self.comboBoxProject.currentText()
-        project_id = self.projects[project]["project_id"]
-        episode_id = self.comboBoxEpisode.itemData(index)["episode_id"] 
+            project = self.comboBoxProject.currentText()
+            project_id = self.projects[project]["project_id"]
+            episode_id = self.comboBoxEpisode.itemData(index)["episode_id"] 
 
-        self.tasks = self.handler.load_todo_tasks(project_id, episode_id)
+            self.tasks = self.handler.load_todo_tasks(project_id, episode_id)
 
-        # add a blank task to force user to select via combobox
-        self.comboBoxTask.addItem("", userData = {"project_id": project_id, "episode_id": episode_id, "task_id": None } )  
+            # add a blank task to force user to select via combobox
+            self.comboBoxTask.addItem("", userData = {"project_id": project_id, "episode_id": episode_id, "task_id": None } )  
 
-        for item in self.tasks:
-            self.comboBoxTask.addItem(item["task"], userData = item)             
+            for item in self.tasks:
+                self.comboBoxTask.addItem(item["task"], userData = item)             
 
-        self.comboBoxTask.blockSignals(False)
-        self.comboBoxTask.setEnabled(True)
+            self.comboBoxTask.blockSignals(False)
+            self.comboBoxTask.setEnabled(True)
 
-        self.comboBoxTask.setCurrentIndex(0)        
-        self.task_changed(self.comboBoxTask.currentIndex())              
+            self.comboBoxTask.setCurrentIndex(0)        
+            self.task_changed(self.comboBoxTask.currentIndex())        
+        except:
+            self.workspace_control_instance.log_error("episode_changed:: {}".format("Exception"))
+            traceback.print_exc(file=sys.stdout)            
+
 
     def on_task_loaded(self, results):
         self.task_info = results
@@ -326,7 +341,6 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
             self.workspace_control_instance.log_output("on_search:: {}".format("Exception"))
             traceback.print_exc(file=sys.stdout)
 
-
     def on_publish(self):
         if not self.task_info:
             self.workspace_control_instance.log_output("on_publish: Task not found")
@@ -336,13 +350,14 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
         except:
             self.workspace_control_instance.log_output("on_publish:: {}".format("Exception"))
             traceback.print_exc(file=sys.stdout)            
+        
 
     def on_playblast(self):
         if not self.task_info:
             self.workspace_control_instance.log_output("on_publish: Task not found")
             return         
         try:
-            self.handler.on_playblast(parent = None, task_info = self.task_info)
+            self.handler.on_playblast(parent = None, task = self.task)
         except:
             self.workspace_control_instance.log_output("on_playblast:: {}".format("Exception"))
             traceback.print_exc(file=sys.stdout)
@@ -358,7 +373,8 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
             
     def on_show_swing(self):
         try:
-            self.handler.on_show_swing()
+            SwingGUI.show_dialog(self.handler)
+            
         except:
             self.workspace_control_instance.log_output("on_show_swing:: {}".format("Exception"))
             traceback.print_exc(file=sys.stdout)
@@ -371,9 +387,4 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
         except:
             self.workspace_control_instance.log_output("on_export:: {}".format("Exception"))
             traceback.print_exc(file=sys.stdout)
-
-
-
-
-
 

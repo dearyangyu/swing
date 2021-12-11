@@ -6,6 +6,8 @@
 #
 #############################
 import os
+import sys
+import traceback
 
 # Qt High DPI 
 os.environ["QT_ENABLE_HIGHDPI_SCALING"] = "1"
@@ -72,7 +74,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
     @classmethod
     def get_instance(cls, handler = StudioInterface()):
         if not cls.dlg_instance:
-            cls.dlg_instance = SwingGUI(handler)
+            cls.dlg_instance = SwingGUI(studio_handler = handler)
         return cls.dlg_instance
     dlg_instance = None        
 
@@ -90,9 +92,9 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
     def keyPressEvent(self, event):
         super(SwingGUI, self).keyPressEvent(event)            
 
-    def __init__(self, studio_handler):
-        super(SwingGUI, self).__init__(None) # Call the inherited classes __init__ method
-
+    def __init__(self, parent = None, studio_handler = None):
+        super(SwingGUI, self).__init__(parent) # Call the inherited classes __init__ method
+        
         self.setupUi(self)
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint ^ QtCore.Qt.WindowMinMaxButtonsHint)
 
@@ -507,19 +509,18 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             event.ignore()        
 
     def selection_changed(self, source, selection): 
-        #if "project_hierarchy_loaded" in source:
-        #    self.set_enabled(True)
-        
-        # write_log("[selection_changed]", source)
         if "project" in source and selection["is_loaded"]:
+
             ## self.nav.lock_ui(True)
             self.project_changed(self.nav.comboBoxProject.currentIndex())
 
         elif "episode_changed" in source:
+
             ## self.nav.lock_ui(True)
             self.episode_changed(self.nav.comboBoxEpisode.currentIndex())
 
         elif "sequence_changed" in source:
+
             self.sequence_changed(self.nav.comboBoxSequence.currentIndex())
             
         elif source in [ "task_types_changed", "status_codes_changed"]:
@@ -536,102 +537,117 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
                     self.load_shot_files(index)
 
     def project_changed(self, index):
-        # reset file list and task list on project change
-            
-        self.tableViewFiles.setModel(None)
-        self.tableViewTasks.setModel(None)
+        try:
+            # reset file list and task list on project change
+                
+            self.tableViewFiles.setModel(None)
+            self.tableViewTasks.setModel(None)
 
-        self.currentProject = self.nav.get_project()
-        if not self.currentProject:
-            return False
+            self.currentProject = self.nav.get_project()
+            if not self.currentProject:
+                return False
 
-        self.currentProjectIndex = index
+            self.currentProjectIndex = index
 
-        if self.currentProject:
-            self.comboBoxAssetType.clear()
-            self.comboBoxAsset.clear()
-            self.comboBoxShot.clear()
+            if self.currentProject:
+                self.comboBoxAssetType.clear()
+                self.comboBoxAsset.clear()
+                self.comboBoxShot.clear()
 
-            asset_loader = AssetTypeLoaderThread(self, self.currentProject["project_id"])
-            asset_loader.callback.loaded.connect(self.asset_types_loaded)
-            self.threadpool.start(asset_loader)
+                asset_loader = AssetTypeLoaderThread(self, self.currentProject["project_id"])
+                asset_loader.callback.loaded.connect(self.asset_types_loaded)
+                self.threadpool.start(asset_loader)
 
-            if self.nav.get_sequence():
-                self.sequence_changed(0)
-            else:
-                self.episode_changed(self.nav.comboBoxSequence.currentIndex())
+                if self.nav.get_sequence():
+                    self.sequence_changed(0)
+                else:
+                    self.episode_changed(self.nav.comboBoxSequence.currentIndex())
 
-            self.set_to_asset()
+                self.set_to_asset()
+        except:
+            write_log("project_changed: {}".format("Exception"))
+            traceback.print_exc(file=sys.stdout)                
 
     def tasks_changed(self):
-        if self.nav.is_task_types_filtered():
-            task_types = self.nav.get_task_types()
-        else:
-            task_types = None
-
-        if self.nav.is_status_types_filtered():
-            status_types = self.nav.get_task_status
-        else:
-            status_types = None
-
-        self.currentProject = self.nav.get_project()
-        if not self.currentProject:
-            return False
-
-        self.currentEpisode = self.nav.get_episode()
-        if not self.currentEpisode:
-            episode_id = "All"
-        else:
-            episode_id = self.currentEpisode["episode_id"]
-
-        parent = self.get_current_selection()
-
-        parent_id = None
-        if parent:
-            if episode_id == 'All':
-                parent_id = None
-            elif "shot_id" in parent:
-                parent_id = parent["shot_id"]
+        try:
+            if self.nav.is_task_types_filtered():
+                task_types = self.nav.get_task_types()
             else:
-                parent_id = parent["id"]            
-        ##print("Parent {}".format(parent_id))
+                task_types = None
 
-        task_loader = TaskLoaderThread(self, project_id = self.currentProject["project_id"], episode_id = episode_id, parent_id = parent_id, task_types=task_types, status_types=status_types)
-        task_loader.callback.loaded.connect(self.load_tasks)
+            if self.nav.is_status_types_filtered():
+                status_types = self.nav.get_task_status
+            else:
+                status_types = None
 
-        self.labelTaskTableSelection.setText("Loading tasks")
-        self.progressBarTaskTable.setMaximum(0)
-        self.tableViewTasks.setEnabled(False)
-        self.toolButtonNew.setEnabled(False)
-        self.toolButtonPublish.setEnabled(False)
-        
-        ##task_loader.run()
-        self.threadpool.start(task_loader)
+            self.currentProject = self.nav.get_project()
+            if not self.currentProject:
+                return False
+
+            self.currentEpisode = self.nav.get_episode()
+            if not self.currentEpisode:
+                episode_id = "All"
+            else:
+                episode_id = self.currentEpisode["episode_id"]
+
+            parent = self.get_current_selection()
+
+            parent_id = None
+            if parent:
+                if episode_id == 'All':
+                    parent_id = None
+                elif "shot_id" in parent:
+                    parent_id = parent["shot_id"]
+                else:
+                    parent_id = parent["id"]            
+            ##print("Parent {}".format(parent_id))
+
+            task_loader = TaskLoaderThread(self, project_id = self.currentProject["project_id"], episode_id = episode_id, parent_id = parent_id, task_types=task_types, status_types=status_types)
+            print("Project {} Ep {} Parent {} TT {} ST {} ".format(self.currentProject["project_id"], episode_id, parent_id, task_types, status_types))
+            task_loader.callback.loaded.connect(self.load_tasks)
+
+            self.labelTaskTableSelection.setText("Loading tasks")
+            self.progressBarTaskTable.setMaximum(0)
+            self.tableViewTasks.setEnabled(False)
+            self.toolButtonNew.setEnabled(False)
+            self.toolButtonPublish.setEnabled(False)
+            
+            ##task_loader.run()
+            self.threadpool.start(task_loader)
+        except:
+            write_log("tasks_changed: {}".format("Exception"))
+            traceback.print_exc(file=sys.stdout)                
+
 
     def episode_changed(self, index):
-        self.currentEpisode = self.nav.get_episode()
-        if self.currentEpisode:
-            self.currentEpisodeIndex = index
+        try:
+            self.currentEpisode = self.nav.get_episode()
+            if self.currentEpisode:
+                self.currentEpisodeIndex = index
 
-            if self.nav.comboBoxSequence.currentIndex() >= 0:
-                self.load_shot_files(self.nav.comboBoxSequence.currentIndex())   
+                if self.nav.comboBoxSequence.currentIndex() >= 0:
+                    self.load_shot_files(self.nav.comboBoxSequence.currentIndex())   
 
-            elif self.comboBoxShot.currentIndex() >= 0:
-                self.load_shot_files(self.comboBoxShot.currentIndex())
+                elif self.comboBoxShot.currentIndex() >= 0:
+                    self.load_shot_files(self.comboBoxShot.currentIndex())
 
-        ## self.tasks_changed()
+            ## self.tasks_changed()
 
-        if self.nav.get_project():
-            asset_loader = AssetTypeLoaderThread(self, self.nav.get_project()["project_id"])
-            asset_loader.callback.loaded.connect(self.asset_types_loaded)
-            self.threadpool.start(asset_loader)     
+            if self.nav.get_project():
+                asset_loader = AssetTypeLoaderThread(self, self.nav.get_project()["project_id"])
+                asset_loader.callback.loaded.connect(self.asset_types_loaded)
+                self.threadpool.start(asset_loader)     
 
-        if self.currentEpisode:
-            is_main_pack = self.currentEpisode["episode"] == "all"
-            self.toolButtonLayout.setEnabled(not is_main_pack)
-            self.toolButtonPlaylists.setEnabled(not is_main_pack)
+            if self.currentEpisode:
+                is_main_pack = self.currentEpisode["episode"] == "all"
+                self.toolButtonLayout.setEnabled(not is_main_pack)
+                self.toolButtonPlaylists.setEnabled(not is_main_pack)
 
-        self.tasks_changed()
+            self.tasks_changed()
+        except:
+            write_log("episode_changed: {}".format("Exception"))
+            traceback.print_exc(file=sys.stdout)                
+
 
     def asset_types_loaded(self, data): 
         self.asset_types = data
@@ -641,32 +657,35 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             self.asset_type_changed(0)
 
     def sequence_changed(self, index):
-        sequence = self.nav.get_sequence()
+        try:
+            sequence = self.nav.get_sequence()
 
-        if not sequence:
-            return False
+            if not sequence:
+                return False
 
-        self.comboBoxShot.blockSignals(True)                 
-        self.comboBoxShot.clear()
+            self.comboBoxShot.blockSignals(True)                 
+            self.comboBoxShot.clear()
 
-        episode = self.nav.get_episode()
-        if "shots" in sequence:
-            for item in sequence["shots"]:
-                if episode:
-                    name = "{} / {} / {}".format(episode["episode"], item["sequence"],  item["shot"])
-                else:
-                    name = "{} / {} / {}".format(item["sequence"],  item["shot"])
+            episode = self.nav.get_episode()
+            if "shots" in sequence:
+                for item in sequence["shots"]:
+                    if episode:
+                        name = "{} / {} / {}".format(episode["episode"], item["sequence"],  item["shot"])
+                    else:
+                        name = "{} / {} / {}".format(item["sequence"],  item["shot"])
 
-                self.comboBoxShot.addItem(name, userData = item) 
-            self.comboBoxShot.setEnabled(True)
-        else:
-            self.comboBoxShot.setEnabled(False)
+                    self.comboBoxShot.addItem(name, userData = item) 
+                self.comboBoxShot.setEnabled(True)
+            else:
+                self.comboBoxShot.setEnabled(False)
 
+            self.comboBoxShot.blockSignals(False)    
+            self.tasks_changed()             
+            ## self.load_shot_files(0)
+        except:
+            write_log("sequence_changed: {}".format("Exception"))
+            traceback.print_exc(file=sys.stdout)                
 
-
-        self.comboBoxShot.blockSignals(False)    
-        self.tasks_changed()             
-        ## self.load_shot_files(0)
 
     def asset_type_changed(self, index):
         #write_log("[asset_type_changed]")

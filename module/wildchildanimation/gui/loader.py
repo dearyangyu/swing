@@ -466,50 +466,6 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
         #
         item = self.comboBoxWorkingFile.currentData()
 
-        '''
-            Checking item {'asset_instance_id': None, 'canceled': False, 
-                'checksum': None, 
-                'comment': 'Fix wings control orientation', 
-                'created_at': '2021-12-03T10:32:47.277878', 
-                'data': None, 'description': None, 
-                'entity': 'Bees', 
-                'entity_id': 'c9efd8c0-5571-490f-a21b-a821ef3e2b13', 
-                'extension': '', 
-                'file_comment': 'Fix wings control orientation', 
-                'file_data': None, 'file_description': None, 
-                'file_id': 'dbc0c834-8a41-4f44-b516-dd8d110bf147', 
-                'file_name': 'bee_rig_v002.ma', 
-                'file_path': '/mnt/content/productions/wotw/wotw_build/assets/ch_rig/bees/bee_rig_v002.ma', 
-                'file_revision': 1, 'file_size': 1855034, 
-                'file_status_id': '2b16314c-92c9-4f06-85d4-9951a06bb2a0', 
-                'file_type': 'output-file', 
-                'file_updated_at': '2021-12-03T10:32:47.358335', 
-                'first_name': None, 'id': 'dbc0c834-8a41-4f44-b516-dd8d110bf147', 
-                'last_name': None, 'name': 'bee_rig_v002.ma', 'nb_elements': 1, 
-                'output_type_id': '048c1f11-8160-41c7-90f9-ff8e1527759e', 
-                'parent': None, 
-                'path': '/mnt/content/productions/wotw/wotw_build/assets/ch_rig/bees/bee_rig_v002.ma', 
-                'person': '', 
-                'person_id': 'dcc58ac3-3373-4738-8941-72fb22f4ad42', 
-                'project': 'witw', 'representation': '', 
-                'revision': 1, 'shotgun_id': None, 'size': 1855034, 
-                'source': None, 'source_file_id': None, 
-                'target_path': 'D:\\Productions\\wotw\\wotw_build\\assets\\ch_rig\\bees\\bee_rig_v002.ma', 
-                'task_status_id': None, 
-                'task_type': {
-                    'allow_timelog': True, 
-                    'color': '#43A047', 
-                    'created_at': '2019-10-02T05:06:18', 
-                    'department_id': None, 'for_entity': 
-                    'Asset', 'for_shots': False, 'id': '665de9df-2b35-4118-9e9c-d054448496f6', 
-                    'name': 'Ch Rig', 'priority': 11, 'short_name': 'rig', 'shotgun_id': None, 
-                    'type': 'TaskType', 'updated_at': '2021-10-01T15:47:41'}, 
-                    'task_type_id': '665de9df-2b35-4118-9e9c-d054448496f6', 
-                    'temporal_entity_id': None, 
-                    'type': 'Character', 'updated_at': '2021-12-03T10:32:47.358335'
-                }
-        '''
-
         if self.cbNetworkSource.isEnabled() and self.cbNetworkSource.isChecked():
             name, ext = os.path.splitext(item['file_path'])
 

@@ -11,6 +11,7 @@
 from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
+
 from wildchildanimation.gui.swing_utils import fakestr
 
 class Ui_SwingCreateDialog(object):
@@ -18,10 +19,10 @@ class Ui_SwingCreateDialog(object):
         if not SwingCreateDialog.objectName():
             SwingCreateDialog.setObjectName(u"SwingCreateDialog")
         SwingCreateDialog.setEnabled(True)
-        SwingCreateDialog.resize(584, 263)
+        SwingCreateDialog.resize(678, 360)
         SwingCreateDialog.setModal(False)
-        self.verticalLayout = QVBoxLayout(SwingCreateDialog)
-        self.verticalLayout.setObjectName(u"verticalLayout")
+        self.verticalLayout_5 = QVBoxLayout(SwingCreateDialog)
+        self.verticalLayout_5.setObjectName(u"verticalLayout_5")
         self.verticalLayoutEntity = QVBoxLayout()
         self.verticalLayoutEntity.setObjectName(u"verticalLayoutEntity")
         self.horizontalLayout_2 = QHBoxLayout()
@@ -89,11 +90,19 @@ class Ui_SwingCreateDialog(object):
 
         self.verticalLayoutEntity.addLayout(self.horizontalLayoutSoftware)
 
+
+        self.verticalLayout_5.addLayout(self.verticalLayoutEntity)
+
+        self.groupBox = QGroupBox(SwingCreateDialog)
+        self.groupBox.setObjectName(u"groupBox")
+        self.groupBox.setFlat(True)
+        self.verticalLayout_4 = QVBoxLayout(self.groupBox)
+        self.verticalLayout_4.setObjectName(u"verticalLayout_4")
         self.verticalLayoutEntityInfo = QVBoxLayout()
         self.verticalLayoutEntityInfo.setObjectName(u"verticalLayoutEntityInfo")
         self.horizontalLayoutFrameDetails = QHBoxLayout()
         self.horizontalLayoutFrameDetails.setObjectName(u"horizontalLayoutFrameDetails")
-        self.radioButtonShot = QRadioButton(SwingCreateDialog)
+        self.radioButtonShot = QRadioButton(self.groupBox)
         self.radioButtonShot.setObjectName(u"radioButtonShot")
         self.radioButtonShot.setMinimumSize(QSize(100, 0))
         self.radioButtonShot.setMaximumSize(QSize(50, 16777215))
@@ -102,38 +111,38 @@ class Ui_SwingCreateDialog(object):
 
         self.horizontalLayout_3 = QHBoxLayout()
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
-        self.labelFrameIn = QLabel(SwingCreateDialog)
+        self.labelFrameIn = QLabel(self.groupBox)
         self.labelFrameIn.setObjectName(u"labelFrameIn")
-        self.labelFrameIn.setMinimumSize(QSize(50, 0))
+        self.labelFrameIn.setMinimumSize(QSize(60, 0))
         self.labelFrameIn.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
 
         self.horizontalLayout_3.addWidget(self.labelFrameIn)
 
-        self.lineEditFrameIn = QLineEdit(SwingCreateDialog)
+        self.lineEditFrameIn = QLineEdit(self.groupBox)
         self.lineEditFrameIn.setObjectName(u"lineEditFrameIn")
 
         self.horizontalLayout_3.addWidget(self.lineEditFrameIn)
 
-        self.labelFrameOut = QLabel(SwingCreateDialog)
+        self.labelFrameOut = QLabel(self.groupBox)
         self.labelFrameOut.setObjectName(u"labelFrameOut")
-        self.labelFrameOut.setMinimumSize(QSize(50, 0))
+        self.labelFrameOut.setMinimumSize(QSize(60, 0))
         self.labelFrameOut.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
 
         self.horizontalLayout_3.addWidget(self.labelFrameOut)
 
-        self.lineEditFrameOut = QLineEdit(SwingCreateDialog)
+        self.lineEditFrameOut = QLineEdit(self.groupBox)
         self.lineEditFrameOut.setObjectName(u"lineEditFrameOut")
 
         self.horizontalLayout_3.addWidget(self.lineEditFrameOut)
 
-        self.labelFrameCount = QLabel(SwingCreateDialog)
+        self.labelFrameCount = QLabel(self.groupBox)
         self.labelFrameCount.setObjectName(u"labelFrameCount")
-        self.labelFrameCount.setMinimumSize(QSize(50, 0))
+        self.labelFrameCount.setMinimumSize(QSize(60, 0))
         self.labelFrameCount.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
 
         self.horizontalLayout_3.addWidget(self.labelFrameCount)
 
-        self.lineEditFrameCount = QLineEdit(SwingCreateDialog)
+        self.lineEditFrameCount = QLineEdit(self.groupBox)
         self.lineEditFrameCount.setObjectName(u"lineEditFrameCount")
 
         self.horizontalLayout_3.addWidget(self.lineEditFrameCount)
@@ -150,14 +159,14 @@ class Ui_SwingCreateDialog(object):
 
         self.horizontalLayout_4 = QHBoxLayout()
         self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
-        self.radioButtonAsset = QRadioButton(SwingCreateDialog)
+        self.radioButtonAsset = QRadioButton(self.groupBox)
         self.radioButtonAsset.setObjectName(u"radioButtonAsset")
         self.radioButtonAsset.setMinimumSize(QSize(100, 0))
         self.radioButtonAsset.setMaximumSize(QSize(50, 16777215))
 
         self.horizontalLayout_4.addWidget(self.radioButtonAsset)
 
-        self.lineEditAssetType = QLineEdit(SwingCreateDialog)
+        self.lineEditAssetType = QLineEdit(self.groupBox)
         self.lineEditAssetType.setObjectName(u"lineEditAssetType")
 
         self.horizontalLayout_4.addWidget(self.lineEditAssetType)
@@ -166,24 +175,46 @@ class Ui_SwingCreateDialog(object):
         self.verticalLayoutEntityInfo.addLayout(self.horizontalLayout_4)
 
 
-        self.verticalLayoutEntity.addLayout(self.verticalLayoutEntityInfo)
+        self.verticalLayout_4.addLayout(self.verticalLayoutEntityInfo)
 
 
-        self.verticalLayout.addLayout(self.verticalLayoutEntity)
+        self.verticalLayout_5.addWidget(self.groupBox)
+
+        self.groupBox_2 = QGroupBox(SwingCreateDialog)
+        self.groupBox_2.setObjectName(u"groupBox_2")
+        self.verticalLayout_3 = QVBoxLayout(self.groupBox_2)
+        self.verticalLayout_3.setObjectName(u"verticalLayout_3")
+        self.verticalLayout = QVBoxLayout()
+        self.verticalLayout.setObjectName(u"verticalLayout")
+        self.rbOpenExisting = QRadioButton(self.groupBox_2)
+        self.rbOpenExisting.setObjectName(u"rbOpenExisting")
+
+        self.verticalLayout.addWidget(self.rbOpenExisting)
+
+        self.rbCreateNew = QRadioButton(self.groupBox_2)
+        self.rbCreateNew.setObjectName(u"rbCreateNew")
+
+        self.verticalLayout.addWidget(self.rbCreateNew)
+
+
+        self.verticalLayout_3.addLayout(self.verticalLayout)
+
+
+        self.verticalLayout_5.addWidget(self.groupBox_2)
 
         self.verticalLayout_2 = QVBoxLayout()
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
-        self.checkBoxLoadExisting = QCheckBox(SwingCreateDialog)
-        self.checkBoxLoadExisting.setObjectName(u"checkBoxLoadExisting")
+        self.labelFileDetails = QLabel(SwingCreateDialog)
+        self.labelFileDetails.setObjectName(u"labelFileDetails")
 
-        self.verticalLayout_2.addWidget(self.checkBoxLoadExisting)
+        self.verticalLayout_2.addWidget(self.labelFileDetails)
 
 
-        self.verticalLayout.addLayout(self.verticalLayout_2)
+        self.verticalLayout_5.addLayout(self.verticalLayout_2)
 
         self.verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
 
-        self.verticalLayout.addItem(self.verticalSpacer)
+        self.verticalLayout_5.addItem(self.verticalSpacer)
 
         self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setObjectName(u"horizontalLayout")
@@ -210,7 +241,7 @@ class Ui_SwingCreateDialog(object):
         self.horizontalLayout.addWidget(self.pushButtonCancel)
 
 
-        self.verticalLayout.addLayout(self.horizontalLayout)
+        self.verticalLayout_5.addLayout(self.horizontalLayout)
 
 
         self.retranslateUi(SwingCreateDialog)
@@ -228,12 +259,16 @@ class Ui_SwingCreateDialog(object):
         self.labelWorkingDir.setText(fakestr(u"Working Dir", None))
         self.toolButtonWorkingDir.setText(fakestr(u"...", None))
         self.labelSoftware.setText(fakestr(u"Software", None))
+        self.groupBox.setTitle(fakestr(u"Task Type", None))
         self.radioButtonShot.setText(fakestr(u"Shot", None))
-        self.labelFrameIn.setText(fakestr(u"In", None))
-        self.labelFrameOut.setText(fakestr(u"Out", None))
-        self.labelFrameCount.setText(fakestr(u"Count", None))
+        self.labelFrameIn.setText(fakestr(u"Frame In", None))
+        self.labelFrameOut.setText(fakestr(u" Frame Out", None))
+        self.labelFrameCount.setText(fakestr(u"Frame Count", None))
         self.radioButtonAsset.setText(fakestr(u"Asset", None))
-        self.checkBoxLoadExisting.setText(fakestr(u"Load existing file if found", None))
+        self.groupBox_2.setTitle(fakestr(u"File Action", None))
+        self.rbOpenExisting.setText(fakestr(u"Open Existing File", None))
+        self.rbCreateNew.setText(fakestr(u"Create New File", None))
+        self.labelFileDetails.setText("")
         self.pushButtonUpdate.setText(fakestr(u"Update", None))
         self.pushButtonImport.setText(fakestr(u"Go", None))
         self.pushButtonCancel.setText(fakestr(u"Close", None))

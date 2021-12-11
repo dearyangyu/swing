@@ -288,6 +288,9 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
 
         self.labelWorkingFilesMessage.setText("")
 
+        if not selected_file in self.working_files:
+            self.working_files.append(selected_file)
+
     def set_working_dir(self, selected_dir):
         self.radioButtonWorkingFile.setChecked(False)
         self.radioButtonWorkingDir.setChecked(True)
@@ -560,8 +563,8 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         if len(self.queue) > 0:
             self.monitor.set_queue(self.queue)
             self.monitor.reset_progressbar()            
+            self.monitor.set_task(self.task)
             self.monitor.show()
-
             self.hide()            
 
             for item in self.queue:
@@ -672,7 +675,16 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
             self.last_work_dir = q[0]
 
     def select_output_file(self):
-        q = QtWidgets.QFileDialog.getOpenFileName(self, "Open Review File", self.last_output_dir, "Images (*.bmp, *.jpg, *.png);; Videos (*.mp4);; All Files (*.*)")
+        if len(self.outputDirEdit.text()) > 0:
+            working_dir = self.outputDirEdit.text()
+        elif len(self.workingDirEdit.text()) > 0:
+            working_dir = self.workingDirEdit.text()
+        elif len(self.workingFileEdit.text()) > 0:
+            working_dir = os.path.dirname(self.workingFileEdit.text())
+        else:
+            working_dir = self.last_output_dir
+
+        q = QtWidgets.QFileDialog.getOpenFileName(self, "Open Review File", working_dir, "Videos (*.mp4);; Images (*.bmp, *.jpg, *.png);; All Files (*.*)")
         if (q and q[0] != ''):     
             self.last_output_dir = q[0]
             self.set_output_file(q[0])

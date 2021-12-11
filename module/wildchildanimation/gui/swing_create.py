@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
-import traceback
-import sys
 import os
-from wildchildanimation.gui.downloads import DownloadDialogGUI
-from wildchildanimation.gui.swing_update_task import SwingUpdateTaskDialog
 
 # ==== auto Qt load ====
 try:
@@ -12,7 +8,6 @@ try:
     from PySide2 import QtWidgets
     qtMode = 0
 except ImportError:
-    traceback.print_exc(file=sys.stdout)
     from PyQt5 import QtGui, QtCore, QtWidgets
     qtMode = 1
 
@@ -22,6 +17,7 @@ from wildchildanimation.gui.swing_utils import friendly_string, set_button_icon
 from wildchildanimation.studio.studio_interface import StudioInterface
 from wildchildanimation.gui.background_workers import EntityLoaderThread, TaskFileInfoThread, SoftwareLoader
 from wildchildanimation.gui.swing_create_dialog import Ui_SwingCreateDialog
+from wildchildanimation.gui.swing_update_task import SwingUpdateTaskDialog
 
 '''
     Ui_SwingCreateDialog class
@@ -72,14 +68,13 @@ class SwingCreateDialog(QtWidgets.QDialog, Ui_SwingCreateDialog):
         self.pushButtonImport.clicked.connect(self.close_dialog)
 
         self.setWorkingDir(self.swing_settings.swing_root())
-        self.checkBoxLoadExisting.setChecked(True)
-        self.checkBoxLoadExisting.setVisible(False)
+        self.rbOpenExisting.setChecked(True)
 
         self.lineEditEntity.setEnabled(False)
         self.lineEditAssetType.setEnabled(False)
 
         # Hide updates
-        self.pushButtonUpdate.setVisible(False)
+        # self.pushButtonUpdate.setVisible(False)
         self.pushButtonUpdate.setEnabled(False)
         self.pushButtonUpdate.clicked.connect(self.on_update)
 
@@ -97,6 +92,9 @@ class SwingCreateDialog(QtWidgets.QDialog, Ui_SwingCreateDialog):
         self.lineEditFrameIn.setEnabled(enabled)
         self.lineEditFrameOut.setEnabled(enabled)
         self.lineEditFrameCount.setEnabled(enabled)
+
+        self.rbCreateNew.setEnabled(enabled)
+        self.rbOpenExisting.setEnabled(enabled)
 
     # save main dialog state
     def write_settings(self):
@@ -261,17 +259,10 @@ class SwingCreateDialog(QtWidgets.QDialog, Ui_SwingCreateDialog):
         if "working_files" in self.task_info:
             self.working_files = self.task_info["working_files"]
             if len(self.working_files) > 0:
-                self.pushButtonUpdate.setVisible(True)
+                # self.pushButtonUpdate.setVisible(True)
                 self.pushButtonUpdate.setEnabled(True)
-        self.setWorkingDir(results["project_dir"])
 
-    def set_selected(self, file_item):
-        index = 0
-        while index < len(self.files):
-            if file_item["id"] == self.files[index]["id"]:
-                self.comboBoxWorkingFile.setCurrentIndex(index)
-                break
-            index += 1
+        self.setWorkingDir(results["project_dir"])
 
     def setWorkingDir(self, working_dir):
         self.working_dir = os.path.normpath(working_dir)
@@ -288,7 +279,8 @@ class SwingCreateDialog(QtWidgets.QDialog, Ui_SwingCreateDialog):
         self.close()
 
     def select_wcd(self):
-        q = QtWidgets.QFileDialog.getExistingDirectory(self, 'Select working directory')
+        test_dir = self.lineEditWorkingDir.text()
+        q = QtWidgets.QFileDialog.getExistingDirectory(self, 'Select working directory', dir=test_dir)
         if (q and q[0] != ''): 
             self.working_dir = q[0]
             self.lineEditWorkingDir.setText(self.working_dir)

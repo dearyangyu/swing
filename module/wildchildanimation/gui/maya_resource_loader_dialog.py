@@ -19,7 +19,7 @@ class Ui_MayaResourceLoaderDialog(object):
         if not MayaResourceLoaderDialog.objectName():
             MayaResourceLoaderDialog.setObjectName(u"MayaResourceLoaderDialog")
         MayaResourceLoaderDialog.setEnabled(True)
-        MayaResourceLoaderDialog.resize(413, 543)
+        MayaResourceLoaderDialog.resize(455, 541)
         self.verticalLayout = QVBoxLayout(MayaResourceLoaderDialog)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.verticalLayoutEntity = QVBoxLayout()
@@ -28,7 +28,7 @@ class Ui_MayaResourceLoaderDialog(object):
         self.horizontalLayoutWorkingFile.setObjectName(u"horizontalLayoutWorkingFile")
         self.labelSource = QLabel(MayaResourceLoaderDialog)
         self.labelSource.setObjectName(u"labelSource")
-        self.labelSource.setMinimumSize(QSize(100, 0))
+        self.labelSource.setMinimumSize(QSize(125, 0))
 
         self.horizontalLayoutWorkingFile.addWidget(self.labelSource)
 
@@ -57,7 +57,7 @@ class Ui_MayaResourceLoaderDialog(object):
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
         self.labelNetworkStatus = QLabel(MayaResourceLoaderDialog)
         self.labelNetworkStatus.setObjectName(u"labelNetworkStatus")
-        self.labelNetworkStatus.setMinimumSize(QSize(100, 0))
+        self.labelNetworkStatus.setMinimumSize(QSize(125, 0))
 
         self.horizontalLayout_2.addWidget(self.labelNetworkStatus)
 
@@ -73,7 +73,7 @@ class Ui_MayaResourceLoaderDialog(object):
         self.horizontalLayoutProjectDir.setObjectName(u"horizontalLayoutProjectDir")
         self.labelDownloadTarget = QLabel(MayaResourceLoaderDialog)
         self.labelDownloadTarget.setObjectName(u"labelDownloadTarget")
-        self.labelDownloadTarget.setMinimumSize(QSize(100, 0))
+        self.labelDownloadTarget.setMinimumSize(QSize(125, 0))
 
         self.horizontalLayoutProjectDir.addWidget(self.labelDownloadTarget)
 

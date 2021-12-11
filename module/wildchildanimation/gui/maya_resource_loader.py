@@ -4,6 +4,7 @@ import traceback
 import sys
 import os
 import gazu
+from wildchildanimation.gui.background_workers import FileDownloader
 
 # ==== auto Qt load ====
 try:
@@ -15,11 +16,10 @@ except ImportError:
     from PyQt5 import QtGui, QtCore, QtWidgets
     qtMode = 1
 
-#from wildchildanimation.gui.background_workers import EntityLoaderThread, FileDownloader
 from wildchildanimation.gui.settings import SwingSettings
 from wildchildanimation.gui.maya_resource_loader_dialog import Ui_MayaResourceLoaderDialog
 
-from wildchildanimation.gui.swing_utils import friendly_string, set_button_icon
+from wildchildanimation.gui.swing_utils import friendly_string, set_button_icon, human_size
 
 '''
     Maya Resource Loader
@@ -33,6 +33,13 @@ class ResourceLoaderDialogGUI(QtWidgets.QDialog, Ui_MayaResourceLoaderDialog):
         self.setupUi(self)
 
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
+        self.threadpool = QtCore.QThreadPool.globalInstance()        
+
+        self.labelReferenceSource.setEnabled(False)
+        self.spinBoxReferenceCount.setEnabled(False)
+        self.checkBoxNamespace.setEnabled(False)
+        self.lineEditNamespace.setEnabled(False)
+
         self.read_settings()                
 
         self.handler = handler
@@ -46,12 +53,21 @@ class ResourceLoaderDialogGUI(QtWidgets.QDialog, Ui_MayaResourceLoaderDialog):
         self.working_dir = SwingSettings.get_instance().swing_root()
 
         self.check_network()
-        self.check_working_folder()
+        # self.check_working_folder()
         self.load_entity()
+
+        self.rbImportSource.clicked.connect(self.selection_changed)
+        self.rbOpenSource.clicked.connect(self.selection_changed)
+        self.rbReferenceSource.clicked.connect(self.selection_changed)
 
         self.pushButtonCancel.clicked.connect(self.close_dialog)
         self.pushButtonImport.clicked.connect(self.process)
 
+    def selection_changed(self):
+        self.labelReferenceSource.setEnabled(self.rbReferenceSource.isChecked())
+        self.spinBoxReferenceCount.setEnabled(self.rbReferenceSource.isChecked())
+        self.checkBoxNamespace.setEnabled(self.rbReferenceSource.isChecked())
+        self.lineEditNamespace.setEnabled(self.rbReferenceSource.isChecked())
 
     #
     # checks if we can access the resource directly
@@ -66,20 +82,22 @@ class ResourceLoaderDialogGUI(QtWidgets.QDialog, Ui_MayaResourceLoaderDialog):
                 resource_item = os.path.join(self.resource["file_path"], self.resource["file_name"])
 
             # we assume that we are 1) on Windows, and 2) have a Z: drive mapped to content/productions
-            test_path = os.path.normpath(resource_item.replace("/mnt/content/productions", "Z://productions"))
+            server_path = os.path.normpath(resource_item.replace("/mnt/content/productions", "Z://productions"))
 
             # we also want to know what file type we are dealing with
             fn, ext = os.path.splitext(resource_item)
 
             print("Checking Network: Checking LAN for {}{} ".format(fn, ext))
-            if not os.path.exists(test_path):
-                self.lineEditNetworkStatus.setText("Resource will be downloaded from the server")
-                self.set_download_only(True)
-                self.resource_network_path = None
-            else:
-                self.lineEditNetworkStatus.setText("Resource available on network")
+            if os.path.exists(server_path):
+                self.lineEditNetworkStatus.setText("Found {}".format(server_path))
                 self.set_download_only(False)
-                self.resource_network_path = test_path
+                self.resource_network_path = server_path
+            else:
+                download_path = os.path.normpath(resource_item.replace('/mnt/content/productions', SwingSettings.get_instance().swing_root()))
+
+                self.lineEditNetworkStatus.setText("Resource will be downloaded from the server")
+                self.lineEditTarget.setText(download_path)
+                self.resource_network_path = None
 
             print("Checking Network: Checking Archive Status {}{} ".format(fn, ext))
             if ext in self.handler.UNARCHIVE_TYPES:
@@ -101,8 +119,8 @@ class ResourceLoaderDialogGUI(QtWidgets.QDialog, Ui_MayaResourceLoaderDialog):
             traceback.print_exc(file=sys.stdout)            
         return False
 
-    def check_working_folder(self):
-        self.lineEditTarget.setText(self.handler.get_scene_path())
+    #def check_working_folder(self):
+    #    self.lineEditTarget.setText(self.handler.get_scene_path())
 
     def load_entity(self):
         print("Processing entity: {}".format(self.entity))
@@ -180,17 +198,17 @@ class ResourceLoaderDialogGUI(QtWidgets.QDialog, Ui_MayaResourceLoaderDialog):
             self.rbImportSource.setEnabled(False)
             self.rbReferenceSource.setEnabled(False)
 
-            self.spinBoxReferenceCount.setEnabled(False)
-            self.checkBoxNamespace.setEnabled(False)
-            self.lineEditNamespace.setEnabled(False)
+            #self.spinBoxReferenceCount.setEnabled(False)
+            #self.checkBoxNamespace.setEnabled(False)
+            #self.lineEditNamespace.setEnabled(False)
         else:
             self.rbOpenSource.setEnabled(True)
             self.rbImportSource.setEnabled(True)
             self.rbReferenceSource.setEnabled(True)
 
-            self.spinBoxReferenceCount.setEnabled(True)
-            self.checkBoxNamespace.setEnabled(True)
-            self.lineEditNamespace.setEnabled(True)            
+            #self.spinBoxReferenceCount.setEnabled(True)
+            #self.checkBoxNamespace.setEnabled(True)
+            #self.lineEditNamespace.setEnabled(True)            
 
     def set_enabled(self, status):
         self.lineEditSource.setEnabled(status)
@@ -203,9 +221,9 @@ class ResourceLoaderDialogGUI(QtWidgets.QDialog, Ui_MayaResourceLoaderDialog):
         self.rbImportSource.setEnabled(status)
         self.rbReferenceSource.setEnabled(status)
 
-        self.spinBoxReferenceCount.setEnabled(status)
-        self.checkBoxNamespace.setEnabled(status)
-        self.lineEditNamespace.setEnabled(status)
+        #self.spinBoxReferenceCount.setEnabled(status)
+        #self.checkBoxNamespace.setEnabled(status)
+        #self.lineEditNamespace.setEnabled(status)
 
         self.checkBoxSkipExisting.setEnabled(status)
         self.checkBoxExtractZips.setEnabled(status)
@@ -260,6 +278,7 @@ class ResourceLoaderDialogGUI(QtWidgets.QDialog, Ui_MayaResourceLoaderDialog):
                 self.rbImportSource.setChecked(True)
             else:
                 self.rbReferenceSource.setChecked(True)
+            self.selection_changed()
 
             self.settings.endGroup()              
         except:
@@ -299,6 +318,10 @@ class ResourceLoaderDialogGUI(QtWidgets.QDialog, Ui_MayaResourceLoaderDialog):
     def process(self):
         self.set_enabled(False)
         try:
+            if not self.resource_network_path:
+                self.download_file()
+                return False
+
             if self.rbOpenSource.isChecked():
                 self.load_file()
                 
@@ -311,6 +334,72 @@ class ResourceLoaderDialogGUI(QtWidgets.QDialog, Ui_MayaResourceLoaderDialog):
             traceback.print_exc(file=sys.stdout)          
 
         self.set_enabled(True)
+
+    def download_file(self):
+        server = SwingSettings.get_instance().swing_server()
+        edit_api = "{}/edit".format(server)
+        target_path = self.lineEditTarget.text()
+
+        print("Downloading {}".format(self.resource))
+
+        if "library-file" in self.resource['file_type']:
+            url = "{}/api/library_file/{}".format(edit_api, self.resource["entity_id"])
+            ## set_target(item, self.working_dir)
+            worker = FileDownloader(self, self.resource["file_id"], url, target_path, self.checkBoxSkipExisting.isChecked(), self.checkBoxExtractZips.isChecked(), { "fn": self.resource['file_name'] } )
+
+        elif "working-file" in self.resource["file_type"]:
+            #target_name = os.path.normpath(os.path.join(target_name_dir, item["name"]))
+            url = "{}/api/working_file/{}".format(edit_api, self.resource["file_id"])
+            ## set_target_name(item, target_name_dir)
+
+            worker = FileDownloader(self, self.resource["file_id"], url, target_path, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
+        else:
+            #target_name = os.path.normpath(os.path.join(target_name_dir, item["name"]))
+            url = "{}/api/output_file/{}".format(edit_api, self.resource["file_id"])
+            ## set_target_name(item, target_name_dir)
+
+            worker = FileDownloader(self, self.resource["file_id"], url,  target_path, skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
+            # file type
+
+        self.append_status("{}: downloading to {}".format(self.resource["file_name"], target_path))
+
+        worker.callback.progress.connect(self.file_loading)
+        worker.callback.done.connect(self.file_loaded)
+        
+        self.resource["status"] = "Busy"    
+
+        ##worker.run() # debug
+        self.set_enabled(False)
+        self.progressBar.setRange(0, self.resource["file_size"])
+        self.threadpool.start(worker)  
+
+    def file_loading(self, result):
+        #message = result["message"]
+        size = result["size"]
+        # target = result["target"]
+
+        print("File Loading {}".format(result))
+        self.progressBar.setValue(size)
+        #self.set_status_text("{}: {} {}".format(self.target_item["target_path"], message, human_size(size)))        
+
+    #
+    # we have a file or an archive now, let's see what needs to be done
+    #
+    def file_loaded(self, results):
+        file_name = results["target"]
+        self.resource_network_path = file_name
+        try:
+            if self.rbOpenSource.isChecked():
+                self.load_file()
+
+            elif self.rbImportSource.isChecked():
+                self.import_file()
+
+            else:
+                self.import_ref()
+
+        except:
+            traceback.print_exc(file=sys.stdout)          
 
     def load_file(self):
         self.append_status("{}: load_file".format(self.resource))
