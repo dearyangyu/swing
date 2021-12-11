@@ -68,7 +68,6 @@ class MayaStudioHandler(StudioInterface, SwingMaya):
     def __init__(self):
         super(MayaStudioHandler, self).__init__()
 
-
     def log_error(self, text):
         if _maya_loaded:
             om.MGlobal.displayError("[MayaStudioHandler] {0}".format(text))
@@ -261,7 +260,6 @@ class MayaStudioHandler(StudioInterface, SwingMaya):
 
         #Save file    
         cmds.file(save = True)        
-
 
     # tries to import the file specified in source into the currently open scene
     def load_file(self, **kwargs):
@@ -664,12 +662,9 @@ class MayaStudioHandler(StudioInterface, SwingMaya):
             traceback.print_exc(file=sys.stdout)
             self.log_error("on_playblast: args {}".format(kwargs))               
 
-
-
     def load_task(self, task_id):
         self.taskLoader = TaskFileInfoThread(parent = self, task = task_id, project_root=SwingSettings.get_instance().swing_root())
         return self.taskLoader.run()
-
 
     def reset_workspace_control(self):
         self.log_output("reset_workspace_control")

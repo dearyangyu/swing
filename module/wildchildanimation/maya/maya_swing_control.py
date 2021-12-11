@@ -7,6 +7,7 @@ import traceback
 import maya.cmds as cmds
 import maya.OpenMaya as om
 import maya.OpenMayaUI as omui
+import maya.utils as mutils
 
 from shiboken2 import wrapInstance, getCppPointer
 from wildchildanimation.gui.background_workers import TaskFileInfoThread
@@ -66,7 +67,7 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
         self.setupUi(self)
 
         self.create_connections()
-        
+
         self.handler = MayaStudioHandler()
         self.set_enabled(False)
 
@@ -317,7 +318,7 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
             "project_dir": resolve_content_path(task_dir, self.project_root),
             "project": project
         }
-        '''
+        '''  
 
     ### Studio Handlers
     def on_create(self):
@@ -373,8 +374,10 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
             
     def on_show_swing(self):
         try:
-            SwingGUI.show_dialog(self.handler)
-            
+            mutils.executeDeferred(lambda: SwingGUI.show_dialog(self.handler))
+            #swing_loader = SwingLoader(self.handler)
+            #self.threadpool.start(swing_loader)
+            # 
         except:
             self.workspace_control_instance.log_output("on_show_swing:: {}".format("Exception"))
             traceback.print_exc(file=sys.stdout)
