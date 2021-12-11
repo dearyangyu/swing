@@ -19,7 +19,9 @@ except ImportError:
 from wildchildanimation.gui.settings import SwingSettings
 from wildchildanimation.gui.maya_resource_loader_dialog import Ui_MayaResourceLoaderDialog
 
-from wildchildanimation.gui.swing_utils import friendly_string, set_button_icon, human_size
+from wildchildanimation.gui.swing_utils import friendly_string, set_button_icon
+
+import maya.utils as mutils
 
 '''
     Maya Resource Loader
@@ -316,6 +318,9 @@ class ResourceLoaderDialogGUI(QtWidgets.QDialog, Ui_MayaResourceLoaderDialog):
         cursor.insertHtml(text)
 
     def process(self):
+        mutils.executeDeferred(lambda: self.background_process())
+
+    def background_process(self):
         self.set_enabled(False)
         try:
             if not self.resource_network_path:

@@ -18,33 +18,30 @@ except:
     _stand_alone = True
 
 from wildchildanimation.maya.swing_maya import SwingMaya
-from wildchildanimation.gui.swing_playblast_dialog import Ui_PlayblastDialog
+from wildchildanimation.gui.swing_sequence_playblast_dialog import Ui_SequencePlayblastDialog
 from wildchildanimation.gui.swing_utils import load_settings, save_settings, open_folder
+from wildchildanimation.gui.shot_list import ShotListDialog
 
-class SwingPlayblast(SwingMaya):
+class SwingSequencePlayblast(SwingMaya):
 
     DEFAULT_CONTAINER = "mp4"
     DEFAULT_ENCODER = "h264"
     DEFAULT_H264_QUALITY = "High"
     DEFAULT_H264_PRESET = "fast"
-    DEFAULT_IMAGE_QUALITY = 100
     DEFAULT_PADDING = 4
     DEFAULT_VISIBILITY = "Viewport"
 
     output_logged = QtCore.Signal(str)
 
     def __init__(self, ffmpeg_path = None, log_to_maya = True):
-        super(SwingPlayblast, self).__init__()
+        super(SwingSequencePlayblast, self).__init__()
 
         self.set_maya_logging_enabled(log_to_maya)
         self.set_ffmpeg_path(ffmpeg_path)
-        self.set_camera(SwingPlayblast.DEFAULT_CAMERA)
-        self.set_resolution(SwingPlayblast.DEFAULT_RESOLUTION)
-        self.set_frame_range(SwingPlayblast.DEFAULT_FRAME_RANGE)
-        self.set_encoding(SwingPlayblast.DEFAULT_CONTAINER, SwingPlayblast.DEFAULT_ENCODER)
-        self.set_h264_settings(SwingPlayblast.DEFAULT_H264_QUALITY, SwingPlayblast.DEFAULT_H264_PRESET)
-        self.set_image_settings(SwingPlayblast.DEFAULT_IMAGE_QUALITY)
-        self.set_visibility(SwingPlayblast.DEFAULT_VISIBILITY)
+        self.set_resolution(SwingSequencePlayblast.DEFAULT_RESOLUTION)
+        self.set_encoding(SwingSequencePlayblast.DEFAULT_CONTAINER, SwingSequencePlayblast.DEFAULT_ENCODER)
+        self.set_h264_settings(SwingSequencePlayblast.DEFAULT_H264_QUALITY, SwingSequencePlayblast.DEFAULT_H264_PRESET)
+        self.set_visibility(SwingSequencePlayblast.DEFAULT_VISIBILITY)
 
         self.initialize_ffmpeg_process()
 
@@ -53,13 +50,6 @@ class SwingPlayblast(SwingMaya):
 
     def get_ffmpeg_path(self):
         return self._ffmpeg_path
-
-    def set_camera(self, camera):
-        if camera and camera not in cmds.listCameras():
-            self.log_error("Camera does not exist: {0}".format(camera))
-            camera = None
-
-        self._camera = camera
 
     def set_resolution(self, resolution):
         self._resolution_preset = None
@@ -83,7 +73,7 @@ class SwingPlayblast(SwingMaya):
                 return
         else:
             presets = []
-            for preset in SwingPlayblast.RESOLUTION_LOOKUP.keys():
+            for preset in SwingSequencePlayblast.RESOLUTION_LOOKUP.keys():
                 presets.append("'{0}'".format(preset))
 
             self.log_error("Invalid resoluton: {0}. Expected one of [int, int], {1}".format(widthHeight, ", ".join(presets)))
@@ -102,30 +92,30 @@ class SwingPlayblast(SwingMaya):
             width = cmds.getAttr("defaultResolution.width")
             height = cmds.getAttr("defaultResolution.height")
             return (width, height)
-        elif resolution_preset in SwingPlayblast.RESOLUTION_LOOKUP.keys():
-            return SwingPlayblast.RESOLUTION_LOOKUP[resolution_preset]
+        elif resolution_preset in SwingSequencePlayblast.RESOLUTION_LOOKUP.keys():
+            return SwingSequencePlayblast.RESOLUTION_LOOKUP[resolution_preset]
         else:
             raise RuntimeError("Invalid resolution preset: {0}".format(resolution_preset))
 
     def set_encoding(self, container_format, encoder):
-        if container_format not in SwingPlayblast.VIDEO_ENCODER_LOOKUP.keys():
-            self.log_error("Invalid container: {0}. Expected one of {1}".format(container_format, SwingPlayblast.VIDEO_ENCODER_LOOKUP.keys()))
+        if container_format not in SwingSequencePlayblast.VIDEO_ENCODER_LOOKUP.keys():
+            self.log_error("Invalid container: {0}. Expected one of {1}".format(container_format, SwingSequencePlayblast.VIDEO_ENCODER_LOOKUP.keys()))
             return
 
-        if encoder not in SwingPlayblast.VIDEO_ENCODER_LOOKUP[container_format]:
-            self.log_error("Invalid encoder: {0}. Expected one of {1}".format(encoder, SwingPlayblast.VIDEO_ENCODER_LOOKUP[container_format]))
+        if encoder not in SwingSequencePlayblast.VIDEO_ENCODER_LOOKUP[container_format]:
+            self.log_error("Invalid encoder: {0}. Expected one of {1}".format(encoder, SwingSequencePlayblast.VIDEO_ENCODER_LOOKUP[container_format]))
             return
 
         self._container_format = container_format
         self._encoder = encoder
 
     def set_h264_settings(self, quality, preset):
-        if not quality in SwingPlayblast.H264_QUALITIES.keys():
-            self.log_error("Invalid h264 quality: {0}. Expected one of {1}".format(quality, SwingPlayblast.H264_QUALITIES.keys()))
+        if not quality in SwingSequencePlayblast.H264_QUALITIES.keys():
+            self.log_error("Invalid h264 quality: {0}. Expected one of {1}".format(quality, SwingSequencePlayblast.H264_QUALITIES.keys()))
             return
 
-        if not preset in SwingPlayblast.H264_PRESETS:
-            self.log_error("Invalid h264 preset: {0}. Expected one of {1}".format(preset, SwingPlayblast.H264_PRESETS))
+        if not preset in SwingSequencePlayblast.H264_PRESETS:
+            self.log_error("Invalid h264 preset: {0}. Expected one of {1}".format(preset, SwingSequencePlayblast.H264_PRESETS))
             return
 
         self._h264_quality = quality
@@ -137,20 +127,10 @@ class SwingPlayblast(SwingMaya):
             "preset": self._h264_preset,
         }
 
-    def set_image_settings(self, quality):
-        if quality > 0 and quality <= 100:
-            self._image_quality = quality
-        else:
-            self.log_error("Invalid image quality: {0}. Expected value between 1-100")
 
-    def get_image_settings(self):
-        return {
-            "quality": self._image_quality,
-        }
-
-    # expects filename without extension
+    # expects a directory and a shot list
     #
-    def execute(self, target_file_name, padding=4, overscan=False, show_ornaments=True, show_in_viewer=True, overwrite=False, time_code = True, time_code_border = True, frame_numbers = True, caption = None):
+    def execute(self, target_file_name, padding=4, overscan=False, show_ornaments=True, show_in_viewer=True, overwrite=False, time_code = True, time_code_border = True, frame_numbers = True, caption = None, shot_list = []):
         file_parts = os.path.split(target_file_name)
 
         output_dir = file_parts[0]
@@ -165,7 +145,7 @@ class SwingPlayblast(SwingMaya):
         self.log_output("playblast: filename [{}]".format(filename))        
         self.log_output("playblast: output_dir [{}]".format(output_dir))        
 
-        if self.requires_ffmpeg() and not self.validate_ffmpeg():
+        if not self.validate_ffmpeg():
             self.log_error("ffmpeg executable is not configured. See script editor for details.")
             return
 
@@ -175,41 +155,31 @@ class SwingPlayblast(SwingMaya):
             return
 
         if padding <= 0:
-            padding = SwingPlayblast.DEFAULT_PADDING
+            padding = SwingSequencePlayblast.DEFAULT_PADDING
 
-        if self.requires_ffmpeg():
+        # create target dir if it doesn't exist
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
 
-            # create target dir if it doesn't exist
-            if not os.path.exists(output_dir):
-                os.makedirs(output_dir)
+        # sets target file name, adds' container extension
+        output_path = os.path.normpath(os.path.join(output_dir, "{0}.{1}".format(filename, self._container_format)))
+        self.log_output("Playblast: output_path: {}".format(output_path))
 
-            # sets target file name, adds' container extension
-            output_path = os.path.normpath(os.path.join(output_dir, "{0}.{1}".format(filename, self._container_format)))
-            self.log_output("Playblast: output_path: {}".format(output_path))
+        if not overwrite and os.path.exists(output_path):
+            self.log_error("Output file already exists. Enable overwrite to ignore.")
+            return
 
-            if not overwrite and os.path.exists(output_path):
-                self.log_error("Output file already exists. Enable overwrite to ignore.")
-                return
+        playblast_output_dir = os.path.join(output_dir, "playblast_temp")
+        self.log_output("Playblast: playblast_output_dir: {}".format(playblast_output_dir))
 
-            playblast_output_dir = os.path.join(output_dir, "playblast_temp")
-            self.log_output("Playblast: playblast_output_dir: {}".format(playblast_output_dir))
+        playblast_output = os.path.join(output_dir, "playblast_temp", filename)
+        self.log_output("Playblast: playblast_output: {}".format(playblast_output))
 
-            playblast_output = os.path.join(output_dir, "playblast_temp", filename)
-            self.log_output("Playblast: playblast_output: {}".format(playblast_output))
-
-            force_overwrite = True
-            compression = "png"
-            image_quality = 100
-            index_from_zero = True
-            viewer = False
-        else:
-            playblast_output = os.path.normpath(os.path.join(output_dir, filename))
-
-            force_overwrite = overwrite
-            compression = self._encoder
-            image_quality = self._image_quality
-            index_from_zero = False
-            viewer = show_in_viewer
+        force_overwrite = True
+        compression = "png"
+        image_quality = 100
+        index_from_zero = True
+        viewer = False
 
         widthHeight = self.get_resolution_width_height()
         start_frame, end_frame = self.get_start_end_frame()
@@ -277,23 +247,19 @@ class SwingPlayblast(SwingMaya):
         if playblast_failed:
             return
 
-        if self.requires_ffmpeg():
-            source_path = "{0}/{1}.%0{2}d.png".format(playblast_output_dir, os.path.basename(filename), padding)
+        source_path = "{0}/{1}.%0{2}d.png".format(playblast_output_dir, os.path.basename(filename), padding)
 
-            if self._encoder == "h264":
-                self.encode_h264(source_path, output_path, start_frame, time_code, time_code_border, frame_numbers, caption)
-            else:
-                self.log_error("Encoding failed. Unsupported encoder ({0}) for container ({1}).".format(self._encoder, self._container_format))
-                self.remove_temp_dir(playblast_output_dir)
-                return
-
+        if self._encoder == "h264":
+            self.encode_h264(source_path, output_path, start_frame, time_code, time_code_border, frame_numbers, caption)
+        else:
+            self.log_error("Encoding failed. Unsupported encoder ({0}) for container ({1}).".format(self._encoder, self._container_format))
             self.remove_temp_dir(playblast_output_dir)
+            return
 
-            if show_in_viewer:
-                self.open_in_viewer(output_path)
+        self.remove_temp_dir(playblast_output_dir)
 
-    def requires_ffmpeg(self):
-        return self._container_format != "Image"
+        if show_in_viewer:
+            self.open_in_viewer(output_path)
 
     def validate_ffmpeg(self):
         if not self._ffmpeg_path:
@@ -336,7 +302,7 @@ class SwingPlayblast(SwingMaya):
         if audio_file_path:
             audio_offset = self.get_audio_offset_in_sec(start_frame, audio_frame_offset, framerate)
 
-        crf = SwingPlayblast.H264_QUALITIES[self._h264_quality]
+        crf = SwingSequencePlayblast.H264_QUALITIES[self._h264_quality]
         preset = self._h264_preset
 
         ffmpeg_cmd = self._ffmpeg_path
@@ -362,7 +328,7 @@ class SwingPlayblast(SwingMaya):
                 filters.append("drawtext=font=Consolas: fontsize=18: fontcolor=white: x=5: y=20: timecode='00\:00\:00\:00': r={}: ".format(framerate))
 
         if frame_number:
-                filters.append("drawtext=font=Consolas: fontsize=18: fontcolor=white: x=(w-text_w)-5: y=20: start_number=1: text='%{frame_num}' ")
+            filters.append("drawtext=font=Consolas: fontsize=18: fontcolor=white: x=(w-text_w)-5: y=20: start_number=1: text='%{frame_num}' ")
 
         for i in range(len(filters)):
             text_graph += filters[i]
@@ -382,11 +348,10 @@ class SwingPlayblast(SwingMaya):
         self.log_output(ffmpeg_cmd)
         self.execute_ffmpeg_command(ffmpeg_cmd)        
 
-class SwingPlayblastEncoderSettingsDialog(QtWidgets.QDialog):
+class SwingSequencePlayblastEncoderSettingsDialog(QtWidgets.QDialog):
 
     ENCODER_PAGES = {
-        "h264": 0,
-        "Image": 1,
+        "h264": 0
     }
 
     H264_QUALITIES = [
@@ -396,9 +361,8 @@ class SwingPlayblastEncoderSettingsDialog(QtWidgets.QDialog):
         "Low",
     ]
 
-
     def __init__(self, parent):
-        super(SwingPlayblastEncoderSettingsDialog, self).__init__(parent)
+        super(SwingSequencePlayblastEncoderSettingsDialog, self).__init__(parent)
 
         self.setWindowTitle("Encoder Settings")
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
@@ -412,10 +376,10 @@ class SwingPlayblastEncoderSettingsDialog(QtWidgets.QDialog):
     def create_widgets(self):
         # h264
         self.h264_quality_combo = QtWidgets.QComboBox()
-        self.h264_quality_combo.addItems(SwingPlayblastEncoderSettingsDialog.H264_QUALITIES)
+        self.h264_quality_combo.addItems(SwingSequencePlayblastEncoderSettingsDialog.H264_QUALITIES)
 
         self.h264_preset_combo = QtWidgets.QComboBox()
-        self.h264_preset_combo.addItems(SwingPlayblast.H264_PRESETS)
+        self.h264_preset_combo.addItems(SwingSequencePlayblast.H264_PRESETS)
 
         h264_layout = QtWidgets.QFormLayout()
         h264_layout.addRow("Quality:", self.h264_quality_combo)
@@ -424,22 +388,8 @@ class SwingPlayblastEncoderSettingsDialog(QtWidgets.QDialog):
         h264_settings_wdg = QtWidgets.QGroupBox("h264 Options")
         h264_settings_wdg.setLayout(h264_layout)
 
-        # image
-        self.image_quality_sb = QtWidgets.QSpinBox()
-        self.image_quality_sb.setMinimumWidth(40)
-        self.image_quality_sb.setButtonSymbols(QtWidgets.QSpinBox.NoButtons)
-        self.image_quality_sb.setMinimum(1)
-        self.image_quality_sb.setMaximum(100)
-
-        image_layout = QtWidgets.QFormLayout()
-        image_layout.addRow("Quality:", self.image_quality_sb)
-
-        image_settings_wdg = QtWidgets.QGroupBox("Image Options")
-        image_settings_wdg.setLayout(image_layout)
-
         self.settings_stacked_wdg = QtWidgets.QStackedWidget()
         self.settings_stacked_wdg.addWidget(h264_settings_wdg)
-        self.settings_stacked_wdg.addWidget(image_settings_wdg)
 
         self.accept_btn = QtWidgets.QPushButton("Accept")
         self.cancel_btn = QtWidgets.QPushButton("Cancel")
@@ -461,10 +411,10 @@ class SwingPlayblastEncoderSettingsDialog(QtWidgets.QDialog):
         self.cancel_btn.clicked.connect(self.close)
 
     def set_page(self, page):
-        if not page in SwingPlayblastEncoderSettingsDialog.ENCODER_PAGES:
+        if not page in SwingSequencePlayblastEncoderSettingsDialog.ENCODER_PAGES:
             return False
 
-        self.settings_stacked_wdg.setCurrentIndex(SwingPlayblastEncoderSettingsDialog.ENCODER_PAGES[page])
+        self.settings_stacked_wdg.setCurrentIndex(SwingSequencePlayblastEncoderSettingsDialog.ENCODER_PAGES[page])
         return True
 
     def set_h264_settings(self, quality, preset):
@@ -477,19 +427,10 @@ class SwingPlayblastEncoderSettingsDialog(QtWidgets.QDialog):
             "preset": self.h264_preset_combo.currentText(),
         }
 
-    def set_image_settings(self, quality):
-        self.image_quality_sb.setValue(quality)
-
-    def get_image_settings(self):
-        return {
-            "quality": self.image_quality_sb.value(),
-        }
-
-
-class SwingPlayblastVisibilityDialog(QtWidgets.QDialog):
+class SwingSequencePlayblastVisibilityDialog(QtWidgets.QDialog):
 
     def __init__(self, parent):
-        super(SwingPlayblastVisibilityDialog, self).__init__(parent)
+        super(SwingSequencePlayblastVisibilityDialog, self).__init__(parent)
 
         self.setWindowTitle("Customize Visibility")
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
@@ -500,8 +441,8 @@ class SwingPlayblastVisibilityDialog(QtWidgets.QDialog):
         index = 0
         self.visibility_checkboxes = []
 
-        for i in range(len(SwingPlayblast.VIEWPORT_VISIBILITY_LOOKUP)):
-            checkbox = QtWidgets.QCheckBox(SwingPlayblast.VIEWPORT_VISIBILITY_LOOKUP[i][0])
+        for i in range(len(SwingSequencePlayblast.VIEWPORT_VISIBILITY_LOOKUP)):
+            checkbox = QtWidgets.QCheckBox(SwingSequencePlayblast.VIEWPORT_VISIBILITY_LOOKUP[i][0])
 
             visibility_layout.addWidget(checkbox, index / 3, index % 3)
             self.visibility_checkboxes.append(checkbox)
@@ -545,16 +486,14 @@ class SwingPlayblastVisibilityDialog(QtWidgets.QDialog):
 
 
 
-class SwingPlayblastUi(QtWidgets.QDialog, Ui_PlayblastDialog):
+class SwingSequencePlayblastUi(QtWidgets.QDialog, Ui_SequencePlayblastDialog):
 
-    TITLE = "Swing Playblast"
+    TITLE = "Swing Sequence Playblast"
 
     _caption = False
 
     CONTAINER_PRESETS = [
-        # "mov",
-        "mp4",
-        "Image",
+        "mp4"
     ]
 
     RESOLUTION_PRESETS = [
@@ -575,7 +514,7 @@ class SwingPlayblastUi(QtWidgets.QDialog, Ui_PlayblastDialog):
     @classmethod
     def show_dialog(cls):
         if not cls.dlg_instance:
-            cls.dlg_instance = SwingPlayblastUi()
+            cls.dlg_instance = SwingSequencePlayblastUi()
 
         if cls.dlg_instance.isHidden():
             cls.dlg_instance.show()
@@ -591,14 +530,14 @@ class SwingPlayblastUi(QtWidgets.QDialog, Ui_PlayblastDialog):
             else:
                 maya_main_window = wrapInstance(int(omui.MQtUtil.mainWindow()), QtWidgets.QWidget)
 
-            super(SwingPlayblastUi, self).__init__(maya_main_window)
+            super(SwingSequencePlayblastUi, self).__init__(maya_main_window)
         except:
-            super(SwingPlayblastUi, self).__init__()
+            super(SwingSequencePlayblastUi, self).__init__()
 
         self.setupUi(self)
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
 
-        self._playblast = SwingPlayblast()
+        self._playblast = SwingSequencePlayblast()
 
         self._encoder_settings_dialog = None
         self._visibility_dialog = None
@@ -608,13 +547,13 @@ class SwingPlayblastUi(QtWidgets.QDialog, Ui_PlayblastDialog):
         self.create_actions()
         self.create_menus()
 
-        # Set cameras
-        self.refresh_cameras()
+        # Set shots
+        self.refresh_shots()
 
         # Select Resolution
-        self.resolution_select_cmb.addItems(SwingPlayblastUi.RESOLUTION_PRESETS)
+        self.resolution_select_cmb.addItems(SwingSequencePlayblastUi.RESOLUTION_PRESETS)
         self.resolution_select_cmb.addItem("Custom")
-        self.resolution_select_cmb.setCurrentText(SwingPlayblast.DEFAULT_RESOLUTION)
+        self.resolution_select_cmb.setCurrentText(SwingSequencePlayblast.DEFAULT_RESOLUTION)
 
         self.resolution_width_sb.setButtonSymbols(QtWidgets.QSpinBox.NoButtons)
         self.resolution_width_sb.setRange(1, 9999)
@@ -626,28 +565,14 @@ class SwingPlayblastUi(QtWidgets.QDialog, Ui_PlayblastDialog):
         self.resolution_height_sb.setMinimumWidth(40)
         self.resolution_height_sb.setAlignment(QtCore.Qt.AlignRight)
 
-        # Frame Rane
-        self.frame_range_cmb.addItems(SwingPlayblast.FRAME_RANGE_PRESETS)
-        self.frame_range_cmb.addItem("Custom")
-        self.frame_range_cmb.setCurrentText(SwingPlayblast.DEFAULT_FRAME_RANGE)
-
-        self.frame_range_start_sb.setButtonSymbols(QtWidgets.QSpinBox.NoButtons)
-        self.frame_range_start_sb.setRange(-9999, 9999)
-        self.frame_range_start_sb.setMinimumWidth(40)
-        self.frame_range_start_sb.setAlignment(QtCore.Qt.AlignRight)
-
-        self.frame_range_end_sb.setButtonSymbols(QtWidgets.QSpinBox.NoButtons)
-        self.frame_range_end_sb.setRange(-9999, 9999)
-        self.frame_range_end_sb.setMinimumWidth(40)
-
         # Encoding
-        self.encoding_container_cmb.addItems(SwingPlayblastUi.CONTAINER_PRESETS)
-        self.encoding_container_cmb.setCurrentText(SwingPlayblast.DEFAULT_CONTAINER)
+        self.encoding_container_cmb.addItems(SwingSequencePlayblastUi.CONTAINER_PRESETS)
+        self.encoding_container_cmb.setCurrentText(SwingSequencePlayblast.DEFAULT_CONTAINER)
 
         # Visibility
-        self.visibility_cmb.addItems(SwingPlayblastUi.VISIBILITY_PRESETS)
+        self.visibility_cmb.addItems(SwingSequencePlayblastUi.VISIBILITY_PRESETS)
         self.visibility_cmb.addItem("Custom")
-        self.visibility_cmb.setCurrentText(SwingPlayblast.DEFAULT_VISIBILITY)
+        self.visibility_cmb.setCurrentText(SwingSequencePlayblast.DEFAULT_VISIBILITY)
 
         # Options
         self.overscan_cb.setChecked(False)
@@ -685,15 +610,6 @@ class SwingPlayblastUi(QtWidgets.QDialog, Ui_PlayblastDialog):
 
     def create_connections(self):
 
-        # Camera
-        self.camera_select_cmb.currentTextChanged.connect(self.on_camera_changed)
-        self.camera_select_hide_defaults_cb.toggled.connect(self.refresh_cameras)
-
-        # Frame Range
-        self.frame_range_cmb.currentTextChanged.connect(self.refresh_frame_range)
-        self.frame_range_start_sb.editingFinished.connect(self.on_frame_range_changed)
-        self.frame_range_end_sb.editingFinished.connect(self.on_frame_range_changed)
-
         # Encoding
         self.encoding_container_cmb.currentTextChanged.connect(self.refresh_video_encoders)
         self.encoding_video_codec_cmb.currentTextChanged.connect(self.on_video_encoder_changed)
@@ -713,6 +629,10 @@ class SwingPlayblastUi(QtWidgets.QDialog, Ui_PlayblastDialog):
         self.clear_btn.clicked.connect(self.output_edit.clear)
         self.playblast_btn.clicked.connect(self.do_playblast)
         self.close_btn.clicked.connect(self.do_close)
+        #
+
+        self.select_shots_btn.clicked.connect(self.do_select_shots)
+
 
         self.output_dir_path_select_btn.clicked.connect(self.select_output_filename)
         self.output_dir_path_show_folder_btn.clicked.connect(self.open_output_folder)
@@ -725,9 +645,6 @@ class SwingPlayblastUi(QtWidgets.QDialog, Ui_PlayblastDialog):
     def set_burn_time_code(self, should_burn):
         self.checkBoxTimeCode.setChecked(should_burn)
 
-    #def set_burn_time_code_border(self, should_burn):
-    #    self.checkBoxBackground.setChecked(should_burn)
-
     def set_burn_frame_number(self, should_burn):
         self.checkBoxFrameNumber.setChecked(should_burn)
 
@@ -735,13 +652,17 @@ class SwingPlayblastUi(QtWidgets.QDialog, Ui_PlayblastDialog):
         dir_path = self.output_filename_le.text()
         open_folder(os.path.dirname(dir_path))
 
+    def do_select_shots(self):
+        dialog = ShotListDialog(self, self.shots)
+        dialog.show()
+
     def do_close(self):
         self.write_settings()
         self.close()
 
     def do_playblast(self):
         filename = self.output_filename_le.text()
-        padding = SwingPlayblast.DEFAULT_PADDING
+        padding = SwingSequencePlayblast.DEFAULT_PADDING
 
         overscan = self.overscan_cb.isChecked()
         show_ornaments = self.ornaments_cb.isChecked()
@@ -775,17 +696,8 @@ class SwingPlayblastUi(QtWidgets.QDialog, Ui_PlayblastDialog):
 
         selected_file = os.path.normpath(current_filename)
 
-        #file_info = QtCore.QFileInfo(selected_file)
-
-        #if not file_info.exists():
-        #    current_dir_path = self._playblast.get_project_dir_path()
-
         format = self.encoding_container_cmb.currentText()
-        filter = ""
-        if "Image" in format:
-            filter = "images (*.png);;All files (*.*)"
-        else:
-            filter = "mp4 (*.mp4);;All files (*.*)"
+        filter = "mp4 (*.mp4);;All files (*.*)"
 
         new_filename = QtWidgets.QFileDialog.getSaveFileName(self, "Select file name", selected_file, filter)
         if new_filename:
@@ -800,33 +712,13 @@ class SwingPlayblastUi(QtWidgets.QDialog, Ui_PlayblastDialog):
         self.output_filename_le.setText(new_file_name)
 
     def refresh(self):
-        self.refresh_cameras()
+        self.refresh_shots()
         self.refresh_resolution()
-        self.refresh_frame_range()
+        #self.refresh_frame_range()
         self.refresh_video_encoders()
 
-    def refresh_cameras(self):
-        current_camera = self.camera_select_cmb.currentText()
-        self.camera_select_cmb.clear()
-
-        self.camera_select_cmb.addItem("<Active>")
-
-        cameras = cmds.listCameras()
-        if self.camera_select_hide_defaults_cb.isChecked():
-            for camera in cameras:
-                if camera not in ["front", "persp", "side", "top"]:
-                    self.camera_select_cmb.addItem(camera)
-        else:
-            self.camera_select_cmb.addItems(cameras)
-
-        self.camera_select_cmb.setCurrentText(current_camera)
-
-    def on_camera_changed(self):
-        camera = self.camera_select_cmb.currentText()
-        if camera == "<Active>":
-            camera = None
-
-        self._playblast.set_camera(camera)
+    def refresh_shots(self):
+        self.shots = cmds.ls(type="shot")
 
     def refresh_resolution(self):
         resolution_preset = self.resolution_select_cmb.currentText()
@@ -840,8 +732,8 @@ class SwingPlayblastUi(QtWidgets.QDialog, Ui_PlayblastDialog):
     def on_resolution_changed(self):
         resolution = (self.resolution_width_sb.value(), self.resolution_height_sb.value())
 
-        for key in SwingPlayblast.RESOLUTION_LOOKUP.keys():
-            if SwingPlayblast.RESOLUTION_LOOKUP[key] == resolution:
+        for key in SwingSequencePlayblast.RESOLUTION_LOOKUP.keys():
+            if SwingSequencePlayblast.RESOLUTION_LOOKUP[key] == resolution:
                 self.resolution_select_cmb.setCurrentText(key)
                 return
 
@@ -849,27 +741,11 @@ class SwingPlayblastUi(QtWidgets.QDialog, Ui_PlayblastDialog):
 
         self._playblast.set_resolution(resolution)
 
-    def refresh_frame_range(self):
-        frame_range_preset = self.frame_range_cmb.currentText()
-        if frame_range_preset != "Custom":
-            frame_range = self._playblast.preset_to_frame_range(frame_range_preset)
-
-            self.frame_range_start_sb.setValue(frame_range[0])
-            self.frame_range_end_sb.setValue(frame_range[1])
-
-            self._playblast.set_frame_range(frame_range_preset)
-
-    def on_frame_range_changed(self):
-        self.frame_range_cmb.setCurrentText("Custom")
-
-        frame_range = (self.frame_range_start_sb.value(), self.frame_range_end_sb.value())
-        self._playblast.set_frame_range(frame_range)
-
     def refresh_video_encoders(self):
         self.encoding_video_codec_cmb.clear()
 
         container = self.encoding_container_cmb.currentText()
-        self.encoding_video_codec_cmb.addItems(SwingPlayblast.VIDEO_ENCODER_LOOKUP[container])
+        self.encoding_video_codec_cmb.addItems(SwingSequencePlayblast.VIDEO_ENCODER_LOOKUP[container])
 
     def on_video_encoder_changed(self):
         container = self.encoding_container_cmb.currentText()
@@ -880,24 +756,17 @@ class SwingPlayblastUi(QtWidgets.QDialog, Ui_PlayblastDialog):
 
     def show_encoder_settings_dialog(self):
         if not self._encoder_settings_dialog:
-            self._encoder_settings_dialog = SwingPlayblastEncoderSettingsDialog(self)
+            self._encoder_settings_dialog = SwingSequencePlayblastEncoderSettingsDialog(self)
             self._encoder_settings_dialog.accepted.connect(self.on_encoder_settings_dialog_modified)
 
-        if self.encoding_container_cmb.currentText() == "Image":
-            self._encoder_settings_dialog.set_page("Image")
+        encoder = self.encoding_video_codec_cmb.currentText()
+        if encoder == "h264":
+            self._encoder_settings_dialog.set_page("h264")
 
-            image_settings = self._playblast.get_image_settings()
-            self._encoder_settings_dialog.set_image_settings(image_settings["quality"])
-
+            h264_settings = self._playblast.get_h264_settings()
+            self._encoder_settings_dialog.set_h264_settings(h264_settings["quality"], h264_settings["preset"])
         else:
-            encoder = self.encoding_video_codec_cmb.currentText()
-            if encoder == "h264":
-                self._encoder_settings_dialog.set_page("h264")
-
-                h264_settings = self._playblast.get_h264_settings()
-                self._encoder_settings_dialog.set_h264_settings(h264_settings["quality"], h264_settings["preset"])
-            else:
-                self.append_output("[ERROR] Settings page not found for encoder: {0}".format(encoder))
+            self.append_output("[ERROR] Settings page not found for encoder: {0}".format(encoder))
 
         self._encoder_settings_dialog.show()
 
@@ -920,7 +789,7 @@ class SwingPlayblastUi(QtWidgets.QDialog, Ui_PlayblastDialog):
 
     def show_visibility_dialog(self):
         if not self._visibility_dialog:
-            self._visibility_dialog = SwingPlayblastVisibilityDialog(self)
+            self._visibility_dialog = SwingSequencePlayblastVisibilityDialog(self)
             self._visibility_dialog.accepted.connect(self.on_visibility_dialog_modified)
 
         self._visibility_dialog.set_visibility_data(self._playblast.get_visibility())
@@ -970,95 +839,76 @@ class SwingPlayblastUi(QtWidgets.QDialog, Ui_PlayblastDialog):
             print("Error: ffmpeg not loaded")
 
     def save_defaults(self):
-        cmds.optionVar(sv=("SwingPlayblastUiOutputFilename", self.output_filename_le.text()))
-        cmds.optionVar(iv=("SwingPlayblastUiForceOverwrite", self.force_overwrite_cb.isChecked()))
+        cmds.optionVar(sv=("SwingSequencePlayblastUiOutputFilename", self.output_filename_le.text()))
+        cmds.optionVar(iv=("SwingSequencePlayblastUiForceOverwrite", self.force_overwrite_cb.isChecked()))
 
-        cmds.optionVar(sv=("SwingPlayblastUiCamera", self.camera_select_cmb.currentText()))
-        cmds.optionVar(iv=("SwingPlayblastUiHideDefaultCameras", self.camera_select_hide_defaults_cb.isChecked()))
+        cmds.optionVar(sv=("SwingSequencePlayblastUiCamera", self.camera_select_cmb.currentText()))
+        cmds.optionVar(iv=("SwingSequencePlayblastUiHideDefaultCameras", self.camera_select_hide_defaults_cb.isChecked()))
 
-        cmds.optionVar(sv=("SwingPlayblastUiResolutionPreset", self.resolution_select_cmb.currentText()))
-        cmds.optionVar(iv=("SwingPlayblastUiResolutionWidth", self.resolution_width_sb.value()))
-        cmds.optionVar(iv=("SwingPlayblastUiResolutionHeight", self.resolution_height_sb.value()))
+        cmds.optionVar(sv=("SwingSequencePlayblastUiResolutionPreset", self.resolution_select_cmb.currentText()))
+        cmds.optionVar(iv=("SwingSequencePlayblastUiResolutionWidth", self.resolution_width_sb.value()))
+        cmds.optionVar(iv=("SwingSequencePlayblastUiResolutionHeight", self.resolution_height_sb.value()))
 
-        cmds.optionVar(sv=("SwingPlayblastUiFrameRangePreset", self.frame_range_cmb.currentText()))
-        cmds.optionVar(iv=("SwingPlayblastUiFrameRangeStart", self.frame_range_start_sb.value()))
-        cmds.optionVar(iv=("SwingPlayblastUiFrameRangeEnd", self.frame_range_end_sb.value()))
-
-        cmds.optionVar(sv=("SwingPlayblastUiEncodingContainer", self.encoding_container_cmb.currentText()))
-        cmds.optionVar(sv=("SwingPlayblastUiEncodingVideoCodec", self.encoding_video_codec_cmb.currentText()))
+        cmds.optionVar(sv=("SwingSequencePlayblastUiEncodingContainer", self.encoding_container_cmb.currentText()))
+        cmds.optionVar(sv=("SwingSequencePlayblastUiEncodingVideoCodec", self.encoding_video_codec_cmb.currentText()))
 
         h264_settings = self._playblast.get_h264_settings()
-        cmds.optionVar(sv=("SwingPlayblastUiH264Quality", h264_settings["quality"]))
-        cmds.optionVar(sv=("SwingPlayblastUiH264Preset", h264_settings["preset"]))
+        cmds.optionVar(sv=("SwingSequencePlayblastUiH264Quality", h264_settings["quality"]))
+        cmds.optionVar(sv=("SwingSequencePlayblastUiH264Preset", h264_settings["preset"]))
 
         image_settings = self._playblast.get_image_settings()
-        cmds.optionVar(iv=("SwingPlayblastUiImageQuality", image_settings["quality"]))
+        cmds.optionVar(iv=("SwingSequencePlayblastUiImageQuality", image_settings["quality"]))
 
-        cmds.optionVar(sv=("SwingPlayblastUiVisibilityPreset", self.visibility_cmb.currentText()))
+        cmds.optionVar(sv=("SwingSequencePlayblastUiVisibilityPreset", self.visibility_cmb.currentText()))
 
         visibility_data = self._playblast.get_visibility()
         visibility_str = ""
         for item in visibility_data:
             visibility_str = "{0} {1}".format(visibility_str, int(item))
-        cmds.optionVar(sv=("SwingPlayblastUiVisibilityData", visibility_str))
+        cmds.optionVar(sv=("SwingSequencePlayblastUiVisibilityData", visibility_str))
 
-        cmds.optionVar(iv=("SwingPlayblastUiOverscan", self.overscan_cb.isChecked()))
-        cmds.optionVar(iv=("SwingPlayblastUiOrnaments", self.ornaments_cb.isChecked()))
-        cmds.optionVar(iv=("SwingPlayblastUiViewer", self.viewer_cb.isChecked()))
+        cmds.optionVar(iv=("SwingSequencePlayblastUiOverscan", self.overscan_cb.isChecked()))
+        cmds.optionVar(iv=("SwingSequencePlayblastUiOrnaments", self.ornaments_cb.isChecked()))
+        cmds.optionVar(iv=("SwingSequencePlayblastUiViewer", self.viewer_cb.isChecked()))
 
-        cmds.optionVar(iv=("SwingPLayblastBurnTimeCode", self.checkBoxTimeCode.isChecked()))
-        # cmds.optionVar(iv=("SwingPlayblastBurnBorder", self.checkBoxBackground.isChecked()))
-        cmds.optionVar(iv=("SwingPlayblastBurnFrameNumbers", self.checkBoxFrameNumber.isChecked()))
+        cmds.optionVar(iv=("SwingSequencePlayblastBurnTimeCode", self.checkBoxTimeCode.isChecked()))
+        cmds.optionVar(iv=("SwingSequencePlayblastBurnFrameNumbers", self.checkBoxFrameNumber.isChecked()))
 
 
     def load_defaults(self):
         if _stand_alone:
             return 
 
-        if cmds.optionVar(exists="SwingPlayblastUiOutputFilename"):
-            self.output_filename_le.setText(cmds.optionVar(q="SwingPlayblastUiOutputFilename"))
-        if cmds.optionVar(exists="SwingPlayblastUiForceOverwrite"):
-            self.force_overwrite_cb.setChecked(cmds.optionVar(q="SwingPlayblastUiForceOverwrite"))
+        if cmds.optionVar(exists="SwingSequencePlayblastUiOutputFilename"):
+            self.output_filename_le.setText(cmds.optionVar(q="SwingSequencePlayblastUiOutputFilename"))
+        if cmds.optionVar(exists="SwingSequencePlayblastUiForceOverwrite"):
+            self.force_overwrite_cb.setChecked(cmds.optionVar(q="SwingSequencePlayblastUiForceOverwrite"))
 
-        if cmds.optionVar(exists="SwingPlayblastUiCamera"):
-            self.camera_select_cmb.setCurrentText(cmds.optionVar(q="SwingPlayblastUiCamera"))
-        if cmds.optionVar(exists="SwingPlayblastUiHideDefaultCameras"):
-            self.camera_select_hide_defaults_cb.setChecked(cmds.optionVar(q="SwingPlayblastUiHideDefaultCameras"))
-
-        if cmds.optionVar(exists="SwingPlayblastUiResolutionPreset"):
-            self.resolution_select_cmb.setCurrentText(cmds.optionVar(q="SwingPlayblastUiResolutionPreset"))
+        if cmds.optionVar(exists="SwingSequencePlayblastUiResolutionPreset"):
+            self.resolution_select_cmb.setCurrentText(cmds.optionVar(q="SwingSequencePlayblastUiResolutionPreset"))
         if self.resolution_select_cmb.currentText() == "Custom":
-            if cmds.optionVar(exists="SwingPlayblastUiResolutionWidth"):
-                self.resolution_width_sb.setValue(cmds.optionVar(q="SwingPlayblastUiResolutionWidth"))
-            if cmds.optionVar(exists="SwingPlayblastUiResolutionHeight"):
-                self.resolution_height_sb.setValue(cmds.optionVar(q="SwingPlayblastUiResolutionHeight"))
+            if cmds.optionVar(exists="SwingSequencePlayblastUiResolutionWidth"):
+                self.resolution_width_sb.setValue(cmds.optionVar(q="SwingSequencePlayblastUiResolutionWidth"))
+            if cmds.optionVar(exists="SwingSequencePlayblastUiResolutionHeight"):
+                self.resolution_height_sb.setValue(cmds.optionVar(q="SwingSequencePlayblastUiResolutionHeight"))
             self.on_resolution_changed()
 
-        if cmds.optionVar(exists="SwingPlayblastUiFrameRangePreset"):
-            self.frame_range_cmb.setCurrentText(cmds.optionVar(q="SwingPlayblastUiFrameRangePreset"))
-        if self.frame_range_cmb.currentText() == "Custom":
-            if cmds.optionVar(exists="SwingPlayblastUiFrameRangeStart"):
-                self.frame_range_start_sb.setValue(cmds.optionVar(q="SwingPlayblastUiFrameRangeStart"))
-            if cmds.optionVar(exists="SwingPlayblastUiFrameRangeEnd"):
-                self.frame_range_end_sb.setValue(cmds.optionVar(q="SwingPlayblastUiFrameRangeEnd"))
-            self.on_frame_range_changed()
+        if cmds.optionVar(exists="SwingSequencePlayblastUiEncodingContainer"):
+            self.encoding_container_cmb.setCurrentText(cmds.optionVar(q="SwingSequencePlayblastUiEncodingContainer"))
+        if cmds.optionVar(exists="SwingSequencePlayblastUiEncodingVideoCodec"):
+            self.encoding_video_codec_cmb.setCurrentText(cmds.optionVar(q="SwingSequencePlayblastUiEncodingVideoCodec"))
 
-        if cmds.optionVar(exists="SwingPlayblastUiEncodingContainer"):
-            self.encoding_container_cmb.setCurrentText(cmds.optionVar(q="SwingPlayblastUiEncodingContainer"))
-        if cmds.optionVar(exists="SwingPlayblastUiEncodingVideoCodec"):
-            self.encoding_video_codec_cmb.setCurrentText(cmds.optionVar(q="SwingPlayblastUiEncodingVideoCodec"))
+        if cmds.optionVar(exists="SwingSequencePlayblastUiH264Quality") and cmds.optionVar(exists="SwingSequencePlayblastUiH264Preset"):
+            self._playblast.set_h264_settings(cmds.optionVar(q="SwingSequencePlayblastUiH264Quality"), cmds.optionVar(q="SwingSequencePlayblastUiH264Preset"))
 
-        if cmds.optionVar(exists="SwingPlayblastUiH264Quality") and cmds.optionVar(exists="SwingPlayblastUiH264Preset"):
-            self._playblast.set_h264_settings(cmds.optionVar(q="SwingPlayblastUiH264Quality"), cmds.optionVar(q="SwingPlayblastUiH264Preset"))
+        if cmds.optionVar(exists="SwingSequencePlayblastUiImageQuality"):
+            self._playblast.set_image_settings(cmds.optionVar(q="SwingSequencePlayblastUiImageQuality"))
 
-        if cmds.optionVar(exists="SwingPlayblastUiImageQuality"):
-            self._playblast.set_image_settings(cmds.optionVar(q="SwingPlayblastUiImageQuality"))
-
-        if cmds.optionVar(exists="SwingPlayblastUiVisibilityPreset"):
-            self.visibility_cmb.setCurrentText(cmds.optionVar(q="SwingPlayblastUiVisibilityPreset"))
+        if cmds.optionVar(exists="SwingSequencePlayblastUiVisibilityPreset"):
+            self.visibility_cmb.setCurrentText(cmds.optionVar(q="SwingSequencePlayblastUiVisibilityPreset"))
         if self.visibility_cmb.currentText() == "Custom":
-            if cmds.optionVar(exists="SwingPlayblastUiVisibilityData"):
-                visibility_str_list = cmds.optionVar(q="SwingPlayblastUiVisibilityData").split()
+            if cmds.optionVar(exists="SwingSequencePlayblastUiVisibilityData"):
+                visibility_str_list = cmds.optionVar(q="SwingSequencePlayblastUiVisibilityData").split()
                 visibility_data = []
                 for item in visibility_str_list:
                     if item:
@@ -1066,23 +916,23 @@ class SwingPlayblastUi(QtWidgets.QDialog, Ui_PlayblastDialog):
 
                 self._playblast.set_visibility(visibility_data)
 
-        if cmds.optionVar(exists="SwingPlayblastUiOverscan"):
-            self.overscan_cb.setChecked(cmds.optionVar(q="SwingPlayblastUiOverscan"))
-        if cmds.optionVar(exists="SwingPlayblastUiOrnaments"):
-            self.ornaments_cb.setChecked(cmds.optionVar(q="SwingPlayblastUiOrnaments"))
-        if cmds.optionVar(exists="SwingPlayblastUiViewer"):
-            self.viewer_cb.setChecked(cmds.optionVar(q="SwingPlayblastUiViewer"))
+        if cmds.optionVar(exists="SwingSequencePlayblastUiOverscan"):
+            self.overscan_cb.setChecked(cmds.optionVar(q="SwingSequencePlayblastUiOverscan"))
+        if cmds.optionVar(exists="SwingSequencePlayblastUiOrnaments"):
+            self.ornaments_cb.setChecked(cmds.optionVar(q="SwingSequencePlayblastUiOrnaments"))
+        if cmds.optionVar(exists="SwingSequencePlayblastUiViewer"):
+            self.viewer_cb.setChecked(cmds.optionVar(q="SwingSequencePlayblastUiViewer"))
 
-        if cmds.optionVar(exists="SwingPLayblastBurnTimeCode"):
-            self.checkBoxTimeCode.setChecked(cmds.optionVar(q="SwingPLayblastBurnTimeCode"))
-        #if cmds.optionVar(exists="SwingPlayblastBurnBorder"):
-        #    self.checkBoxBackground.setChecked(cmds.optionVar(q="SwingPlayblastBurnBorder"))
-        if cmds.optionVar(exists="SwingPlayblastBurnFrameNumbers"):
-            self.checkBoxFrameNumber.setChecked(cmds.optionVar(q="SwingPlayblastBurnFrameNumbers"))
+        if cmds.optionVar(exists="SwingSequencePlayblastBurnTimeCode"):
+            self.checkBoxTimeCode.setChecked(cmds.optionVar(q="SwingSequencePlayblastBurnTimeCode"))
+        #if cmds.optionVar(exists="SwingSequencePlayblastBurnBorder"):
+        #    self.checkBoxBackground.setChecked(cmds.optionVar(q="SwingSequencePlayblastBurnBorder"))
+        if cmds.optionVar(exists="SwingSequencePlayblastBurnFrameNumbers"):
+            self.checkBoxFrameNumber.setChecked(cmds.optionVar(q="SwingSequencePlayblastBurnFrameNumbers"))
 
     def show_about_dialog(self):
-        text = '<h2>{0}</h2>'.format(SwingPlayblastUi.TITLE)
-        text += '<p>Version: {0}</p>'.format(SwingPlayblast.VERSION)
+        text = '<h2>{0}</h2>'.format(SwingSequencePlayblastUi.TITLE)
+        text += '<p>Version: {0}</p>'.format(SwingSequencePlayblast.VERSION)
 
         QtWidgets.QMessageBox().about(self, "About", "{0}".format(text))
 
@@ -1090,7 +940,7 @@ class SwingPlayblastUi(QtWidgets.QDialog, Ui_PlayblastDialog):
         self.output_edit.appendPlainText(text)
 
     def keyPressEvent(self, event):
-        super(SwingPlayblastUi, self).keyPressEvent(event)
+        super(SwingSequencePlayblastUi, self).keyPressEvent(event)
 
         event.accept()
 

@@ -1,11 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import traceback
-import sys
-import os
-import copy
 from PySide2.QtGui import QStandardItem, QStandardItemModel
-import gazu
 
 # ==== auto Qt load ====
 try:
@@ -17,7 +12,7 @@ except ImportError:
     from PyQt5 import QtGui, QtCore, QtWidgets
     qtMode = 1
 
-from wildchildanimation.gui.file_list_dialog import Ui_fileListDialog
+from wildchildanimation.gui.shot_list_dialog import Ui_ShotListDialog
 
 
 '''
@@ -25,15 +20,15 @@ from wildchildanimation.gui.file_list_dialog import Ui_fileListDialog
     ################################################################################
 '''
 
-class FileListDialog(QtWidgets.QDialog, Ui_fileListDialog):
+class ShotListDialog(QtWidgets.QDialog, Ui_ShotListDialog):
 
-    def __init__(self, parent = None, file_list = []):
-        super(FileListDialog, self).__init__(parent) # Call the inherited classes __init__ method
+    def __init__(self, parent = None, shot_list = []):
+        super(ShotListDialog, self).__init__(parent) # Call the inherited classes __init__ method
         self.setupUi(self)
-        self.setWindowTitle("swing: select files")
 
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
-        self.file_list = file_list
+        self.setWindowTitle("swing: select shots")
+        self.shot_list = shot_list
 
         self.load()
         self.status = 'OK'
@@ -44,13 +39,19 @@ class FileListDialog(QtWidgets.QDialog, Ui_fileListDialog):
 
     def load(self):
         model = QStandardItemModel()
-        for item in self.file_list:
-            file_item = QStandardItem(item)
-            model.appendRow(file_item)
+        for item in self.shot_list:
+            list_item = QStandardItem(item)
+
+            list_item.setFlags(QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled)
+            list_item.setCheckable(True) 
+            list_item.setCheckState(QtCore.Qt.Checked)
+
+            model.appendRow(list_item)
+
         self.listView.setModel(model)
 
     def clear_items(self):
-        self.file_list = []
+        self.shot_list = []
         self.load()
 
     def close_dialog(self):

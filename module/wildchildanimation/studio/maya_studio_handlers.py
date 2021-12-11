@@ -21,9 +21,9 @@ from wildchildanimation.gui.settings import SwingSettings
 _maya_loaded = False    
 try:
     import maya.cmds as cmds
-    import maya.mel as mel
+    #import maya.mel as mel
     import maya.OpenMaya as om
-    import maya.OpenMayaUI as omui
+    #import maya.OpenMayaUI as omui
 
     import pymel.core as pm
     from pymel.util import putEnv
@@ -44,8 +44,10 @@ from wildchildanimation.maya.swing_maya import SwingMaya
 from wildchildanimation.studio.studio_interface import StudioInterface
 
 from wildchildanimation.gui.swing_playblast import SwingPlayblastUi
+from wildchildanimation.gui.swing_sequence_playblast import SwingSequencePlayblastUi
 from wildchildanimation.maya.swing_export import SwingExportDialog
 from wildchildanimation.gui.entity_info import EntityInfoDialog
+from wildchildanimation.maya.maya_scene_data import SceneData
 
 '''
 def maya_main_window():
@@ -155,7 +157,7 @@ class MayaStudioHandler(StudioInterface, SwingMaya):
     # Author: Miruna D. Mateescu
     # Last Modified: 2021/04/05
     #
-    def export_to_csv(self, csv_filename, file_prefix = "hby_204_", shot_start = 10, shot_step = 10):
+    def chainsaw(self, csv_filename, file_prefix = "hby_204_", shot_start = 10, shot_step = 10):
         try:
             all_shots = cmds.ls(type="shot")
             shot_no = shot_start        
@@ -176,7 +178,7 @@ class MayaStudioHandler(StudioInterface, SwingMaya):
                         shot_name = "SH"+padding+str(shot_no)
                         cmds.rename(crt_shot, shot_name)
                         cmds.file(rn=file_prefix+shot_name+".ma")
-                        cmds.file(save=True)                    
+                        cmds.file(save=True, type='mayaAscii')                    
                         writer.writerow([shot_name, shot_start, shot_end, shot_cam])
                         shot_no += shot_step
         except:
@@ -259,7 +261,7 @@ class MayaStudioHandler(StudioInterface, SwingMaya):
         cmds.delete(shot_name)
 
         #Save file    
-        cmds.file(save = True)        
+        cmds.file(save = True, type='mayaAscii')        
 
     # tries to import the file specified in source into the currently open scene
     def load_file(self, **kwargs):
@@ -438,10 +440,11 @@ class MayaStudioHandler(StudioInterface, SwingMaya):
                         cmds.currentTime(start, edit = True)
 
                         self.log_output("save file {}".format(project_file))
-                        cmds.file(save = True)
+                        cmds.file(save = True, type='mayaAscii')
 
                         #playButtonStart;
                         #timeField -edit -value `currentTime -query` TimeSlider|MainTimeSliderLayout|formLayout8|timeField1;
+
 
                         self.log_output("on_create <-- {}".format(project_file))
                     except:
@@ -454,6 +457,9 @@ class MayaStudioHandler(StudioInterface, SwingMaya):
                 else:
                     self.log_error("File extension not valid {0}".format(fn))
 
+            self.log_output("saving scene descriptor to json")
+            SceneData().save_task_data(task)
+            
             self.log_output("create_file complete")
         return True 
 
@@ -646,7 +652,16 @@ class MayaStudioHandler(StudioInterface, SwingMaya):
 
             self.log_output("open: {} {} {}".format(playblast_version, playblast_filename, playblast_target))
             try:
-                dialog = SwingPlayblastUi()
+                self.log_output("Checking {}".format(task["name"]))
+                if "layout" in task["name"].lower():
+                    self.log_output("Sequence::Playblast")
+
+                    dialog = SwingSequencePlayblastUi()
+                else:
+                    self.log_output("Shot::Playblast")
+
+                    dialog = SwingPlayblastUi()
+                    
                 dialog.set_caption_text(" ".join(self.get_task_sections(task)))
                 dialog.set_output_file_name(playblast_target)
                 dialog.show()

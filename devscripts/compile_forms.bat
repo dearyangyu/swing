@@ -41,8 +41,11 @@ C:\dev\swing\env\Lib\site-packages\PySide2\uic --tr fakestr -g python -o C:\dev\
 echo "Compling upload monitor dialog"
 C:\dev\swing\env\Lib\site-packages\PySide2\uic --tr fakestr -g python -o C:\dev\swing\module\wildchildanimation\gui\upload_monitor_dialog.py C:\dev\swing\module\wildchildanimation\gui\forms\maya\upload_monitor_dialog.ui
 
-echo "Compling upload monitor dialog"
+echo "Compling swing playblasters dialog"
 C:\dev\swing\env\Lib\site-packages\PySide2\uic --tr fakestr -g python -o C:\dev\swing\module\wildchildanimation\gui\swing_playblast_dialog.py C:\dev\swing\module\wildchildanimation\gui\forms\maya\swing_playblast_dialog.ui
+C:\dev\swing\env\Lib\site-packages\PySide2\uic --tr fakestr -g python -o C:\dev\swing\module\wildchildanimation\gui\swing_sequence_playblast_dialog.py C:\dev\swing\module\wildchildanimation\gui\forms\maya\swing_sequence_playblast_dialog.ui
+C:\dev\swing\env\Lib\site-packages\PySide2\uic --tr fakestr -g python -o C:\dev\swing\module\wildchildanimation\gui\shot_list_dialog.py C:\dev\swing\module\wildchildanimation\gui\forms\maya\shot_list_dialog.ui
+
 
 echo "Compling references dialog"
 C:\dev\swing\env\Lib\site-packages\PySide2\uic --tr fakestr -g python -o C:\dev\swing\module\wildchildanimation\gui\references_dialog.py C:\dev\swing\module\wildchildanimation\gui\forms\maya\references_dialog.ui

@@ -4,9 +4,9 @@
 import sys
 import traceback
 
-import maya.cmds as cmds
-import maya.OpenMaya as om
-import maya.OpenMayaUI as omui
+#import maya.cmds as cmds
+#import maya.OpenMaya as om
+#import maya.OpenMayaUI as omui
 import maya.utils as mutils
 
 from shiboken2 import wrapInstance, getCppPointer
@@ -27,6 +27,7 @@ from wildchildanimation.studio.maya_studio_handlers import MayaStudioHandler
 from wildchildanimation.maya.swing_maya_control_ui import Ui_SwingControlWidget
 
 from wildchildanimation.gui.swing_gui import SwingGUI
+from wildchildanimation.maya.maya_scene_data import SceneData
 
 class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
 
@@ -83,7 +84,6 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
         self.toolButtonEntityInfo.setEnabled(status)
 
         self.lineEditSearch.setEnabled(status)        
-
 
     def set_enabled(self, status):
         self.set_enabled_task_control(status)
@@ -143,6 +143,19 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
                 self.episode_changed(self.comboBoxEpisode.currentIndex())
                 self.toolButtonRefresh.setText("Refresh")
                 self.workspace_control_instance.log_output("Swing: Connected")    
+
+                sd = SceneData()
+                if sd.load_scene_descriptor():
+                    try:
+                        print("Loading Scene Descriptor")
+
+                        project_id, episode_id, task_id = sd.load_task_data()
+                        self.set_to_project(project_id)
+                        self.set_to_episode(episode_id)
+                        self.set_to_task(task_id)
+                    except:
+                        traceback.print_exc(file=sys.stdout)
+
                 self.set_enabled(True)            
             except:
                 traceback.print_exc(file=sys.stdout)
@@ -151,6 +164,30 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
             self.workspace_control_instance.log_output("Swing: Check connection settings")
             
         self.toolButtonRefresh.setEnabled(True)
+
+    def set_to_project(self, id):
+        idx = 0
+        for idx in range(self.comboBoxProject.count()):
+            if id == self.comboBoxProject.itemData(idx, QtCore.Qt.UserRole)["project_id"]:
+                self.comboBoxProject.setCurrentIndex(idx)
+                print("Found Project ID {}".format(id))
+                break
+
+    def set_to_episode(self, id):
+        idx = 0
+        for idx in range(self.comboBoxEpisode.count()):
+            if id == self.comboBoxEpisode.itemData(idx, QtCore.Qt.UserRole)["episode_id"]:
+                self.comboBoxEpisode.setCurrentIndex(idx)
+                print("Found Episode ID {}".format(id))
+                break
+
+    def set_to_task(self, id):
+        idx = 0
+        for idx in range(self.comboBoxTask.count()):
+            if id == self.comboBoxTask.itemData(idx, QtCore.Qt.UserRole)["task_id"]:
+                self.comboBoxTask.setCurrentIndex(idx)#
+                print("Found Task ID {}".format(id))
+                break        
 
     def load_project_data(self, project_list):
         self.workspace_control_instance.log_output("::load_project_data")
