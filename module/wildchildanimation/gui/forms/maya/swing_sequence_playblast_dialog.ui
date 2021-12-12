@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>628</width>
-    <height>383</height>
+    <width>635</width>
+    <height>490</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -139,19 +139,9 @@
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="select_all_shots_cb">
-         <property name="text">
-          <string>All shots in sequence</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
         <widget class="QPushButton" name="select_shots_btn">
          <property name="text">
-          <string>Select Shots ...</string>
+          <string>Select ...</string>
          </property>
         </widget>
        </item>
@@ -556,9 +546,44 @@
            </property>
           </widget>
          </item>
+         <item>
+          <widget class="QCheckBox" name="checkBoxArtistName">
+           <property name="text">
+            <string>Burn Artist Name</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
         </layout>
        </item>
       </layout>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="groupBox">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>75</height>
+        </size>
+       </property>
+       <property name="title">
+        <string>Sequence</string>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_3">
+        <item>
+         <widget class="QCheckBox" name="checkBoxBuildSequence">
+          <property name="text">
+           <string>Build Sequence from Shots</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
      </item>
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_7"/>

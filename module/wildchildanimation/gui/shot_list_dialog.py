@@ -14,11 +14,12 @@ from PySide2.QtWidgets import *
 
 from wildchildanimation.gui.swing_utils import fakestr
 
+
 class Ui_ShotListDialog(object):
     def setupUi(self, ShotListDialog):
         if not ShotListDialog.objectName():
             ShotListDialog.setObjectName(u"ShotListDialog")
-        ShotListDialog.resize(452, 255)
+        ShotListDialog.resize(609, 255)
         self.verticalLayout_2 = QVBoxLayout(ShotListDialog)
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
         self.listView = QListView(ShotListDialog)
@@ -28,6 +29,11 @@ class Ui_ShotListDialog(object):
 
         self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setObjectName(u"horizontalLayout")
+        self.buttonAll = QPushButton(ShotListDialog)
+        self.buttonAll.setObjectName(u"buttonAll")
+
+        self.horizontalLayout.addWidget(self.buttonAll)
+
         self.buttonClear = QPushButton(ShotListDialog)
         self.buttonClear.setObjectName(u"buttonClear")
 
@@ -61,7 +67,8 @@ class Ui_ShotListDialog(object):
 
     def retranslateUi(self, ShotListDialog):
         ShotListDialog.setWindowTitle(fakestr(u"Dialog", None))
-        self.buttonClear.setText(fakestr(u"Clear", None))
+        self.buttonAll.setText(fakestr(u"All", None))
+        self.buttonClear.setText(fakestr(u"None", None))
         self.buttonCancel.setText(fakestr(u"Cancel", None))
         self.buttonOk.setText(fakestr(u"OK", None))
     # retranslateUi

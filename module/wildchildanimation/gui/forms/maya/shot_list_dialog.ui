@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>452</width>
+    <width>609</width>
     <height>255</height>
    </rect>
   </property>
@@ -20,9 +20,16 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
+      <widget class="QPushButton" name="buttonAll">
+       <property name="text">
+        <string>All</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="buttonClear">
        <property name="text">
-        <string>Clear</string>
+        <string>None</string>
        </property>
       </widget>
      </item>

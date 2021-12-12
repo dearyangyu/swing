@@ -157,7 +157,7 @@ class SwingPlayblast(SwingMaya):
         filename = file_parts[1]
 
         if len(filename) == 0 or len(output_dir) == 0:
-            self.log_error("playblast: invalid filename or directoy [{}] [{}]".format(filename, output_dir))        
+            self.log_error("playblast: invalid filename or directory [{}] [{}]".format(filename, output_dir))        
             return
 
         ## aokb_chr_atomic_toad_rig_v010 
@@ -661,6 +661,9 @@ class SwingPlayblastUi(QtWidgets.QDialog, Ui_PlayblastDialog):
 
         self.load_defaults()
         self.load_user_settings()
+
+    def set_artist(self, artist):
+        self.artist = artist
 
     def create_actions(self):
         self.save_defaults_action = QtWidgets.QAction("Save Defaults", self)

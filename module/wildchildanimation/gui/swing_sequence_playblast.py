@@ -130,14 +130,14 @@ class SwingSequencePlayblast(SwingMaya):
 
     # expects a directory and a shot list
     #
-    def execute(self, target_file_name, padding=4, overscan=False, show_ornaments=True, show_in_viewer=True, overwrite=False, time_code = True, time_code_border = True, frame_numbers = True, caption = None, shot_list = []):
+    def execute(self, target_file_name, shots= [], padding=4, overscan=False, show_ornaments=True, show_in_viewer=True, overwrite=False, time_code = True, time_code_border = True, frame_numbers = True, caption = None, artist = None, build_sequence = False):
         file_parts = os.path.split(target_file_name)
 
         output_dir = file_parts[0]
         filename = file_parts[1]
 
         if len(filename) == 0 or len(output_dir) == 0:
-            self.log_error("playblast: invalid filename or directoy [{}] [{}]".format(filename, output_dir))        
+            self.log_error("playblast: invalid filename or directory [{}] [{}]".format(filename, output_dir))        
             return
 
         ## aokb_chr_atomic_toad_rig_v010 
@@ -161,105 +161,152 @@ class SwingSequencePlayblast(SwingMaya):
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 
-        # sets target file name, adds' container extension
-        output_path = os.path.normpath(os.path.join(output_dir, "{0}.{1}".format(filename, self._container_format)))
-        self.log_output("Playblast: output_path: {}".format(output_path))
-
-        if not overwrite and os.path.exists(output_path):
-            self.log_error("Output file already exists. Enable overwrite to ignore.")
-            return
-
-        playblast_output_dir = os.path.join(output_dir, "playblast_temp")
-        self.log_output("Playblast: playblast_output_dir: {}".format(playblast_output_dir))
-
-        playblast_output = os.path.join(output_dir, "playblast_temp", filename)
-        self.log_output("Playblast: playblast_output: {}".format(playblast_output))
-
-        force_overwrite = True
-        compression = "png"
-        image_quality = 100
-        index_from_zero = True
-        viewer = False
-
-        widthHeight = self.get_resolution_width_height()
-        start_frame, end_frame = self.get_start_end_frame()
-
-        options = {
-            "filename": playblast_output,
-            "widthHeight": widthHeight,
-            "percent": 100,
-            "startTime": start_frame,
-            "endTime": end_frame,
-            "clearCache": True,
-            "forceOverwrite": force_overwrite,
-            "format": "image",
-            "compression": compression,
-            "quality": image_quality,
-            "indexFromZero": index_from_zero,
-            "framePadding": padding,
-            "showOrnaments": show_ornaments,
-            "viewer": viewer,
-        }
-
-        self.log_output("Playblast options: {0}".format(options))
-
-        # Store original viewport settings
-        orig_camera = self.get_active_camera()
-
-        camera = self._camera
-        if not camera:
-            camera = orig_camera
-
-        if not camera in cmds.listCameras():
-            self.log_error("Camera does not exist: {0}".format(camera))
-            return
-
-        self.set_active_camera(camera)
-
-        orig_visibility_flags = self.create_viewport_visibility_flags(self.get_viewport_visibility())
-        playblast_visibility_flags = self.create_viewport_visibility_flags(self.get_visibility())
-            
-        model_editor = cmds.modelPanel(viewport_model_panel, q=True, modelEditor=True)
-        self.set_viewport_visibility(model_editor, playblast_visibility_flags)
-        
-        # Store original camera settings
-        if not overscan:
-            overscan_attr = "{0}.overscan".format(camera)
-            orig_overscan = cmds.getAttr(overscan_attr)
-            cmds.setAttr(overscan_attr, 1.0)
-
-        playblast_failed = False
+        # pop gui back to original settings no matter what happens with playblasting
         try:
-            cmds.playblast(**options)
-        except:
-            traceback.print_exc()
-            self.log_error("Failed to create playblast. See script editor for details.")
-            playblast_failed = True
+            # sets target file name, adds' container extension
+            playblasted_shots = []
+            count = 1
+            for shot in shots:
+                shot_caption = None
+                if caption:
+                    shot_caption = "{} {}".format(caption, shot)
+                    
+
+                shot_start = cmds.getAttr(shot + ".startFrame")
+                shot_end = cmds.getAttr(shot + ".endFrame")
+
+                shot_cameras = cmds.listConnections(shot + ".currentCamera") 
+                if len(shot_cameras) > 0:
+                    shot_cam = shot_cameras[0]
+                else:
+                    self.log_error("Error loading camera {} for shot {}".format(shot_cameras, shot))
+                    continue
+
+                self.log_output("Shot {} starting at {} ending at {} using camera {}".format(shot, shot_start, shot_end, shot_cam))
+
+                output_path = os.path.normpath(os.path.join(output_dir, "{0}_{1}.{2}".format(filename, shot, self._container_format)))
+                self.log_output("{} Playblast: output_path: {}".format(count, output_path))
+
+                if not overwrite and os.path.exists(output_path):
+                    self.log_error("Output file already exists. Enable overwrite to ignore.")
+                    return
+
+                playblast_output_dir = os.path.join(output_dir, "playblast_temp")
+                self.log_output("Playblast: playblast_output_dir: {}".format(playblast_output_dir))
+
+                playblast_output = os.path.join(output_dir, "playblast_temp", filename)
+                self.log_output("Playblast: playblast_output: {}".format(playblast_output))
+
+                force_overwrite = True
+                compression = "png"
+                image_quality = 100
+                index_from_zero = True
+                viewer = False
+
+                widthHeight = self.get_resolution_width_height()
+                start_frame = shot_start
+                end_frame = shot_end
+
+                options = {
+                    "filename": playblast_output,
+                    "widthHeight": widthHeight,
+                    "percent": 100,
+                    "startTime": start_frame,
+                    "endTime": end_frame,
+                    "clearCache": True,
+                    "forceOverwrite": force_overwrite,
+                    "format": "image",
+                    "compression": compression,
+                    "quality": image_quality,
+                    "indexFromZero": index_from_zero,
+                    "framePadding": padding,
+                    "showOrnaments": show_ornaments,
+                    "viewer": viewer,
+                }
+
+                self.log_output("Playblast options: {0}".format(options))
+
+                # Store original viewport settings
+                orig_camera = self.get_active_camera()
+
+                #camera = self._camera
+                #camera = shot_cam
+                #if not camera:
+                #    camera = orig_camera
+
+                #if not camera in cmds.listCameras():
+                #    self.log_error("Camera does not exist: {0}".format(camera))
+                #    return
+
+                self.set_active_camera(shot_cam)
+
+                orig_visibility_flags = self.create_viewport_visibility_flags(self.get_viewport_visibility())
+                playblast_visibility_flags = self.create_viewport_visibility_flags(self.get_visibility())
+                    
+                model_editor = cmds.modelPanel(viewport_model_panel, q=True, modelEditor=True)
+                self.set_viewport_visibility(model_editor, playblast_visibility_flags)
+                
+                # Store original camera settings
+                if not overscan:
+                    overscan_attr = "{0}.overscan".format(shot_cam)
+                    orig_overscan = cmds.getAttr(overscan_attr)
+                    cmds.setAttr(overscan_attr, 1.0)
+
+                playblast_failed = False
+                try:
+                    cmds.playblast(**options)
+                except:
+                    traceback.print_exc()
+                    self.log_error("Failed to create playblast. See script editor for details.")
+                    playblast_failed = True
+                #finally:
+                #    # Restore original camera settings
+                #    if not overscan:
+                #        cmds.setAttr(overscan_attr, orig_overscan)
+                #    
+                #    # Restore original viewport settings
+                #    self.set_active_camera(orig_camera)
+                #    self.set_viewport_visibility(model_editor, orig_visibility_flags)
+
+                if playblast_failed:
+                    continue
+
+                source_path = "{0}/{1}.%0{2}d.png".format(playblast_output_dir, os.path.basename(filename), padding)
+
+                if self._encoder == "h264":
+                    self.encode_h264(source_path, output_path, start_frame, time_code, time_code_border, frame_numbers, shot_caption, artist)
+                    playblasted_shots.append(output_path)
+                else:
+                    self.log_error("Encoding failed. Unsupported encoder ({0}) for container ({1}).".format(self._encoder, self._container_format))
+                    self.remove_temp_dir(playblast_output_dir)
+                    return
+
+                self.remove_temp_dir(playblast_output_dir)
+                count += 1
+            # playblast all shots
+
+            if build_sequence:
+                self.log_output("Building sequence from {} playblasts".format(len(playblasted_shots)))
+                output_path = os.path.normpath(os.path.join(output_dir, "{0}.{1}".format(filename, self._container_format)))
+
+                self.encode_h264_sequence(output_path, playblasted_shots)
+
         finally:
+            # run through all the shots we have, and playblast them
+            self.log_output("Playblasted {} shots".format(len(playblasted_shots)))
+
             # Restore original camera settings
             if not overscan:
                 cmds.setAttr(overscan_attr, orig_overscan)
-            
+                
             # Restore original viewport settings
             self.set_active_camera(orig_camera)
-            self.set_viewport_visibility(model_editor, orig_visibility_flags)
+            self.set_viewport_visibility(model_editor, orig_visibility_flags)            
 
-        if playblast_failed:
-            return
+            if show_in_viewer:
+                self.open_in_viewer(output_path)
 
-        source_path = "{0}/{1}.%0{2}d.png".format(playblast_output_dir, os.path.basename(filename), padding)
-
-        if self._encoder == "h264":
-            self.encode_h264(source_path, output_path, start_frame, time_code, time_code_border, frame_numbers, caption)
-        else:
-            self.log_error("Encoding failed. Unsupported encoder ({0}) for container ({1}).".format(self._encoder, self._container_format))
-            self.remove_temp_dir(playblast_output_dir)
-            return
-
-        self.remove_temp_dir(playblast_output_dir)
-
-        if show_in_viewer:
-            self.open_in_viewer(output_path)
+        # done playblasting sequence
 
     def validate_ffmpeg(self):
         if not self._ffmpeg_path:
@@ -295,7 +342,7 @@ class SwingSequencePlayblast(SwingMaya):
 
         self.log_output(output)
 
-    def encode_h264(self, source_path, output_path, start_frame, time_code = True, time_code_background = True, frame_number = True, caption = None):
+    def encode_h264(self, source_path, output_path, start_frame, time_code = True, time_code_background = True, frame_number = True, caption = None, artist = None):
         framerate = self.get_frame_rate()
 
         audio_file_path, audio_frame_offset = self.get_audio_attributes()
@@ -315,6 +362,8 @@ class SwingSequencePlayblast(SwingMaya):
         text_graph = ''
 
         if caption:
+            if artist:
+                caption = "{} - {}".format(caption, artist["full_name"])
             filters.append("drawtext=font=Consolas: fontsize=18: fontcolor=white: x=(w-text_w)/2: y=20: text='{}' ".format(caption, 24))
                 #ffmpeg_cmd += " -vf \"drawtext=font=Consolas: fontsize=24: fontcolor=white: text='{}': r={}: x=(w-tw-20): y=h-lh-20: box=1: boxcolor=black\" ".format(caption, 24)
 
@@ -344,6 +393,30 @@ class SwingSequencePlayblast(SwingMaya):
             ffmpeg_cmd += ' -filter_complex "[1:0] apad" -shortest'
 
         ffmpeg_cmd += ' "{0}"'.format(output_path)
+
+        self.log_output(ffmpeg_cmd)
+        self.execute_ffmpeg_command(ffmpeg_cmd)        
+
+    def encode_h264_sequence(self, target, shotlist):
+        '''
+        $ cat mylist.txt
+        file '/path/to/file1'
+        file '/path/to/file2'
+        file '/path/to/file3'
+            
+        $ ffmpeg -f concat -safe 0 -i mylist.txt -c copy output.mp4
+        '''
+        working_dir = os.path.dirname(target)
+        playlist = "{}/{}".format(working_dir, "playlist.txt")
+        with open(playlist, 'w') as f:
+            try:
+                for item in shotlist:
+                    f.write("file '{}'\r".format(item))
+            finally:
+                f.close()
+
+        ffmpeg_cmd = self._ffmpeg_path
+        ffmpeg_cmd += " -f concat -safe 0 -i {} -c copy {}".format(playlist, target)
 
         self.log_output(ffmpeg_cmd)
         self.execute_ffmpeg_command(ffmpeg_cmd)        
@@ -525,11 +598,7 @@ class SwingSequencePlayblastUi(QtWidgets.QDialog, Ui_SequencePlayblastDialog):
 
     def __init__(self):
         try:
-            if sys.version_info.major < 3:
-                maya_main_window = wrapInstance(long(omui.MQtUtil.mainWindow()), QtWidgets.QWidget)
-            else:
-                maya_main_window = wrapInstance(int(omui.MQtUtil.mainWindow()), QtWidgets.QWidget)
-
+            maya_main_window = wrapInstance(int(omui.MQtUtil.mainWindow()), QtWidgets.QWidget)
             super(SwingSequencePlayblastUi, self).__init__(maya_main_window)
         except:
             super(SwingSequencePlayblastUi, self).__init__()
@@ -586,6 +655,9 @@ class SwingSequencePlayblastUi(QtWidgets.QDialog, Ui_SequencePlayblastDialog):
 
         self.load_defaults()
         self.load_user_settings()
+
+    def set_artist(self, artist):
+        self.artist = artist
 
     def create_actions(self):
         self.save_defaults_action = QtWidgets.QAction("Save Defaults", self)
@@ -653,8 +725,7 @@ class SwingSequencePlayblastUi(QtWidgets.QDialog, Ui_SequencePlayblastDialog):
         open_folder(os.path.dirname(dir_path))
 
     def do_select_shots(self):
-        dialog = ShotListDialog(self, self.shots)
-        dialog.show()
+        self.shotDialog.show()
 
     def do_close(self):
         self.write_settings()
@@ -668,6 +739,7 @@ class SwingSequencePlayblastUi(QtWidgets.QDialog, Ui_SequencePlayblastDialog):
         show_ornaments = self.ornaments_cb.isChecked()
         show_in_viewer = self.viewer_cb.isChecked()
         overwrite = self.force_overwrite_cb.isChecked()
+        build_sequence = self.checkBoxBuildSequence.isChecked()
 
         if self.checkBoxTimeCode.isChecked():
             self._playblast.log_output("Burn time code")
@@ -684,10 +756,22 @@ class SwingSequencePlayblastUi(QtWidgets.QDialog, Ui_SequencePlayblastDialog):
             if caption:
                 self._playblast.log_output("Burn Caption: {}".format(caption))
 
-        self._playblast.execute(target_file_name = filename, padding = padding, 
+        artist = None
+        if self.checkBoxArtistName.isChecked():
+            artist = self.artist
+            if artist:
+                self._playblast.log_output("Burn Artist Name: {}".format(artist))
+
+        selected_shots = self.shotDialog.get_selected()
+
+        self._playblast.log_output("Playblasting {} shots".format(len(selected_shots)))
+
+        self._playblast.execute(target_file_name = filename, 
+            shots = selected_shots,
+            padding = padding, 
             overscan = overscan, show_ornaments = show_ornaments, show_in_viewer = show_in_viewer, overwrite = overwrite,  
             time_code = self.checkBoxTimeCode.isChecked(), time_code_border = False, frame_numbers=self.checkBoxFrameNumber.isChecked(), 
-            caption=caption)
+            caption=caption, artist = artist, build_sequence = build_sequence)
 
     def select_output_filename(self):
         current_filename = self.output_filename_le.text()
@@ -719,6 +803,7 @@ class SwingSequencePlayblastUi(QtWidgets.QDialog, Ui_SequencePlayblastDialog):
 
     def refresh_shots(self):
         self.shots = cmds.ls(type="shot")
+        self.shotDialog = ShotListDialog(self, self.shots)
 
     def refresh_resolution(self):
         resolution_preset = self.resolution_select_cmb.currentText()

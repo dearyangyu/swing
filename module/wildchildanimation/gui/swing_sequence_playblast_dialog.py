@@ -18,7 +18,7 @@ class Ui_SequencePlayblastDialog(object):
     def setupUi(self, SequencePlayblastDialog):
         if not SequencePlayblastDialog.objectName():
             SequencePlayblastDialog.setObjectName(u"SequencePlayblastDialog")
-        SequencePlayblastDialog.resize(628, 383)
+        SequencePlayblastDialog.resize(635, 490)
         SequencePlayblastDialog.setSizeGripEnabled(True)
         self.verticalLayout_2 = QVBoxLayout(SequencePlayblastDialog)
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
@@ -87,12 +87,6 @@ class Ui_SequencePlayblastDialog(object):
         self.label_9.setMinimumSize(QSize(100, 0))
 
         self.horizontalLayout_8.addWidget(self.label_9)
-
-        self.select_all_shots_cb = QCheckBox(SequencePlayblastDialog)
-        self.select_all_shots_cb.setObjectName(u"select_all_shots_cb")
-        self.select_all_shots_cb.setChecked(True)
-
-        self.horizontalLayout_8.addWidget(self.select_all_shots_cb)
 
         self.select_shots_btn = QPushButton(SequencePlayblastDialog)
         self.select_shots_btn.setObjectName(u"select_shots_btn")
@@ -293,11 +287,31 @@ class Ui_SequencePlayblastDialog(object):
 
         self.verticalLayout_5.addWidget(self.checkBoxFrameNumber)
 
+        self.checkBoxArtistName = QCheckBox(SequencePlayblastDialog)
+        self.checkBoxArtistName.setObjectName(u"checkBoxArtistName")
+        self.checkBoxArtistName.setChecked(True)
+
+        self.verticalLayout_5.addWidget(self.checkBoxArtistName)
+
 
         self.horizontalLayout_10.addLayout(self.verticalLayout_5)
 
 
         self.verticalLayout.addLayout(self.horizontalLayout_10)
+
+        self.groupBox = QGroupBox(SequencePlayblastDialog)
+        self.groupBox.setObjectName(u"groupBox")
+        self.groupBox.setMinimumSize(QSize(0, 75))
+        self.verticalLayout_3 = QVBoxLayout(self.groupBox)
+        self.verticalLayout_3.setObjectName(u"verticalLayout_3")
+        self.checkBoxBuildSequence = QCheckBox(self.groupBox)
+        self.checkBoxBuildSequence.setObjectName(u"checkBoxBuildSequence")
+        self.checkBoxBuildSequence.setChecked(True)
+
+        self.verticalLayout_3.addWidget(self.checkBoxBuildSequence)
+
+
+        self.verticalLayout.addWidget(self.groupBox)
 
         self.horizontalLayout_7 = QHBoxLayout()
         self.horizontalLayout_7.setObjectName(u"horizontalLayout_7")
@@ -366,8 +380,7 @@ class Ui_SequencePlayblastDialog(object):
         self.output_dir_path_show_folder_btn.setText(fakestr(u"Go", None))
         self.label.setText(fakestr(u"Options", None))
         self.label_9.setText(fakestr(u"Shots", None))
-        self.select_all_shots_cb.setText(fakestr(u"All shots in sequence", None))
-        self.select_shots_btn.setText(fakestr(u"Select Shots ...", None))
+        self.select_shots_btn.setText(fakestr(u"Select ...", None))
         self.label_3.setText(fakestr(u"Resolution:", None))
         self.label_7.setText(fakestr(u" x ", None))
         self.label_5.setText(fakestr(u"Encoding:", None))
@@ -380,6 +393,9 @@ class Ui_SequencePlayblastDialog(object):
         self.checkBoxBurnCaption.setText(fakestr(u"Burn caption", None))
         self.checkBoxTimeCode.setText(fakestr(u"Burn time code", None))
         self.checkBoxFrameNumber.setText(fakestr(u"Burn frame number", None))
+        self.checkBoxArtistName.setText(fakestr(u"Burn Artist Name", None))
+        self.groupBox.setTitle(fakestr(u"Sequence", None))
+        self.checkBoxBuildSequence.setText(fakestr(u"Build Sequence from Shots", None))
         self.refresh_btn.setText(fakestr(u"Refresh", None))
         self.clear_btn.setText(fakestr(u"Clear", None))
         self.playblast_btn.setText(fakestr(u"Playblast", None))

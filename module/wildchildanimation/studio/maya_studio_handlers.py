@@ -23,7 +23,7 @@ try:
     import maya.cmds as cmds
     #import maya.mel as mel
     import maya.OpenMaya as om
-    #import maya.OpenMayaUI as omui
+    import maya.OpenMayaUI as omui
 
     import pymel.core as pm
     from pymel.util import putEnv
@@ -49,17 +49,12 @@ from wildchildanimation.maya.swing_export import SwingExportDialog
 from wildchildanimation.gui.entity_info import EntityInfoDialog
 from wildchildanimation.maya.maya_scene_data import SceneData
 
-'''
 def maya_main_window():
     """
     Return the Maya main window widget as a Python object
     """
     main_window_ptr = omui.MQtUtil.mainWindow()
-    if sys.version_info.major >= 3:
-        return wrapInstance(int(main_window_ptr), QtWidgets.QWidget)
-    else:
-        return wrapInstance(long(main_window_ptr), QtWidgets.QWidget)
-'''
+    return wrapInstance(int(main_window_ptr), QtWidgets.QWidget)
 
 class MayaStudioHandler(StudioInterface, SwingMaya):
 
@@ -639,6 +634,7 @@ class MayaStudioHandler(StudioInterface, SwingMaya):
             task = kwargs["task"]
             task_dir = self.get_scene_path()
             working_file = friendly_string("_".join(self.get_task_sections(task)))
+            artist = self.get_user_name()
 
             playblast_count = 1
             if os.path.exists(task_dir):
@@ -647,23 +643,29 @@ class MayaStudioHandler(StudioInterface, SwingMaya):
                     playblast_count = fcount(playblasts)
 
             playblast_version ="{}".format(playblast_count).zfill(3)
+            
             playblast_filename = "{}_v{}".format(working_file, playblast_version)
             playblast_target = os.path.join(task_dir, "playblasts", playblast_filename)
 
             self.log_output("open: {} {} {}".format(playblast_version, playblast_filename, playblast_target))
             try:
                 self.log_output("Checking {}".format(task["name"]))
-                if "layout" in task["name"].lower():
+                if "layout" in working_file.lower():
                     self.log_output("Sequence::Playblast")
 
                     dialog = SwingSequencePlayblastUi()
+                    dialog.set_output_file_name(playblast_target)
+                    dialog.set_artist(artist)
+
                 else:
                     self.log_output("Shot::Playblast")
 
                     dialog = SwingPlayblastUi()
+                    dialog.set_output_file_name(playblast_target)
+                    dialog.set_artist(artist)
+
                     
                 dialog.set_caption_text(" ".join(self.get_task_sections(task)))
-                dialog.set_output_file_name(playblast_target)
                 dialog.show()
 
                 self.log_output("open: playblast")

@@ -33,12 +33,13 @@ class ShotListDialog(QtWidgets.QDialog, Ui_ShotListDialog):
         self.load()
         self.status = 'OK'
 
-        self.buttonClear.clicked.connect(self.clear_items)
+        self.buttonClear.clicked.connect(self.select_none)
+        self.buttonAll.clicked.connect(self.select_all)
         self.buttonCancel.clicked.connect(self.cancel_dialog)
         self.buttonOk.clicked.connect(self.close_dialog)
 
     def load(self):
-        model = QStandardItemModel()
+        self.model = QStandardItemModel()
         for item in self.shot_list:
             list_item = QStandardItem(item)
 
@@ -46,13 +47,34 @@ class ShotListDialog(QtWidgets.QDialog, Ui_ShotListDialog):
             list_item.setCheckable(True) 
             list_item.setCheckState(QtCore.Qt.Checked)
 
-            model.appendRow(list_item)
+            self.model.appendRow(list_item)
 
-        self.listView.setModel(model)
+        self.listView.setModel(self.model)
 
-    def clear_items(self):
-        self.shot_list = []
-        self.load()
+    def is_all_selected(self):
+        all_selected = True
+        for i in range(self.model.rowCount()):
+            item = self.model.item(i)
+            all_selected = all_selected and item.checkState() == QtCore.Qt.Checked
+        return all_selected
+
+    def select_none(self):
+        for i in range(self.model.rowCount()):
+            item = self.model.item(i)
+            item.setCheckState(QtCore.Qt.Unchecked)
+
+    def select_all(self):
+        for i in range(self.model.rowCount()):
+            item = self.model.item(i)
+            item.setCheckState(QtCore.Qt.Checked)            
+
+    def get_selected(self):
+        selected = []
+        for i in range(self.model.rowCount()):
+            item = self.model.item(i)
+            if item.checkState() == QtCore.Qt.Checked:
+                selected.append(item.text())
+        return selected
 
     def close_dialog(self):
         self.status = 'OK'

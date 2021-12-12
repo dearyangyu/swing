@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 # 
 # ==== auto Qt load ====
-import os
-
 from wildchildanimation.gui.settings import SwingSettings
 from wildchildanimation.gui.background_workers import ProjectEpisodeLoader, ProjectShotLoader, TaskTypeLoader, ToDoLoader
 from wildchildanimation.gui.swing_utils import connect_to_server
+import gazu
 
 try:
     from PySide2 import QtCore
@@ -232,3 +231,9 @@ class StudioInterface(QtCore.QObject):
                 sections.append(task["task_type"]["name"])            
         return sections
         #return friendly_string("_".join(sections).lower())        
+
+    
+    def get_user_name(self):
+        user_email = SwingSettings.get_instance().swing_user()
+        user = gazu.person.get_person_by_email(user_email)
+        return user

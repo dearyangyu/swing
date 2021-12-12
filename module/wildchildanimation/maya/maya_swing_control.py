@@ -23,7 +23,7 @@ except ImportError:
     qtMode = 1
 
 from wildchildanimation.maya.workspace_control import WorkspaceControl
-from wildchildanimation.studio.maya_studio_handlers import MayaStudioHandler
+from wildchildanimation.studio.maya_studio_handlers import MayaStudioHandler, maya_main_window
 from wildchildanimation.maya.swing_maya_control_ui import Ui_SwingControlWidget
 
 from wildchildanimation.gui.swing_gui import SwingGUI
@@ -58,8 +58,9 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
     def get_workspace_control_name(cls):
         return "{0}".format(cls.UI_NAME)
 
-    #def __init__(self, parent = maya_main_window()):
-    def __init__(self, parent = None):
+    def __init__(self, parent = maya_main_window()):
+    #def __init__(self, parent = None):
+        # maya_main_window = wrapInstance(int(omui.MQtUtil.mainWindow()), QtWidgets.QWidget)
         super(SwingMayaUI, self).__init__(parent)
 
         self.setObjectName(self.__class__.UI_NAME)
