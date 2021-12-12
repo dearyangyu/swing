@@ -50,7 +50,7 @@ class Ui_SwingControlWidget(object):
 
         self.comboBoxTask = QComboBox(SwingControlWidget)
         self.comboBoxTask.setObjectName(u"comboBoxTask")
-        self.comboBoxTask.setMinimumSize(QSize(350, 0))
+        self.comboBoxTask.setMinimumSize(QSize(300, 0))
 
         self.horizontalLayout_3.addWidget(self.comboBoxTask)
 
@@ -79,6 +79,11 @@ class Ui_SwingControlWidget(object):
         self.toolButtonPlayblast.setObjectName(u"toolButtonPlayblast")
 
         self.horizontalLayout_2.addWidget(self.toolButtonPlayblast)
+
+        self.toolButtonBreakOut = QToolButton(SwingControlWidget)
+        self.toolButtonBreakOut.setObjectName(u"toolButtonBreakOut")
+
+        self.horizontalLayout_2.addWidget(self.toolButtonBreakOut)
 
         self.toolButtonExport = QToolButton(SwingControlWidget)
         self.toolButtonExport.setObjectName(u"toolButtonExport")
@@ -129,6 +134,7 @@ class Ui_SwingControlWidget(object):
         self.toolButtonSwing.setText(fakestr(u"Swing", None))
         self.toolButtonTask.setText(fakestr(u"Task", None))
         self.toolButtonPlayblast.setText(fakestr(u"Playblast", None))
+        self.toolButtonBreakOut.setText(fakestr(u"Breakout", None))
         self.toolButtonExport.setText(fakestr(u"Export", None))
         self.toolButtonPublish.setText(fakestr(u"Publish", None))
         self.toolButtonSearch.setText(fakestr(u"Search", None))

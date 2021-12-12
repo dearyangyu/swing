@@ -46,7 +46,6 @@ C:\dev\swing\env\Lib\site-packages\PySide2\uic --tr fakestr -g python -o C:\dev\
 C:\dev\swing\env\Lib\site-packages\PySide2\uic --tr fakestr -g python -o C:\dev\swing\module\wildchildanimation\gui\swing_sequence_playblast_dialog.py C:\dev\swing\module\wildchildanimation\gui\forms\maya\swing_sequence_playblast_dialog.ui
 C:\dev\swing\env\Lib\site-packages\PySide2\uic --tr fakestr -g python -o C:\dev\swing\module\wildchildanimation\gui\shot_list_dialog.py C:\dev\swing\module\wildchildanimation\gui\forms\maya\shot_list_dialog.ui
 
-
 echo "Compling references dialog"
 C:\dev\swing\env\Lib\site-packages\PySide2\uic --tr fakestr -g python -o C:\dev\swing\module\wildchildanimation\gui\references_dialog.py C:\dev\swing\module\wildchildanimation\gui\forms\maya\references_dialog.ui
 
@@ -58,7 +57,7 @@ C:\dev\swing\env\Lib\site-packages\PySide2\uic --tr fakestr -g python -o C:\dev\
 
 echo "Compling dcctools dialog"
 C:\dev\swing\env\Lib\site-packages\PySide2\uic --tr fakestr -g python -o C:\dev\swing\module\wildchildanimation\gui\dcc_tools_dialog.py C:\dev\swing\module\wildchildanimation\gui\forms\dcc_tools.ui
-C:\dev\swing\env\Lib\site-packages\PySide2\uic --tr fakestr -g python -o c:\dev\Github\wca-maya\module\wildchildanimation\maya\swing_export_dialog.py C:\dev\swing\module\wildchildanimation\gui\forms\maya\swing_export.ui
+C:\dev\swing\env\Lib\site-packages\PySide2\uic --tr fakestr -g python -o c:\dev\swing\module\wildchildanimation\maya\swing_export_dialog.py C:\dev\swing\module\wildchildanimation\gui\forms\maya\swing_export.ui
 
 echo "Compling entity info dialog"
 C:\dev\swing\env\Lib\site-packages\PySide2\uic --tr fakestr -g python -o C:\dev\swing\module\wildchildanimation\gui\entity_info_dialog.py C:\dev\swing\module\wildchildanimation\gui\forms\entity_info_dialog.ui
@@ -67,10 +66,13 @@ echo "Compling playlist dialog"
 C:\dev\swing\env\Lib\site-packages\PySide2\uic --tr fakestr -g python -o C:\dev\swing\module\wildchildanimation\gui\playlist_dialog.py C:\dev\swing\module\wildchildanimation\gui\forms\playlist_dialog.ui
 
 echo "Compling Swing Maya widget"
-C:\dev\swing\env\Lib\site-packages\PySide2\uic --tr fakestr -g python -o c:\dev\Github\wca-maya\module\wildchildanimation\maya\swingcontrol.py C:\dev\swing\module\wildchildanimation\gui\forms\swingcontrol_widget.ui
+C:\dev\swing\env\Lib\site-packages\PySide2\uic --tr fakestr -g python -o c:\dev\swing\module\wildchildanimation\maya\swingcontrol.py C:\dev\swing\module\wildchildanimation\gui\forms\swingcontrol_widget.ui
 
 echo "Compiling resources"
 C:\dev\swing\env\Lib\site-packages\PySide2\rcc -g python C:\dev\swing\module\wildchildanimation\gui\forms\resources\swing_resources.qrc -o C:\dev\swing\module\wildchildanimation\gui\swing_resources.py
 
 echo "Compiling SwingMayaUI"
-C:\dev\swing\env\Lib\site-packages\PySide2\uic --tr fakestr -g python -o c:\dev\Github\wca-maya\module\wildchildanimation\maya\swing_maya_control_ui.py C:\dev\swing\module\wildchildanimation\gui\forms\maya\swing_maya_control.ui
+C:\dev\swing\env\Lib\site-packages\PySide2\uic --tr fakestr -g python -o c:\dev\swing\module\wildchildanimation\maya\swing_maya_control_ui.py C:\dev\swing\module\wildchildanimation\gui\forms\maya\swing_maya_control.ui
+
+echo "Compiling BreakOut Dialog"
+C:\dev\swing\env\Lib\site-packages\PySide2\uic --tr fakestr -g python -o c:\dev\swing\module\wildchildanimation\maya\breakout_control_dialog.py C:\dev\swing\module\wildchildanimation\gui\forms\maya\breakout_control_dialog.ui

@@ -161,24 +161,28 @@ class MayaStudioHandler(StudioInterface, SwingMaya):
                 for crt_shot in all_shots:
                     shot_start = cmds.getAttr(crt_shot+".startFrame")
                     shot_end = cmds.getAttr(crt_shot+".endFrame")
-                    shot_cam = cmds.listConnections(crt_shot+".currentCamera")                
+                    shot_cam = cmds.listConnections(crt_shot+".currentCamera")         
+
+                    # only interested in the first camera for the shot
+                    if len(shot_cam) >= 1:
+                        shot_cam = shot_cam[0]
+
                     cmds.playbackOptions(animationStartTime=shot_start, minTime=shot_start, animationEndTime=shot_end, maxTime=shot_end)
                     cmds.lookThru(shot_cam)
                     cmds.currentTime(shot_start)                
+
                     if "shot_" in crt_shot:
-                        if shot_no < 100:
-                            padding = "0"
-                        else:
-                            padding = ""                    
-                        shot_name = "SH"+padding+str(shot_no)
+                        shot_name = "sh" + "{}".format(shot_no).zfill(3)
+
                         cmds.rename(crt_shot, shot_name)
-                        cmds.file(rn=file_prefix+shot_name+".ma")
+                        cmds.file(rn=file_prefix+shot_name + ".ma")
                         cmds.file(save=True, type='mayaAscii')                    
+
                         writer.writerow([shot_name, shot_start, shot_end, shot_cam])
                         shot_no += shot_step
         except:
             traceback.print_exc(file=sys.stdout)
-            self.log_error("export_to_csv: args {}".format(csv_filename))               
+            self.log_error("chainsaw error: args {}".format(csv_filename))               
 
     def remove_prefix(self, text, prefix):
         return text[text.startswith(prefix) and len(prefix):]

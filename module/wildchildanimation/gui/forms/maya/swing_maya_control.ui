@@ -121,6 +121,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QToolButton" name="toolButtonBreakOut">
+         <property name="text">
+          <string>Breakout</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QToolButton" name="toolButtonExport">
          <property name="text">
           <string>Export</string>

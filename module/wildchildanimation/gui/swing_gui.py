@@ -603,7 +603,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             ##print("Parent {}".format(parent_id))
 
             task_loader = TaskLoaderThread(self, project_id = self.currentProject["project_id"], episode_id = episode_id, parent_id = parent_id, task_types=task_types, status_types=status_types)
-            print("Project {} Ep {} Parent {} TT {} ST {} ".format(self.currentProject["project_id"], episode_id, parent_id, task_types, status_types))
+            #print("Project {} Ep {} Parent {} TT {} ST {} ".format(self.currentProject["project_id"], episode_id, parent_id, task_types, status_types))
             task_loader.callback.loaded.connect(self.load_tasks)
 
             self.labelTaskTableSelection.setText("Loading tasks")

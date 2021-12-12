@@ -10,6 +10,7 @@ import traceback
 import maya.utils as mutils
 
 from shiboken2 import wrapInstance, getCppPointer
+from wildchildanimation.maya.breakout_control import BreakoutControlDialog
 from wildchildanimation.gui.background_workers import TaskFileInfoThread
 from wildchildanimation.gui.settings import SwingSettings
 from wildchildanimation.gui.swing_utils import friendly_string
@@ -80,6 +81,7 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
         self.toolButtonTask.setEnabled(status)
         self.toolButtonPublish.setEnabled(status)
         self.toolButtonPlayblast.setEnabled(status)
+        self.toolButtonBreakOut.setEnabled(status)
         self.toolButtonExport.setEnabled(status)
         self.toolButtonSearch.setEnabled(status)
         self.toolButtonEntityInfo.setEnabled(status)
@@ -113,6 +115,8 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
         self.comboBoxProject.currentIndexChanged.connect(self.project_changed)
         self.comboBoxEpisode.currentIndexChanged.connect(self.episode_changed)
         self.comboBoxTask.currentIndexChanged.connect(self.task_changed)
+
+        self.toolButtonBreakOut.clicked.connect(self.on_breakout_control)
 
     def create_workspace_control(self):
         self.workspace_control_instance = WorkspaceControl(self.get_workspace_control_name())
@@ -357,6 +361,11 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
             "project": project
         }
         '''  
+
+    def on_breakout_control(self):
+        self.breakoutControlDialog = BreakoutControlDialog(self, self.handler, self.task)
+        self.breakoutControlDialog.show()
+
 
     ### Studio Handlers
     def on_create(self):
