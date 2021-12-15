@@ -12,14 +12,14 @@ except ImportError:
     qtMode = 1
 
 
-from wildchildanimation.maya.breakout_control_dialog import Ui_BreakOutDialog
+from wildchildanimation.maya.layout_control_dialog import Ui_LayoutDialog
 
 '''
     Ui_BreakoutControlDialog class
     ################################################################################
 '''
 
-class BreakoutControlDialog(QtWidgets.QDialog, Ui_BreakOutDialog):
+class BreakoutControlDialog(QtWidgets.QDialog, Ui_LayoutDialog):
 
     def __init__(self, parent, handler, task):
         super(BreakoutControlDialog, self).__init__(parent) # Call the inherited classes __init__ method

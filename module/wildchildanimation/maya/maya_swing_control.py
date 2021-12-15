@@ -10,7 +10,7 @@ import traceback
 import maya.utils as mutils
 
 from shiboken2 import wrapInstance, getCppPointer
-from wildchildanimation.maya.breakout_control import BreakoutControlDialog
+from wildchildanimation.maya.layout_control import BreakoutControlDialog
 from wildchildanimation.gui.background_workers import TaskFileInfoThread
 from wildchildanimation.gui.settings import SwingSettings
 from wildchildanimation.gui.swing_utils import friendly_string

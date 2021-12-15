@@ -18,16 +18,20 @@ class Ui_SwingControlWidget(object):
     def setupUi(self, SwingControlWidget):
         if not SwingControlWidget.objectName():
             SwingControlWidget.setObjectName(u"SwingControlWidget")
-        SwingControlWidget.resize(1343, 44)
+        SwingControlWidget.resize(1502, 27)
         sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(SwingControlWidget.sizePolicy().hasHeightForWidth())
         SwingControlWidget.setSizePolicy(sizePolicy)
-        SwingControlWidget.setMaximumSize(QSize(16777215, 50))
+        SwingControlWidget.setMinimumSize(QSize(640, 24))
+        SwingControlWidget.setMaximumSize(QSize(16777215, 16777215))
         self.verticalLayout = QVBoxLayout(SwingControlWidget)
+        self.verticalLayout.setSpacing(0)
         self.verticalLayout.setObjectName(u"verticalLayout")
+        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout = QHBoxLayout()
+        self.horizontalLayout.setSpacing(0)
         self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.horizontalLayout_3 = QHBoxLayout()
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
@@ -42,17 +46,29 @@ class Ui_SwingControlWidget(object):
 
         self.horizontalLayout_3.addWidget(self.comboBoxProject)
 
+        self.horizontalSpacer = QSpacerItem(5, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.horizontalLayout_3.addItem(self.horizontalSpacer)
+
         self.comboBoxEpisode = QComboBox(SwingControlWidget)
         self.comboBoxEpisode.setObjectName(u"comboBoxEpisode")
-        self.comboBoxEpisode.setMinimumSize(QSize(150, 0))
+        self.comboBoxEpisode.setMinimumSize(QSize(250, 0))
 
         self.horizontalLayout_3.addWidget(self.comboBoxEpisode)
 
+        self.horizontalSpacer_4 = QSpacerItem(5, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.horizontalLayout_3.addItem(self.horizontalSpacer_4)
+
         self.comboBoxTask = QComboBox(SwingControlWidget)
         self.comboBoxTask.setObjectName(u"comboBoxTask")
-        self.comboBoxTask.setMinimumSize(QSize(300, 0))
+        self.comboBoxTask.setMinimumSize(QSize(400, 0))
 
         self.horizontalLayout_3.addWidget(self.comboBoxTask)
+
+        self.horizontalSpacer_5 = QSpacerItem(5, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.horizontalLayout_3.addItem(self.horizontalSpacer_5)
 
         self.toolButtonSwing = QToolButton(SwingControlWidget)
         self.toolButtonSwing.setObjectName(u"toolButtonSwing")
@@ -64,7 +80,7 @@ class Ui_SwingControlWidget(object):
 
         self.horizontalLayout.addLayout(self.horizontalLayout_3)
 
-        self.horizontalSpacer_3 = QSpacerItem(20, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
+        self.horizontalSpacer_3 = QSpacerItem(5, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
 
         self.horizontalLayout.addItem(self.horizontalSpacer_3)
 
@@ -134,7 +150,7 @@ class Ui_SwingControlWidget(object):
         self.toolButtonSwing.setText(fakestr(u"Swing", None))
         self.toolButtonTask.setText(fakestr(u"Task", None))
         self.toolButtonPlayblast.setText(fakestr(u"Playblast", None))
-        self.toolButtonBreakOut.setText(fakestr(u"Breakout", None))
+        self.toolButtonBreakOut.setText(fakestr(u"Layout", None))
         self.toolButtonExport.setText(fakestr(u"Export", None))
         self.toolButtonPublish.setText(fakestr(u"Publish", None))
         self.toolButtonSearch.setText(fakestr(u"Search", None))

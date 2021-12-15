@@ -3,6 +3,7 @@
 import traceback
 import sys
 import os
+from shutil import copy2
 import gazu
 from wildchildanimation.gui.background_workers import FileDownloader
 
@@ -83,6 +84,9 @@ class ResourceLoaderDialogGUI(QtWidgets.QDialog, Ui_MayaResourceLoaderDialog):
             if not resource_item.endswith(self.resource["file_name"]):
                 resource_item = os.path.join(self.resource["file_path"], self.resource["file_name"])
 
+            download_path = os.path.normpath(resource_item.replace('/mnt/content/productions', SwingSettings.get_instance().swing_root()))
+            self.lineEditTarget.setText(download_path)
+
             # we assume that we are 1) on Windows, and 2) have a Z: drive mapped to content/productions
             server_path = os.path.normpath(resource_item.replace("/mnt/content/productions", "Z://productions"))
 
@@ -95,10 +99,7 @@ class ResourceLoaderDialogGUI(QtWidgets.QDialog, Ui_MayaResourceLoaderDialog):
                 self.set_download_only(False)
                 self.resource_network_path = server_path
             else:
-                download_path = os.path.normpath(resource_item.replace('/mnt/content/productions', SwingSettings.get_instance().swing_root()))
-
                 self.lineEditNetworkStatus.setText("Resource will be downloaded from the server")
-                self.lineEditTarget.setText(download_path)
                 self.resource_network_path = None
 
             print("Checking Network: Checking Archive Status {}{} ".format(fn, ext))
@@ -323,20 +324,53 @@ class ResourceLoaderDialogGUI(QtWidgets.QDialog, Ui_MayaResourceLoaderDialog):
     def background_process(self):
         self.set_enabled(False)
         try:
-            if not self.resource_network_path:
-                self.download_file()
-                return False
+            try:
+                #if not self.resource_network_path:
+                if self.rbOpenSource.isChecked():
+                    target_path = self.handler.get_working_file()
+                    print("Loading file from {} to {}".format(self.resource_network_path, target_path))
 
-            if self.rbOpenSource.isChecked():
-                self.load_file()
-                
-            elif self.rbImportSource.isChecked():
-                self.import_file()
-            else:
-                self.import_ref()
+                    if os.path.exists(target_path):
+                        print("Local file already exists, check with user ... ")
+                        reply = QtWidgets.QMessageBox.question(self, 'Confirm Overwrite', 'This will overwrite the existing file {}\r\nAre you sure you wish to continue ?'.format(target_path), QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
+                        if not reply == QtWidgets.QMessageBox.Yes:
+                            print("Didn't think so ")
+                            return False
 
-        except:
-            traceback.print_exc(file=sys.stdout)          
+                        if not self.resource_network_path:
+                            print("Not on Z: drive, have to download ... ")
+
+                            self.download_file()
+                            return False
+                        else:
+                            print("Just copy it from Z: ")
+                            self.copy_file(self.resource_network_path, target_path)
+                        # check if remote
+                    # open from Z: 
+                    
+                elif self.rbImportSource.isChecked():
+                    self.import_file()
+                else:
+                    self.import_ref()
+
+            except:
+                traceback.print_exc(file=sys.stdout)          
+
+        finally:
+            self.set_enabled(True)
+        # all done
+
+    #copy file from server 
+    def copy_file(self, source, target):
+        print("Copying file {} to {}".format(source, target))
+
+        copy2(source, target, follow_symlinks=True)
+        self.append_status("{}: load_file".format(source))
+
+        if (self.handler.load_file(source = target, force = self.checkBoxForce.isChecked())):
+            self.append_status("Loading done")
+        else:
+            self.append_status("Loading error", True)
 
         self.set_enabled(True)
 

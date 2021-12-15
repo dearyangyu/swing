@@ -105,11 +105,14 @@
        </item>
        <item>
         <widget class="QRadioButton" name="rbOpenSource">
+         <property name="toolTip">
+          <string>Use existing file as starting point for new scene. Will overwrite existing scene file</string>
+         </property>
          <property name="statusTip">
           <string>Open resource from location</string>
          </property>
          <property name="text">
-          <string>Open Resource</string>
+          <string>Open as Template</string>
          </property>
          <property name="shortcut">
           <string>Alt+O</string>
@@ -118,6 +121,9 @@
        </item>
        <item>
         <widget class="QRadioButton" name="rbImportSource">
+         <property name="toolTip">
+          <string>Import existing file into current scene</string>
+         </property>
          <property name="statusTip">
           <string>Import resource into scene</string>
          </property>
@@ -131,6 +137,9 @@
        </item>
        <item>
         <widget class="QRadioButton" name="rbReferenceSource">
+         <property name="toolTip">
+          <string>Reference existing file into current scene</string>
+         </property>
          <property name="statusTip">
           <string>Reference reference into scene</string>
          </property>

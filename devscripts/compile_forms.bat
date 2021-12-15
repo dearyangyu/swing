@@ -74,5 +74,5 @@ C:\dev\swing\env\Lib\site-packages\PySide2\rcc -g python C:\dev\swing\module\wil
 echo "Compiling SwingMayaUI"
 C:\dev\swing\env\Lib\site-packages\PySide2\uic --tr fakestr -g python -o c:\dev\swing\module\wildchildanimation\maya\swing_maya_control_ui.py C:\dev\swing\module\wildchildanimation\gui\forms\maya\swing_maya_control.ui
 
-echo "Compiling BreakOut Dialog"
-C:\dev\swing\env\Lib\site-packages\PySide2\uic --tr fakestr -g python -o c:\dev\swing\module\wildchildanimation\maya\breakout_control_dialog.py C:\dev\swing\module\wildchildanimation\gui\forms\maya\breakout_control_dialog.ui
+echo "Compiling Layout Dialog"
+C:\dev\swing\env\Lib\site-packages\PySide2\uic --tr fakestr -g python -o c:\dev\swing\module\wildchildanimation\maya\layout_control_dialog.py C:\dev\swing\module\wildchildanimation\gui\forms\maya\layout_control_dialog.ui

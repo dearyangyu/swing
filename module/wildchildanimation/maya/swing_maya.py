@@ -379,6 +379,28 @@ class SwingMaya(QtCore.QObject):
         file_name = cmds.file(q=True, sn=True)
         return os.path.dirname(file_name)
 
+    def get_working_file(self):
+        return cmds.file(q=True, sn=True)
+
+    def set_image_plane(self):
+        '''
+        select -r witw_ep101_seq010_sh010_cam ;
+        setAttr "imagePlaneShape1.useFrameExtension" 1;
+        setAttr "witw_ep101_seq010_sh010_camShape->imagePlaneShape1.alphaGain" 0.5;
+        setAttr "witw_ep101_seq010_sh010_camShape->imagePlaneShape1.sizeX" 0.5;
+        setAttr "witw_ep101_seq010_sh010_camShape->imagePlaneShape1.offsetX" 0.46;
+        setAttr "witw_ep101_seq010_sh010_camShape->imagePlaneShape1.offsetY" 0.26;
+        
+        select -r witw_ep101_seq010_sh020_cam ;
+        setAttr "imagePlaneShape2.useFrameExtension" 1;
+        setAttr "witw_ep101_seq010_sh020_camShape->imagePlaneShape2.alphaGain" 0.5;
+        setAttr "witw_ep101_seq010_sh020_camShape->imagePlaneShape2.sizeX" 0.5;
+        setAttr "witw_ep101_seq010_sh020_camShape->imagePlaneShape2.offsetX" 0.46;
+        setAttr "witw_ep101_seq010_sh020_camShape->imagePlaneShape2.offsetY" 0.26;
+        
+        '''
+        pass
+
     def set_frame_rate(self, fps):
         unit = 'ntscf'
         if fps == 15:
