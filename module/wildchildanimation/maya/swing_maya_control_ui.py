@@ -18,7 +18,7 @@ class Ui_SwingControlWidget(object):
     def setupUi(self, SwingControlWidget):
         if not SwingControlWidget.objectName():
             SwingControlWidget.setObjectName(u"SwingControlWidget")
-        SwingControlWidget.resize(1502, 27)
+        SwingControlWidget.resize(1669, 27)
         sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -42,31 +42,36 @@ class Ui_SwingControlWidget(object):
 
         self.comboBoxProject = QComboBox(SwingControlWidget)
         self.comboBoxProject.setObjectName(u"comboBoxProject")
-        self.comboBoxProject.setMinimumSize(QSize(300, 0))
+        self.comboBoxProject.setMinimumSize(QSize(175, 0))
 
         self.horizontalLayout_3.addWidget(self.comboBoxProject)
 
-        self.horizontalSpacer = QSpacerItem(5, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.horizontalSpacer = QSpacerItem(5, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
 
         self.horizontalLayout_3.addItem(self.horizontalSpacer)
 
         self.comboBoxEpisode = QComboBox(SwingControlWidget)
         self.comboBoxEpisode.setObjectName(u"comboBoxEpisode")
-        self.comboBoxEpisode.setMinimumSize(QSize(250, 0))
+        self.comboBoxEpisode.setMinimumSize(QSize(180, 0))
 
         self.horizontalLayout_3.addWidget(self.comboBoxEpisode)
 
-        self.horizontalSpacer_4 = QSpacerItem(5, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.horizontalSpacer_4 = QSpacerItem(5, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
 
         self.horizontalLayout_3.addItem(self.horizontalSpacer_4)
 
         self.comboBoxTask = QComboBox(SwingControlWidget)
         self.comboBoxTask.setObjectName(u"comboBoxTask")
-        self.comboBoxTask.setMinimumSize(QSize(400, 0))
+        sizePolicy1 = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        sizePolicy1.setHorizontalStretch(0)
+        sizePolicy1.setVerticalStretch(0)
+        sizePolicy1.setHeightForWidth(self.comboBoxTask.sizePolicy().hasHeightForWidth())
+        self.comboBoxTask.setSizePolicy(sizePolicy1)
+        self.comboBoxTask.setMinimumSize(QSize(300, 0))
 
         self.horizontalLayout_3.addWidget(self.comboBoxTask)
 
-        self.horizontalSpacer_5 = QSpacerItem(5, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.horizontalSpacer_5 = QSpacerItem(5, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
 
         self.horizontalLayout_3.addItem(self.horizontalSpacer_5)
 

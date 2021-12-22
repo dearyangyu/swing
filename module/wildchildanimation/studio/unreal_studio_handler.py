@@ -24,14 +24,14 @@ except ImportError:
     from PyQt5 import QtWidgets
     qtMode = 1 
 
-class SwingStudioHandler(StudioInterface):
+class UnrealStudioHandler(StudioInterface):
 
-    NAME = "SwingStudioHandler"
+    NAME = "UnrealStudioHandler"
     VERSION = "0.0.5"      
 
     def __init__(self):
-        super(SwingStudioHandler, self).__init__()
-        ## self.log_output("Loaded: {} {}".format(SwingStudioHandler.NAME, SwingStudioHandler.VERSION))  
+        super(UnrealStudioHandler, self).__init__()
+        ## self.log_output("Loaded: {} {}".format(UnrealStudioHandler.NAME, UnrealStudioHandler.VERSION))  
         # 
 
     ### Logging functions

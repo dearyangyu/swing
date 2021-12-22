@@ -12,6 +12,7 @@ from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
+from wildchildanimation.gui.swing_utils import fakestr
 
 class Ui_LayoutDialog(object):
     def setupUi(self, LayoutDialog):
@@ -20,7 +21,7 @@ class Ui_LayoutDialog(object):
         LayoutDialog.resize(550, 175)
         LayoutDialog.setMinimumSize(QSize(550, 175))
         LayoutDialog.setMaximumSize(QSize(550, 175))
-        LayoutDialog.setModal(True)
+        LayoutDialog.setModal(False)
         self.verticalLayout = QVBoxLayout(LayoutDialog)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.horizontalLayout_5 = QHBoxLayout()
@@ -124,7 +125,7 @@ class Ui_LayoutDialog(object):
     # setupUi
 
     def retranslateUi(self, LayoutDialog):
-        LayoutDialog.setWindowTitle(fakestr(u"Swing: Break Out", None))
+        LayoutDialog.setWindowTitle(fakestr(u"Swing: Layout", None))
         self.pushButtonImagePlane.setText(fakestr(u"Image Plane", None))
         self.labelImagePlane.setText(fakestr(u"Add an image plane to the camera sequencer", None))
         self.pushButtonChainsaw.setText(fakestr(u"Chainsaw", None))

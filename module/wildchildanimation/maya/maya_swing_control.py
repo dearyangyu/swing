@@ -10,7 +10,7 @@ import traceback
 import maya.utils as mutils
 
 from shiboken2 import wrapInstance, getCppPointer
-from wildchildanimation.maya.layout_control import BreakoutControlDialog
+from wildchildanimation.maya.layout_control import LayoutControlDialog
 from wildchildanimation.gui.background_workers import TaskFileInfoThread
 from wildchildanimation.gui.settings import SwingSettings
 from wildchildanimation.gui.swing_utils import friendly_string
@@ -363,8 +363,8 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
         '''  
 
     def on_breakout_control(self):
-        self.breakoutControlDialog = BreakoutControlDialog(self, self.handler, self.task)
-        self.breakoutControlDialog.show()
+        self.layoutControl = LayoutControlDialog(self, self.handler, self.task)
+        self.layoutControl.show()
 
 
     ### Studio Handlers

@@ -55,7 +55,12 @@ class SceneData(object):
 
     def save_task_data(self, task):
         self.scene_descriptor["project_id"] = task["project_id"]
-        self.scene_descriptor["episode_id"] = task["episode"]["id"]
+        
+        if "episode" in task:
+            self.scene_descriptor["episode_id"] = task["episode"]["id"]
+        else:
+            self.scene_descriptor["episode_id"] = "All"
+
         self.scene_descriptor["task_id"] = task["id"]
 
         self.save_scene_descriptor()

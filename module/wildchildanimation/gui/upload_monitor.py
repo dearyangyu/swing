@@ -70,7 +70,19 @@ class UploadMonitorDialog(QtWidgets.QDialog, Ui_UploadMonitorDialog):
         #self.progressBar.setRange(0, len(self.model.files))
 
     def set_queue(self, queue):
-        self.queue.extend(queue)
+        index = 0
+        for item in queue:
+            print("{}: {}".format(index, item))            
+
+            self.queue.append(item)
+            self.add_item(item.source, 'Pending')
+            index += 1
+
+        self.reset_progressbar()            
+        print("set_queue {}".format(len(self.queue)))
+
+    def reset(self):
+        self.queue = []
 
     def close_dialog(self):
         self.hide()
@@ -79,7 +91,7 @@ class UploadMonitorDialog(QtWidgets.QDialog, Ui_UploadMonitorDialog):
         self.task = task
 
     def file_loading(self, results):
-        ## print("file loading: {}".format(results))
+        print("file loading: {}".format(results))
 
         message = results["message"]
         source = results["source"]     
@@ -91,8 +103,8 @@ class UploadMonitorDialog(QtWidgets.QDialog, Ui_UploadMonitorDialog):
             self.model.set_item_text(source, message)
 
     def file_loaded(self, results):
-        upload_index = self.progressBar.value() + 1
-        print("file_loaded {}: {} {} {} {}".format(len(self.model.files), results['status'], upload_index, results['source'], results['message']))
+        upload_index = self.progressBar.value()
+        print("file_loaded {}: {} {} {} {}".format(len(self.queue), results['status'], upload_index, results['source'], results['message']))
 
         status = results["status"]
 
@@ -100,20 +112,23 @@ class UploadMonitorDialog(QtWidgets.QDialog, Ui_UploadMonitorDialog):
         source = results["source"]     
 
         self.model.set_item_text(source, message)        
-        self.progressBar.setValue(self.progressBar.value() + 1)
 
-        if "ok" in status:
+        if "upload complete" in message:
             print("file_loaded completed {0} files".format(upload_index))
 
-            if upload_index >= len(self.model.files):
+            if upload_index == len(self.queue) - 1:
                 self.pushButtonCancel.setText("Close")
                 # QtWidgets.QMessageBox.question(self, 'Publishing complete', 'All files uploaded, thank you', QtWidgets.QMessageBox.Ok)
                 try:
+                    self.reset()
                     url = gazu.task.get_task_url(self.task)
                     self.open_url(url)
                 except:
                     print("Error loading url {0}".format(url))
-                    pass            
+                    pass   
+
+            self.progressBar.setValue(upload_index + 1)
+         
 
     def add_item(self, source, text):
         self.model.add_item(source, text)         

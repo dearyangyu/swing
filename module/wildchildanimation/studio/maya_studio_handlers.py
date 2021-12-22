@@ -56,7 +56,7 @@ def maya_main_window():
     main_window_ptr = omui.MQtUtil.mainWindow()
     return wrapInstance(int(main_window_ptr), QtWidgets.QWidget)
 
-class MayaStudioHandler(StudioInterface, SwingMaya):
+class MayaStudioHandler(SwingMaya, StudioInterface):
 
     NAME = "MayaStudioHandler"
     VERSION = "0.0.6"
@@ -65,23 +65,7 @@ class MayaStudioHandler(StudioInterface, SwingMaya):
     def __init__(self):
         super(MayaStudioHandler, self).__init__()
 
-    def log_error(self, text):
-        if _maya_loaded:
-            om.MGlobal.displayError("[MayaStudioHandler] {0}".format(text))
-        else:
-            write_log("[error] {}".format(text))
-
-    def log_warning(self, text):
-        if _maya_loaded:
-            om.MGlobal.displayWarning("[MayaStudioHandler] {0}".format(text))
-        else:
-            write_log("[warn] {}".format(text))
-
-    def log_output(self, text):
-        if _maya_loaded:
-            om.MGlobal.displayInfo(text)
-        else:
-            write_log("[info] {}".format(text))    
+        self.log_output("{} v{}".format(self.NAME, self.VERSION))
 
     def get_param(self, option, value):
         ### runs a custom value request against the local dcc
@@ -152,37 +136,52 @@ class MayaStudioHandler(StudioInterface, SwingMaya):
     # Author: Miruna D. Mateescu
     # Last Modified: 2021/04/05
     #
-    def chainsaw(self, csv_filename, file_prefix = "hby_204_", shot_start = 10, shot_step = 10):
+    def chainsaw(self, csv_filename):
+        self.log_output("chainsaw: exporting to {} using prefix".format(csv_filename))
         try:
+            break_out_dir = "{}/breakout".format(self.get_scene_path())
+
+            if not os.path.exists(break_out_dir):
+                os.makedirs(break_out_dir, mode=0o777, exist_ok=False)
+
             all_shots = cmds.ls(type="shot")
-            shot_no = shot_start        
-            with open(csv_filename, 'w') as csv_file:
+
+            self.log_output("chainsaw: found {} shots".format(len(all_shots)))
+            with open("{}/{}".format(break_out_dir, csv_filename), 'w') as csv_file:
                 writer = csv.writer(csv_file)            
-                for crt_shot in all_shots:
-                    shot_start = cmds.getAttr(crt_shot+".startFrame")
-                    shot_end = cmds.getAttr(crt_shot+".endFrame")
-                    shot_cam = cmds.listConnections(crt_shot+".currentCamera")         
+                try:
+                    for shot_name in all_shots:
+                        self.log_output("chainsaw: processing {} ".format(shot_name))
 
-                    # only interested in the first camera for the shot
-                    if len(shot_cam) >= 1:
-                        shot_cam = shot_cam[0]
+                        shot_start = cmds.getAttr(shot_name + ".startFrame")
+                        shot_end = cmds.getAttr(shot_name + ".endFrame")
+                        shot_cam = cmds.listConnections(shot_name + ".currentCamera")         
 
-                    cmds.playbackOptions(animationStartTime=shot_start, minTime=shot_start, animationEndTime=shot_end, maxTime=shot_end)
-                    cmds.lookThru(shot_cam)
-                    cmds.currentTime(shot_start)                
+                        # only interested in the first camera for the shot
+                        if len(shot_cam) >= 1:
+                            shot_cam = shot_cam[0]
 
-                    if "shot_" in crt_shot:
-                        shot_name = "sh" + "{}".format(shot_no).zfill(3)
+                        cmds.playbackOptions(animationStartTime=shot_start, minTime=shot_start, animationEndTime=shot_end, maxTime=shot_end)
+                        cmds.lookThru(shot_cam)
+                        cmds.currentTime(shot_start)                
 
-                        cmds.rename(crt_shot, shot_name)
-                        cmds.file(rn=file_prefix+shot_name + ".ma")
+                        shot_file_name = "{}/{}.ma".format(break_out_dir, shot_name)
+
+                        self.log_output("chainsaw: processing {} -> {}".format(shot_name, shot_file_name))
+
+                        cmds.file(rn = shot_file_name)
                         cmds.file(save=True, type='mayaAscii')                    
 
                         writer.writerow([shot_name, shot_start, shot_end, shot_cam])
-                        shot_no += shot_step
+
+                    return True
+                finally:
+                    csv_file.close()
         except:
             traceback.print_exc(file=sys.stdout)
             self.log_error("chainsaw error: args {}".format(csv_filename))               
+
+        return False
 
     def remove_prefix(self, text, prefix):
         return text[text.startswith(prefix) and len(prefix):]
@@ -195,13 +194,20 @@ class MayaStudioHandler(StudioInterface, SwingMaya):
         - Shifts keys to frame 0 and removes out of shot keys
 
     '''
-    def animprep(self, prefix):
+    def anim_prep(self, prefix):
+        self.log_output("anim_prep: processing {}".format(prefix))
+
         all_shots = cmds.ls(type = 'shot')
+        self.log_output("anim_prep: found {} shots".format(len(all_shots)))
 
         filename = cmds.file(q=True, sn=True, shn=True)
         raw_name, extension = os.path.splitext(filename)
         shot_name = self.remove_prefix(raw_name, prefix)
-        
+        self.log_output("anim_prep: searching for camera {}".format(len(shot_name)))
+
+        return False
+
+
         # delete unused cameras
         cameras = cmds.ls(type = 'camera')
         for cam in cameras:
@@ -513,11 +519,18 @@ class MayaStudioHandler(StudioInterface, SwingMaya):
 
 
     def on_load(self, **kwargs):
+        if len(kwargs) == 0:
+            #fixme: find event calling empty kwargs
+            return False
+
         try:
             # we need parent so dialog doesn't go awol
             # we need entity for name space management
+            if "parent" in kwargs:
+                parent = kwargs["parent"]
+            else:
+                parent = self
 
-            parent = kwargs["parent"]
             entity = kwargs["entity"]
             #files = kwargs["files"]
             selected = kwargs["selected"]
@@ -588,10 +601,10 @@ class MayaStudioHandler(StudioInterface, SwingMaya):
 
             working_dir = self.get_scene_path()
 
-            if "task_types" in kwargs:
-                task_types = kwargs["task_types"]
-            else:
-                task_types = None        
+            #if "task_types" in kwargs:
+            #    task_types = kwargs["task_types"]
+            #else:
+            #    task_types = None        
 
             self.exportDialog = SwingExportDialog(handler = self, task = task, working_dir = working_dir)
             self.exportDialog.show()

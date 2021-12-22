@@ -562,13 +562,19 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
 
         if len(self.queue) > 0:
             self.monitor.set_queue(self.queue)
-            self.monitor.reset_progressbar()            
             self.monitor.set_task(self.task)
             self.monitor.show()
             self.hide()            
 
+            index = 0
             for item in self.queue:
+                print("Starting upload: {}".format(index))
                 self.threadpool.start(item)
+                index += 1
+
+            # clear queue
+            print("Clearing upload queue")
+            self.queue.clear()
                 #self.threadpool.waitForDone()
 
 

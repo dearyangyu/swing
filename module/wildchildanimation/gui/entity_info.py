@@ -344,11 +344,15 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
                     open_folder(os.path.dirname(self.selected_file["target_path"]))
                     return True
 
-            self.loaderDialog = LoaderDialogGUI(parent = self.parentWidget(), handler = self.handler, entity = self.entity)
-            self.loaderDialog.load_files(self.file_list)
-            self.loaderDialog.set_selected(self.selected_file)
-            #dialog.exec_()
-            self.loaderDialog.show()
+
+            self.handler.on_load(parent = self, entity = self.entity, files = self.file_list, selected = self.selected_file)
+            self.handler.on_load()
+
+            #self.loaderDialog = LoaderDialogGUI(parent = self.parentWidget(), handler = self.handler, entity = self.entity)
+            #self.loaderDialog.load_files(self.file_list)
+            #self.loaderDialog.set_selected(self.selected_file)
+            ##dialog.exec_()
+            #self.loaderDialog.show()
 
     def on_click(self, index):
         selected = self.tableView.model().data(index, QtCore.Qt.UserRole)      

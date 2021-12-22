@@ -83,13 +83,16 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
                     return True
 
             #self.close_dialog()
+            #self.handler.on_load()
+            self.handler.on_load(parent = self, entity = self.entity, files = self.file_list, selected = self.selected_file)
+            self.handler.on_load()
 
-            self.loaderDialog = LoaderDialogGUI(parent = None, handler = self.handler, entity = self.entity)
-            self.loaderDialog.load_files(self.file_list)
-            self.loaderDialog.set_selected(self.selected_file)
+            ##self.loaderDialog = LoaderDialogGUI(parent = None, handler = self.handler, entity = self.entity)
+            ##self.loaderDialog.load_files(self.file_list)
+            ##self.loaderDialog.set_selected(self.selected_file)
 
             #dialog.exec_()
-            self.loaderDialog.show()        
+            ##self.loaderDialog.show()        
 
     def files_loaded(self, data):
         self.file_list = data[0]

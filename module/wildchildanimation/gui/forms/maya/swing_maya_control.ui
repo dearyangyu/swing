@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1502</width>
+    <width>1669</width>
     <height>27</height>
    </rect>
   </property>
@@ -65,7 +65,7 @@
         <widget class="QComboBox" name="comboBoxProject">
          <property name="minimumSize">
           <size>
-           <width>300</width>
+           <width>175</width>
            <height>0</height>
           </size>
          </property>
@@ -75,6 +75,9 @@
         <spacer name="horizontalSpacer">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Fixed</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
@@ -88,7 +91,7 @@
         <widget class="QComboBox" name="comboBoxEpisode">
          <property name="minimumSize">
           <size>
-           <width>250</width>
+           <width>180</width>
            <height>0</height>
           </size>
          </property>
@@ -98,6 +101,9 @@
         <spacer name="horizontalSpacer_4">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Fixed</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
@@ -109,9 +115,15 @@
        </item>
        <item>
         <widget class="QComboBox" name="comboBoxTask">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="minimumSize">
           <size>
-           <width>400</width>
+           <width>300</width>
            <height>0</height>
           </size>
          </property>
@@ -121,6 +133,9 @@
         <spacer name="horizontalSpacer_5">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Fixed</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
@@ -210,6 +225,9 @@
       <spacer name="horizontalSpacer_2">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeType">
+        <enum>QSizePolicy::Expanding</enum>
        </property>
        <property name="sizeHint" stdset="0">
         <size>

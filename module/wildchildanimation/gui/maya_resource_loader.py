@@ -48,7 +48,11 @@ class ResourceLoaderDialogGUI(QtWidgets.QDialog, Ui_MayaResourceLoaderDialog):
         self.handler = handler
         self.resource = resource
         self.resource_network_path = None
-        self.entity = gazu.entity.get_entity(entity)
+
+        if isinstance(entity, dict):
+            self.entity = entity
+        else:
+            self.entity = gazu.entity.get_entity(entity)
 
         set_button_icon(self.toolButtonTargetDir, "../resources/fa-free/solid/folder.svg")
         self.toolButtonTargetDir.clicked.connect(self.select_wcd)
@@ -332,7 +336,7 @@ class ResourceLoaderDialogGUI(QtWidgets.QDialog, Ui_MayaResourceLoaderDialog):
 
                     if os.path.exists(target_path):
                         print("Local file already exists, check with user ... ")
-                        reply = QtWidgets.QMessageBox.question(self, 'Confirm Overwrite', 'This will overwrite the existing file {}\r\nAre you sure you wish to continue ?'.format(target_path), QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
+                        reply = QtWidgets.QMessageBox.question(self, 'Confirm Overwrite', 'This will overwrite the existing file {}\r\n\r\nAre you sure you wish to continue ?'.format(target_path), QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
                         if not reply == QtWidgets.QMessageBox.Yes:
                             print("Didn't think so ")
                             return False
