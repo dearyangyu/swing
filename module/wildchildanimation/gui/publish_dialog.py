@@ -99,7 +99,9 @@ class Ui_PublishDialog(object):
         self.groupBoxWorkingFiles.setFont(font)
         self.groupBoxWorkingFiles.setCheckable(True)
         self.gridLayout = QGridLayout(self.groupBoxWorkingFiles)
+        self.gridLayout.setSpacing(0)
         self.gridLayout.setObjectName(u"gridLayout")
+        self.gridLayout.setContentsMargins(0, 0, 0, 0)
         self.tabWidget = QTabWidget(self.groupBoxWorkingFiles)
         self.tabWidget.setObjectName(u"tabWidget")
         self.tab = QWidget()
@@ -148,13 +150,15 @@ class Ui_PublishDialog(object):
 
         self.workingFileSelectButton = QToolButton(self.tab)
         self.workingFileSelectButton.setObjectName(u"workingFileSelectButton")
-        self.workingFileSelectButton.setMinimumSize(QSize(40, 0))
-        self.workingFileSelectButton.setMaximumSize(QSize(40, 16777215))
+        self.workingFileSelectButton.setMinimumSize(QSize(45, 0))
+        self.workingFileSelectButton.setMaximumSize(QSize(45, 16777215))
 
         self.horizontalLayoutProjectFile.addWidget(self.workingFileSelectButton)
 
         self.toolButtonWorkingFileList = QToolButton(self.tab)
         self.toolButtonWorkingFileList.setObjectName(u"toolButtonWorkingFileList")
+        self.toolButtonWorkingFileList.setMinimumSize(QSize(45, 0))
+        self.toolButtonWorkingFileList.setMaximumSize(QSize(45, 16777215))
 
         self.horizontalLayoutProjectFile.addWidget(self.toolButtonWorkingFileList)
 
@@ -177,13 +181,15 @@ class Ui_PublishDialog(object):
 
         self.workingDirSelectButton = QToolButton(self.tab)
         self.workingDirSelectButton.setObjectName(u"workingDirSelectButton")
-        self.workingDirSelectButton.setMinimumSize(QSize(40, 0))
-        self.workingDirSelectButton.setMaximumSize(QSize(40, 16777215))
+        self.workingDirSelectButton.setMinimumSize(QSize(45, 0))
+        self.workingDirSelectButton.setMaximumSize(QSize(45, 16777215))
 
         self.horizontalLayoutProjectFile_4.addWidget(self.workingDirSelectButton)
 
         self.toolButtonWorkingDirFilter = QToolButton(self.tab)
         self.toolButtonWorkingDirFilter.setObjectName(u"toolButtonWorkingDirFilter")
+        self.toolButtonWorkingDirFilter.setMinimumSize(QSize(45, 0))
+        self.toolButtonWorkingDirFilter.setMaximumSize(QSize(45, 16777215))
 
         self.horizontalLayoutProjectFile_4.addWidget(self.toolButtonWorkingDirFilter)
 
@@ -309,10 +315,17 @@ class Ui_PublishDialog(object):
 
         self.outputFileSelectButton = QToolButton(self.groupBoxOutputFiles)
         self.outputFileSelectButton.setObjectName(u"outputFileSelectButton")
-        self.outputFileSelectButton.setMinimumSize(QSize(40, 0))
-        self.outputFileSelectButton.setMaximumSize(QSize(40, 16777215))
+        self.outputFileSelectButton.setMinimumSize(QSize(45, 0))
+        self.outputFileSelectButton.setMaximumSize(QSize(45, 16777215))
 
         self.horizontalLayoutProjectFile_6.addWidget(self.outputFileSelectButton)
+
+        self.toolButtonOutputFileList = QToolButton(self.groupBoxOutputFiles)
+        self.toolButtonOutputFileList.setObjectName(u"toolButtonOutputFileList")
+        self.toolButtonOutputFileList.setMinimumSize(QSize(45, 0))
+        self.toolButtonOutputFileList.setMaximumSize(QSize(45, 16777215))
+
+        self.horizontalLayoutProjectFile_6.addWidget(self.toolButtonOutputFileList)
 
 
         self.verticalLayout.addLayout(self.horizontalLayoutProjectFile_6)
@@ -333,13 +346,15 @@ class Ui_PublishDialog(object):
 
         self.outputDirSelectButton = QToolButton(self.groupBoxOutputFiles)
         self.outputDirSelectButton.setObjectName(u"outputDirSelectButton")
-        self.outputDirSelectButton.setMinimumSize(QSize(40, 0))
-        self.outputDirSelectButton.setMaximumSize(QSize(40, 16777215))
+        self.outputDirSelectButton.setMinimumSize(QSize(45, 0))
+        self.outputDirSelectButton.setMaximumSize(QSize(45, 16777215))
 
         self.horizontalLayoutProjectFile_5.addWidget(self.outputDirSelectButton)
 
         self.toolButtonReviewFilter = QToolButton(self.groupBoxOutputFiles)
         self.toolButtonReviewFilter.setObjectName(u"toolButtonReviewFilter")
+        self.toolButtonReviewFilter.setMinimumSize(QSize(45, 0))
+        self.toolButtonReviewFilter.setMaximumSize(QSize(45, 16777215))
         self.toolButtonReviewFilter.setFont(font1)
 
         self.horizontalLayoutProjectFile_5.addWidget(self.toolButtonReviewFilter)
@@ -427,9 +442,10 @@ class Ui_PublishDialog(object):
         self.groupBoxOutputFiles.setTitle(fakestr(u"Media for Review ", None))
         self.labelReviewTile.setText(fakestr(u"Title", None))
         self.labelTask.setText(fakestr(u"Status", None))
-        self.radioButtonOutputFile.setText(fakestr(u"File", None))
+        self.radioButtonOutputFile.setText(fakestr(u"Output File", None))
         self.outputFileSelectButton.setText(fakestr(u"...", None))
-        self.radioButtonOutputDir.setText(fakestr(u"Directory", None))
+        self.toolButtonOutputFileList.setText(fakestr(u"[files]", None))
+        self.radioButtonOutputDir.setText(fakestr(u"Output Dir", None))
         self.outputDirSelectButton.setText(fakestr(u"...", None))
         self.toolButtonReviewFilter.setText(fakestr(u"[filter]", None))
         self.labelOutputFilesMessage.setText(fakestr(u"Output Files", None))

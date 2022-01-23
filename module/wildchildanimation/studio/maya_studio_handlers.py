@@ -6,7 +6,6 @@
 import time
 import os
 import glob
-import csv
 import sys
 import traceback
 
@@ -38,7 +37,7 @@ except:
 from wildchildanimation.gui.downloads import DownloadDialogGUI
 from wildchildanimation.gui.search import SearchFilesDialog
 from wildchildanimation.gui.swing_create import SwingCreateDialog
-from wildchildanimation.gui.swing_utils import fcount, friendly_string, write_log
+from wildchildanimation.gui.swing_utils import fcount, fcount_name, friendly_string, write_log
 from wildchildanimation.maya.swing_maya import SwingMaya
 
 from wildchildanimation.studio.studio_interface import StudioInterface
@@ -54,12 +53,15 @@ def maya_main_window():
     Return the Maya main window widget as a Python object
     """
     main_window_ptr = omui.MQtUtil.mainWindow()
-    return wrapInstance(int(main_window_ptr), QtWidgets.QWidget)
+    if main_window_ptr:
+        return wrapInstance(int(main_window_ptr), QtWidgets.QWidget)
+    print("running console mode")
+    return None
 
 class MayaStudioHandler(SwingMaya, StudioInterface):
 
     NAME = "MayaStudioHandler"
-    VERSION = "0.0.6"
+    VERSION = "0.0.9"
     SUPPORTED_TYPES = [".ma", ".mb", ".fbx", ".obj", ".mov", ".mp4", ".wav", ".jpg", ".png", ".abc" ]
 
     def __init__(self):
@@ -128,150 +130,12 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
         self.log_output("searching for unresolved references {}".format(refs))
         return refs
 
-    #
-    #
-    # Exports the scene in layout format
-    #
-    # Source: Chainsaw002.py
-    # Author: Miruna D. Mateescu
-    # Last Modified: 2021/04/05
-    #
-    def chainsaw(self, csv_filename):
-        self.log_output("chainsaw: exporting to {} using prefix".format(csv_filename))
-        try:
-            break_out_dir = "{}/breakout".format(self.get_scene_path())
-
-            if not os.path.exists(break_out_dir):
-                os.makedirs(break_out_dir, mode=0o777, exist_ok=False)
-
-            all_shots = cmds.ls(type="shot")
-
-            self.log_output("chainsaw: found {} shots".format(len(all_shots)))
-            with open("{}/{}".format(break_out_dir, csv_filename), 'w') as csv_file:
-                writer = csv.writer(csv_file)            
-                try:
-                    for shot_name in all_shots:
-                        self.log_output("chainsaw: processing {} ".format(shot_name))
-
-                        shot_start = cmds.getAttr(shot_name + ".startFrame")
-                        shot_end = cmds.getAttr(shot_name + ".endFrame")
-                        shot_cam = cmds.listConnections(shot_name + ".currentCamera")         
-
-                        # only interested in the first camera for the shot
-                        if len(shot_cam) >= 1:
-                            shot_cam = shot_cam[0]
-
-                        cmds.playbackOptions(animationStartTime=shot_start, minTime=shot_start, animationEndTime=shot_end, maxTime=shot_end)
-                        cmds.lookThru(shot_cam)
-                        cmds.currentTime(shot_start)                
-
-                        shot_file_name = "{}/{}.ma".format(break_out_dir, shot_name)
-
-                        self.log_output("chainsaw: processing {} -> {}".format(shot_name, shot_file_name))
-
-                        cmds.file(rn = shot_file_name)
-                        cmds.file(save=True, type='mayaAscii')                    
-
-                        writer.writerow([shot_name, shot_start, shot_end, shot_cam])
-
-                    return True
-                finally:
-                    csv_file.close()
-        except:
-            traceback.print_exc(file=sys.stdout)
-            self.log_error("chainsaw error: args {}".format(csv_filename))               
-
-        return False
-
-    def remove_prefix(self, text, prefix):
-        return text[text.startswith(prefix) and len(prefix):]
-
-    '''
-        Derik vd Berg
-        Prepares layout scene for anim
-        - Remove unused cameras
-        - Sets start and End of Shots
-        - Shifts keys to frame 0 and removes out of shot keys
-
-    '''
-    def anim_prep(self, prefix):
-        self.log_output("anim_prep: processing {}".format(prefix))
-
-        all_shots = cmds.ls(type = 'shot')
-        self.log_output("anim_prep: found {} shots".format(len(all_shots)))
-
-        filename = cmds.file(q=True, sn=True, shn=True)
-        raw_name, extension = os.path.splitext(filename)
-        shot_name = self.remove_prefix(raw_name, prefix)
-        self.log_output("anim_prep: searching for camera {}".format(len(shot_name)))
-
-        return False
-
-
-        # delete unused cameras
-        cameras = cmds.ls(type = 'camera')
-        for cam in cameras:
-            cam_trans = cmds.listRelatives(cam,p = True)
-            if shot_name in str(cam_trans):
-                pass
-            else:
-                print(cam_trans)
-                cmds.delete(cam_trans)    
-
-        # delete unused sequencer shot nodes    
-        for cur_shot in all_shots:
-            if cur_shot != shot_name:
-                cmds.delete(cur_shot)
-
-        start = cmds.getAttr(shot_name + '.startFrame')
-        end = cmds.getAttr(shot_name + '.endFrame')
-        
-        animCurves = cmds.ls(type = 'animCurve')
-        allAnimCurves = cmds.ls(type = 'animCurve')
-
-        cmds.select( clear=True ) 
-
-        animCurves = []
-        for curveNode in allAnimCurves:
-            if cmds.referenceQuery( curveNode, isNodeReferenced=True ):
-                pass
-            else:
-                animCurves.append(curveNode)
-        for animCurve in animCurves:
-            cmds.select(animCurve, add = True)
-            
-        #Key start and end of shot    
-        cmds.currentTime( start )
-        cmds.setKeyframe()
-        cmds.currentTime( end )
-        cmds.setKeyframe()
-        cmds.currentTime( start -1 )
-        cmds.setKeyframe()
-        cmds.currentTime( end +1 )
-        cmds.setKeyframe()
-        
-        #shift Keys to frame 0
-        cmds.keyframe(edit=True,iub= False ,an = 'objects', o = 'move',fc = 0, relative=True,timeChange=-(start),time=((-500),(5000000)))
-        cmds.playbackOptions(animationStartTime=0, minTime=0, animationEndTime=(end - start), maxTime=(end - start))
-        
-        #delete keys outside shot range
-        frontcut_start = -5000
-        frontcut_end = -2
-        backcut_start = end - start + 2
-        backcut_end = 10000000
-        cmds.cutKey( time=(frontcut_start,frontcut_end), clear = True )
-        cmds.cutKey( time=(backcut_start,backcut_end), clear = True )
-
-        #Delete current shot sequencer node    
-        cmds.delete(shot_name)
-
-        #Save file    
-        cmds.file(save = True, type='mayaAscii')        
-
     # tries to import the file specified in source into the currently open scene
     def load_file(self, **kwargs):
         source = kwargs["source"]
         force = kwargs["force"]
+
+        self.log_output("load_file '{}'".format(source))
         #working_dir = kwargs["working_dir"]
 
         #self.log_output("load_file:: {0} to {1}".format(source, working_dir))
@@ -301,11 +165,13 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
         else:
             self.log_error("File extension not valid {0}".format(file_extension))                
 
-        write_log("load_file complete")
+        self.log_output("load_file {} completed".format(source))
+        return True
 
     # tries to import the file specified in source into the currently open scene
     def import_file(self, **kwargs):
         source = kwargs["source"]
+        self.log_output("import_file '{}'".format(source))
         #working_dir = kwargs["working_dir"]
 
         #self.log_output("import_file:: {0} to {1}".format(source, working_dir))
@@ -326,7 +192,7 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
         else:
             self.log_error("File extension not valid {0}".format(file_extension))                
 
-        write_log("load_file complete")
+        self.log_output("import_file {} completed".format(source))
         return True  
 
     # tries to import the file specified in source into the currently open scene
@@ -334,6 +200,8 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
         source = kwargs["source"]
         #working_dir = kwargs["working_dir"]
         namespace = kwargs["namespace"]
+
+        self.log_output("Import Ref '{}:{}'".format(source, namespace))
 
         #self.log_output("load_reference:: {0}".format(source, working_dir))
         #self.log_output("Source  {0}".format(working_dir))
@@ -343,7 +211,7 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
         filename, file_extension = os.path.splitext(source)
 
         if file_extension in MayaStudioHandler.SUPPORTED_TYPES:
-            self.log_output("Importing file {}".format(source))
+            self.log_output("import_reference {}".format(source))
 
             prompt_val = cmds.file(prompt=True, q=True)
             try:
@@ -359,7 +227,8 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
         else:
             self.log_error("File extension not valid {0}".format(file_extension))
 
-        write_log("import_reference complete")
+        self.log_output("import_reference {} completed".format(source))
+        return True
 
     def create_folder(self, directory):
         if not os.path.exists(directory):
@@ -531,13 +400,15 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
             else:
                 parent = self
 
+            if "namespace" in kwargs:
+                namespace = kwargs["namespace"]
+            else:
+                namespace = False
+
             entity = kwargs["entity"]
-            #files = kwargs["files"]
             selected = kwargs["selected"]
 
-            loaderDialog = ResourceLoaderDialogGUI(parent = parent, handler = self, resource = selected, entity = entity)
-            #loaderDialog.load_files(files)
-            #loaderDialog.set_selected(selected)
+            loaderDialog = ResourceLoaderDialogGUI(parent = parent, handler = self, resource = selected, entity = entity, namespace = namespace)
             loaderDialog.show()        
         except:
             traceback.print_exc(file=sys.stdout)
@@ -561,12 +432,12 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
             #task_dir = task["project_dir"]
             task_dir = self.get_project_dir_path()
 
-            if "task_types" in kwargs:
-                task_types = kwargs["task_types"]
-            else:
-                task_types = None   
+            #if "task_types" in kwargs:
+            #    task_types = kwargs["task_types"]
+            #else:
+            #    task_types = None   
 
-            self.publishDialog = PublishDialogGUI(task = task, task_types = task_types)            
+            self.publishDialog = PublishDialogGUI(task = task)            
 
             file_path = cmds.file(q = True, sn = True)
             self.publishDialog.set_working_file(file_path)        
@@ -652,36 +523,51 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
             task_dir = self.get_scene_path()
             working_file = friendly_string("_".join(self.get_task_sections(task)))
             artist = self.get_user_name()
+            scene_dir = self.get_scene_path()
+            scene_name = self.get_scene_name()
 
-            playblast_count = 1
-            if os.path.exists(task_dir):
-                playblasts = os.path.join(task_dir, "playblasts")
-                if os.path.exists(playblasts):
-                    playblast_count = fcount(playblasts)
+            self.log_output("on_playblast::task {}".format(task))
+            self.log_output("on_playblast::task_dir {}".format(task_dir))
+            self.log_output("on_playblast::working_file {}".format(working_file))
+            self.log_output("on_playblast::artist {}".format(artist))
+            self.log_output("on_playblast::scene_name  {}".format(scene_name))
+            self.log_output("on_playblast::scene_dir  {}".format(scene_dir))
+
+            if len(scene_dir) == 0 or scene_name == 'untitled':
+                QtWidgets.QMessageBox.warning(None, 'Playblasting unsaved changes', 'Please save the current project file or load a saved task before playblasting')
+                return False
+
+            if "layout" in working_file.lower():
+                dialog = SwingSequencePlayblastUi()
+
+                # only count final sequence name in playblast dir, ignore shots
+                playblast_count = 1
+                if os.path.exists(task_dir):
+                    playblasts = os.path.join(task_dir, "playblasts")
+                    if os.path.exists(playblasts):
+                        playblast_count = fcount_name(playblasts, working_file) + 1
+
+            else:
+                dialog = SwingPlayblastUi()
+
+                # count all media files in playblast dir
+                playblast_count = 1
+                if os.path.exists(task_dir):
+                    playblasts = os.path.join(task_dir, "playblasts")
+                    if os.path.exists(playblasts):
+                        playblast_count = fcount(playblasts) + 1
+
+            self.log_output("on_playblast::playblast_count  {}".format(playblast_count))            
 
             playblast_version ="{}".format(playblast_count).zfill(3)
             
             playblast_filename = "{}_v{}".format(working_file, playblast_version)
-            playblast_target = os.path.join(task_dir, "playblasts", playblast_filename)
+            playblast_target = os.path.join(task_dir, "playblasts", playblast_filename).lower()
 
             self.log_output("open: {} {} {}".format(playblast_version, playblast_filename, playblast_target))
             try:
-                self.log_output("Checking {}".format(task["name"]))
-                if "layout" in working_file.lower():
-                    self.log_output("Sequence::Playblast")
-
-                    dialog = SwingSequencePlayblastUi()
-                    dialog.set_output_file_name(playblast_target)
-                    dialog.set_artist(artist)
-
-                else:
-                    self.log_output("Shot::Playblast")
-
-                    dialog = SwingPlayblastUi()
-                    dialog.set_output_file_name(playblast_target)
-                    dialog.set_artist(artist)
-
-                    
+                dialog.set_output_file_name(playblast_target)
+                dialog.set_artist(artist)
                 dialog.set_caption_text(" ".join(self.get_task_sections(task)))
                 dialog.show()
 

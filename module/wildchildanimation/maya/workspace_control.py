@@ -62,21 +62,14 @@ class WorkspaceControl(object):
         return cmds.workspaceControl(self.name, q=True, collapse=True)
 
     def add_widget_to_layout(self, widget):
-        print("Add_widget_to_layout")
         if widget:
-            print("Add_widget_to_layout: widget found")
             self.widget = widget
             self.widget.setAttribute(QtCore.Qt.WA_DontCreateNativeAncestors)
 
             # python 3
             workspace_control_ptr = int(omui.MQtUtil.findControl(self.name))
-            print("Add_widget_to_layout: widget found: {}".format(self.name))
-
             widget_ptr = int(getCppPointer(self.widget)[0])
-            print("Add_widget_to_layout: widget found: {}".format(widget_ptr))
-
             omui.MQtUtil.addWidgetToMayaLayout(widget_ptr, workspace_control_ptr)
-            print("Add_widget_to_layout: Added widget to maya layout")
 
     def add_widget_to_layout1(self, widget):
         if widget:

@@ -125,17 +125,20 @@ class PlaylistWorker(QtCore.QRunnable):
                 if ext in StudioInterface.UNARCHIVE_TYPES:
                     #target = os.path.normpath(os.path.join(self.target, fn))
 
-                    if not media_in_archive(source):
-                        if self.check_archives:
-                            print("Invalid media found in archive {}".format(source))
-                            results = {
-                                "status": "skipped",
-                                "message": "invalid files in archive",
-                                "item": self.item,
-                                "target": output_dir,
-                            }
-                            self.callback.done.emit(results)                
-                            return                        
+                    #
+                    # $todo: check that archive contains valid files, not project files
+                    #
+                    #if not media_in_archive(source):
+                    #    if self.check_archives:
+                    #        print("Invalid media found in archive {}".format(source))
+                    #        results = {
+                    #            "status": "skipped",
+                    #            "message": "invalid files in archive",
+                    #            "item": self.item,
+                    #            "target": output_dir,
+                    #        }
+                    #        self.callback.done.emit(results)                
+                    #        return                        
 
                     if os.path.exists(output_dir):
                         if self.skip_existing:

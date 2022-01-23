@@ -1,6 +1,8 @@
 import copy
+import csv
 import os
 import traceback
+import sys
 
 from PySide2 import QtCore
 from PySide2 import QtGui
@@ -20,7 +22,7 @@ class SwingMaya(QtCore.QObject):
 
     DEFAULT_FFMPEG_PATH = "C:/ffmpeg/ffmpeg-4.2.1/bin/ffmpeg.exe"
 
-    VERSION = "0.0.1"
+    VERSION = "0.0.2"
     TITLE = "Swing Maya"
 
     RESOLUTION_LOOKUP = {
@@ -290,6 +292,8 @@ class SwingMaya(QtCore.QObject):
         return visibility_flags
 
     def set_frame_range(self, frame_range):
+        self.log_output("set_frame_range {}".format(frame_range))
+
         resolved_frame_range = self.resolve_frame_range(frame_range)
         if not resolved_frame_range:
             return
@@ -471,4 +475,157 @@ class SwingMaya(QtCore.QObject):
             dir_path = dir_path.replace("{project}", self.get_project_dir_path())
 
         return dir_path
+
+    #
+    #
+    # Exports the scene in layout format
+    #
+    # Source: Chainsaw002.py
+    # Author: Miruna D. Mateescu
+    # Last Modified: 2021/04/05
+    #
+    def chainsaw(self, csv_filename):
+        self.log_output("chainsaw: exporting to {} using prefix".format(csv_filename))
+        try:
+            break_out_dir = "{}/breakout".format(self.get_scene_path())
+
+            if not os.path.exists(break_out_dir):
+                os.makedirs(break_out_dir, mode=0o777, exist_ok=False)
+
+            all_shots = cmds.ls(type="shot")
+
+            self.log_output("chainsaw: found {} shots".format(len(all_shots)))
+            with open("{}/{}".format(break_out_dir, csv_filename), 'w') as csv_file:
+                writer = csv.writer(csv_file)            
+                try:
+                    for shot_name in all_shots:
+                        self.log_output("chainsaw: processing {} ".format(shot_name))
+
+                        shot_start = cmds.getAttr(shot_name + ".startFrame")
+                        shot_end = cmds.getAttr(shot_name + ".endFrame")
+                        shot_cam = cmds.listConnections(shot_name + ".currentCamera")         
+
+                        # only interested in the first camera for the shot
+                        if len(shot_cam) >= 1:
+                            shot_cam = shot_cam[0]
+
+                        cmds.playbackOptions(animationStartTime=shot_start, minTime=shot_start, animationEndTime=shot_end, maxTime=shot_end)
+                        cmds.lookThru(shot_cam)
+                        cmds.currentTime(shot_start)                
+
+                        shot_file_name = "{}/{}.ma".format(break_out_dir, shot_name)
+
+                        self.log_output("chainsaw: processing {} -> {}".format(shot_name, shot_file_name))
+
+                        cmds.file(rn = shot_file_name)
+                        cmds.file(save=True, type='mayaAscii')                    
+
+                        writer.writerow([shot_name, shot_start, shot_end, shot_cam])
+
+                    return True
+                finally:
+                    csv_file.close()
+        except:
+            traceback.print_exc(file=sys.stdout)
+            self.log_error("chainsaw error: args {}".format(csv_filename))               
+
+        return False
+
+    '''
+        Derik vd Berg
+        Prepares layout scene for anim
+        - Remove unused cameras
+        - Sets start and End of Shots
+        - Shifts keys to frame 0 and removes out of shot keys
+
+        - Assumes file name, shot name and camera name matches
+        i.e. 
+            file name: witw_ep101_seq010_sh010.ma
+            shot name: witw_ep101_seq010_sh010
+            camera name: witw_ep101_seq010_sh010_cam
+
+    '''
+    def anim_prep(self):
+        filename = cmds.file(q=True, sn=True, shn=True)
+
+        self.log_output("anim_prep: processing {}".format(filename))
+
+        all_shots = cmds.ls(type = 'shot')
+        self.log_output("anim_prep: found {} shots".format(len(all_shots)))
+
+        shot_name, extension = os.path.splitext(filename)
+        self.log_output("anim_prep: searching for camera {}".format(len(shot_name)))
+
+        # delete unused cameras
+        cameras = cmds.ls(type = 'camera')
+        for cam in cameras:
+            if cam in [ "frontShape", "perspShape", "sideShape", "topShape"]:
+                self.log_output("Keeping cam {}".format(cam))
+                continue
+
+            cam_trans = cmds.listRelatives(cam, p = True)
+            if shot_name in str(cam_trans):
+                self.log_output("Keeping camera for shot {}".format(cam_trans))
+                continue
+
+            ##print(cam_trans)
+            cmds.delete(cam_trans)    
+            self.log_output("anim_prep::removed cam {}".format(cam_trans))
+
+        # delete unused sequencer shot nodes    
+        for cur_shot in all_shots:
+            if cur_shot != shot_name:
+                cmds.delete(cur_shot)
+                self.log_output("anim_prep::removed shot {}".format(cur_shot))
+
+        start = cmds.getAttr(shot_name + '.startFrame')
+        end = cmds.getAttr(shot_name + '.endFrame')
+        
+        animCurves = cmds.ls(type = 'animCurve')
+        allAnimCurves = cmds.ls(type = 'animCurve')
+
+        cmds.select(clear = True) 
+
+        animCurves = []
+        for curveNode in allAnimCurves:
+            if cmds.referenceQuery(curveNode, isNodeReferenced = True):
+                pass
+            else:
+                animCurves.append(curveNode)
+
+        for animCurve in animCurves:
+            cmds.select(animCurve, add = True)
+            
+        #Key start and end of shot    
+        cmds.currentTime(start)
+        cmds.setKeyframe()
+        cmds.currentTime(end)
+        cmds.setKeyframe()
+        cmds.currentTime(start-1)
+        cmds.setKeyframe()
+        cmds.currentTime(end+1)
+        cmds.setKeyframe()
+        self.log_output("Keyed start {} and end {}".format(start, end))
+        
+        #shift Keys to frame 0
+        cmds.keyframe(edit=True, iub=False, an = 'objects', o = 'move', fc = 0, relative=True, timeChange=-(start),time=((-500),(5000000)))
+        cmds.playbackOptions(animationStartTime=0, minTime=0, animationEndTime=(end - start), maxTime=(end - start))
+        self.log_output("Shifted keys to origin")
+        
+        #delete keys outside shot range
+        frontcut_start = -5000
+        frontcut_end = -2
+        backcut_start = end - start + 2
+        backcut_end = 10000000
+        cmds.cutKey(time=(frontcut_start,frontcut_end), clear = True)
+        cmds.cutKey(time=(backcut_start,backcut_end), clear = True)
+        self.log_output("Removed keys out of bounds")
+
+        #Delete current shot sequencer node    
+        cmds.delete(shot_name)
+        self.log_output("Removed sequencer node")
+
+        #Save file    
+        cmds.file(save = True, type='mayaAscii') 
+        self.log_output("Saved scene")             
 

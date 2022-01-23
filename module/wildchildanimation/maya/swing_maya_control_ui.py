@@ -42,7 +42,7 @@ class Ui_SwingControlWidget(object):
 
         self.comboBoxProject = QComboBox(SwingControlWidget)
         self.comboBoxProject.setObjectName(u"comboBoxProject")
-        self.comboBoxProject.setMinimumSize(QSize(175, 0))
+        self.comboBoxProject.setMinimumSize(QSize(200, 0))
 
         self.horizontalLayout_3.addWidget(self.comboBoxProject)
 

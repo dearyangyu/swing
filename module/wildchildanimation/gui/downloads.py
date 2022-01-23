@@ -20,7 +20,6 @@ except ImportError:
 
 from wildchildanimation.gui.settings import SwingSettings
 from wildchildanimation.gui.background_workers import FileDownloader
-from wildchildanimation.gui.loader import LoaderDialogGUI
 from wildchildanimation.gui.download_dialog import Ui_DownloadDialog
 
 from wildchildanimation.gui.swing_tables import FileTableModel, setup_file_table
@@ -82,17 +81,7 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
                     open_folder(os.path.dirname(self.selected_file["target_path"]))
                     return True
 
-            #self.close_dialog()
-            #self.handler.on_load()
-            self.handler.on_load(parent = self, entity = self.entity, files = self.file_list, selected = self.selected_file)
-            self.handler.on_load()
-
-            ##self.loaderDialog = LoaderDialogGUI(parent = None, handler = self.handler, entity = self.entity)
-            ##self.loaderDialog.load_files(self.file_list)
-            ##self.loaderDialog.set_selected(self.selected_file)
-
-            #dialog.exec_()
-            ##self.loaderDialog.show()        
+            self.handler.on_load(parent = self, entity = self.selected_file["entity_id"], files = self.file_list, selected = self.selected_file)
 
     def files_loaded(self, data):
         self.file_list = data[0]
@@ -125,7 +114,7 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
             index = self.tableView.model().index(row, 0)
             item = self.tableView.model().data(index, QtCore.Qt.UserRole)
             if file_id == item['file_id']:
-                index = self.tableView.model().index(row, 5)
+                index = self.tableView.model().index(row, FileTableModel._COL_SIZE)
                 download_status = {}
                 download_status["message"] = "{} - {}".format(human_size(size), message)
 
@@ -163,7 +152,7 @@ class DownloadDialogGUI(QtWidgets.QDialog, Ui_DownloadDialog):
             item = self.tableView.model().data(index, QtCore.Qt.UserRole)
             if file_id == item['file_id']:
 
-                index = self.tableView.model().index(row, 5)
+                index = self.tableView.model().index(row, FileTableModel._COL_SIZE)
                 download_status = {}
                 download_status["message"] = "{}".format(human_size(size))
                 download_status["color"] = QtGui.QColor('darkCyan')

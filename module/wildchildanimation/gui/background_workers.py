@@ -78,13 +78,13 @@ class ProjectLoaderThread(QtCore.QRunnable):
             try:
                 #projects = gazu.project.all_open_projects()
                 projects = ProjectEpisodeLoader().run()
-                task_types = gazu.task.all_task_types()
-                task_status = gazu.task.all_task_statuses()
+                ##task_types = gazu.task.all_task_types()
+                ##task_status = gazu.task.all_task_statuses()
                 software = gazu.files.all_softwares()
 
                 results["projects"] = projects
-                results["task_status"] = task_status
-                results["task_types"] = task_types
+                ##results["task_status"] = task_status
+                ##results["task_types"] = task_types
                 results["software"] = software
 
             except:
@@ -473,6 +473,30 @@ class TaskTypeLoader(QtCore.QRunnable):
         }
         self.callback.loaded.emit(results)  
         return results
+
+''' 
+    Loads all Task Types and Status Types for given project
+    Loads all Task Types and / or all Status Types if none linked in
+'''
+class ProjectTypesLoader(QtCore.QRunnable):
+
+    def __init__(self, parent, project_id):
+        super(ProjectTypesLoader, self).__init__(self, parent)
+        self.parent = parent
+        self.project_id = project_id
+        self.callback = LoadedSignal()        
+
+    def run(self):
+        task_types = ProjectTaskTypeLoader(self.project_id).run()
+        task_status = ProjectStatusTypeLoader(self.project_id).run()
+
+        #items = gazu.task.all_task_types()
+        results = {
+            "task_types": task_types,
+            "task_status": task_status
+        }
+        self.callback.loaded.emit(results)  
+        return results        
 
 class StatusTypeLoader(QtCore.QRunnable):
 
@@ -1245,3 +1269,52 @@ class EntityTagLoader(QtCore.QRunnable):
         self.callback.loaded.emit(results)                        
         return results       
 
+class ProjectTaskTypeLoader(QtCore.QRunnable):
+
+    def __init__(self, project_id):
+        super(ProjectTaskTypeLoader, self).__init__(self)
+        self.settings = SwingSettings.get_instance()
+        self.request_url = "{}/edit/api/project/task_types".format(self.settings.swing_server())
+        self.project_id = project_id
+        self.callback = LoadedSignal()    
+
+    def run(self):
+        params = { 
+            "username": self.settings.swing_user(),
+            "password": self.settings.swing_password(),
+            "project_id": self.project_id, 
+        }             
+
+        results = []
+        rq = requests.post(self.request_url, data = params)
+
+        if rq.status_code == 200:
+            results = rq.json()
+
+        self.callback.loaded.emit(results)                        
+        return results 
+
+class ProjectStatusTypeLoader(QtCore.QRunnable):
+
+    def __init__(self, project_id):
+        super(ProjectStatusTypeLoader, self).__init__(self)
+        self.settings = SwingSettings.get_instance()
+        self.request_url = "{}/edit/api/project/status_types".format(self.settings.swing_server())
+        self.project_id = project_id
+        self.callback = LoadedSignal()    
+
+    def run(self):
+        params = { 
+            "username": self.settings.swing_user(),
+            "password": self.settings.swing_password(),
+            "project_id": self.project_id, 
+        }             
+
+        results = []
+        rq = requests.post(self.request_url, data = params)
+
+        if rq.status_code == 200:
+            results = rq.json()
+
+        self.callback.loaded.emit(results)                        
+        return results         

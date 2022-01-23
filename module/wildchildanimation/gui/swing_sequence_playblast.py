@@ -20,7 +20,7 @@ except:
 from wildchildanimation.maya.swing_maya import SwingMaya
 from wildchildanimation.gui.swing_sequence_playblast_dialog import Ui_SequencePlayblastDialog
 from wildchildanimation.gui.swing_utils import load_settings, save_settings, open_folder
-from wildchildanimation.gui.shot_list import ShotListDialog
+from wildchildanimation.gui.shot_table import ShotTableDialog
 
 class SwingSequencePlayblast(SwingMaya):
 
@@ -161,35 +161,47 @@ class SwingSequencePlayblast(SwingMaya):
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 
+        playblast_failed = True
+
         # pop gui back to original settings no matter what happens with playblasting
         try:
             # sets target file name, adds' container extension
             playblasted_shots = []
             count = 1
-            for shot in shots:
+            for shot_details in shots:
+                shot = shot_details["name"]
+
+                self.log_output("playblast: shot {}".format(shot))
+
                 shot_caption = None
                 if caption:
                     shot_caption = "{} {}".format(caption, shot)
-                    
 
-                shot_start = cmds.getAttr(shot + ".startFrame")
-                shot_end = cmds.getAttr(shot + ".endFrame")
+                #shot_start = cmds.getAttr(shot + ".startFrame")
+                #shot_end = cmds.getAttr(shot + ".endFrame")
+                shot_start = shot_details["start"]
+                shot_end = shot_details["end"]
 
-                shot_cameras = cmds.listConnections(shot + ".currentCamera") 
+                shot_cameras = cmds.listConnections(shot_details["id"] + ".currentCamera") 
                 if len(shot_cameras) > 0:
                     shot_cam = shot_cameras[0]
                 else:
                     self.log_error("Error loading camera {} for shot {}".format(shot_cameras, shot))
                     continue
 
-                self.log_output("Shot {} starting at {} ending at {} using camera {}".format(shot, shot_start, shot_end, shot_cam))
-
-                output_path = os.path.normpath(os.path.join(output_dir, "{0}_{1}.{2}".format(filename, shot, self._container_format)))
-                self.log_output("{} Playblast: output_path: {}".format(count, output_path))
+                shot_file_name = "{}.mp4".format(shot)
+                output_path = os.path.normpath(os.path.join(output_dir, shot_file_name))
+                # self.log_output("Playblast: # {} output_path: {}".format(count, output_path))
+                self.log_output("Playblast: {} Shot {} starting at {} ending at {} using camera {} to {}".format(count, shot, shot_start, shot_end, shot_cam, output_path))
 
                 if not overwrite and os.path.exists(output_path):
                     self.log_error("Output file already exists. Enable overwrite to ignore.")
+                    playblast_failed = True
                     return
+
+                if overwrite and os.path.exists(output_path) and os.path.isfile(output_path):
+                    os.remove(output_path)
+                    self.log_output("Playblast: cleared output path {}".format(output_path))
 
                 playblast_output_dir = os.path.join(output_dir, "playblast_temp")
                 self.log_output("Playblast: playblast_output_dir: {}".format(playblast_output_dir))
@@ -251,7 +263,7 @@ class SwingSequencePlayblast(SwingMaya):
                     overscan_attr = "{0}.overscan".format(shot_cam)
                     orig_overscan = cmds.getAttr(overscan_attr)
                     cmds.setAttr(overscan_attr, 1.0)
-
+                    
                 playblast_failed = False
                 try:
                     cmds.playblast(**options)
@@ -273,8 +285,15 @@ class SwingSequencePlayblast(SwingMaya):
 
                 source_path = "{0}/{1}.%0{2}d.png".format(playblast_output_dir, os.path.basename(filename), padding)
 
+                if shot_details["audio_file"]:
+                    audio_file_path = shot_details["audio_file"]
+                    self.log_output("Loaded audio file {}".format(audio_file_path))
+                else:
+                    audio_file_path = None
+                    self.log_output("No audio loaded")
+
                 if self._encoder == "h264":
-                    self.encode_h264(source_path, output_path, start_frame, time_code, time_code_border, frame_numbers, shot_caption, artist)
+                    self.encode_h264(source_path, output_path, start_frame, audio_file_path, time_code, time_code_border, frame_numbers, shot_caption, artist)
                     playblasted_shots.append(output_path)
                 else:
                     self.log_error("Encoding failed. Unsupported encoder ({0}) for container ({1}).".format(self._encoder, self._container_format))
@@ -285,9 +304,13 @@ class SwingSequencePlayblast(SwingMaya):
                 count += 1
             # playblast all shots
 
-            if build_sequence:
+            if build_sequence and len(shots) > 1:
                 self.log_output("Building sequence from {} playblasts".format(len(playblasted_shots)))
                 output_path = os.path.normpath(os.path.join(output_dir, "{0}.{1}".format(filename, self._container_format)))
+
+                if force_overwrite and os.path.exists(output_path) and os.path.isfile(output_path):
+                    self.log_output("Removing {}".format(output_path))
+                    os.remove(output_path)
 
                 self.encode_h264_sequence(output_path, playblasted_shots)
 
@@ -297,13 +320,16 @@ class SwingSequencePlayblast(SwingMaya):
 
             # Restore original camera settings
             if not overscan:
-                cmds.setAttr(overscan_attr, orig_overscan)
-                
-            # Restore original viewport settings
-            self.set_active_camera(orig_camera)
-            self.set_viewport_visibility(model_editor, orig_visibility_flags)            
+                try:
+                    cmds.setAttr(overscan_attr, orig_overscan)
 
-            if show_in_viewer:
+                    # Restore original viewport settings
+                    self.set_active_camera(orig_camera)
+                    self.set_viewport_visibility(model_editor, orig_visibility_flags)                        
+                except:
+                    pass
+
+            if not playblast_failed and show_in_viewer:
                 self.open_in_viewer(output_path)
 
         # done playblasting sequence
@@ -342,12 +368,26 @@ class SwingSequencePlayblast(SwingMaya):
 
         self.log_output(output)
 
-    def encode_h264(self, source_path, output_path, start_frame, time_code = True, time_code_background = True, frame_number = True, caption = None, artist = None):
+    def encode_h264(self, source_path, output_path, start_frame, audio_file_path = None, time_code = True, time_code_background = True, frame_number = True, caption = None, artist = None):
+        self.log_output("encode_h264 {} source_path".format(source_path))
+        self.log_output("encode_h264 {} output_path".format(output_path))
+
         framerate = self.get_frame_rate()
 
-        audio_file_path, audio_frame_offset = self.get_audio_attributes()
-        if audio_file_path:
-            audio_offset = self.get_audio_offset_in_sec(start_frame, audio_frame_offset, framerate)
+        try:
+            if not audio_file_path:
+                self.log_output("loading  single audio file for sequence")
+                audio_file_path, audio_frame_offset = self.get_audio_attributes()
+                if audio_file_path:
+                    audio_offset = self.get_audio_offset_in_sec(start_frame, audio_frame_offset, framerate)
+                    self.log_output("found audio {} offset {}".format(audio_file_path, audio_offset))
+            else:
+                audio_offset = 0
+                self.log_output("found audio {} offset {}".format(audio_file_path, audio_offset))
+        except:
+            traceback.print_exc()
+            audio_file_path = None
+        # 
 
         crf = SwingSequencePlayblast.H264_QUALITIES[self._h264_quality]
         preset = self._h264_preset
@@ -395,9 +435,13 @@ class SwingSequencePlayblast(SwingMaya):
         ffmpeg_cmd += ' "{0}"'.format(output_path)
 
         self.log_output(ffmpeg_cmd)
-        self.execute_ffmpeg_command(ffmpeg_cmd)        
+        self.execute_ffmpeg_command(ffmpeg_cmd)   
+
+        self.log_output("encode_h264 {} finished".format(source_path))     
 
     def encode_h264_sequence(self, target, shotlist):
+        self.log_output("encode_h264_sequence {} start".format(target))
+
         '''
         $ cat mylist.txt
         file '/path/to/file1'
@@ -413,13 +457,16 @@ class SwingSequencePlayblast(SwingMaya):
                 for item in shotlist:
                     f.write("file '{}'\r".format(item))
             finally:
+                f.flush()
                 f.close()
 
         ffmpeg_cmd = self._ffmpeg_path
         ffmpeg_cmd += " -f concat -safe 0 -i {} -c copy {}".format(playlist, target)
 
         self.log_output(ffmpeg_cmd)
-        self.execute_ffmpeg_command(ffmpeg_cmd)        
+        self.execute_ffmpeg_command(ffmpeg_cmd)   
+
+        self.log_output("encode_h264_sequence {} finished".format(target))     
 
 class SwingSequencePlayblastEncoderSettingsDialog(QtWidgets.QDialog):
 
@@ -705,7 +752,6 @@ class SwingSequencePlayblastUi(QtWidgets.QDialog, Ui_SequencePlayblastDialog):
 
         self.select_shots_btn.clicked.connect(self.do_select_shots)
 
-
         self.output_dir_path_select_btn.clicked.connect(self.select_output_filename)
         self.output_dir_path_show_folder_btn.clicked.connect(self.open_output_folder)
 
@@ -748,19 +794,19 @@ class SwingSequencePlayblastUi(QtWidgets.QDialog, Ui_SequencePlayblastDialog):
         #    self._playblast.log_output("Burn time code border")
             
         if self.checkBoxFrameNumber.isChecked():
-            self._playblast.log_output("Burn Frame Number")
+            self._playblast.log_output("Burn frame number")
 
         caption = False
         if self.checkBoxBurnCaption.isChecked():
             caption = self._caption
             if caption:
-                self._playblast.log_output("Burn Caption: {}".format(caption))
+                self._playblast.log_output("Burn caption: {}".format(caption))
 
         artist = None
         if self.checkBoxArtistName.isChecked():
             artist = self.artist
             if artist:
-                self._playblast.log_output("Burn Artist Name: {}".format(artist))
+                self._playblast.log_output("Burn artist name: {}".format(artist))
 
         selected_shots = self.shotDialog.get_selected()
 
@@ -780,7 +826,6 @@ class SwingSequencePlayblastUi(QtWidgets.QDialog, Ui_SequencePlayblastDialog):
 
         selected_file = os.path.normpath(current_filename)
 
-        format = self.encoding_container_cmb.currentText()
         filter = "mp4 (*.mp4);;All files (*.*)"
 
         new_filename = QtWidgets.QFileDialog.getSaveFileName(self, "Select file name", selected_file, filter)
@@ -796,14 +841,45 @@ class SwingSequencePlayblastUi(QtWidgets.QDialog, Ui_SequencePlayblastDialog):
         self.output_filename_le.setText(new_file_name)
 
     def refresh(self):
+        self._playblast.log_output("refresh")
+
         self.refresh_shots()
         self.refresh_resolution()
-        #self.refresh_frame_range()
         self.refresh_video_encoders()
 
     def refresh_shots(self):
-        self.shots = cmds.ls(type="shot")
-        self.shotDialog = ShotListDialog(self, self.shots)
+        self._playblast.log_output("refresh_shots")
+
+        self.shots = []
+        shot_list = cmds.ls(type = "shot")
+
+        for item in shot_list:
+            shot = {}
+            shot["id"] = item
+            shot["name"] = cmds.shot(item, q=True, shotName = True)
+            shot["frame_in"] = int(cmds.shot(item, q=True, st = True))
+            shot["frame_out"] = int(cmds.shot(item, q=True, et = True))
+            shot["start"] = int(cmds.shot(item, q=True, sst = True))
+            shot["end"] = int(cmds.shot(item, q=True, set = True))
+            shot["audio"] = cmds.shot(item, q=True, aud = True)
+
+            if shot["audio"]:
+                shot["audio_file"] = cmds.getAttr("{}.filename".format(shot["audio"]))
+            else:
+                shot["audio_file"] = None
+
+            self.shots.append(shot)
+
+        self.shots = sorted(self.shots, key = lambda d: d['frame_in'])
+        for item in self.shots:
+            self._playblast.log_output("Added shot {} {} {} {}".format(item["name"], item["frame_in"], item["frame_out"], item["audio_file"]))
+
+        ##self.shots = cmds.ls(type="shot")
+        ##self.shots = sorted(self.shots)
+        ##for s in self.shots:
+        ##    self._playblast.log_output("shot {}".format(s))
+
+        self.shotDialog = ShotTableDialog(self, self.shots)
 
     def refresh_resolution(self):
         resolution_preset = self.resolution_select_cmb.currentText()

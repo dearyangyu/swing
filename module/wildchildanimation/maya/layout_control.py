@@ -2,6 +2,10 @@
 import sys
 import traceback
 import glob
+import os
+
+import subprocess
+
 
 # ==== auto Qt load ====
 try:
@@ -40,75 +44,115 @@ class LayoutControlDialog(QtWidgets.QDialog, Ui_LayoutDialog):
 
         self.pushButtonTurnover.clicked.connect(self.do_turnover)
 
+        self.pushButtonImagePlane.setEnabled(False)
+        self.pushButtonTurnover.setEnabled(False)
+
     def close_dialog(self):
         self.close()
 
     def run_chainsaw(self):
+        self.pushButtonClose.setEnabled(False)
+        self.progressBar.setMaximum(1)
         try:
             mutils.executeDeferred(lambda: self.do_chainsaw())
-            #swing_loader = SwingLoader(self.handler)
-            #self.threadpool.start(swing_loader)
-            # 
         except:
             self.workspace_control_instance.log_output("chainsaw:: {}".format("Exception"))
             traceback.print_exc(file=sys.stdout)
 
     def run_anim_prep(self):
-        break_out_dir = "{}/breakout".format(self.handler.get_scene_path())
+        try:
+            break_out_dir = "{}/breakout".format(self.handler.get_scene_path())
+        except:
+            break_out_dir = os.getcwd()
+        # get a directory
+
         q = QtWidgets.QFileDialog.getExistingDirectory(self, "Select Chainsaw's Breakout Folder", break_out_dir)
         if q:
-            file_list = glob.glob("{}/*.ma".format(break_out_dir))
+            file_list = glob.glob("{}/*.ma".format(q))
             self.file_select_dialog = FileListDialog(self, file_list)
-            self.file_select_dialog.show()
+            self.file_select_dialog.exec_()
             if self.file_select_dialog.status == 'OK':
                 selected = self.file_select_dialog.get_selected()
+                errors = 0
                 for item in selected:
-                    print(item)
-        try:
-            mutils.executeDeferred(lambda: self.do_anim_prep(selected))
-            #swing_loader = SwingLoader(self.handler)
-            #self.threadpool.start(swing_loader)
-            # 
-            pass
-        except:
-            self.workspace_control_instance.log_output("anim_prep:: {}".format("Exception"))
-            traceback.print_exc(file=sys.stdout)            
+                    try:
+                        #quoted_item = '"{}"'.format(item)
+                        ''' 
+                            "C:\Program Files\Autodesk\Maya2022\bin\maya" 
+                                -batch
+                                -file "C:/Users/pniemandt.STUDIO/Documents/maya/projects/default/productions/aotkb/aotk/user/e001_cat/shots/sc010/sh010/layout/sc010_sh010_layout/breakout\witw_ep101_seq010_sh010.ma" 
+                                -command python("\"from wildchildanimation.maya.swing_maya import SwingMaya\nSwingMaya().anim_prep()"\")
+                        '''
+                        #cmds = []
+                        #cmds.append("C:/Program Files/Autodesk/Maya2022/bin/maya.exe")
+                        #cmds.append("-batch")
+                        #cmds.append("-file")
+                        #cmds.append(quoted_item)
+                        #cmds.append("-commmand")
+                        #cmds.append(''' python("\"from wildchildanimation.maya.swing_maya import SwingMaya\nSwingMaya().anim_prep()"\") ''')
+
+                        cmds = [ "Z:\\env\\wca\\swing\\swing-main\\bin\\anim_prep.bat", item ] 
+
+                        print("Running command: {}".format(str(cmds)))
+                        #proc = s
+                        subprocess.run(cmds, shell = False, stderr=subprocess.PIPE)
+                        print("Completed command: {}".format(str(cmds)))
+
+                        #while True:
+                        #    output = proc.stderr.read(1).decode('utf-8')
+                        #   if output == '' and proc.poll() != None:
+                        #        break
+                        #    else:
+                        #        sys.stdout.write(output)
+                        #        sys.stdout.flush()                        
+
+                        #proc = subprocess.Popen(cmd, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+                        #stdout_value = proc.communicate('through stdin to stdout')[0]
+                        #print(stdout_value)
+                    except:
+                        self.workspace_control_instance.log_output("anim_prep:: {}".format("Exception"))
+                        traceback.print_exc(file=sys.stdout)   
+                        errors += 1
+                if errors == 0:
+                    QtWidgets.QMessageBox.information(self, 'Swing::Anim Prep', 'Finished anim prep on all shots')                        
+                else:
+                    QtWidgets.QMessageBox.warning(self, 'Swing::Anim Prep', 'Errors during anim prep, please check generated scene files')                        
 
 
     def do_chainsaw(self):
-        # def chainsaw(self, csv_filename, file_prefix = "hby_204_", shot_start = 10, shot_step = 10):
-
-        scene_name = self.handler.get_scene_name()
-        if 'untitled' in scene_name:
-            print("Error: Can not work on unsaved scenes {}".format(scene_name))
-            return False
-
-        if not self.task:
-            print("Error: No task found to to process")
-            return False
-
-        #project = self.task["project"]
-        #if "code" in project and len(project["code"]) > 0:
-        #    prefix = project["code"]
-        #else:
-        #    prefix = project["name"]
-
-        working_dir = self.handler.get_scene_path()
-        if not working_dir or len(working_dir) <= 0:
-            print("Error: Working dir {} is invalid".format(working_dir))
-            return False
-
-        csv_file = "{}.csv".format(scene_name)
-
-        print("ChainSaw: Scene: {} using dir {} into {}".format(scene_name,  working_dir, csv_file))
-        
         try:
-            if self.handler.chainsaw(csv_file):
-                QtWidgets.QMessageBox.information(self, 'Swing: Layout', 'Finished exporting shots')               
+            scene_name = self.handler.get_scene_name()
+            if 'untitled' in scene_name:
+                print("Error: Can not work on unsaved scenes {}".format(scene_name))
+                QtWidgets.QMessageBox.information(self, 'Swing::Chainsaw', 'Please save the layout scene before running Chainsaw')               
+                return False
 
-        except:
-            print("Error in chainsaw ...")
-            traceback.print_exc(file=sys.stdout)
+            if not self.task:
+                print("Error: No task found to to process")
+                QtWidgets.QMessageBox.information(self, 'Swing::Chainsaw', 'Please select a layout task before running Chainsaw')               
+                return False
+
+            working_dir = self.handler.get_scene_path()
+            if not working_dir or len(working_dir) <= 0:
+                print("Error: Working dir {} is invalid".format(working_dir))
+                return False
+
+            csv_file = "{}.csv".format(scene_name)
+
+            print("ChainSaw: Scene: {} using dir {} into {}".format(scene_name,  working_dir, csv_file))
+            
+            try:
+                if self.handler.chainsaw(csv_file):
+                    QtWidgets.QMessageBox.information(self, 'Swing::Chainsaw', 'Finished exporting shots')               
+
+            except:
+                print("Error in chainsaw ...")
+                traceback.print_exc(file=sys.stdout)
+
+                QtWidgets.QMessageBox.warning(self, 'Swing::Chainsaw', 'Errors exporting shots')               
+        finally:
+            self.progressBar.setMaximum(0)
+            self.pushButtonClose.setEnabled(True)
 
     def do_anim_prep(self, list_of_files):
         '''

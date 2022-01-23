@@ -1,22 +1,17 @@
 # -*- coding: utf-8 -*-
 
-import traceback
 import sys
-import os
-import copy
 
 # ==== auto Qt load ====
 try:
-    from PySide2.QtWidgets import QApplication, QWidget, QStyle
+    from PySide2.QtWidgets import QApplication, QWidget
     from PySide2.QtCore import Signal as pyqtSignal
     from PySide2.QtCore import QObject, QThreadPool
-    from PySide2 import QtGui
     qtMode = 0
 except ImportError:
-    from PyQt5.QtWidgets import QApplication, QWidget, QStyle
+    from PyQt5.QtWidgets import QApplication, QWidget
     from PyQt5.QtCore import pyqtSignal
     from PyQt5.QtCore import QObject, QThreadPool
-    from PyQt5 import QtGui
     qtMode = 1
 
 # === theme it dark
@@ -27,7 +22,7 @@ except:
     darkStyle = False
 
 from wildchildanimation.gui.swing_utils import connect_to_server, load_keyring, set_button_icon
-from wildchildanimation.gui.background_workers import ProjectLoaderThread, ProjectShotLoader
+from wildchildanimation.gui.background_workers import ProjectLoaderThread, ProjectShotLoader, ProjectTypesLoader
 from wildchildanimation.gui.project_nav_widget import Ui_ProjectNavWidget
 from wildchildanimation.gui.entity_select import *
 
@@ -214,11 +209,12 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
         
         self.set_enabled(False)
         self.threadpool.start(loader)  
+        ##loader.run()
 
     def projects_loaded(self, results): 
         self._software = results["software"]
-        self._task_types = results["task_types"]
-        self._task_status = results["task_status"]
+        ##self._task_types = results["task_types"]
+        ##self._task_status = results["task_status"]
 
         project_dict = {}
         for item in results["projects"]:
@@ -252,6 +248,10 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
     def project_changed(self, index):
         project = self.comboBoxProject.itemData(index)
 
+        loader = ProjectTypesLoader(self, project["project_id"])        
+        loader.callback.loaded.connect(self.project_loaded)
+        loader.run()
+
         self.comboBoxEpisode.clear()
         self.comboBoxSequence.clear()
 
@@ -268,7 +268,13 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
 
         self.comboBoxEpisode.setCurrentIndex(0)   
         self.episode_changed(self.comboBoxProject.currentIndex())
-        ## self.sequence_changed(self.comboBoxSequence.currentIndex())          
+        ## self.sequence_changed(self.comboBoxSequence.currentIndex())   
+        # 
+
+    def project_loaded(self, results):
+        self._task_types = results["task_types"]
+        self._task_status = results["task_status"]        
+
 
     def episode_changed(self, index):
         episode = self.get_episode()

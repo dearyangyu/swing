@@ -35,7 +35,7 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
     target = None
     working_dir = None
 
-    def __init__(self, parent = None, handler = None, entity = None):
+    def __init__(self, parent = None, handler = None, entity = None, namespace = None):
         super(LoaderDialogGUI, self).__init__(parent) # Call the inherited classes __init__ method
         self.setupUi(self)
 
@@ -47,6 +47,7 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
         self.shot = None
         self.asset = None
         self.url = None
+        self.namespace = namespace
 
         # working remotely - remember file name 
         self.target_path = None
@@ -216,7 +217,7 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
         self.task_type_name = None
         self.asset_type_name = None
 
-        sections = []
+        self.sections = []
         if self.type == "Shot":
             self.setWindowTitle("swing: shot loader")
 
@@ -227,24 +228,24 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
                 self.project_name = self.project["code"]
             else:
                 self.project_name = self.project["name"]
-            sections.append(self.project_name)                                
+            self.sections.append(self.project_name)                                
                 
             if "episode_name" in self.shot:
                 self.episode_name = self.shot["episode_name"]
-                sections.append(self.episode_name)
+                self.sections.append(self.episode_name)
 
             if "sequence_name" in self.shot:
                 self.sequence_name = self.shot["sequence_name"]
-                sections.append(self.sequence_name)
+                self.sections.append(self.sequence_name)
 
             self.shot_name = self.shot["name"] 
-            sections.append(self.shot_name)
+            self.sections.append(self.shot_name)
 
             #if "task_type" in self.task:
             #    self.task_type_name = self.task["task_type"]["name"]
             #    sections.append(self.task_type_name)
 
-            self.lineEditEntity.setText(friendly_string("_".join(sections)))
+            self.lineEditEntity.setText(friendly_string("_".join(self.sections)))
 
             self.textEditShotInfo.setText(self.shot["description"])
 
@@ -271,22 +272,22 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
                 self.project_name = self.project["code"]
             else:
                 self.project_name = self.project["name"]
-            sections.append(self.project_name)                
+            self.sections.append(self.project_name)                
 
             if "asset_type_name" in self.asset:
                 self.asset_type_name = self.asset["asset_type_name"].strip()
-                sections.append(self.asset_type_name)
+                self.sections.append(self.asset_type_name)
 
             if isinstance(self.entity, str):
                 self.entity = gazu.entity.get_entity(self.entity)
             try:
                 self.asset_name = self.entity["name"].strip() 
-                sections.append(self.asset_name)
+                self.sections.append(self.asset_name)
             except:
                 print(self.entity)
                 traceback.print_exc()
 
-            self.lineEditEntity.setText(friendly_string("_".join(sections)))
+            self.lineEditEntity.setText(friendly_string("_".join(self.sections)))
             self.textEditShotInfo.setText(self.asset["description"].strip())
 
             self.lineEditFrameIn.setText("")
@@ -298,10 +299,14 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
             self.lineEditFrameCount.setText("")
             self.lineEditFrameCount.setEnabled(False)
 
-        namespace = friendly_string("_".join(sections).lower().strip())
+        if not self.namespace:
+            self.namespace = friendly_string("_".join(self.sections).lower().strip())
 
-        self.lineEditNamespace.setText(namespace)
+        self.load_namespace()
         self.set_enabled(True)
+
+    def load_namespace(self):
+        self.lineEditNamespace.setText(self.namespace)
 
     def load_files(self, file_list, selected_file = None):
         index = 0
@@ -409,7 +414,7 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
                 self.labelNetworkMessage.setStyleSheet(u"color: rgb(0, 170, 0)")
 
                 if ext in self.handler.UNARCHIVE_TYPES:
-                    self.labelArchiveMessage.setText("This file is an archive and has to be uncompressed to a local workspace")
+                    
                     self.labelArchiveMessage.setStyleSheet(u"color: rgb(170, 0, 0)")
                 else:
                     self.labelArchiveMessage.setText("")

@@ -4,6 +4,8 @@ import os
 import platform
 import sys
 import traceback
+
+from wildchildanimation.gui.breakout import BreakoutUploadDialog
 from wildchildanimation.gui.downloads import DownloadDialogGUI
 from wildchildanimation.gui.loader import LoaderDialogGUI
 from wildchildanimation.gui.publish import PublishDialogGUI
@@ -17,6 +19,9 @@ from wildchildanimation.gui.entity_info import EntityInfoDialog
 
 from wildchildanimation.gui.swing_utils import write_log
 
+from wildchildanimation.timelines.studio_timeline import process_xml
+from wildchildanimation.gui.shot_table import ShotTableDialog
+
 try:
     from PySide2 import QtWidgets
     qtMode = 0
@@ -27,7 +32,7 @@ except ImportError:
 class SwingStudioHandler(StudioInterface):
 
     NAME = "SwingStudioHandler"
-    VERSION = "0.0.5"      
+    VERSION = "0.0.6"      
 
     def __init__(self):
         super(SwingStudioHandler, self).__init__()
@@ -78,11 +83,10 @@ class SwingStudioHandler(StudioInterface):
     def on_publish(self, **kwargs):
         parent = kwargs["parent"]
         task = kwargs["task"] 
-        task_types = kwargs["task_types"]
+        #task_types = kwargs["task_types"]
         project_dir = kwargs["project_dir"]
-        upload_monitor = kwargs["monitor"]
 
-        self.publishDialog = PublishDialogGUI(parent = parent, task = task, task_types = task_types, upload_monitor = upload_monitor)
+        self.publishDialog = PublishDialogGUI(parent = parent, task = task)
 
         self.publishDialog.set_wf_exclude(StudioInterface.WF_DEFAULT_EXCLUDE)
         self.publishDialog.set_of_include(StudioInterface.OF_DEFAULT_INCLUDE)
@@ -110,10 +114,15 @@ class SwingStudioHandler(StudioInterface):
         else:
             entity = None
 
+        if "namespace" in kwargs:
+            namespace = kwargs["namespace"]
+        else:
+            namespace = False            
+
         files = kwargs["files"]
         selected = kwargs["selected"]
 
-        loaderDialog = LoaderDialogGUI(parent = parent, handler = self, entity = entity)
+        loaderDialog = LoaderDialogGUI(parent = parent, handler = self, entity = entity, namespace = namespace)
         loaderDialog.load_files(files)
         loaderDialog.set_selected(selected)
         loaderDialog.show()
@@ -151,7 +160,41 @@ class SwingStudioHandler(StudioInterface):
         task_types = kwargs["task_types"]
 
         dialog = EntityInfoDialog(parent, entity = entity_id, handler = self, task_types = task_types)
-        dialog.show()            
+        dialog.show()       
+
+    def on_break_out(self, **kwargs):
+        project = kwargs["project"]
+        episode = kwargs["episode"]
+        sequence = kwargs["sequence"]
+
+        dialog = BreakoutUploadDialog(self)
+        dialog.set_project(project)
+        dialog.set_episode(episode)
+        dialog.set_sequence(sequence)
+
+        dialog.exec_()
+
+    def on_load_shot_xml(self, **kwargs):
+        parent = kwargs["parent"]
+        project = kwargs["project"]
+        episode = kwargs["episode"]
+        sequence = kwargs["sequence"]
+        source_xml = kwargs["source_xml"]
+
+        sequence_name, sequence_rate, sequence_duration, shot_list = process_xml(source_xml)
+
+        self.shotDialog = ShotTableDialog(parent, shot_list)
+        self.shotDialog.exec_()
+
+        if self.shotDialog.status == 'OK':
+            todo = self.shotDialog.get_selected()
+
+            for item in todo:
+                print("Processing item: {}".format(item))
+
+
+        #project = self.project, episode = self.episode, sequence = self.sequence, source_xml = q[0])
+
 
 '''
     def create_shortcut(self, install_dir = None):

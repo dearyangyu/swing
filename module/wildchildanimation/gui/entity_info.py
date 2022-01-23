@@ -4,6 +4,8 @@ import traceback
 import sys
 import os
 
+import gazu
+
 # ==== auto Qt load ====
 try:
     from PySide2 import QtGui
@@ -11,23 +13,21 @@ try:
     from PySide2 import QtWidgets
     qtMode = 0
 except ImportError:
-    traceback.print_exc(file=sys.stdout)
-
     from PyQt5 import QtGui, QtCore, QtWidgets
     import sip
     qtMode = 1
 
-from wildchildanimation.gui.background_workers import TaskTypeLoader, EntityFileLoader 
+from wildchildanimation.gui.background_workers import EntityFileLoader 
 from wildchildanimation.gui.settings import SwingSettings    
 from wildchildanimation.gui.image_loader import PreviewImageLoader
 
 from wildchildanimation.gui.loader import EntityLoaderThread
-from wildchildanimation.gui.publish import PublishDialogGUI
-from wildchildanimation.gui.downloads import LoaderDialogGUI, process_downloads
+#from wildchildanimation.gui.publish import PublishDialogGUI
+from wildchildanimation.gui.downloads import process_downloads
 
 from wildchildanimation.gui.entity_info_dialog import Ui_EntityInfoDialog
 
-from wildchildanimation.gui.swing_utils import set_button_icon, set_target, open_folder
+from wildchildanimation.gui.swing_utils import set_button_icon, set_target, open_folder, friendly_string
 from wildchildanimation.gui.swing_tables import human_size, FileTableModel, setup_file_table
 
 '''
@@ -88,7 +88,7 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
 
     def check_casted(self):
         if self.entity:
-            loader = EntityFileLoader(self, entity = self.entity, working_dir = self.working_dir, show_hidden = False, scan_cast = self.checkBoxCasted.isChecked())
+            loader = EntityFileLoader(self, entity_id = self.entity["id"], working_dir = self.working_dir, task_types = self.task_types, show_hidden = False, scan_cast = self.checkBoxCasted.isChecked())
             loader.callback.loaded.connect(self.files_loaded)
 
             self.tableView.setEnabled(False)
@@ -100,12 +100,13 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
 
     def publish(self):
         task = self.get_selected_task()
-        if task:        
-            dialog = PublishDialogGUI(self, task=task, task_types=self.task_types)
+        if task:     
+            self.handler.on_publish(task = task, task_types = self.task_types)
+            #dialog = PublishDialogGUI(self, task=task, task_types = self.task_types)
 
             #dialog = PublishDialogGUI(self, self.handler, gazu.task.get_task(task))
             #dialog.setMinimumWidth(640)
-            dialog.show()
+            #dialog.show()
 
     def select_count(self):
         count = 0
@@ -133,9 +134,11 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
             QtWidgets.QMessageBox.warning(self, 'Open Url', 'Could not open url')              
 
     def entity_loaded(self, data):
+        self.task_type_lookups = data["task_types"]
+
         self.type = data["type"]
         self.entity = data["entity"]
-        self.task_types = data["task_types"]
+        ## self.task_types = data["task_types"]
         self.shot = None
         self.asset = None
         self.project = data["project"]
@@ -151,7 +154,7 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
         if "tasks" in data["item"]:
             self.tasks = data["item"]["tasks"] 
             for task in self.tasks:
-                task["task_type"] = self.get_item_task_type(task)
+                task["task_type"] = self.get_item_task_type(task, self.task_type_lookups)
                 self.comboBoxTasks.addItem(task["task_type"]["name"], userData = task)
         self.comboBoxTasks.setEnabled(self.tasks is not None)
 
@@ -174,7 +177,7 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
             self.shot = data["item"]
             self.url = data["url"]
             self.labelEntity.setText("Shot")
-            loader = EntityFileLoader(self, self.shot["id"], self.working_dir, show_hidden = False, scan_cast = self.checkBoxCasted.isChecked())
+            loader = EntityFileLoader(self, self.shot["id"], self.working_dir, task_types = self.task_types, show_hidden = False, scan_cast = self.checkBoxCasted.isChecked())
 
             if "code" in self.project:
                 sections.append(self.project["code"])
@@ -197,7 +200,7 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
             self.asset = data["item"]
             self.url = data["url"]
             self.labelEntity.setText("Asset")
-            loader = EntityFileLoader(self, self.asset["id"], self.working_dir, show_hidden = False, scan_cast = self.checkBoxCasted.isChecked())
+            loader = EntityFileLoader(self, self.asset["id"], self.working_dir, task_types = self.task_types, show_hidden = False, scan_cast = self.checkBoxCasted.isChecked())
 
             if "code" in self.project:
                 sections.append(self.project["code"])
@@ -233,9 +236,9 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
     def load_preview_image(self, pixmap):
         self.labelPreview.setPixmap(pixmap)            
         
-    def get_item_task_type(self, entity):
+    def get_item_task_type(self, entity, task_type_lookups):
         if "task_type_id" in entity:
-            for task_type in self.task_types:
+            for task_type in task_type_lookups:
                 if task_type["id"] == entity["task_type_id"]:
                     return task_type
         return None        
@@ -332,8 +335,37 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
         self.tableModelFiles = FileTableModel(self, working_dir = self.swing_settings.swing_root(), items = file_list)
         setup_file_table(self.tableModelFiles, self.tableView)
 
+    def get_casted_namespace(self, resource):
+        print("Checking casted namespace")
+        sections = []
+
+        if "code" in self.project:
+            self.project_name = self.project["code"]
+        else:
+            self.project_name = self.project["name"]
+        sections.append(self.project_name)                                
+
+        if resource["type"] == "Shot":
+            sections.append(resource["parent"])
+            sections.append(resource["entity"])
+            return friendly_string("_".join(sections).lower())
+        else:
+            entity_type_name = resource["type"]
+
+            # check if we have a shortened form of the name
+            if entity_type_name in self.handler.ASSET_TYPE_LOOKUP:
+                entity_type_name = self.handler.ASSET_TYPE_LOOKUP[entity_type_name]
+
+            sections.append(entity_type_name)
+            sections.append(friendly_string(resource["entity"]))
+
+            return friendly_string("_".join(sections).lower())            
+
+
     def file_table_double_click(self, index):
-        self.selected_file = self.tableView.model().data(index, QtCore.Qt.UserRole)        
+        self.selected_file = self.tableView.model().data(index, QtCore.Qt.UserRole)  
+        ##print(self.selected_file)      
+
         if self.selected_file:
             working_dir = self.swing_settings.swing_root()
             set_target(self.selected_file, working_dir)
@@ -344,9 +376,13 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
                     open_folder(os.path.dirname(self.selected_file["target_path"]))
                     return True
 
+            if self.checkBoxCasted.isChecked():
+                namespace = self.get_casted_namespace(self.selected_file)
+            else:
+                namespace = False
 
-            self.handler.on_load(parent = self, entity = self.entity, files = self.file_list, selected = self.selected_file)
-            self.handler.on_load()
+            self.handler.on_load(parent = self, entity = self.entity, files = self.file_list, selected = self.selected_file, namespace = namespace)
+            # self.handler.on_load()
 
             #self.loaderDialog = LoaderDialogGUI(parent = self.parentWidget(), handler = self.handler, entity = self.entity)
             #self.loaderDialog.load_files(self.file_list)

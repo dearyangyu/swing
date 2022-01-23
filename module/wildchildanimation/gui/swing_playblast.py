@@ -40,13 +40,16 @@ class SwingPlayblast(SwingMaya):
         self.set_ffmpeg_path(ffmpeg_path)
         self.set_camera(SwingPlayblast.DEFAULT_CAMERA)
         self.set_resolution(SwingPlayblast.DEFAULT_RESOLUTION)
-        self.set_frame_range(SwingPlayblast.DEFAULT_FRAME_RANGE)
         self.set_encoding(SwingPlayblast.DEFAULT_CONTAINER, SwingPlayblast.DEFAULT_ENCODER)
         self.set_h264_settings(SwingPlayblast.DEFAULT_H264_QUALITY, SwingPlayblast.DEFAULT_H264_PRESET)
         self.set_image_settings(SwingPlayblast.DEFAULT_IMAGE_QUALITY)
         self.set_visibility(SwingPlayblast.DEFAULT_VISIBILITY)
 
         self.initialize_ffmpeg_process()
+
+        self.log_output("Set framerange to Playback")
+        self.set_frame_range("Playback")
+
 
     def set_ffmpeg_path(self, ffmpeg_path):
         self._ffmpeg_path = ffmpeg_path
@@ -150,19 +153,21 @@ class SwingPlayblast(SwingMaya):
 
     # expects filename without extension
     #
-    def execute(self, target_file_name, padding=4, overscan=False, show_ornaments=True, show_in_viewer=True, overwrite=False, time_code = True, time_code_border = True, frame_numbers = True, caption = None):
+    def execute(self, target_file_name, padding=4, overscan=False, show_ornaments=True, show_in_viewer=True, overwrite=False, time_code = True, time_code_border = True, frame_numbers = True, caption = None, artist = None):
         file_parts = os.path.split(target_file_name)
 
         output_dir = file_parts[0]
         filename = file_parts[1]
 
+
         if len(filename) == 0 or len(output_dir) == 0:
             self.log_error("playblast: invalid filename or directory [{}] [{}]".format(filename, output_dir))        
             return
 
-        ## aokb_chr_atomic_toad_rig_v010 
-        # E:\productions\aotkb\aotk\user\assets\ch_rig\atomic_toad\playblasts\aokb_chr_atomic_toad_rig_v010 // 
-        self.log_output("playblast: filename [{}]".format(filename))        
+        if not self._container_format in filename:
+            filename = "{}.{}".format(filename, self._container_format)
+
+        self.log_output("playblast: filename [{}]".format(filename))      
         self.log_output("playblast: output_dir [{}]".format(output_dir))        
 
         if self.requires_ffmpeg() and not self.validate_ffmpeg():
@@ -184,7 +189,8 @@ class SwingPlayblast(SwingMaya):
                 os.makedirs(output_dir)
 
             # sets target file name, adds' container extension
-            output_path = os.path.normpath(os.path.join(output_dir, "{0}.{1}".format(filename, self._container_format)))
+            # output_path = os.path.normpath(os.path.join(output_dir, "{0}.{1}".format(filename, self._container_format)))
+            output_path = os.path.normpath(os.path.join(output_dir, "{0}".format(filename, target_file_name)))
             self.log_output("Playblast: output_path: {}".format(output_path))
 
             if not overwrite and os.path.exists(output_path):
@@ -329,7 +335,7 @@ class SwingPlayblast(SwingMaya):
 
         self.log_output(output)
 
-    def encode_h264(self, source_path, output_path, start_frame, time_code = True, time_code_background = True, frame_number = True, caption = None):
+    def encode_h264(self, source_path, output_path, start_frame, time_code = True, time_code_background = True, frame_number = True, caption = None, artist = None):
         framerate = self.get_frame_rate()
 
         audio_file_path, audio_frame_offset = self.get_audio_attributes()
@@ -349,6 +355,8 @@ class SwingPlayblast(SwingMaya):
         text_graph = ''
 
         if caption:
+            if artist:
+                caption = "{} - {}".format(caption, artist["full_name"])            
             filters.append("drawtext=font=Consolas: fontsize=18: fontcolor=white: x=(w-text_w)/2: y=20: text='{}' ".format(caption, 24))
                 #ffmpeg_cmd += " -vf \"drawtext=font=Consolas: fontsize=24: fontcolor=white: text='{}': r={}: x=(w-tw-20): y=h-lh-20: box=1: boxcolor=black\" ".format(caption, 24)
 
@@ -626,7 +634,7 @@ class SwingPlayblastUi(QtWidgets.QDialog, Ui_PlayblastDialog):
         self.resolution_height_sb.setMinimumWidth(40)
         self.resolution_height_sb.setAlignment(QtCore.Qt.AlignRight)
 
-        # Frame Rane
+        # Frame Range
         self.frame_range_cmb.addItems(SwingPlayblast.FRAME_RANGE_PRESETS)
         self.frame_range_cmb.addItem("Custom")
         self.frame_range_cmb.setCurrentText(SwingPlayblast.DEFAULT_FRAME_RANGE)
@@ -740,6 +748,8 @@ class SwingPlayblastUi(QtWidgets.QDialog, Ui_PlayblastDialog):
 
     def do_close(self):
         self.write_settings()
+        self.save_defaults()
+
         self.close()
 
     def do_playblast(self):
@@ -769,7 +779,7 @@ class SwingPlayblastUi(QtWidgets.QDialog, Ui_PlayblastDialog):
         self._playblast.execute(target_file_name = filename, padding = padding, 
             overscan = overscan, show_ornaments = show_ornaments, show_in_viewer = show_in_viewer, overwrite = overwrite,  
             time_code = self.checkBoxTimeCode.isChecked(), time_code_border = False, frame_numbers=self.checkBoxFrameNumber.isChecked(), 
-            caption=caption)
+            caption=caption, artist = self.artist)
 
     def select_output_filename(self):
         current_filename = self.output_filename_le.text()
@@ -1015,9 +1025,6 @@ class SwingPlayblastUi(QtWidgets.QDialog, Ui_PlayblastDialog):
 
 
     def load_defaults(self):
-        if _stand_alone:
-            return 
-
         if cmds.optionVar(exists="SwingPlayblastUiOutputFilename"):
             self.output_filename_le.setText(cmds.optionVar(q="SwingPlayblastUiOutputFilename"))
         if cmds.optionVar(exists="SwingPlayblastUiForceOverwrite"):
@@ -1039,6 +1046,7 @@ class SwingPlayblastUi(QtWidgets.QDialog, Ui_PlayblastDialog):
 
         if cmds.optionVar(exists="SwingPlayblastUiFrameRangePreset"):
             self.frame_range_cmb.setCurrentText(cmds.optionVar(q="SwingPlayblastUiFrameRangePreset"))
+
         if self.frame_range_cmb.currentText() == "Custom":
             if cmds.optionVar(exists="SwingPlayblastUiFrameRangeStart"):
                 self.frame_range_start_sb.setValue(cmds.optionVar(q="SwingPlayblastUiFrameRangeStart"))

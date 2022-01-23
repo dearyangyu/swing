@@ -18,9 +18,9 @@ class Ui_LayoutDialog(object):
     def setupUi(self, LayoutDialog):
         if not LayoutDialog.objectName():
             LayoutDialog.setObjectName(u"LayoutDialog")
-        LayoutDialog.resize(550, 175)
-        LayoutDialog.setMinimumSize(QSize(550, 175))
-        LayoutDialog.setMaximumSize(QSize(550, 175))
+        LayoutDialog.resize(600, 206)
+        LayoutDialog.setMinimumSize(QSize(600, 200))
+        LayoutDialog.setMaximumSize(QSize(640, 480))
         LayoutDialog.setModal(False)
         self.verticalLayout = QVBoxLayout(LayoutDialog)
         self.verticalLayout.setObjectName(u"verticalLayout")
@@ -106,9 +106,12 @@ class Ui_LayoutDialog(object):
 
         self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.progressBar = QProgressBar(LayoutDialog)
+        self.progressBar.setObjectName(u"progressBar")
+        self.progressBar.setMaximum(1)
+        self.progressBar.setValue(-1)
 
-        self.horizontalLayout.addItem(self.horizontalSpacer)
+        self.horizontalLayout.addWidget(self.progressBar)
 
         self.pushButtonClose = QPushButton(LayoutDialog)
         self.pushButtonClose.setObjectName(u"pushButtonClose")

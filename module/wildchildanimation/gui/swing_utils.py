@@ -59,6 +59,22 @@ def fcount(path):
 
     return count        
 
+def fcount_name(path, name):
+    """ Counts the number of files in a directory """
+    count = 0
+    if not os.path.exists(path):
+        return count
+
+    for f in os.listdir(path):
+        if os.path.isfile(os.path.join(path, f)) and name.lower() in f.lower(): 
+            count += 1
+        if os.path.isdir(os.path.join(path, f)) and name.lower() in f.lower(): 
+            if not f in [ ".source", ".history"]:
+                count += 1
+
+    return count        
+
+
 def open_folder(directory):
     file_info = QtCore.QFileInfo(directory)
     if file_info.isDir():

@@ -83,15 +83,17 @@ class CheckBoxDelegate(QtWidgets.QStyledItemDelegate):
 class FileTableModel(QtCore.QAbstractTableModel):    
 
     _COL_SELECT = 0
-    _COL_FILE_NAME = 1
-    _COL_VERSION = 2
-    _COL_TASK = 3
-    _COL_UPDATED = 4
-    _COL_SIZE = 5
-    _COL_COMMENT = 6
+    _COL_ENTITY = 1
+    _COL_FILE_NAME = 2
+    _COL_VERSION = 3
+    _COL_TASK = 4
+    _COL_UPDATED = 5
+    _COL_SIZE = 6
+    _COL_COMMENT = 7
 
     columns = [
         "", 
+        "Entity",
         "File Name", 
         "v", 
         "Task",
@@ -166,6 +168,8 @@ class FileTableModel(QtCore.QAbstractTableModel):
 
             if col == FileTableModel._COL_SELECT:
                 return item in FileTableModel.selection
+            elif col == FileTableModel._COL_ENTITY:
+                return item["entity"]
             elif col == FileTableModel._COL_FILE_NAME:
                 return item["file_name"]
             elif col == FileTableModel._COL_SIZE:
@@ -231,11 +235,12 @@ def setup_file_table(tableModelFiles, tableView):
     tableView.sortByColumn(FileTableModel._COL_UPDATED, QtCore.Qt.DescendingOrder)
 
     tableView.setColumnWidth(FileTableModel._COL_SELECT, 10)
+    tableView.setColumnWidth(FileTableModel._COL_ENTITY, 100)
     tableView.setColumnWidth(FileTableModel._COL_FILE_NAME, 400)
     tableView.setColumnWidth(FileTableModel._COL_VERSION, 20)
     tableView.setColumnWidth(FileTableModel._COL_TASK, 150)
     tableView.setColumnWidth(FileTableModel._COL_UPDATED, 180)
-    tableView.setColumnWidth(FileTableModel._COL_SIZE, 100)
+    tableView.setColumnWidth(FileTableModel._COL_SIZE, 150)
     tableView.setColumnWidth(FileTableModel._COL_COMMENT, 200)
 
     #tableView.horizontalHeader().setSectionResizeMode(FileTableModel._COL_PATH, QtWidgets.QHeaderView.Stretch)

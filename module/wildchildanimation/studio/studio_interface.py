@@ -2,7 +2,7 @@
 # 
 # ==== auto Qt load ====
 from wildchildanimation.gui.settings import SwingSettings
-from wildchildanimation.gui.background_workers import ProjectEpisodeLoader, ProjectShotLoader, TaskTypeLoader, ToDoLoader
+from wildchildanimation.gui.background_workers import ProjectEpisodeLoader, ProjectShotLoader, ProjectTaskTypeLoader, TaskTypeLoader, ToDoLoader
 from wildchildanimation.gui.swing_utils import connect_to_server
 import gazu
 
@@ -16,7 +16,7 @@ except ImportError:
 class StudioInterface(QtCore.QObject):
 
     NAME = "StudioInterface"
-    VERSION = "0.0.6"    
+    VERSION = "0.0.7"    
 
     def __init__(self):
         super(StudioInterface, self).__init__()
@@ -91,6 +91,11 @@ class StudioInterface(QtCore.QObject):
     def import_reference(self, **kwargs):
         # tries to import the file specified in source into the currently open scene
         return False           
+
+    def import_timeline(self, **kwargs):
+        # tries to import the file specified in source into the currently open scene
+        return False           
+
 
     def on_save(self, **kwargs):
         # return the currently open file
@@ -185,7 +190,11 @@ class StudioInterface(QtCore.QObject):
     def load_todo_tasks(self, project_id, episode_id):
         # self.log_output("load_todo_tasks")
 
-        return ToDoLoader(project_id, episode_id).run()     
+        return ToDoLoader(project_id, episode_id).run()   
+
+    def load_project_task_types(self, project_id):
+
+        return ProjectTaskTypeLoader(self, project_id)  
 
     def load_task_types(self):
 

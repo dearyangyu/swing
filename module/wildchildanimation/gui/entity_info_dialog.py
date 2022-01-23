@@ -17,7 +17,7 @@ class Ui_EntityInfoDialog(object):
     def setupUi(self, EntityInfoDialog):
         if not EntityInfoDialog.objectName():
             EntityInfoDialog.setObjectName(u"EntityInfoDialog")
-        EntityInfoDialog.resize(571, 523)
+        EntityInfoDialog.resize(600, 800)
         EntityInfoDialog.setSizeGripEnabled(True)
         self.verticalLayout = QVBoxLayout(EntityInfoDialog)
         self.verticalLayout.setObjectName(u"verticalLayout")

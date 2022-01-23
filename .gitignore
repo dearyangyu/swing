@@ -150,3 +150,5 @@ module/alembic.pyd
 module/iex.pyd
 module/imath.pyd
 module/wildchildanimation/gui/publish copy.py
+
+doc/

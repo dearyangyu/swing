@@ -70,6 +70,8 @@ class UploadMonitorDialog(QtWidgets.QDialog, Ui_UploadMonitorDialog):
         #self.progressBar.setRange(0, len(self.model.files))
 
     def set_queue(self, queue):
+        self.queue = []
+        
         index = 0
         for item in queue:
             print("{}: {}".format(index, item))            

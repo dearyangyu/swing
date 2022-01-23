@@ -14,7 +14,7 @@ from wildchildanimation.maya.layout_control import LayoutControlDialog
 from wildchildanimation.gui.background_workers import TaskFileInfoThread
 from wildchildanimation.gui.settings import SwingSettings
 from wildchildanimation.gui.swing_utils import friendly_string
-
+from wildchildanimation.gui.background_workers import ProjectTypesLoader
 # ==== auto Qt load ====
 try:
     from PySide2 import QtWidgets, QtCore
@@ -60,8 +60,6 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
         return "{0}".format(cls.UI_NAME)
 
     def __init__(self, parent = maya_main_window()):
-    #def __init__(self, parent = None):
-        # maya_main_window = wrapInstance(int(omui.MQtUtil.mainWindow()), QtWidgets.QWidget)
         super(SwingMayaUI, self).__init__(parent)
 
         self.setObjectName(self.__class__.UI_NAME)
@@ -258,10 +256,12 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
         self.comboBoxTask.setEnabled(True)
 
         self.comboBoxProject.setCurrentIndex(0)
-        self.task_types = self.handler.load_task_types()["results"]
+        ##self.task_types = self.handler.load_task_types()["results"]
 
     def project_changed(self, index):
         try:
+            self.project = self.comboBoxProject.itemData(index)
+
             self.comboBoxEpisode.blockSignals(True)
             self.comboBoxEpisode.setEnabled(False)
             self.comboBoxEpisode.clear()
@@ -270,8 +270,12 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
             self.comboBoxTask.setEnabled(False)
             self.comboBoxTask.clear()   
 
-            project = self.comboBoxProject.currentText()
-            episodes = self.projects[project]["episodes"]
+            # project = self.comboBoxProject.currentText()
+            episodes = self.project["episodes"]
+
+            loader = ProjectTypesLoader(self, self.project["project_id"])        
+            loader.callback.loaded.connect(self.project_loaded)
+            loader.run()            
 
             #self.comboBoxEpisode.addItem("MP", userData = {"episode": "all", "episode_id": "All"} )
             for item in episodes:
@@ -288,6 +292,10 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
         except:
             self.workspace_control_instance.log_error("project_changed:: {}".format("Exception"))
             traceback.print_exc(file=sys.stdout)            
+
+    def project_loaded(self, results):
+        self.task_types = results["task_types"]
+        self.task_status = results["task_status"]                  
 
     def episode_changed(self, index):
         try:
@@ -370,6 +378,8 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
     ### Studio Handlers
     def on_create(self):
         if not self.task_info:
+            QtWidgets.QMessageBox.warning(self, 'Task not found', 'Please select a task before creating / loading')                  
+
             self.workspace_control_instance.log_output("on_create::task_info not found")
             return 
         try:
@@ -382,7 +392,7 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
     def on_search(self):
         try:
             project_id = self.comboBoxProject.currentData()["project_id"]
-            entity = self.comboBoxTask.currentData()
+            # entity = self.comboBoxTask.currentData()
 
             self.handler.on_search(parent = self.workspace_control_instance, project = project_id, text = self.lineEditSearch.text() )
         except:
@@ -391,6 +401,8 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
 
     def on_publish(self):
         if not self.task_info:
+            QtWidgets.QMessageBox.warning(self, 'Task not found', 'Please select a task before publishing')                  
+
             self.workspace_control_instance.log_output("on_publish: Task not found")
             return 
         try:
@@ -402,6 +414,8 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
 
     def on_playblast(self):
         if not self.task_info:
+            QtWidgets.QMessageBox.warning(self, 'Task not found', 'Please select a task before playblasting')                  
+
             self.workspace_control_instance.log_output("on_publish: Task not found")
             return         
         try:

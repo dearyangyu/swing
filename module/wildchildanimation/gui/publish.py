@@ -14,7 +14,7 @@ except ImportError:
     from PyQt5 import QtCore, QtWidgets
     qtMode = 1
 
-from wildchildanimation.gui.background_workers import SoftwareLoader, StatusTypeLoader, TaskFileInfoThread, TaskTypeLoader, WorkingFileUploader
+from wildchildanimation.gui.background_workers import SoftwareLoader, StatusTypeLoader, TaskFileInfoThread, WorkingFileUploader, ProjectTaskTypeLoader, ProjectStatusTypeLoader
 from wildchildanimation.gui.swing_utils import set_button_icon
 from wildchildanimation.gui.image_loader import PreviewImageLoader
 from wildchildanimation.gui.publish_dialog import Ui_PublishDialog
@@ -35,8 +35,9 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
     of_included = []
 
     working_files = []
+    output_files = []
 
-    def __init__(self, parent = None, task = None, task_types = None, status_types = None, upload_monitor = None):
+    def __init__(self, parent = None, task = None):
         super(PublishDialogGUI, self).__init__(parent) # Call the inherited classes __init__ method    
 
         self.setupUi(self)
@@ -44,21 +45,9 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         self.setAcceptDrops(True)
         self.read_settings()
 
-        if not upload_monitor:
-            self.monitor = UploadMonitorDialog(self)
-        else:
-            self.monitor = upload_monitor
-
         self.task = task
-        if not task_types:
-            self.task_types = TaskTypeLoader(self).run()["results"]
-        else:
-            self.task_types = task_types
-
-        if not status_types:
-            self.status_types = StatusTypeLoader(self).run()["results"]
-        else:
-            self.status_types = task_types
+        self.task_types = ProjectTaskTypeLoader(self.task["project_id"]).run()
+        self.status_types = ProjectStatusTypeLoader(self.task["project_id"]).run()
 
         self.software = SoftwareLoader(self).run()["software"]
 
@@ -83,6 +72,9 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
 
         self.outputFileSelectButton.clicked.connect(self.select_output_file)
         set_button_icon(self.outputFileSelectButton, "../resources/fa-free/solid/folder.svg")
+
+        self.toolButtonOutputFileList.clicked.connect(self.show_output_file_list)
+        set_button_icon(self.toolButtonOutputFileList, "../resources/fa-free/solid/list.svg")
 
         self.outputDirSelectButton.clicked.connect(self.select_output_dir)
         set_button_icon(self.outputDirSelectButton, "../resources/fa-free/solid/folder.svg")   
@@ -435,9 +427,27 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
             else:
                 self.set_working_file("[Multiple files selected]")
 
+    def show_output_file_list(self):
+        dialog = FileListDialog(self, self.output_files)
+
+        dialog.exec_()
+        if dialog.status == 'OK':
+            self.output_files = dialog.file_list
+
+            if len(self.output_files) == 0:            
+                self.set_output_file("")
+            elif len(self.output_files) == 1:
+                self.set_output_file(self.output_files[0])
+            else:
+                self.set_output_file("[Multiple files selected]")        
+
 
     # ToDo: Desktop Only, Move to Swing Studio Handler
     def process(self):
+        print("publish::process")
+
+        self.monitor = UploadMonitorDialog(self)
+        self.setMinimumWidth(720)
         self.pushButtonCancel.setEnabled(False)
 
         self.process_count = 0
@@ -449,15 +459,20 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         task_comments = self.commentEdit.toPlainText().strip()
 
         if self.groupBoxWorkingFiles.isChecked():        
+            print("publish::check working files")
 
             #
             # working files
             #
             if len(self.working_files) > 0:
+                print("publish::working files found")
+
                 for source in self.working_files:
                     #source = self.workingFileEdit.text()
 
                     if os.path.exists(source):
+                        print("publish::adding working file {}".format(source))
+
                         file_base = os.path.basename(source)
                         file_name, file_ext = os.path.splitext(file_base)                
 
@@ -477,6 +492,7 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
             # working dir
             #
             elif len(self.workingDirEdit.text()) > 0:
+                print("publish::working directory found")
                 source = self.workingDirEdit.text()
 
                 if os.path.exists(source):
@@ -500,29 +516,38 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         ### Working files        
 
         if self.groupBoxOutputFiles.isChecked():
+            print("publish::check output files")
+
             #
             # output files
             #
 
-            if len(self.outputFileEdit.text()) > 0:
-                source = self.outputFileEdit.text()
-                if os.path.exists(source):
-                    file_base = os.path.basename(source)
-                    file_name, file_ext = os.path.splitext(file_base)
+            if len(self.output_files) > 0:
+                print("publish::output files found")
 
-                    worker = WorkingFileUploader(self, edit_api, self.task, source, file_name, self.get_software()["name"],  
-                        comment=task_comments, mode = self.output_mode, task_status = self.comboBoxTaskStatus.currentData(QtCore.Qt.UserRole)["id"])
+                for source in self.output_files:
+                    ##source = self.outputFileEdit.text()
+                    if os.path.exists(source):
+                        print("publish::adding output file {}".format(source))
 
-                    worker.callback.progress.connect(self.monitor.file_loading)
-                    worker.callback.done.connect(self.monitor.file_loaded)
-                    ## dialog.add_item(source, "Pending")    
+                        file_base = os.path.basename(source)
+                        file_name, file_ext = os.path.splitext(file_base)
 
-                    self.process_count += 1
-                    self.queue.append(worker)         
-                    #self.threadpool.start(worker)   
+                        worker = WorkingFileUploader(self, edit_api, self.task, source, file_name, self.get_software()["name"],  
+                            comment=task_comments, mode = self.output_mode, task_status = self.comboBoxTaskStatus.currentData(QtCore.Qt.UserRole)["id"])
+
+                        worker.callback.progress.connect(self.monitor.file_loading)
+                        worker.callback.done.connect(self.monitor.file_loaded)
+                        ## dialog.add_item(source, "Pending")    
+
+                        self.process_count += 1
+                        self.queue.append(worker)         
+                        #self.threadpool.start(worker)   
                 
             # output dir
             elif len(self.outputDirEdit.text()) > 0:
+                print("publish::output directory found")
+
                 source = self.outputDirEdit.text()
                 if os.path.exists(source):
                     file_base = os.path.basename(source)
@@ -540,27 +565,30 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
                     self.queue.append(worker)         
                     # worker.run()               
 
+        print("publish::check references")
         model = self.tableViewReferences.model().items
         for item in model:
-                source = item["item"]
-                mode = item["type"]
+            source = item["item"]
+            mode = item["type"]
 
-                if os.path.exists(source):
-                    file_base = os.path.basename(source)
-                    file_name, file_ext = os.path.splitext(file_base)
+            if os.path.exists(source):
+                file_base = os.path.basename(source)
+                file_name, file_ext = os.path.splitext(file_base)
 
-                    worker = WorkingFileUploader(self, edit_api, self.task, source, file_name, self.get_software()["name"], comment=task_comments, 
-                        mode = mode, task_status = self.comboBoxTaskStatus.currentData(QtCore.Qt.UserRole)["id"])                    
-                        
-                    worker.callback.progress.connect(self.monitor.file_loading)
-                    worker.callback.done.connect(self.monitor.file_loaded)
-                    ## dialog.add_item(source, "Pending")   
+                worker = WorkingFileUploader(self, edit_api, self.task, source, file_name, self.get_software()["name"], comment=task_comments, 
+                    mode = mode, task_status = self.comboBoxTaskStatus.currentData(QtCore.Qt.UserRole)["id"])                    
+                    
+                worker.callback.progress.connect(self.monitor.file_loading)
+                worker.callback.done.connect(self.monitor.file_loaded)
+                ## dialog.add_item(source, "Pending")   
 
-                    self.process_count += 1
-                    #self.threadpool.start(worker)      
-                    self.queue.append(worker)                     
+                self.process_count += 1
+                #self.threadpool.start(worker)      
+                self.queue.append(worker)                     
 
         if len(self.queue) > 0:
+            print("publish::processing queue of {}".format(len(self.queue)))
+
             self.monitor.set_queue(self.queue)
             self.monitor.set_task(self.task)
             self.monitor.show()
@@ -568,12 +596,12 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
 
             index = 0
             for item in self.queue:
-                print("Starting upload: {}".format(index))
+                print("publish::starting upload: {}".format(index))
                 self.threadpool.start(item)
                 index += 1
 
             # clear queue
-            print("Clearing upload queue")
+            print("publish::clearing upload queue")
             self.queue.clear()
                 #self.threadpool.waitForDone()
 
@@ -658,9 +686,10 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         software = self.get_software()
         filter = "{} (*{});; All Files (*.*)".format(software["short_name"], software["file_extension"])
         working_dir = self.workingDirEdit.text()
-        q = QtWidgets.QFileDialog.getOpenFileNames(self, "Select {}  working file(s)".format(software["name"]), working_dir, filter)
+        q = QtWidgets.QFileDialog.getOpenFileNames(self, "Select {} working file(s)".format(software["name"]), working_dir, filter)
         if q and len(q[0]) > 0:
             self.working_files = q[0]
+            print("publish::loaded {} working files".format(len(self.working_files)))
 
             if len(self.working_files) == 1:
                 self.set_working_file(q[0][0])
@@ -690,11 +719,18 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         else:
             working_dir = self.last_output_dir
 
-        q = QtWidgets.QFileDialog.getOpenFileName(self, "Open Review File", working_dir, "Videos (*.mp4);; Images (*.bmp, *.jpg, *.png);; All Files (*.*)")
-        if (q and q[0] != ''):     
+        q = QtWidgets.QFileDialog.getOpenFileNames(self, "Select Output file(s)", working_dir, "Videos (*.mp4);; Images (*.bmp, *.jpg, *.png);; All Files (*.*)")
+        if q and len(q[0]) > 0:
+            self.output_files = q[0]
             self.last_output_dir = q[0]
-            self.set_output_file(q[0])
 
+            print("publish::loaded {} output files".format(len(self.output_files)))
+            if len(self.output_files) == 1:
+                self.set_output_file(q[0][0])
+            else:
+                self.set_output_file("[Multiple files selected]")                
+                
+            
     def select_output_dir(self):
         working_dir = self.outputDirEdit.text()
         q = QtWidgets.QFileDialog.getExistingDirectory(self, "Select Media Directory", working_dir)

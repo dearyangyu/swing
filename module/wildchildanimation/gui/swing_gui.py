@@ -9,6 +9,8 @@ import os
 import sys
 import traceback
 
+from wildchildanimation.gui.desktop_layout_control import LayoutControlDialog
+
 # Qt High DPI 
 os.environ["QT_ENABLE_HIGHDPI_SCALING"] = "1"
 
@@ -576,7 +578,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
                 task_types = None
 
             if self.nav.is_status_types_filtered():
-                status_types = self.nav.get_task_status
+                status_types = self.nav.get_task_status()
             else:
                 status_types = None
 
@@ -913,13 +915,11 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
     def breakout_dialog(self):
         if self.nav.get_project() and self.nav.get_episode():
-            dialog = BreakoutUploadDialog(self)
-            dialog.set_project(self.nav.get_project())
-            dialog.set_episode(self.nav.get_episode())
-            dialog.set_sequence(self.nav.get_sequence())
-            dialog.exec_()
+            layout_dialog = LayoutControlDialog(self, self.handler, self.nav.get_project(), self.nav.get_episode(), self.nav.get_sequence())
+            layout_dialog.exec_()
         else:
             QtWidgets.QMessageBox.information(self, 'Break Out', 'Please select a project and an episode first')  
+
 
     def on_playlists(self):
         if self.nav.get_project() and self.nav.get_episode():
@@ -941,10 +941,11 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         if len(files) == 0:
             QtWidgets.QMessageBox.information(self, 'Swing: Downloader', 'Please select a file')  
             # self.downloadDialog = DownloadDialogGUI(parent = self, handler = self.handler, entity = self.get_current_selection(), task_types=self.nav.get_task_types(), status_types=self.nav.get_status_types())
+        elif len(files) == 1:
+            self.on_load()
         else:
             self.downloadDialog = DownloadDialogGUI(parent = self, handler = self.handler, file_list=files)
-
-        self.downloadDialog.show()
+            self.downloadDialog.show()
 
     def load_asset(self):
 
@@ -1017,7 +1018,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
         if self.selected_task:        
             project_dir = self.selected_task["project_dir"]            
-            self.handler.on_publish(parent = self, task = self.selected_task, project_dir = project_dir, task_types = task_types, status_types = status_types, monitor = self.get_file_monitor())
+            self.handler.on_publish(parent = self, task = self.selected_task, project_dir = project_dir, task_types = task_types, status_types = status_types)
  
     def task_info(self):
         if self.selected_task:

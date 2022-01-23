@@ -4,6 +4,7 @@ import traceback
 import sys
 import os
 from shutil import copy2
+from PySide2.QtGui import QTextCursor
 import gazu
 from wildchildanimation.gui.background_workers import FileDownloader
 
@@ -22,8 +23,6 @@ from wildchildanimation.gui.maya_resource_loader_dialog import Ui_MayaResourceLo
 
 from wildchildanimation.gui.swing_utils import friendly_string, set_button_icon
 
-import maya.utils as mutils
-
 '''
     Maya Resource Loader
     ################################################################################
@@ -31,9 +30,10 @@ import maya.utils as mutils
 
 class ResourceLoaderDialogGUI(QtWidgets.QDialog, Ui_MayaResourceLoaderDialog):
 
-    def __init__(self, parent, handler, resource, entity):
+    def __init__(self, parent, handler, resource, entity, namespace):
         super(ResourceLoaderDialogGUI, self).__init__(parent) # Call the inherited classes __init__ method
         self.setupUi(self)
+        self.setWindowTitle(u"swing::loader")
 
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
         self.threadpool = QtCore.QThreadPool.globalInstance()        
@@ -48,6 +48,7 @@ class ResourceLoaderDialogGUI(QtWidgets.QDialog, Ui_MayaResourceLoaderDialog):
         self.handler = handler
         self.resource = resource
         self.resource_network_path = None
+        self.namespace = namespace
 
         if isinstance(entity, dict):
             self.entity = entity
@@ -81,7 +82,7 @@ class ResourceLoaderDialogGUI(QtWidgets.QDialog, Ui_MayaResourceLoaderDialog):
     # also determine if that file is an archive that needs to be downloaded and uncompressed
     #
     def check_network(self):
-        print("Check Network: Resource {}".format(self.resource))
+        print("check_network: Resource {}".format(self.resource))
         try:
             resource_item = self.resource["file_path"]
 
@@ -97,16 +98,17 @@ class ResourceLoaderDialogGUI(QtWidgets.QDialog, Ui_MayaResourceLoaderDialog):
             # we also want to know what file type we are dealing with
             fn, ext = os.path.splitext(resource_item)
 
-            print("Checking Network: Checking LAN for {}{} ".format(fn, ext))
+            print("check_network: Checking LAN for {}{} ".format(fn, ext))
             if os.path.exists(server_path):
                 self.lineEditNetworkStatus.setText("Found {}".format(server_path))
+
                 self.set_download_only(False)
                 self.resource_network_path = server_path
             else:
                 self.lineEditNetworkStatus.setText("Resource will be downloaded from the server")
                 self.resource_network_path = None
 
-            print("Checking Network: Checking Archive Status {}{} ".format(fn, ext))
+            print("check_network: Checking Archive Status {}{} ".format(fn, ext))
             if ext in self.handler.UNARCHIVE_TYPES:
                 if ext in self.handler.UNARCHIVE_TYPES:
                     self.labelArchiveMessage.setText("This file is an archive and has to be uncompressed to a local workspace")
@@ -130,7 +132,7 @@ class ResourceLoaderDialogGUI(QtWidgets.QDialog, Ui_MayaResourceLoaderDialog):
     #    self.lineEditTarget.setText(self.handler.get_scene_path())
 
     def load_entity(self):
-        print("Processing entity: {}".format(self.entity))
+        print("load_entity entity: {}".format(self.entity))
 
         self.project = gazu.project.get_project(self.entity["project_id"])
         self.entity_type = gazu.entity.get_entity_type(self.entity["entity_type_id"])
@@ -156,13 +158,13 @@ class ResourceLoaderDialogGUI(QtWidgets.QDialog, Ui_MayaResourceLoaderDialog):
         # print("Check NameSpace Entity Type {}".format(self.entity_type))
         self.lineEditSource.setText(self.resource["file_name"])
 
-        sections = []
+        self.sections = []
 
         if "code" in self.project:
             self.project_name = self.project["code"]
         else:
             self.project_name = self.project["name"]
-        sections.append(self.project_name)                                
+        self.sections.append(self.project_name)                                
 
         if self.entity["type"] == "Asset":
             self.entity_type_name = self.entity_type["name"]
@@ -170,10 +172,10 @@ class ResourceLoaderDialogGUI(QtWidgets.QDialog, Ui_MayaResourceLoaderDialog):
             # check if we have a shortened form of the name
             if self.entity_type_name in self.handler.ASSET_TYPE_LOOKUP:
                 self.entity_type_name = self.handler.ASSET_TYPE_LOOKUP[self.entity_type_name]
-            sections.append(self.entity_type_name)
-            sections.append(friendly_string(self.entity["name"]))
+            self.sections.append(self.entity_type_name)
+            self.sections.append(friendly_string(self.entity["name"]))
 
-            self.lineEditNamespace.setText(friendly_string("_".join(sections).lower()))
+            self.lineEditNamespace.setText(friendly_string("_".join(self.sections).lower()))
         else:
             try:
                 self.sequence = gazu.entity.get_entity(self.entity["parent_id"])
@@ -189,15 +191,21 @@ class ResourceLoaderDialogGUI(QtWidgets.QDialog, Ui_MayaResourceLoaderDialog):
             # parent sequence not found
 
             if self.episode:
-                sections.append(self.episode["name"])
+                self.sections.append(self.episode["name"])
 
             if self.sequence:
-                sections.append(self.sequence["name"])
+                self.sections.append(self.sequence["name"])
 
-            sections.append(self.entity["name"])
-            self.lineEditNamespace.setText(friendly_string("_".join(sections).lower()))
+            self.sections.append(self.entity["name"])
 
-        self.set_enabled(True)        
+        if not self.namespace:
+            self.namespace = friendly_string("_".join(self.sections).lower().strip())
+
+        self.load_namespace()
+        self.set_enabled(True)
+
+    def load_namespace(self):
+        self.lineEditNamespace.setText(self.namespace)            
 
     def set_download_only(self, only_download):
         if only_download:
@@ -320,43 +328,70 @@ class ResourceLoaderDialogGUI(QtWidgets.QDialog, Ui_MayaResourceLoaderDialog):
             text = "<span style=' font-weight:100; '>{}</span><br/><bt/>".format(status_message.strip())
 
         cursor = QtGui.QTextCursor(self.textEditStatus.document()) 
+        self.textEditStatus.moveCursor(QTextCursor.End)
         cursor.insertHtml(text)
 
-    def process(self):
-        mutils.executeDeferred(lambda: self.background_process())
+    #def process(self):
+    #
+    #    mutils.executeDeferred(lambda: self.background_process())
 
-    def background_process(self):
+    #def background_process(self):
+    def process(self):        
+        print("background_process::start")
         self.set_enabled(False)
         try:
             try:
+                target_path = self.handler.get_working_file()
+                if not target_path or len(target_path) == 0:
+                    QtWidgets.QMessageBox.warning(self, 'Scene Error', 'No scene found. Please save the current scene or task first')        
+                    return False
+
+                print("background_process::resource network path = {} target path = {}".format(self.resource_network_path, target_path))                
+
                 #if not self.resource_network_path:
                 if self.rbOpenSource.isChecked():
-                    target_path = self.handler.get_working_file()
-                    print("Loading file from {} to {}".format(self.resource_network_path, target_path))
+                    print("background_process::open source")
 
                     if os.path.exists(target_path):
-                        print("Local file already exists, check with user ... ")
+                        print("background_process::Local file already exists, check with user ... ")
                         reply = QtWidgets.QMessageBox.question(self, 'Confirm Overwrite', 'This will overwrite the existing file {}\r\n\r\nAre you sure you wish to continue ?'.format(target_path), QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
                         if not reply == QtWidgets.QMessageBox.Yes:
-                            print("Didn't think so ")
+                            print("background_process::Didn't think so ")
                             return False
 
                         if not self.resource_network_path:
-                            print("Not on Z: drive, have to download ... ")
+                            print("background_process::Not on Z: drive, have to download ... ")
 
                             self.download_file()
                             return False
                         else:
-                            print("Just copy it from Z: ")
+                            print("background_process::Just copy it from Z: ")
                             self.copy_file(self.resource_network_path, target_path)
                         # check if remote
+
                     # open from Z: 
                     
                 elif self.rbImportSource.isChecked():
-                    self.import_file()
-                else:
-                    self.import_ref()
+                    print("background_process::import resource")
 
+                    if not self.resource_network_path:
+                        print("Not on Z: drive, have to download ... ")
+
+                        self.download_file()
+                        return False
+
+                    self.import_file()
+                elif self.rbReferenceSource.isChecked():
+                    print("background_process::reference resource")
+
+                    if not self.resource_network_path:
+                        print("Not on Z: drive, have to download ... ")
+
+                        self.download_file()
+                        return False
+                    # check if remote
+
+                    self.import_ref()
             except:
                 traceback.print_exc(file=sys.stdout)          
 
@@ -366,15 +401,15 @@ class ResourceLoaderDialogGUI(QtWidgets.QDialog, Ui_MayaResourceLoaderDialog):
 
     #copy file from server 
     def copy_file(self, source, target):
-        print("Copying file {} to {}".format(source, target))
+        print("copy_file file {} to {}".format(source, target))
 
         copy2(source, target, follow_symlinks=True)
-        self.append_status("{}: load_file".format(source))
+        self.append_status("copy_file {}: load_file".format(source))
 
         if (self.handler.load_file(source = target, force = self.checkBoxForce.isChecked())):
-            self.append_status("Loading done")
+            self.append_status("copy_file loading done")
         else:
-            self.append_status("Loading error", True)
+            self.append_status("copy_file loading error", True)
 
         self.set_enabled(True)
 
@@ -383,7 +418,8 @@ class ResourceLoaderDialogGUI(QtWidgets.QDialog, Ui_MayaResourceLoaderDialog):
         edit_api = "{}/edit".format(server)
         target_path = self.lineEditTarget.text()
 
-        print("Downloading {}".format(self.resource))
+        print("download_file::target path = {}".format(target_path))
+        print("download_file::resource {}".format(self.resource))
 
         if "library-file" in self.resource['file_type']:
             url = "{}/api/library_file/{}".format(edit_api, self.resource["entity_id"])
@@ -429,43 +465,62 @@ class ResourceLoaderDialogGUI(QtWidgets.QDialog, Ui_MayaResourceLoaderDialog):
     # we have a file or an archive now, let's see what needs to be done
     #
     def file_loaded(self, results):
+        print("file_loaded:: {}".format(results))
+
         file_name = results["target"]
         self.resource_network_path = file_name
+        print("file_loaded:: {}".format(file_name))
         try:
             if self.rbOpenSource.isChecked():
+                print("file_loaded:: {}".format("open source file"))
                 self.load_file()
 
             elif self.rbImportSource.isChecked():
+                print("file_loaded:: {}".format("import source file"))
+
                 self.import_file()
 
             else:
+                print("file_loaded:: {}".format("reference source file"))
+
                 self.import_ref()
 
         except:
             traceback.print_exc(file=sys.stdout)          
 
     def load_file(self):
-        self.append_status("{}: load_file".format(self.resource))
+        source = self.resource_network_path
+        if not source:
+            source = self.resource["target_path"]
 
-        if (self.handler.load_file(source = self.resource_network_path, force = self.checkBoxForce.isChecked())):
-            self.append_status("Loading done")
+        self.append_status("load_file {}: ".format(source))
+        ## print("load_file:: {}".format(source))
+
+        if (self.handler.load_file(source = source, force = self.checkBoxForce.isChecked())):
+            self.append_status("load_file loaded file {}".format(source))
         else:
-            self.append_status("Loading error", True)
+            self.append_status("load_file - Import error", True)
 
         self.set_enabled(True)
 
     def import_file(self):
-        self.append_status("{}: import_file".format(self.resource))
-        
-        if (self.handler.import_file(source = self.resource_network_path)):
-            self.append_status("Loading done")
+        source = self.resource_network_path
+        if not source:
+            source = self.resource["target_path"]
+
+        self.append_status("import_file {}:".format(source))
+        ## print("load_file:: {}".format(source))
+
+        if (self.handler.import_file(source = source)):
+            self.append_status("import_file added file {}".format(source))
         else:
-            self.append_status("Loading error", True)
+            self.append_status("import_file - Import error", True)
 
         self.set_enabled(True)
 
     def import_ref(self):
-        self.append_status("{}: import_ref".format(self.resource))
+        self.append_status("import_ref {}: ".format(self.resource["file_name"]))
+        ## print("load_file:: {}".format(self.resource["file_name"]))
 
         if self.checkBoxNamespace.checkState() == QtCore.Qt.Checked:
             namespace = self.lineEditNamespace.text()
@@ -478,8 +533,8 @@ class ResourceLoaderDialogGUI(QtWidgets.QDialog, Ui_MayaResourceLoaderDialog):
             ref_namespace = "{0}_{1}".format(namespace, ref_str)
 
             if (self.handler.import_reference(source = self.resource_network_path, namespace = ref_namespace)):
-                self.append_status("{}: added ref {}".format(self.resource_network_path, ref_namespace))
+                self.append_status("import_ref {}: added ref {}".format(self.resource_network_path, ref_namespace))
             else:
-                self.append_status("Import error", True)
+                self.append_status("import_ref - Import error", True)
 
         self.set_enabled(True)
