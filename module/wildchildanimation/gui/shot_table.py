@@ -74,8 +74,7 @@ class ShotTableModel(QtCore.QAbstractTableModel):
             col = index.column()
 
             if col == ShotTableModel.COL_SELECTED:
-                item["selected"] = not item["selected"]
-                return True
+                item["selected"] = bool(value)
             elif col == ShotTableModel.COL_SHOT_NAME:
                 item["name"] = str(value)
             elif col == ShotTableModel.COL_SHOT_IN:
@@ -83,7 +82,8 @@ class ShotTableModel(QtCore.QAbstractTableModel):
             elif col == ShotTableModel.COL_SHOT_OUT:
                 item["frame_out"] = int(value)
 
-            return False     
+            self.dataChanged.emit(index, index)
+            return True            
 
     def flags(self, index):
         col = index.column()
@@ -163,13 +163,13 @@ class ShotTableDialog(QtWidgets.QDialog, Ui_ShotTableDialog):
 
     def select_none(self):
         for i in range(len(self.model.shots)):
-            self.model.shots[i]["selected"] = False
-        self.tableView.update()        
+            index = self.model.index(i, ShotTableModel.COL_SELECTED)
+            self.model.setData(index, False, QtCore.Qt.EditRole)     
 
     def select_all(self):
         for i in range(len(self.model.shots)):
-            self.model.shots[i]["selected"] = True
-        self.tableView.update()        
+            index = self.model.index(i, ShotTableModel.COL_SELECTED)
+            self.model.setData(index, True, QtCore.Qt.EditRole)
 
     def get_selected(self):
         selected = []

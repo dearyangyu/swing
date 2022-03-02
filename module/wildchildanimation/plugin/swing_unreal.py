@@ -1,6 +1,5 @@
 import sys
 
-from PySide2 import QtGui
 from PySide2 import QtWidgets
 
 import qdarkstyle
@@ -8,7 +7,6 @@ from wildchildanimation.gui.swing_gui import SwingGUI
 from wildchildanimation.studio.unreal_studio_handler import UnrealStudioHandler
 
 import unreal
-
 
 app = None
 if not QtWidgets.QApplication.instance():

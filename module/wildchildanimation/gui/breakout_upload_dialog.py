@@ -14,13 +14,12 @@ from PySide2.QtWidgets import *
 
 from wildchildanimation.gui.swing_utils import fakestr
 
-
 class Ui_BreakoutUploadDialog(object):
     def setupUi(self, BreakoutUploadDialog):
         if not BreakoutUploadDialog.objectName():
             BreakoutUploadDialog.setObjectName(u"BreakoutUploadDialog")
         BreakoutUploadDialog.setEnabled(True)
-        BreakoutUploadDialog.resize(924, 714)
+        BreakoutUploadDialog.resize(567, 513)
         self.verticalLayout = QVBoxLayout(BreakoutUploadDialog)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.horizontalLayoutProject = QHBoxLayout()
@@ -57,7 +56,7 @@ class Ui_BreakoutUploadDialog(object):
         self.label = QLabel(BreakoutUploadDialog)
         self.label.setObjectName(u"label")
         self.label.setMinimumSize(QSize(100, 0))
-        self.label.setAlignment(Qt.AlignCenter)
+        self.label.setAlignment(Qt.AlignLeading|Qt.AlignLeft|Qt.AlignVCenter)
 
         self.horizontalLayout_7.addWidget(self.label)
 
@@ -78,22 +77,11 @@ class Ui_BreakoutUploadDialog(object):
 
         self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.labelPlayblastFolder = QLabel(BreakoutUploadDialog)
-        self.labelPlayblastFolder.setObjectName(u"labelPlayblastFolder")
-        sizePolicy2 = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        sizePolicy2.setHorizontalStretch(0)
-        sizePolicy2.setVerticalStretch(0)
-        sizePolicy2.setHeightForWidth(self.labelPlayblastFolder.sizePolicy().hasHeightForWidth())
-        self.labelPlayblastFolder.setSizePolicy(sizePolicy2)
-        self.labelPlayblastFolder.setMinimumSize(QSize(100, 0))
-        self.labelPlayblastFolder.setMaximumSize(QSize(60, 16777215))
-        font = QFont()
-        font.setBold(False)
-        font.setWeight(50)
-        self.labelPlayblastFolder.setFont(font)
-        self.labelPlayblastFolder.setAlignment(Qt.AlignCenter)
+        self.cbPlayblast = QCheckBox(BreakoutUploadDialog)
+        self.cbPlayblast.setObjectName(u"cbPlayblast")
+        self.cbPlayblast.setMinimumSize(QSize(100, 0))
 
-        self.horizontalLayout.addWidget(self.labelPlayblastFolder)
+        self.horizontalLayout.addWidget(self.cbPlayblast)
 
         self.lineEditPlayblastFolder = QLineEdit(BreakoutUploadDialog)
         self.lineEditPlayblastFolder.setObjectName(u"lineEditPlayblastFolder")
@@ -110,16 +98,11 @@ class Ui_BreakoutUploadDialog(object):
 
         self.horizontalLayout_6 = QHBoxLayout()
         self.horizontalLayout_6.setObjectName(u"horizontalLayout_6")
-        self.labelProjectsFolder = QLabel(BreakoutUploadDialog)
-        self.labelProjectsFolder.setObjectName(u"labelProjectsFolder")
-        sizePolicy2.setHeightForWidth(self.labelProjectsFolder.sizePolicy().hasHeightForWidth())
-        self.labelProjectsFolder.setSizePolicy(sizePolicy2)
-        self.labelProjectsFolder.setMinimumSize(QSize(100, 0))
-        self.labelProjectsFolder.setMaximumSize(QSize(60, 16777215))
-        self.labelProjectsFolder.setFont(font)
-        self.labelProjectsFolder.setAlignment(Qt.AlignCenter)
+        self.cbProjects = QCheckBox(BreakoutUploadDialog)
+        self.cbProjects.setObjectName(u"cbProjects")
+        self.cbProjects.setMinimumSize(QSize(100, 0))
 
-        self.horizontalLayout_6.addWidget(self.labelProjectsFolder)
+        self.horizontalLayout_6.addWidget(self.cbProjects)
 
         self.lineEditProjectsFolder = QLineEdit(BreakoutUploadDialog)
         self.lineEditProjectsFolder.setObjectName(u"lineEditProjectsFolder")
@@ -133,6 +116,22 @@ class Ui_BreakoutUploadDialog(object):
 
 
         self.verticalLayoutProject.addLayout(self.horizontalLayout_6)
+
+        self.horizontalLayout_2 = QHBoxLayout()
+        self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
+        self.cbAudio = QCheckBox(BreakoutUploadDialog)
+        self.cbAudio.setObjectName(u"cbAudio")
+        self.cbAudio.setMinimumSize(QSize(100, 0))
+
+        self.horizontalLayout_2.addWidget(self.cbAudio)
+
+        self.lineEdit_2 = QLineEdit(BreakoutUploadDialog)
+        self.lineEdit_2.setObjectName(u"lineEdit_2")
+
+        self.horizontalLayout_2.addWidget(self.lineEdit_2)
+
+
+        self.verticalLayoutProject.addLayout(self.horizontalLayout_2)
 
         self.gridLayout_2 = QGridLayout()
         self.gridLayout_2.setObjectName(u"gridLayout_2")
@@ -221,15 +220,15 @@ class Ui_BreakoutUploadDialog(object):
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
         self.tableView = QTableView(BreakoutUploadDialog)
         self.tableView.setObjectName(u"tableView")
-        sizePolicy3 = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.MinimumExpanding)
-        sizePolicy3.setHorizontalStretch(0)
-        sizePolicy3.setVerticalStretch(10)
-        sizePolicy3.setHeightForWidth(self.tableView.sizePolicy().hasHeightForWidth())
-        self.tableView.setSizePolicy(sizePolicy3)
+        sizePolicy2 = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.MinimumExpanding)
+        sizePolicy2.setHorizontalStretch(0)
+        sizePolicy2.setVerticalStretch(10)
+        sizePolicy2.setHeightForWidth(self.tableView.sizePolicy().hasHeightForWidth())
+        self.tableView.setSizePolicy(sizePolicy2)
         self.tableView.setSizeIncrement(QSize(0, 0))
-        font1 = QFont()
-        font1.setPointSize(9)
-        self.tableView.setFont(font1)
+        font = QFont()
+        font.setPointSize(9)
+        self.tableView.setFont(font)
         self.tableView.setAlternatingRowColors(True)
         self.tableView.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.tableView.setWordWrap(False)
@@ -283,16 +282,17 @@ class Ui_BreakoutUploadDialog(object):
         self.comboBoxNaming.setItemText(0, fakestr(u"{203}bun_{010}.{ext}", None))
         self.comboBoxNaming.setItemText(1, fakestr(u"{tg118wha}_{030}fun_{010}_v01", None))
 
-        self.labelPlayblastFolder.setText(fakestr(u"Playblasts", None))
+        self.cbPlayblast.setText(fakestr(u"Playblasts", None))
 #if QT_CONFIG(tooltip)
         self.lineEditPlayblastFolder.setToolTip(fakestr(u"Select a directory containing media files ###ABC_###", None))
 #endif // QT_CONFIG(tooltip)
         self.toolButtonSelectPlayblasts.setText(fakestr(u"...", None))
-        self.labelProjectsFolder.setText(fakestr(u"Projects", None))
+        self.cbProjects.setText(fakestr(u"Projects", None))
 #if QT_CONFIG(tooltip)
         self.lineEditProjectsFolder.setToolTip(fakestr(u"Select a directory containing project files ###ABC_###", None))
 #endif // QT_CONFIG(tooltip)
         self.toolButtonSelectProjects.setText(fakestr(u"...", None))
+        self.cbAudio.setText(fakestr(u"Audio", None))
         self.pushButtonLoad.setText(fakestr(u"Load", None))
         self.pushButtonSave.setText(fakestr(u"Save", None))
         self.pushButtonScan.setText(fakestr(u"Scan Folders", None))

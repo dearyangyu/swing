@@ -130,7 +130,7 @@ class SwingSequencePlayblast(SwingMaya):
 
     # expects a directory and a shot list
     #
-    def execute(self, target_file_name, shots= [], padding=4, overscan=False, show_ornaments=True, show_in_viewer=True, overwrite=False, time_code = True, time_code_border = True, frame_numbers = True, caption = None, artist = None, build_sequence = False):
+    def execute(self, target_file_name, shots= [], padding=4, overscan=False, show_ornaments=True, show_in_viewer=True, overwrite=False, time_code = True, time_code_border = True, frame_numbers = True, caption = None, artist = None, build_sequence = False, encode_audio = True):
         file_parts = os.path.split(target_file_name)
 
         output_dir = file_parts[0]
@@ -165,6 +165,17 @@ class SwingSequencePlayblast(SwingMaya):
 
         # pop gui back to original settings no matter what happens with playblasting
         try:
+            if overwrite:
+                for shot_details in shots:
+                    shot = shot_details["name"]
+                    shot_file_name = "{}.mp4".format(shot)
+                    output_path = os.path.normpath(os.path.join(output_dir, shot_file_name))
+
+                    if os.path.exists(output_path):
+                        os.remove(output_path)
+                        self.log_output("cleared: shot {}".format(output_path))
+                # clear old files
+
             # sets target file name, adds' container extension
             playblasted_shots = []
             count = 1
@@ -285,15 +296,19 @@ class SwingSequencePlayblast(SwingMaya):
 
                 source_path = "{0}/{1}.%0{2}d.png".format(playblast_output_dir, os.path.basename(filename), padding)
 
-                if shot_details["audio_file"]:
-                    audio_file_path = shot_details["audio_file"]
-                    self.log_output("Loaded audio file {}".format(audio_file_path))
+                if encode_audio:
+                    if shot_details["audio_file"]:
+                        audio_file_path = shot_details["audio_file"]
+                        self.log_output("Loaded audio file {}".format(audio_file_path))
+                    else:
+                        audio_file_path = None
+                        self.log_output("No audio loaded")
                 else:
                     audio_file_path = None
-                    self.log_output("No audio loaded")
+                    self.log_output("Audio encoding skipped")
 
                 if self._encoder == "h264":
-                    self.encode_h264(source_path, output_path, start_frame, audio_file_path, time_code, time_code_border, frame_numbers, shot_caption, artist)
+                    self.encode_h264(source_path, output_path, start_frame, audio_file_path, time_code, time_code_border, frame_numbers, shot_caption, artist, encode_audio)
                     playblasted_shots.append(output_path)
                 else:
                     self.log_error("Encoding failed. Unsupported encoder ({0}) for container ({1}).".format(self._encoder, self._container_format))
@@ -368,7 +383,7 @@ class SwingSequencePlayblast(SwingMaya):
 
         self.log_output(output)
 
-    def encode_h264(self, source_path, output_path, start_frame, audio_file_path = None, time_code = True, time_code_background = True, frame_number = True, caption = None, artist = None):
+    def encode_h264(self, source_path, output_path, start_frame, audio_file_path = None, time_code = True, time_code_background = True, frame_number = True, caption = None, artist = None, encode_audio = True):
         self.log_output("encode_h264 {} source_path".format(source_path))
         self.log_output("encode_h264 {} output_path".format(output_path))
 
@@ -429,8 +444,9 @@ class SwingSequencePlayblast(SwingMaya):
 
         ffmpeg_cmd += ' -c:v libx264 -crf:v {0} -preset:v {1} -profile high -level 4.0 -pix_fmt yuv420p'.format(crf, preset)
 
-        if audio_file_path:
-            ffmpeg_cmd += ' -filter_complex "[1:0] apad" -shortest'
+        if encode_audio:
+            if audio_file_path:
+                ffmpeg_cmd += ' -filter_complex "[1:0] apad" -shortest'
 
         ffmpeg_cmd += ' "{0}"'.format(output_path)
 
@@ -461,7 +477,12 @@ class SwingSequencePlayblast(SwingMaya):
                 f.close()
 
         ffmpeg_cmd = self._ffmpeg_path
+        ##vf select=concatdec_select -af aselect=concatdec_select,aresample=async=1
+        ## ffmpeg -safe 0 -f concat -segment_time_metadata 1 -i file.txt -vf select=concatdec_select -af aselect=concatdec_select,aresample=async=1 out.mp4
+        
         ffmpeg_cmd += " -f concat -safe 0 -i {} -c copy {}".format(playlist, target)
+
+        ###ffmpeg_cmd += " -safe 0 -f concat -segment_time_metadata 1 -i {} -vf select=concatdec_select -af aselect=concatdec_select,aresample=aysnc=1 {}".format(playlist, target)
 
         self.log_output(ffmpeg_cmd)
         self.execute_ffmpeg_command(ffmpeg_cmd)   
@@ -817,7 +838,7 @@ class SwingSequencePlayblastUi(QtWidgets.QDialog, Ui_SequencePlayblastDialog):
             padding = padding, 
             overscan = overscan, show_ornaments = show_ornaments, show_in_viewer = show_in_viewer, overwrite = overwrite,  
             time_code = self.checkBoxTimeCode.isChecked(), time_code_border = False, frame_numbers=self.checkBoxFrameNumber.isChecked(), 
-            caption=caption, artist = artist, build_sequence = build_sequence)
+            caption=caption, artist = artist, build_sequence = build_sequence, encode_audio=self.checkBoxEncodeAudio.isChecked())
 
     def select_output_filename(self):
         current_filename = self.output_filename_le.text()
@@ -1034,6 +1055,7 @@ class SwingSequencePlayblastUi(QtWidgets.QDialog, Ui_SequencePlayblastDialog):
 
         cmds.optionVar(iv=("SwingSequencePlayblastBurnTimeCode", self.checkBoxTimeCode.isChecked()))
         cmds.optionVar(iv=("SwingSequencePlayblastBurnFrameNumbers", self.checkBoxFrameNumber.isChecked()))
+        cmds.optionVar(iv=("SwingSequencePlayblastEncodeAudio", self.checkBoxEncodeAudio.isChecked()))
 
 
     def load_defaults(self):
@@ -1090,6 +1112,9 @@ class SwingSequencePlayblastUi(QtWidgets.QDialog, Ui_SequencePlayblastDialog):
         #    self.checkBoxBackground.setChecked(cmds.optionVar(q="SwingSequencePlayblastBurnBorder"))
         if cmds.optionVar(exists="SwingSequencePlayblastBurnFrameNumbers"):
             self.checkBoxFrameNumber.setChecked(cmds.optionVar(q="SwingSequencePlayblastBurnFrameNumbers"))
+
+        if cmds.optionVar(exists="SwingSequencePlayblastEncodeAudio"):
+            self.checkBoxEncodeAudio.setChecked(cmds.optionVar(q="SwingSequencePlayblastEncodeAudio"))            
 
     def show_about_dialog(self):
         text = '<h2>{0}</h2>'.format(SwingSequencePlayblastUi.TITLE)

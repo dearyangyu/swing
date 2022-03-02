@@ -11,6 +11,7 @@
 from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
+
 from wildchildanimation.gui.swing_utils import fakestr
 
 class Ui_PlayblastDialog(object):
@@ -302,6 +303,12 @@ class Ui_PlayblastDialog(object):
         self.horizontalLayout_10.setObjectName(u"horizontalLayout_10")
         self.verticalLayout_4 = QVBoxLayout()
         self.verticalLayout_4.setObjectName(u"verticalLayout_4")
+        self.checkBoxEncodeAudio = QCheckBox(PlayblastDialog)
+        self.checkBoxEncodeAudio.setObjectName(u"checkBoxEncodeAudio")
+        self.checkBoxEncodeAudio.setChecked(True)
+
+        self.verticalLayout_4.addWidget(self.checkBoxEncodeAudio)
+
         self.ornaments_cb = QCheckBox(PlayblastDialog)
         self.ornaments_cb.setObjectName(u"ornaments_cb")
         sizePolicy2.setHeightForWidth(self.ornaments_cb.sizePolicy().hasHeightForWidth())
@@ -431,6 +438,7 @@ class Ui_PlayblastDialog(object):
         self.encoding_video_codec_settings_btn.setText(fakestr(u"Settings ...", None))
         self.label_6.setText(fakestr(u"Visibility:", None))
         self.visibility_customize_btn.setText(fakestr(u"Customise ...", None))
+        self.checkBoxEncodeAudio.setText(fakestr(u"Encode Audio", None))
         self.ornaments_cb.setText(fakestr(u"Ornaments", None))
         self.overscan_cb.setText(fakestr(u"Overscan", None))
         self.viewer_cb.setText(fakestr(u"Show in Viewer", None))

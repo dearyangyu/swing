@@ -18,30 +18,30 @@ class Ui_LayoutDialog(object):
     def setupUi(self, LayoutDialog):
         if not LayoutDialog.objectName():
             LayoutDialog.setObjectName(u"LayoutDialog")
-        LayoutDialog.resize(600, 206)
-        LayoutDialog.setMinimumSize(QSize(600, 200))
-        LayoutDialog.setMaximumSize(QSize(640, 480))
+        LayoutDialog.resize(561, 238)
+        LayoutDialog.setMinimumSize(QSize(550, 175))
+        LayoutDialog.setMaximumSize(QSize(32768, 32768))
         LayoutDialog.setModal(False)
         self.verticalLayout = QVBoxLayout(LayoutDialog)
         self.verticalLayout.setObjectName(u"verticalLayout")
-        self.horizontalLayout_5 = QHBoxLayout()
-        self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
-        self.pushButtonImagePlane = QPushButton(LayoutDialog)
-        self.pushButtonImagePlane.setObjectName(u"pushButtonImagePlane")
+        self.horizontalLayout_6 = QHBoxLayout()
+        self.horizontalLayout_6.setObjectName(u"horizontalLayout_6")
+        self.pushButtonSeqShots = QPushButton(LayoutDialog)
+        self.pushButtonSeqShots.setObjectName(u"pushButtonSeqShots")
 
-        self.horizontalLayout_5.addWidget(self.pushButtonImagePlane)
+        self.horizontalLayout_6.addWidget(self.pushButtonSeqShots)
 
-        self.labelImagePlane = QLabel(LayoutDialog)
-        self.labelImagePlane.setObjectName(u"labelImagePlane")
+        self.label = QLabel(LayoutDialog)
+        self.label.setObjectName(u"label")
 
-        self.horizontalLayout_5.addWidget(self.labelImagePlane)
+        self.horizontalLayout_6.addWidget(self.label)
 
-        self.horizontalSpacer_5 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.horizontalSpacer_6 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
-        self.horizontalLayout_5.addItem(self.horizontalSpacer_5)
+        self.horizontalLayout_6.addItem(self.horizontalSpacer_6)
 
 
-        self.verticalLayout.addLayout(self.horizontalLayout_5)
+        self.verticalLayout.addLayout(self.horizontalLayout_6)
 
         self.horizontalLayout_2 = QHBoxLayout()
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
@@ -106,12 +106,9 @@ class Ui_LayoutDialog(object):
 
         self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.progressBar = QProgressBar(LayoutDialog)
-        self.progressBar.setObjectName(u"progressBar")
-        self.progressBar.setMaximum(1)
-        self.progressBar.setValue(-1)
+        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
-        self.horizontalLayout.addWidget(self.progressBar)
+        self.horizontalLayout.addItem(self.horizontalSpacer)
 
         self.pushButtonClose = QPushButton(LayoutDialog)
         self.pushButtonClose.setObjectName(u"pushButtonClose")
@@ -129,8 +126,8 @@ class Ui_LayoutDialog(object):
 
     def retranslateUi(self, LayoutDialog):
         LayoutDialog.setWindowTitle(fakestr(u"Swing: Layout", None))
-        self.pushButtonImagePlane.setText(fakestr(u"Image Plane", None))
-        self.labelImagePlane.setText(fakestr(u"Add an image plane to the camera sequencer", None))
+        self.pushButtonSeqShots.setText(fakestr(u"Sequencer", None))
+        self.label.setText(fakestr(u"Create shots in the camera sequencer", None))
         self.pushButtonChainsaw.setText(fakestr(u"Chainsaw", None))
         self.labelChainsaw.setText(fakestr(u"Breakout a layout scene into scenes per shot ", None))
         self.pushButtonAnimPrep.setText(fakestr(u"Anim Prep", None))

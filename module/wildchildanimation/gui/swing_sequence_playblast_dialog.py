@@ -240,6 +240,12 @@ class Ui_SequencePlayblastDialog(object):
         self.horizontalLayout_10.setObjectName(u"horizontalLayout_10")
         self.verticalLayout_4 = QVBoxLayout()
         self.verticalLayout_4.setObjectName(u"verticalLayout_4")
+        self.checkBoxEncodeAudio = QCheckBox(SequencePlayblastDialog)
+        self.checkBoxEncodeAudio.setObjectName(u"checkBoxEncodeAudio")
+        self.checkBoxEncodeAudio.setChecked(True)
+
+        self.verticalLayout_4.addWidget(self.checkBoxEncodeAudio)
+
         self.ornaments_cb = QCheckBox(SequencePlayblastDialog)
         self.ornaments_cb.setObjectName(u"ornaments_cb")
         sizePolicy2.setHeightForWidth(self.ornaments_cb.sizePolicy().hasHeightForWidth())
@@ -387,6 +393,7 @@ class Ui_SequencePlayblastDialog(object):
         self.encoding_video_codec_settings_btn.setText(fakestr(u"Settings ...", None))
         self.label_6.setText(fakestr(u"Visibility:", None))
         self.visibility_customize_btn.setText(fakestr(u"Customise ...", None))
+        self.checkBoxEncodeAudio.setText(fakestr(u"Encode Audio", None))
         self.ornaments_cb.setText(fakestr(u"Ornaments", None))
         self.overscan_cb.setText(fakestr(u"Overscan", None))
         self.viewer_cb.setText(fakestr(u"Show in Viewer", None))

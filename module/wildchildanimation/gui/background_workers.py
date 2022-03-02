@@ -919,9 +919,18 @@ class ShotCreator(QtCore.QRunnable):
 
         edit_api = "{}/edit".format(server)       
 
-        force_preview = True                               
+        force_preview = True      
 
-        sequence = gazu.shot.get_sequence(self.sequence["id"])
+        project = gazu.project.get_project(self.project["project_id"])                         
+        if not project:
+            results = {
+                "status": "Error",
+                "message": "Project not found"
+            }
+            self.callback.results.emit(results)
+            return False        
+
+        sequence = gazu.shot.get_sequence(self.sequence["sequence_id"])
         if not sequence:
             results = {
                 "status": "Error",
@@ -933,6 +942,7 @@ class ShotCreator(QtCore.QRunnable):
         #task_type = gazu.task.get_task_type_by_name("Layout")
         #todo: fix case insensitive search on gazu.task.get_task_type_by_name
         task_type = gazu.task.get_task_type("821d35d1-819f-475c-90ee-47bce5839a28")
+        task_type = gazu.task.get_task_type_by_name("Anim-Block")
         if not task_type:
             results = {
                 "status": "Error",
@@ -950,7 +960,7 @@ class ShotCreator(QtCore.QRunnable):
             self.callback.results.emit(results)
             return False   
 
-        software = gazu.files.get_software_by_name("Maya 2020")
+        software = gazu.files.get_software_by_name("Maya")
         if not software:
             results = {
                 "status": "Error",
@@ -959,11 +969,11 @@ class ShotCreator(QtCore.QRunnable):
             self.callback.results.emit(results)
             return False                         
 
-        person = gazu.person.get_person_by_email(email)            
+        person = gazu.person.get_person_by_email("showadmin@digitalevolution.co.za")            
         if not person:
             results = {
                 "status": "Error",
-                "message": "Person Maya 2020 not found in Kitsu config"
+                "message": "Person not found in Kitsu"
             }        
             self.callback.results.emit(results)
             return False           
@@ -980,7 +990,22 @@ class ShotCreator(QtCore.QRunnable):
             self.callback.results.emit(results)                
 
             if not shot:
-                shot = gazu.shot.new_shot(self.project, sequence, shot_name)
+                if "nb_frames" in item and item["nb_frames"]:
+                    nb_frames = item["nb_frames"]
+                else:
+                    nb_frames = None
+
+                if "in" in item and item["in"]:
+                    frame_in = item["in"]
+                else:
+                    frame_in = None
+
+                if "out" in item and item["out"]:
+                    frame_out = item["out"] 
+                else:
+                    frame_out = None        
+
+                shot = gazu.shot.new_shot(project, sequence, shot_name, nb_frames=nb_frames, frame_in=frame_in, frame_out=frame_out)
 
                 results = {
                     "status": "OK", 
@@ -1048,19 +1073,21 @@ class ShotCreator(QtCore.QRunnable):
             ### add playblast movie
 
             # check timings
-            data = {}
-            if "nb_frames" in item and item["nb_frames"]:
-                data["nb_frames"] = item["nb_frames"]
+            #data = {}
+            #if "nb_frames" in item and item["nb_frames"]:
+            #    data["nb_frames"] = item["nb_frames"]
 
-            if "in" in item and item["in"]:
-                data["frame_in"] = item["in"]
+            #if "in" in item and item["in"]:
+            #    data["frame_in"] = item["in"]
 
-            if "out" in item and item["out"]:
-                data["frame_out"] = item["out"]
+            #if "out" in item and item["out"]:
+            #    data["frame_out"] = item["out"]
 
-            if len(data.keys()) > 0:
-                gazu.shot.update_shot_data(shot, data)
+            #if len(data.keys()) > 0:
+            #    gazu.shot.update_shot_data(shot, data)
             ### update timings
+
+            
 
             results = {
                 "status": "OK", 

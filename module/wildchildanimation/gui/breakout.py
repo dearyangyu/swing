@@ -13,8 +13,6 @@ try:
     from PySide2 import QtWidgets
     qtMode = 0
 except ImportError:
-    traceback.print_exc(file=sys.stdout)
-
     from PyQt5 import QtCore, QtWidgets
     import sip
     qtMode = 1
@@ -24,9 +22,7 @@ from datetime import datetime
 from wildchildanimation.gui.swing_utils import *
 from wildchildanimation.gui.breakout_upload_dialog import Ui_BreakoutUploadDialog
 from wildchildanimation.gui.swing_tables import human_size, load_file_table_widget
-
-from wildchildanimation.gui.background_workers import ShotCreator, ShotCreatorSignal
-
+from wildchildanimation.gui.background_workers import ShotCreator
 from wildchildanimation.gui.media_info import *
 
 
@@ -72,6 +68,7 @@ class BreakoutUploadDialog(QtWidgets.QDialog, Ui_BreakoutUploadDialog):
         self.pushButtonFfprobe.setEnabled(self.ffprobe_bin is not None)
         self.pushButtonFfprobe.clicked.connect(self.ffprobe)
         self.pushButtonSetRange.clicked.connect(self.set_range)
+        self.spinBoxStartingFrame.setValue(0)
 
         self.threadpool = QtCore.QThreadPool.globalInstance()
         
@@ -124,7 +121,7 @@ class BreakoutUploadDialog(QtWidgets.QDialog, Ui_BreakoutUploadDialog):
             print("scanning project files")
 
         playblast_dir = self.lineEditPlayblastFolder.text()
-        if os.path.exists(project_dir):
+        if os.path.exists(playblast_dir):
             print("scanning playblast files")
 
     def process(self):    
@@ -132,7 +129,8 @@ class BreakoutUploadDialog(QtWidgets.QDialog, Ui_BreakoutUploadDialog):
         episode = self.episode
 
         if self.checkBoxSequence.isChecked():
-            sequence = self.episode["sequences"][self.comboBoxSequence.currentIndex()]
+            #sequence = self.episode["sequences"][self.comboBoxSequence.currentIndex()]
+            sequence = self.sequence
             shot_list = self.model.shots
 
             self.threadpool = QtCore.QThreadPool.globalInstance()        
@@ -141,7 +139,7 @@ class BreakoutUploadDialog(QtWidgets.QDialog, Ui_BreakoutUploadDialog):
             worker.callback.results.connect(self.results)
 
             self.threadpool.start(worker)
-            #worker.run()
+            ##worker.run()
         else:
             QtWidgets.QMessageBox.info(self, 'Break Out', 'Please select a sequence')               
             #worker.run()
@@ -187,12 +185,20 @@ class BreakoutUploadDialog(QtWidgets.QDialog, Ui_BreakoutUploadDialog):
         save_settings("last_breakout_playblast", self.lineEditPlayblastFolder.text())
         save_settings("last_breakout_projects", self.lineEditProjectsFolder.text())
 
+        current_scene = self.sequence["sequence"]
+
         # scan for playblasts
         root_folder = self.lineEditPlayblastFolder.text()
         if len(root_folder.strip()) > 0:
             for item in os.listdir(root_folder):
                 if ".mov" in item or ".mp4" in item:
-                    shot_number = os.path.splitext(item)[0].split("_")[2]
+                    shot_parts = os.path.splitext(item)[0].split("_")
+                    shot_number = shot_parts[3]
+
+                    shot_scene = shot_parts[2]
+                    if not shot_scene == current_scene:
+                        continue
+
                     if not shot_number in self.shot_list:
                         shot = {
                             "shot_number": shot_number.strip(),
@@ -213,7 +219,13 @@ class BreakoutUploadDialog(QtWidgets.QDialog, Ui_BreakoutUploadDialog):
             for item in os.listdir(root_folder):
                 if ".ma" in item or ".mb" in item and item not in [ ".mayaSwatches"]:
                     try:
-                        shot_number = os.path.splitext(item)[0].split("_")[2]
+                        shot_parts = os.path.splitext(item)[0].split("_")
+                        shot_number = shot_parts[3]
+
+                        shot_scene = shot_parts[2]
+                        if not shot_scene == current_scene:
+                            continue
+
                         if not shot_number in self.shot_list:
                             shot = {
                                 "shot_number": shot_number.strip(),
@@ -249,8 +261,13 @@ class BreakoutUploadDialog(QtWidgets.QDialog, Ui_BreakoutUploadDialog):
         self.episode = episode
         #self.sequences = self.episode["sequences"]
 
-    def set_sequence(self, sequence):
-        self.comboBoxSequence.setCurrentIndex(self.comboBoxSequence.findData(sequence))
+    def set_sequence(self, item):
+        self.sequence = item
+        self.comboBoxSequence.addItem(self.sequence["sequence"])
+
+        #self.comboBoxSequence.setCurrentIndex(self.comboBoxSequence.findData(self.sequence["sequence"]))
+        self.comboBoxSequence.setCurrentIndex(0)
+        # self.comboBoxSequence.setText(sequence)
 
 class ShotlistModel(QtCore.QAbstractTableModel):
 

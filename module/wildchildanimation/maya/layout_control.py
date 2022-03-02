@@ -21,6 +21,7 @@ import maya.utils as mutils
 
 from wildchildanimation.maya.layout_control_dialog import Ui_LayoutDialog
 from wildchildanimation.gui.file_select_dialog import FileListDialog
+from wildchildanimation.gui.maya_sequencer_shot_creator import SequencerShotCreator
 
 '''
     Ui_LayoutControlDialog class
@@ -39,6 +40,7 @@ class LayoutControlDialog(QtWidgets.QDialog, Ui_LayoutDialog):
 
         self.pushButtonChainsaw.clicked.connect(self.run_chainsaw)
         self.pushButtonAnimPrep.clicked.connect(self.run_anim_prep)
+        self.pushButtonSeqShots.clicked.connect(self.run_cam_sequencer_shot_create)
 
         self.pushButtonClose.clicked.connect(self.close_dialog)
 
@@ -49,6 +51,16 @@ class LayoutControlDialog(QtWidgets.QDialog, Ui_LayoutDialog):
 
     def close_dialog(self):
         self.close()
+
+    def run_cam_sequencer_shot_create(self):
+        self.pushButtonSeqShots.setEnabled(False)
+        try:
+            shot_list = []
+            shot_creator = SequencerShotCreator(parent = self, shot_list = shot_list, handler = self.handler, task = self.task)
+            shot_creator.show()
+        finally:
+            self.pushButtonSeqShots.setEnabled(True)
+        # pass
 
     def run_chainsaw(self):
         self.pushButtonClose.setEnabled(False)

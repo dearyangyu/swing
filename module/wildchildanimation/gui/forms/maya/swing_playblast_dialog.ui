@@ -604,6 +604,16 @@
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_4">
          <item>
+          <widget class="QCheckBox" name="checkBoxEncodeAudio">
+           <property name="text">
+            <string>Encode Audio</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QCheckBox" name="ornaments_cb">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">

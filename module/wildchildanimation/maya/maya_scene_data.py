@@ -5,9 +5,10 @@ import maya.cmds as cmds
 
 class SceneData(object):
 
-    def __init__(self):
+    def __init__(self, working_file = None):
         super(SceneData, self).__init__()
 
+        self.working_file = working_file
         self.scene_descriptor = json.loads("{}")
 
     def get_scene_path(self):
@@ -39,10 +40,10 @@ class SceneData(object):
     def save_scene_descriptor(self):
         working_folder = self.get_scene_path()
         if os.path.exists(working_folder):
-            file_name = os.path.basename(self.get_scene_name())
-            fn, ext = os.path.splitext(file_name)
+            #file_name = os.path.basename(self.get_scene_name())
+            #fn, ext = os.path.splitext(file_name)
 
-            scene_descriptor = os.path.join(working_folder, "{}-swing.json".format(fn))
+            scene_descriptor = os.path.join(working_folder, "{}-swing.json".format(self.working_file))
             with open(scene_descriptor, 'w') as json_file:
                 try:
                     json.dump(self.scene_descriptor, json_file)

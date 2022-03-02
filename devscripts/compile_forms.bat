@@ -32,12 +32,12 @@ c:\dev\swing\env\lib\site-packages\PySide2\uic --tr fakestr -g python -o c:\dev\
 echo "Update task dialog"
 c:\dev\swing\env\lib\site-packages\PySide2\uic --tr fakestr -g python -o c:\dev\swing\module\wildchildanimation\gui\swing_update_task_dialog.py c:\dev\swing\module\wildchildanimation\gui\forms\swing_update_task_dialog.ui
 
-
 echo "Compling upload monitor dialog"
 c:\dev\swing\env\lib\site-packages\PySide2\uic --tr fakestr -g python -o c:\dev\swing\module\wildchildanimation\gui\upload_monitor_dialog.py c:\dev\swing\module\wildchildanimation\gui\forms\maya\upload_monitor_dialog.ui
 
-echo "Compling upload monitor dialog"
+echo "Compling playblast  dialog"
 c:\dev\swing\env\lib\site-packages\PySide2\uic --tr fakestr -g python -o c:\dev\swing\module\wildchildanimation\gui\swing_playblast_dialog.py c:\dev\swing\module\wildchildanimation\gui\forms\maya\swing_playblast_dialog.ui
+c:\dev\swing\env\lib\site-packages\PySide2\uic --tr fakestr -g python -o c:\dev\swing\module\wildchildanimation\gui\swing_sequence_playblast_dialog.py c:\dev\swing\module\wildchildanimation\gui\forms\maya\swing_sequence_playblast_dialog.ui
 
 echo "Compling references dialog"
 c:\dev\swing\env\lib\site-packages\PySide2\uic --tr fakestr -g python -o c:\dev\swing\module\wildchildanimation\gui\references_dialog.py c:\dev\swing\module\wildchildanimation\gui\forms\maya\references_dialog.ui
@@ -66,3 +66,9 @@ c:\dev\swing\env\lib\site-packages\PySide2\rcc -g python c:\dev\swing\module\wil
 
 echo "Compiling SwingMayaUI"
 c:\dev\swing\env\lib\site-packages\PySide2\uic --tr fakestr -g python -o c:\dev\swing\module\wildchildanimation\maya\swing_maya_control_ui.py c:\dev\swing\module\wildchildanimation\gui\forms\maya\swing_maya_control.ui
+
+echo "Compiling SwingMayaUI"
+c:\dev\swing\env\lib\site-packages\PySide2\uic --tr fakestr -g python -o c:\dev\swing\module\wildchildanimation\maya\layout_control_dialog.py c:\dev\swing\module\wildchildanimation\gui\forms\maya\layout_control_dialog.ui
+
+echo "Compiling Maya Sequencer Shot Creator"
+c:\dev\swing\env\lib\site-packages\PySide2\uic --tr fakestr -g python -o c:\dev\swing\module\wildchildanimation\gui\maya_sequence_shot_table_dialog.py c:\dev\swing\module\wildchildanimation\gui\forms\maya\sequence_shot_table_dialog.ui

@@ -153,7 +153,7 @@ class SwingPlayblast(SwingMaya):
 
     # expects filename without extension
     #
-    def execute(self, target_file_name, padding=4, overscan=False, show_ornaments=True, show_in_viewer=True, overwrite=False, time_code = True, time_code_border = True, frame_numbers = True, caption = None, artist = None):
+    def execute(self, target_file_name, padding=4, overscan=False, show_ornaments=True, show_in_viewer=True, overwrite=False, time_code = True, time_code_border = True, frame_numbers = True, caption = None, artist = None, encode_audio = True):
         file_parts = os.path.split(target_file_name)
 
         output_dir = file_parts[0]
@@ -287,7 +287,7 @@ class SwingPlayblast(SwingMaya):
             source_path = "{0}/{1}.%0{2}d.png".format(playblast_output_dir, os.path.basename(filename), padding)
 
             if self._encoder == "h264":
-                self.encode_h264(source_path, output_path, start_frame, time_code, time_code_border, frame_numbers, caption)
+                self.encode_h264(source_path, output_path, start_frame, time_code, time_code_border, frame_numbers, caption, artist, encode_audio)
             else:
                 self.log_error("Encoding failed. Unsupported encoder ({0}) for container ({1}).".format(self._encoder, self._container_format))
                 self.remove_temp_dir(playblast_output_dir)
@@ -335,7 +335,7 @@ class SwingPlayblast(SwingMaya):
 
         self.log_output(output)
 
-    def encode_h264(self, source_path, output_path, start_frame, time_code = True, time_code_background = True, frame_number = True, caption = None, artist = None):
+    def encode_h264(self, source_path, output_path, start_frame, time_code = True, time_code_background = True, frame_number = True, caption = None, artist = None, encode_audio = True):
         framerate = self.get_frame_rate()
 
         audio_file_path, audio_frame_offset = self.get_audio_attributes()
@@ -382,8 +382,9 @@ class SwingPlayblast(SwingMaya):
 
         ffmpeg_cmd += ' -c:v libx264 -crf:v {0} -preset:v {1} -profile high -level 4.0 -pix_fmt yuv420p'.format(crf, preset)
 
-        if audio_file_path:
-            ffmpeg_cmd += ' -filter_complex "[1:0] apad" -shortest'
+        if encode_audio:
+            if audio_file_path:
+                ffmpeg_cmd += ' -filter_complex "[1:0] apad" -shortest'
 
         ffmpeg_cmd += ' "{0}"'.format(output_path)
 
@@ -779,7 +780,7 @@ class SwingPlayblastUi(QtWidgets.QDialog, Ui_PlayblastDialog):
         self._playblast.execute(target_file_name = filename, padding = padding, 
             overscan = overscan, show_ornaments = show_ornaments, show_in_viewer = show_in_viewer, overwrite = overwrite,  
             time_code = self.checkBoxTimeCode.isChecked(), time_code_border = False, frame_numbers=self.checkBoxFrameNumber.isChecked(), 
-            caption=caption, artist = self.artist)
+            caption=caption, artist = self.artist, encode_audio = self.checkBoxEncodeAudio.isChecked())
 
     def select_output_filename(self):
         current_filename = self.output_filename_le.text()
@@ -1022,7 +1023,7 @@ class SwingPlayblastUi(QtWidgets.QDialog, Ui_PlayblastDialog):
         cmds.optionVar(iv=("SwingPLayblastBurnTimeCode", self.checkBoxTimeCode.isChecked()))
         # cmds.optionVar(iv=("SwingPlayblastBurnBorder", self.checkBoxBackground.isChecked()))
         cmds.optionVar(iv=("SwingPlayblastBurnFrameNumbers", self.checkBoxFrameNumber.isChecked()))
-
+        cmds.optionVar(iv=("SwingPlayblastEncodeAudio", self.checkBoxEncodeAudio.isChecked()))
 
     def load_defaults(self):
         if cmds.optionVar(exists="SwingPlayblastUiOutputFilename"):
@@ -1090,6 +1091,9 @@ class SwingPlayblastUi(QtWidgets.QDialog, Ui_PlayblastDialog):
         #    self.checkBoxBackground.setChecked(cmds.optionVar(q="SwingPlayblastBurnBorder"))
         if cmds.optionVar(exists="SwingPlayblastBurnFrameNumbers"):
             self.checkBoxFrameNumber.setChecked(cmds.optionVar(q="SwingPlayblastBurnFrameNumbers"))
+
+        if cmds.optionVar(exists="SwingPlayblastEncodeAudio"):
+            self.checkBoxEncodeAudio.setChecked(cmds.optionVar(q="SwingPlayblastEncodeAudio"))               
 
     def show_about_dialog(self):
         text = '<h2>{0}</h2>'.format(SwingPlayblastUi.TITLE)

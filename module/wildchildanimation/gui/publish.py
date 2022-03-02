@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+from wildchildanimation.gui.upload_monitor_dialog import Ui_UploadMonitorDialog
 
 from wildchildanimation.gui.file_list import FileListDialog
 from wildchildanimation.gui.settings import SwingSettings
@@ -7,19 +8,149 @@ from wildchildanimation.gui.swing_tables import SecondaryAssetsFileTableModel
 
 # ==== auto Qt load ====
 try:
+    from PySide2 import QtGui
     from PySide2 import QtCore
     from PySide2 import QtWidgets
     qtMode = 0
 except ImportError:
-    from PyQt5 import QtCore, QtWidgets
+    from PyQt5 import QtGui, QtCore, QtWidgets
     qtMode = 1
 
-from wildchildanimation.gui.background_workers import SoftwareLoader, StatusTypeLoader, TaskFileInfoThread, WorkingFileUploader, ProjectTaskTypeLoader, ProjectStatusTypeLoader
+import gazu
+from wildchildanimation.gui.background_workers import SoftwareLoader, TaskFileInfoThread, WorkingFileUploader, ProjectTaskTypeLoader, ProjectStatusTypeLoader
 from wildchildanimation.gui.swing_utils import set_button_icon
 from wildchildanimation.gui.image_loader import PreviewImageLoader
 from wildchildanimation.gui.publish_dialog import Ui_PublishDialog
 from wildchildanimation.gui.file_selector import FileSelectDialog
-from wildchildanimation.gui.upload_monitor import UploadMonitorDialog
+
+###
+class PublishListModel(QtCore.QAbstractListModel):
+
+    def __init__(self, parent):
+        super(PublishListModel, self).__init__(parent)
+        self.files = []
+        self.status = {}
+
+    def data(self, index, role):
+        if role == QtCore.Qt.DisplayRole:
+            # See below for the data structure.
+            item = self.files[index.row()]
+            text = self.status[item]
+
+            # Return the todo text only.
+            return "{} {}".format(item, text)
+
+    def rowCount(self, index):
+        return len(self.files)   
+
+    def add_item(self, item, text):
+        self.files.append(item)
+        self.status[item] = text
+        self.layoutChanged.emit()
+
+    def set_item_text(self, item, text):
+        self.status[item] = text
+        self.layoutChanged.emit()
+
+'''
+    PublishMonitorDialog class
+    ################################################################################
+'''
+
+
+class PublishMonitorDialog(QtWidgets.QDialog, Ui_UploadMonitorDialog):
+
+    def __init__(self, parent = None):
+        super(PublishMonitorDialog, self).__init__(parent) # Call the inherited classes __init__ method    
+        self.setupUi(self)
+        self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
+        self.setMinimumWidth(640)
+
+        self.model = PublishListModel(self.listView)
+        self.listView.setModel(self.model)
+        self.pushButtonCancel.clicked.connect(self.close_dialog)
+        self.queue = []
+        self.task = None
+        self.publish_gui = parent
+        #self.progressBar.setRange(0, len(self.model.files))
+
+    def set_queue(self, queue):
+        self.queue = []
+        
+        index = 0
+        for item in queue:
+            print("{}: {}".format(index, item))            
+
+            self.queue.append(item)
+            self.add_item(item.source, 'Pending')
+            index += 1
+
+        self.reset_progressbar()            
+        print("set_queue {}".format(len(self.queue)))
+
+    def reset(self):
+        self.queue = []
+        self.publish_gui.reset_queue()
+
+    def close_dialog(self):
+        self.hide()
+
+    def set_task(self, task):
+        self.task = task
+
+    def file_loading(self, results):
+        print("file loading: {}".format(results))
+
+        message = results["message"]
+        source = results["source"]     
+        ##status = results["status"]
+
+        if not source in self.model.files:
+            self.model.add_item(source, message)
+        else:
+            self.model.set_item_text(source, message)
+
+    def file_loaded(self, results):
+        upload_index = self.progressBar.value()
+        print("file_loaded {}: {} {} {} {}".format(len(self.queue), results['status'], upload_index, results['source'], results['message']))
+
+        message = results["message"]
+        source = results["source"]     
+
+        self.model.set_item_text(source, message)        
+
+        if "upload complete" in message:
+            print("file_loaded completed {0} files".format(upload_index))
+
+            if upload_index == len(self.queue) - 1:
+                self.pushButtonCancel.setText("Close")
+                # QtWidgets.QMessageBox.question(self, 'Publishing complete', 'All files uploaded, thank you', QtWidgets.QMessageBox.Ok)
+                try:
+                    self.reset()
+                    url = gazu.task.get_task_url(self.task)
+                    self.open_url(url)
+                except:
+                    print("Error loading url {0}".format(url))
+                    pass   
+
+            self.progressBar.setValue(upload_index + 1)
+         
+
+    def add_item(self, source, text):
+        self.model.add_item(source, text)         
+
+    def reset_progressbar(self):
+        self.progressBar.setRange(0, len(self.queue))      
+        self.progressBar.setValue(0)
+        print("Upload monitor created for {0} items".format(len(self.queue)))    
+
+    def open_url(self, url):
+        link = QtCore.QUrl(url)
+        if not QtGui.QDesktopServices.openUrl(link):
+            QtWidgets.QMessageBox.warning(self, 'Open Url', 'Could not open url')           
+#####################################
+
+
 
 class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
 
@@ -272,6 +403,8 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
                 return True
 
     def set_working_file(self, selected_file):
+        print("publish::set_working_file {}".format(selected_file))
+
         self.radioButtonWorkingFile.setChecked(True)
         self.radioButtonWorkingDir.setChecked(False)
 
@@ -284,6 +417,8 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
             self.working_files.append(selected_file)
 
     def set_working_dir(self, selected_dir):
+        print("publish::selected_dir {}".format(selected_dir))
+
         self.radioButtonWorkingFile.setChecked(False)
         self.radioButtonWorkingDir.setChecked(True)
 
@@ -441,12 +576,18 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
             else:
                 self.set_output_file("[Multiple files selected]")        
 
+    def reset_queue(self):
+        print("Clearing queue")
+        self.working_files = []
+        self.output_files = []
+
 
     # ToDo: Desktop Only, Move to Swing Studio Handler
     def process(self):
         print("publish::process")
 
-        self.monitor = UploadMonitorDialog(self)
+        self.monitor = PublishMonitorDialog(self)
+
         self.setMinimumWidth(720)
         self.pushButtonCancel.setEnabled(False)
 

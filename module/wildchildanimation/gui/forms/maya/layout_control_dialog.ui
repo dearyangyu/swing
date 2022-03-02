@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>550</width>
-    <height>175</height>
+    <width>561</width>
+    <height>238</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -18,8 +18,8 @@
   </property>
   <property name="maximumSize">
    <size>
-    <width>550</width>
-    <height>175</height>
+    <width>32768</width>
+    <height>32768</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -30,23 +30,23 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_5">
+    <layout class="QHBoxLayout" name="horizontalLayout_6">
      <item>
-      <widget class="QPushButton" name="pushButtonImagePlane">
+      <widget class="QPushButton" name="pushButtonSeqShots">
        <property name="text">
-        <string>Image Plane</string>
+        <string>Sequencer</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="labelImagePlane">
+      <widget class="QLabel" name="label">
        <property name="text">
-        <string>Add an image plane to the camera sequencer</string>
+        <string>Create shots in the camera sequencer</string>
        </property>
       </widget>
      </item>
      <item>
-      <spacer name="horizontalSpacer_5">
+      <spacer name="horizontalSpacer_6">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>

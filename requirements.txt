@@ -7,4 +7,4 @@ PySide2
 requests_toolbelt
 qdarkstyle
 six
-# pyshortcuts
+opentimelineio

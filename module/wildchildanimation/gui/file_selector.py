@@ -22,7 +22,6 @@ from wildchildanimation.gui.file_select_widget import Ui_FileSelectWidget
 from wildchildanimation.gui.background_workers import SwingCompressor
 from wildchildanimation.studio.studio_interface import StudioInterface
 
-
 class WalkedSignal(QtCore.QObject):
     walked = pyqtSignal(object)  
 
@@ -277,6 +276,7 @@ class FileSelectDialog(QtWidgets.QDialog, Ui_FileSelectWidget):
         self.close() 
 
     def scan_working_files(self):
+        print("scan_working_files::")
         self.set_enabled(False)
 
         excluded = StudioInterface.WF_DEFAULT_EXCLUDE
@@ -296,12 +296,15 @@ class FileSelectDialog(QtWidgets.QDialog, Ui_FileSelectWidget):
         self.treeView.model().scan_output_files(self.select_output_files, included)
 
     def select_working_files(self, data):
+        print("select_working_files::")
+
         self.labelMessage.setText("Selecting files...")
         model = self.treeView.model()
         index = model.index(model.rootPath())
 
         model.setData(index, QtCore.Qt.Checked, QtCore.Qt.CheckStateRole, checkParent = True, emitStateChange = True)
         for item in data:
+            print("Working files: Scanning item: {}".format(item))
             if not item["selected"]:
                 # print("Unselecting {}".format(item["path"]))
                 if os.path.isdir(item["path"]):

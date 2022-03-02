@@ -22,7 +22,7 @@ class SwingMaya(QtCore.QObject):
 
     DEFAULT_FFMPEG_PATH = "C:/ffmpeg/ffmpeg-4.2.1/bin/ffmpeg.exe"
 
-    VERSION = "0.0.2"
+    VERSION = "0.0.3"
     TITLE = "Swing Maya"
 
     RESOLUTION_LOOKUP = {
@@ -554,8 +554,8 @@ class SwingMaya(QtCore.QObject):
         self.log_output("anim_prep: found {} shots".format(len(all_shots)))
 
         shot_name, extension = os.path.splitext(filename)
-        self.log_output("anim_prep: searching for camera {}".format(len(shot_name)))
-
+        self.log_output("anim_prep: searching for camera for shot '{}'".format(shot_name))
+        
         # delete unused cameras
         cameras = cmds.ls(type = 'camera')
         for cam in cameras:
@@ -563,20 +563,26 @@ class SwingMaya(QtCore.QObject):
                 self.log_output("Keeping cam {}".format(cam))
                 continue
 
-            cam_trans = cmds.listRelatives(cam, p = True)
-            if shot_name in str(cam_trans):
-                self.log_output("Keeping camera for shot {}".format(cam_trans))
+            cam_trans = cmds.shot(shot_name, q=True, cc=True)
+            #seqcamtype = cmds.nodeType(seqcam)
+
+            #if seqcamtype == 'camera':
+            #    cam_trans = cmds.listRelatives(seqcam,type='transform',p=True)
+
+            #cam_trans = cmds.listRelatives(cam, p = True)
+            if str(shot_name) in str(cam_trans):
+                self.log_output("Keeping camera for shot '{}'".format(cam_trans))
                 continue
 
             ##print(cam_trans)
             cmds.delete(cam_trans)    
-            self.log_output("anim_prep::removed cam {}".format(cam_trans))
+            self.log_output("anim_prep::removed cam '{}'".format(cam_trans))
 
         # delete unused sequencer shot nodes    
         for cur_shot in all_shots:
             if cur_shot != shot_name:
                 cmds.delete(cur_shot)
-                self.log_output("anim_prep::removed shot {}".format(cur_shot))
+                self.log_output("anim_prep::removed shot '{}'".format(cur_shot))
 
         start = cmds.getAttr(shot_name + '.startFrame')
         end = cmds.getAttr(shot_name + '.endFrame')
@@ -594,7 +600,10 @@ class SwingMaya(QtCore.QObject):
                 animCurves.append(curveNode)
 
         for animCurve in animCurves:
-            cmds.select(animCurve, add = True)
+            if 'lensCurve' in str(animCurve):
+                pass
+            else:
+                cmds.select(animCurve, add = True)
             
         #Key start and end of shot    
         cmds.currentTime(start)

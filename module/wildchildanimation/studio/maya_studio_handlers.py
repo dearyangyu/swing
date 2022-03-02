@@ -3,6 +3,7 @@
 # Studio Handler callback methods from Treehouse Swing
 #
 
+from email.mime import audio, image
 import time
 import os
 import glob
@@ -20,7 +21,7 @@ from wildchildanimation.gui.settings import SwingSettings
 _maya_loaded = False    
 try:
     import maya.cmds as cmds
-    #import maya.mel as mel
+    import maya.mel as mel
     import maya.OpenMaya as om
     import maya.OpenMayaUI as omui
 
@@ -256,9 +257,22 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
             if os.path.exists(os.path.join(task_dir, working_file_name)):
                 existingFile = os.path.join(task_dir, working_file_name)
 
+                # check for incremental saves
+                file_list = glob.glob("{}*.ma".format(os.path.join(task_dir, working_file)))
+                if len(file_list) > 0:
+                    # load last file by modified date
+                    file_list.sort(key=lambda x: os.path.getmtime(x), reverse=True)
+                    existingFile = file_list[0]
+ 
                 # self.createDialog.checkBoxLoadExisting.setVisible(True)
-                self.createDialog.labelFileDetails.setText("Existing file last modified: {}".format(self.last_modified(existingFile)))
+                self.createDialog.labelFileDetails.setText("Working file [{}] found, last modified: {}".format(existingFile, self.last_modified(existingFile)))
+                self.createDialog.lineEditEntity.setText(existingFile)
+               
                 self.createDialog.rbOpenExisting.setChecked(True)
+
+                # self.createDialog.checkBoxLoadExisting.setVisible(True)
+                # self.createDialog.labelFileDetails.setText("Existing file last modified: {}".format(self.last_modified(existingFile)))
+                # self.createDialog.rbOpenExisting.setChecked(True)
 
         result = self.createDialog.exec_()
         if result:
@@ -437,7 +451,8 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
             #else:
             #    task_types = None   
 
-            self.publishDialog = PublishDialogGUI(task = task)            
+            self.publishDialog = PublishDialogGUI(task = task)      
+            self.publishDialog.reset_queue()      
 
             file_path = cmds.file(q = True, sn = True)
             self.publishDialog.set_working_file(file_path)        
@@ -585,6 +600,132 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
     def load_task(self, task_id):
         self.taskLoader = TaskFileInfoThread(parent = self, task = task_id, project_root=SwingSettings.get_instance().swing_root())
         return self.taskLoader.run()
+
+    def on_sequencer_create_shots(self, **kwargs):
+        shot_list = kwargs["shot_list"]
+        image_plane = kwargs["image_plane"]
+        padding = kwargs["padding"]
+        frame_rate = kwargs["fps"]
+
+        '''
+                "id": item_name.split('.')[0],
+                "e": False,
+                "shotName": item_name,
+                "track": track_no,
+                "currentCamera": camera,
+                "startTime": track_range.start_time.value + 1,
+                "endTime": track_range.end_time_exclusive().value,
+                "sequencerStartTime": track_range.start_time.value + 1,
+                "sequencerEndTime": track_range.end_time_exclusive().value,
+                "audio": audio_file,
+                "image_plane": image_plane,
+                "padding": self.spinBoxPadShots.value()
+        '''
+
+        offset = 0
+        ending_at = 0
+        shots_created = 0
+
+        if self.get_frame_rate() != frame_rate:
+            self.log_output("setting frame rate to {}".format(frame_rate))
+            self.set_frame_rate(frame_rate)
+
+        for shot in shot_list:
+            if shot["selected"]:
+                #self.log_output("Creating Shot {} {} {} {}".format(shot["id"], shot["sequencerStartTime"], shot["sequencerEndTime"], shot["currentCamera"]))
+                #self.log_output("Shot Image Plane: {}".format(shot["image_plane"]))
+                #self.log_output("Shot Audio: {}".format(shot["audio"]))
+
+                cameras = cmds.camera(name=shot["currentCamera"])
+                camera = cameras[0]
+
+                cmds.shot(
+                    shot["id"],
+                    e=False,
+                    shotName=shot["shotName"],
+                    track=shot["track"],
+                    currentCamera=camera,
+                    startTime=shot["startTime"] + offset,
+                    endTime=shot["endTime"] + offset,
+                    sequenceStartTime=shot["sequencerStartTime"] + offset,
+                    sequenceEndTime=shot["sequencerEndTime"] + offset
+                )         
+
+                if shot["audio"]:
+                    cmds.shot(shot["id"],
+                        e=True,
+                        audio=shot["audio"]
+                    )
+
+                if image_plane:
+                    image_plane_shape = "imgpln_{}".format(shot["shotName"]) 
+                    
+                    try:
+                        print("Creating image plane {}:{}".format(image_plane_shape, shot["image_plane"]))
+                        #ips = cmds.imagePlane(name = image_plane_shape, camera = cameras[1], fileName = shot["image_plane"])
+                        ips = cmds.imagePlane(name = image_plane_shape, camera = camera, fileName = shot["image_plane"])
+                        print("Created {} -> {}".format(ips[0], ips[1]))
+                        
+                        #camera_plane_shape = "{}Shape".format(camera)
+
+                        print("selecting image plane {}".format(ips[0]))
+                        mel.eval("select -r {} ;".format(ips[0]))
+
+                        print("set useFrameExtension {}".format(ips[0]))
+                        mel.eval('setAttr "{}.useFrameExtension" 1;'.format(ips[0]))
+
+                        print("set alphaGain {}".format(image_plane_shape))
+                        mel.eval('setAttr "{}->{}.alphaGain" {};'.format(ips[0], ips[1], image_plane["alphaGain"]))
+
+                        print("set sizeX {}".format(image_plane_shape))
+                        mel.eval('setAttr "{}->{}.sizeX" {};'.format(ips[0], ips[1], image_plane["sizeX"]))
+
+                        print("set offsetX {}".format(image_plane_shape))
+                        mel.eval('setAttr "{}->{}.offsetX" {};'.format(ips[0], ips[1], image_plane["offsetX"]))
+
+                        print("set offsetY {}".format(image_plane_shape))
+                        mel.eval('setAttr "{}->{}.offsetY" {};'.format(ips[0], ips[1], image_plane["offsetY"]))
+                    except:
+                        traceback.print_exc(file=sys.stdout)
+                        print("Error adjusting img plane")
+                    # 
+
+                #if shot["image_plane"]:
+                #    cmds.shot(shot["id"],
+                #        e=True,
+                #        clip=shot["image_plane"]
+                #    )
+
+                # add padding
+                if padding:
+                    offset += padding
+
+                # remember max
+                if (shot["sequencerEndTime"] + offset) > ending_at:
+                    ending_at = shot["sequencerEndTime"] + offset
+
+                shots_created += 1
+            # shot selected
+        # all shots
+
+        if shots_created > 0:
+            try:
+                self.log_output("setting animation range from {} to {}".format(1, ending_at))
+                cmds.playbackOptions(edit=True, animationStartTime = 1, animationEndTime = ending_at)
+                cmds.playbackOptions(edit=True, minTime = 1, maxTime = ending_at)
+
+                start = cmds.playbackOptions(q=True, min=True)
+                self.log_output("set start to {}".format(start))
+                cmds.currentTime(start, edit = True)
+
+                self.log_output("set fitPanel all")
+                mel.eval('sequencerPanelBarSection1Callback("FrameAllBtn", "sequenceEditorPanel1SequenceEditor", "sequenceEditorPanel1Window|sequenceEditorPanel1|sequenceBaseForm|sequenceToolbarFrame");')
+                mel.eval('fitPanel -all;')
+            except:
+                traceback.print_exc(file=sys.stdout)
+                print("Error adjusting sequencerPanelBarSection1Callback")                
+
+        return True
 
     def reset_workspace_control(self):
         self.log_output("reset_workspace_control")
