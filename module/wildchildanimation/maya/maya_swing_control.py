@@ -91,6 +91,7 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
 
         self.comboBoxProject.setEnabled(status)
         self.comboBoxEpisode.setEnabled(status)
+        self.comboBoxTaskType.setEnabled(status)
         self.comboBoxTask.setEnabled(status)
 
     def selection_changed(self, source, selection): 
@@ -112,9 +113,12 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
 
         self.comboBoxProject.currentIndexChanged.connect(self.project_changed)
         self.comboBoxEpisode.currentIndexChanged.connect(self.episode_changed)
+        self.comboBoxTaskType.currentIndexChanged.connect(self.task_type_changed)
         self.comboBoxTask.currentIndexChanged.connect(self.task_changed)
 
         self.toolButtonBreakOut.clicked.connect(self.on_breakout_control)
+
+        self.checkBoxDoneTasks.clicked.connect(self.refresh_tasks)
 
     def create_workspace_control(self):
         self.workspace_control_instance = WorkspaceControl(self.get_workspace_control_name())
@@ -233,6 +237,10 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
         self.comboBoxEpisode.setEnabled(False)
         self.comboBoxEpisode.clear()
 
+        self.comboBoxTaskType.blockSignals(True)
+        self.comboBoxTaskType.setEnabled(False)
+        self.comboBoxTaskType.clear()            
+
         self.comboBoxTask.blockSignals(True)
         self.comboBoxTask.setEnabled(False)
         self.comboBoxTask.clear()
@@ -252,6 +260,9 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
         self.comboBoxEpisode.blockSignals(False)
         self.comboBoxEpisode.setEnabled(True)
 
+        self.comboBoxTaskType.blockSignals(False)
+        self.comboBoxTaskType.setEnabled(True)
+
         self.comboBoxTask.blockSignals(False)
         self.comboBoxTask.setEnabled(True)
 
@@ -265,6 +276,10 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
             self.comboBoxEpisode.blockSignals(True)
             self.comboBoxEpisode.setEnabled(False)
             self.comboBoxEpisode.clear()
+
+            self.comboBoxTaskType.blockSignals(True)
+            self.comboBoxTaskType.setEnabled(False)
+            self.comboBoxTaskType.clear()               
 
             self.comboBoxTask.blockSignals(True)
             self.comboBoxTask.setEnabled(False)
@@ -281,49 +296,85 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
             for item in episodes:
                 self.comboBoxEpisode.addItem(item["episode"], userData = item)
 
-            self.comboBoxEpisode.blockSignals(False)
-            self.comboBoxEpisode.setEnabled(True)
-
-            self.comboBoxTask.blockSignals(False)
-            self.comboBoxTask.setEnabled(True)
-
-            self.comboBoxEpisode.setCurrentIndex(0)  
-            self.episode_changed(self.comboBoxEpisode.currentIndex())              
         except:
-            self.workspace_control_instance.log_error("project_changed:: {}".format("Exception"))
+            self.workspace_control_instance.log_output("Error: project_changed:: {}".format("Exception"))
             traceback.print_exc(file=sys.stdout)            
 
     def project_loaded(self, results):
         self.task_types = results["task_types"]
-        self.task_status = results["task_status"]                  
+        self.task_status = results["task_status"]      
+
+        self.workspace_control_instance.log_output("task_types: {}".format(self.task_types))
+
+        self.comboBoxTaskType.blockSignals(True)        
+        self.comboBoxTaskType.clear()
+
+        task_type_all = {
+            "name": "All",
+            "task_type_id": "All"
+        }        
+        self.comboBoxTaskType.addItem("All", task_type_all)
+
+        for item in self.task_types:
+            self.comboBoxTaskType.addItem(item["name"], userData = item)
+
+        self.comboBoxTaskType.blockSignals(False)    
+        self.comboBoxTaskType.setEnabled(True)   
+
+        self.comboBoxEpisode.blockSignals(False)
+        self.comboBoxEpisode.setEnabled(True)
+
+        self.comboBoxTask.blockSignals(False)
+        self.comboBoxTask.setEnabled(True)
+
+        self.comboBoxEpisode.setCurrentIndex(0)  
+        ## self.episode_changed(self.comboBoxEpisode.currentIndex())              
 
     def episode_changed(self, index):
-        try:
-            self.comboBoxTask.blockSignals(True)
-            self.comboBoxTask.setEnabled(False)
-            self.comboBoxTask.clear()           
 
-            project = self.comboBoxProject.currentText()
-            project_id = self.projects[project]["project_id"]
-            episode_id = self.comboBoxEpisode.itemData(index)["episode_id"] 
+        self.refresh_tasks()
 
-            self.tasks = self.handler.load_todo_tasks(project_id, episode_id)
+    def task_type_changed(self, index):
 
-            # add a blank task to force user to select via combobox
-            self.comboBoxTask.addItem("", userData = {"project_id": project_id, "episode_id": episode_id, "task_id": None } )  
+        self.refresh_tasks()
 
-            for item in self.tasks:
-                self.comboBoxTask.addItem(item["task"], userData = item)             
+    def refresh_tasks(self):
+        project = self.comboBoxProject.currentText()
+        project_id = self.projects[project]["project_id"]
 
-            self.comboBoxTask.blockSignals(False)
-            self.comboBoxTask.setEnabled(True)
+        episode_id = self.comboBoxEpisode.itemData(self.comboBoxEpisode.currentIndex())["episode_id"]    
+        task_type = self.comboBoxTaskType.itemData(self.comboBoxTaskType.currentIndex())["name"]
 
-            self.comboBoxTask.setCurrentIndex(0)        
-            self.task_changed(self.comboBoxTask.currentIndex())        
-        except:
-            self.workspace_control_instance.log_error("episode_changed:: {}".format("Exception"))
-            traceback.print_exc(file=sys.stdout)            
+        is_done = self.checkBoxDoneTasks.isChecked()
 
+        self.comboBoxTask.blockSignals(True)
+        self.comboBoxTask.setEnabled(False)
+        self.comboBoxTask.clear()
+
+        self.workspace_control_instance.log_output("refresh_tasks: project {} ep {} type {} is_done {}".format(project, episode_id, task_type, is_done))
+        self.tasks = []
+        
+        items = self.handler.load_todo_tasks(project_id, episode_id, is_done)   
+
+        for item in items:
+            if not task_type == 'All':
+                if not item["task_type"] == task_type:
+                    continue # skip if not selected
+            self.tasks.append(item)
+
+        self.workspace_control_instance.log_output("refresh_tasks: loaded {} tasks".format(len(self.tasks)))
+
+        # add a blank task to force user to select via combobox
+        self.comboBoxTask.addItem("", userData = {"project_id": project_id, "episode_id": episode_id, "task_id": None } )  
+
+        for item in self.tasks:
+            self.comboBoxTask.addItem(item["task"], userData = item)             
+
+        self.comboBoxTask.blockSignals(False)
+        self.comboBoxTask.setEnabled(len(self.tasks) > 0)
+
+        self.comboBoxTask.setCurrentIndex(0)        
+        self.task_changed(self.comboBoxTask.currentIndex())          
 
     def on_task_loaded(self, results):
         self.task_info = results
@@ -342,6 +393,9 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
         self.workspace_control_instance.log_output("Task: {} --> {}\{}.ma".format(self.task["id"], self.task_dir, working_file))
 
     def task_changed(self, index):
+        if index < 0:
+            return None
+
         item = self.comboBoxTask.itemData(index)
         #self.workspace_control_instance.log_output("Task: {}".format(item))
         task_id = item["task_id"]
@@ -361,14 +415,6 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
         self.taskLoader.callback.loaded.connect(self.on_task_loaded)
         QtCore.QThreadPool.globalInstance().start(self.taskLoader)
 
-        '''        
-        results = {
-            "task": task,
-            "task_dir": task_dir,
-            "project_dir": resolve_content_path(task_dir, self.project_root),
-            "project": project
-        }
-        '''  
 
     def on_breakout_control(self):
         self.layoutControl = LayoutControlDialog(self, self.handler, self.task)

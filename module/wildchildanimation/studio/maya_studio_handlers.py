@@ -62,7 +62,7 @@ def maya_main_window():
 class MayaStudioHandler(SwingMaya, StudioInterface):
 
     NAME = "MayaStudioHandler"
-    VERSION = "0.0.9"
+    VERSION = "0.0.10"
     SUPPORTED_TYPES = [".ma", ".mb", ".fbx", ".obj", ".mov", ".mp4", ".wav", ".jpg", ".png", ".abc" ]
 
     def __init__(self):
@@ -444,7 +444,14 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
             task = kwargs["task"]
             #task = task_info["task"]         
             #task_dir = task["project_dir"]
-            task_dir = self.get_project_dir_path()
+            task_dir = self.get_scene_path()
+
+            task_type = task["task_type"]
+            if "name" in task_type:
+                task_type = task["task_type"]["name"]
+
+            print("on_publish: task_type {}".format(task_type))
+            print("on_publish: task_dir {}".format(task_dir))
 
             #if "task_types" in kwargs:
             #    task_types = kwargs["task_types"]
@@ -468,13 +475,51 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
                 else:
                     print("No alembic files found")
 
-            playblast_dir = os.path.join(task_dir, 'playblasts')
-            if os.path.exists(playblast_dir):
-                print("Checking playblast_dir: {}".format(playblast_dir))
-                file_list = self.scan_working_dir(playblast_dir, '*.mp4')
-                if len(file_list) > 0:
-                    self.log_output("Adding playblast: {}".format(file_list[0]))
-                    self.publishDialog.set_output_file(file_list[0])
+            playblast_dir = None
+            if "layout" in task_type.lower():
+                print("Checking for playblasts")
+                # get latest version from playblasts folder
+
+                playblast_root = os.path.join(task_dir, "playblasts")
+                if not os.path.exists(playblast_root):
+                    print("No playblasts found")
+                else:
+                    print("Scanning {} for playblast directories".format(playblast_root))
+
+                    playblast_directories = glob.glob("{}/v*".format(playblast_root))
+                    print("Scanning {}".format(playblast_directories))
+
+                    playblast_directories = filter(os.path.isdir, playblast_directories)
+
+                    print("Found directories {}".format(playblast_directories))
+                    playblast_directories = sorted(playblast_directories, key = os.path.getmtime, reverse=True)                
+
+                    if len(playblast_directories) > 0:
+                        playblast_dir = playblast_directories[0]
+                    else:
+                        print("No playblasts folders found")
+
+                    shot_list = self.get_shot_list()
+                    shot_playblasts = []
+
+                    print("Checking for shots")
+                    for item in shot_list:
+                        shot_playblasts.append("{}.mp4".format(item["name"]))
+
+                    print("Found {} shots in scene".format(len(shot_playblasts)))
+
+                    # default to include all shots in camera sequencer
+                    self.publishDialog.set_of_include(shot_playblasts)
+
+                    self.publishDialog.set_output_dir(playblast_dir) 
+            else:
+                playblast_dir = os.path.join(task_dir, 'playblasts')
+                if os.path.exists(playblast_dir):
+                    print("Checking playblast_dir: {}".format(playblast_dir))
+                    file_list = self.scan_working_dir(playblast_dir, '*.mp4')
+                    if len(file_list) > 0:
+                        self.log_output("Adding playblast: {}".format(file_list[0]))
+                        self.publishDialog.set_output_file(file_list[0])
 
             self.publishDialog.show()     #
         except:
@@ -555,13 +600,15 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
             if "layout" in working_file.lower():
                 dialog = SwingSequencePlayblastUi()
 
-                # only count final sequence name in playblast dir, ignore shots
                 playblast_count = 1
-                if os.path.exists(task_dir):
-                    playblasts = os.path.join(task_dir, "playblasts")
-                    if os.path.exists(playblasts):
-                        playblast_count = fcount_name(playblasts, working_file) + 1
+                playblast_version_string = "v" + "{}".format(playblast_count).zfill(3)
 
+                playblasts = os.path.join(task_dir, "playblasts", playblast_version_string)
+                while os.path.exists(playblasts):
+                    playblast_count += 1
+                    playblast_version_string = "v" + "{}".format(playblast_count).zfill(3)
+
+                    playblasts = os.path.join(task_dir, "playblasts", playblast_version_string)                
             else:
                 dialog = SwingPlayblastUi()
 
@@ -577,7 +624,7 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
             playblast_version ="{}".format(playblast_count).zfill(3)
             
             playblast_filename = "{}_v{}".format(working_file, playblast_version)
-            playblast_target = os.path.join(task_dir, "playblasts", playblast_filename).lower()
+            playblast_target = os.path.join(playblasts, playblast_filename).lower()
 
             self.log_output("open: {} {} {}".format(playblast_version, playblast_filename, playblast_target))
             try:

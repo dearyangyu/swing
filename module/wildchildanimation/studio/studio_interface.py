@@ -187,10 +187,10 @@ class StudioInterface(QtCore.QObject):
 
         return ProjectShotLoader(episode_id).run()        
 
-    def load_todo_tasks(self, project_id, episode_id):
+    def load_todo_tasks(self, project_id, episode_id, is_done = False):
         # self.log_output("load_todo_tasks")
 
-        return ToDoLoader(project_id, episode_id).run()   
+        return ToDoLoader(project_id, episode_id, is_done).run()   
 
     def load_project_task_types(self, project_id):
 

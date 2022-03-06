@@ -777,13 +777,14 @@ class SwingCompressor(QtCore.QRunnable):
 
 class WorkingFileUploader(QtCore.QRunnable):
 
-    def __init__(self, parent, edit_api, task, source, file_name, software_name, comment = '', mode = "working", file_model = None, task_status = None):
+    def __init__(self, parent, edit_api, task, source, file_name, software_name, comment = '', mode = "working", file_model = None, task_status = None, archive_name = None):
         super(WorkingFileUploader, self).__init__(self, parent)
         self.threadpool = QtCore.QThreadPool.globalInstance()        
         self.parent = parent
         self.url = edit_api
         self.mode = mode
         self.source = source
+        self.archive_name = archive_name
         self.file_name = file_name
         self.task = task
         self.task_status = task_status
@@ -861,7 +862,10 @@ class WorkingFileUploader(QtCore.QRunnable):
         #    v += 1
         #    target = "{}_v{}".format(os.path.dirname(self.source), '{}'.format(v).zfill(3))
         baseline = os.path.basename(self.source)
-        target = "{}/{}_{}.zip".format(os.path.dirname(self.source), baseline, self.mode)
+        if self.archive_name is None:
+            target = "{}/{}_{}.zip".format(os.path.dirname(self.source), baseline, self.mode)
+        else: 
+            target = "{}/{}.zip".format(os.path.dirname(self.source), self.archive_name)
 
         zipper = SwingCompressor(self.source, self.file_model, target=target)
         zipper.run()

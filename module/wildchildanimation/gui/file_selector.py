@@ -66,6 +66,9 @@ class FileIncludeWalker(QtCore.QRunnable):
             for name in files:
                 if any(name.endswith(ext) for ext in self.include):
                     results.append({'path': os.path.join(root, name), 'selected': QtCore.Qt.Checked, 'timestamp': os.path.getmtime(os.path.join(root, name))})
+
+                elif any(name in item for item in self.include):
+                    results.append({'path': os.path.join(root, name), 'selected': QtCore.Qt.Checked, 'timestamp': os.path.getmtime(os.path.join(root, name))})
                 else:
                     results.append({'path': os.path.join(root, name), 'selected': QtCore.Qt.Unchecked, 'timestamp': os.path.getmtime(os.path.join(root, name))})
                     
@@ -177,6 +180,8 @@ class CheckableFileSystemModel(QtWidgets.QFileSystemModel):
         #walker.run()
 
 
+    # scans directory for output files
+    # if specified only include files in included and select count 
     def scan_output_files(self, callback = None, included = []):  
         walker = FileIncludeWalker(self.rootPath(), included)
         if callback is not None:
@@ -214,6 +219,7 @@ class FileSelectDialog(QtWidgets.QDialog, Ui_FileSelectWidget):
         self.pushButtonZip.setVisible(False)
 
         self.set_root(root_path)
+        self.include_count = 0
         self.threadpool = QtCore.QThreadPool.globalInstance()
 
 
@@ -285,10 +291,17 @@ class FileSelectDialog(QtWidgets.QDialog, Ui_FileSelectWidget):
 
         self.treeView.model().scan_working_files(self.select_working_files, excluded)
 
-    def scan_output_files(self):
+    def scan_output_files(self, to_include  = None):
         self.set_enabled(False)
 
-        included = StudioInterface.OF_DEFAULT_INCLUDE
+        if to_include is None:
+            included = StudioInterface.OF_DEFAULT_INCLUDE
+        else:
+            included = to_include
+
+        self.include_count = len(included)
+
+        print("FileSelectDialog::Selecting up to {} files".format(self.include_count))
         self.output_files = []
         self.set_enabled(False)
         self.labelMessage.setText("Scanning output files...")
@@ -316,6 +329,8 @@ class FileSelectDialog(QtWidgets.QDialog, Ui_FileSelectWidget):
         self.labelMessage.setText("")
 
     def select_output_files(self, data):
+        print("file_selector::file list {} select length {}".format(str(self.output_files), self.include_count))
+
         self.labelMessage.setText("Selecting files...")
         self.output_files = []
         model = self.treeView.model()
@@ -340,13 +355,19 @@ class FileSelectDialog(QtWidgets.QDialog, Ui_FileSelectWidget):
             else:
                 model.setCheckState(model.index(item['path']), QtCore.Qt.Unchecked, False)     
 
-        # otherwise, select the most recent file
-        if not found:
+        # select the most recent file (only if we didn't get a shot_list to select)
+        if not found and self.include_count == 1:
+            print("Selecting newest file only")
             if len(selected) > 0:
                 model.setCheckState(model.index(selected[0]['path']), QtCore.Qt.Checked, False)
 
             for x in range(1, len(selected)):
+                print("Unselecting the rest")
                 model.setCheckState(model.index(selected[x]['path']), QtCore.Qt.Unchecked, False)
+        else:
+            # otherwise select everything from of_include
+            for x in range(0, self.include_count):
+                model.setCheckState(model.index(selected[x]['path']), QtCore.Qt.Checked, False)
 
         self.set_enabled(True)
         self.labelMessage.setText("")        

@@ -154,6 +154,20 @@ class SwingSequencePlayblast(SwingMaya):
             self.log_error("An active viewport is not selected. Select a viewport and retry.")
             return
 
+        # Store original viewport settings
+        orig_camera = self.get_active_camera()   
+
+        orig_visibility_flags = self.create_viewport_visibility_flags(self.get_viewport_visibility())
+        playblast_visibility_flags = self.create_viewport_visibility_flags(self.get_visibility())
+            
+        model_editor = cmds.modelPanel(viewport_model_panel, q=True, modelEditor=True)
+        self.set_viewport_visibility(model_editor, playblast_visibility_flags)
+
+        overscan_attr = None
+        orig_overscan = None
+        
+        widthHeight = self.get_resolution_width_height()
+
         if padding <= 0:
             padding = SwingSequencePlayblast.DEFAULT_PADDING
 
@@ -188,10 +202,8 @@ class SwingSequencePlayblast(SwingMaya):
                 if caption:
                     shot_caption = "{} {}".format(caption, shot)
 
-                #shot_start = cmds.getAttr(shot + ".startFrame")
-                #shot_end = cmds.getAttr(shot + ".endFrame")
-                shot_start = shot_details["start"]
-                shot_end = shot_details["end"]
+                start_frame = shot_details["start"]
+                end_frame = shot_details["end"]
 
                 shot_cameras = cmds.listConnections(shot_details["id"] + ".currentCamera") 
                 if len(shot_cameras) > 0:
@@ -200,19 +212,21 @@ class SwingSequencePlayblast(SwingMaya):
                     self.log_error("Error loading camera {} for shot {}".format(shot_cameras, shot))
                     continue
 
+                # Store original camera settings
+                if not overscan:
+                    overscan_attr = "{0}.overscan".format(shot_cam)
+                    orig_overscan = cmds.getAttr(overscan_attr)
+                    cmds.setAttr(overscan_attr, 1.0)                 
+
                 shot_file_name = "{}.mp4".format(shot)
                 output_path = os.path.normpath(os.path.join(output_dir, shot_file_name))
-                # self.log_output("Playblast: # {} output_path: {}".format(count, output_path))
-                self.log_output("Playblast: {} Shot {} starting at {} ending at {} using camera {} to {}".format(count, shot, shot_start, shot_end, shot_cam, output_path))
+
+                self.log_output("Playblast: {} Shot {} starting at {} ending at {} using camera {} to {}".format(count, shot, start_frame, end_frame, shot_cam, output_path))
 
                 if not overwrite and os.path.exists(output_path):
                     self.log_error("Output file already exists. Enable overwrite to ignore.")
                     playblast_failed = True
                     return
-
-                if overwrite and os.path.exists(output_path) and os.path.isfile(output_path):
-                    os.remove(output_path)
-                    self.log_output("Playblast: cleared output path {}".format(output_path))
 
                 playblast_output_dir = os.path.join(output_dir, "playblast_temp")
                 self.log_output("Playblast: playblast_output_dir: {}".format(playblast_output_dir))
@@ -225,10 +239,6 @@ class SwingSequencePlayblast(SwingMaya):
                 image_quality = 100
                 index_from_zero = True
                 viewer = False
-
-                widthHeight = self.get_resolution_width_height()
-                start_frame = shot_start
-                end_frame = shot_end
 
                 options = {
                     "filename": playblast_output,
@@ -248,33 +258,8 @@ class SwingSequencePlayblast(SwingMaya):
                 }
 
                 self.log_output("Playblast options: {0}".format(options))
-
-                # Store original viewport settings
-                orig_camera = self.get_active_camera()
-
-                #camera = self._camera
-                #camera = shot_cam
-                #if not camera:
-                #    camera = orig_camera
-
-                #if not camera in cmds.listCameras():
-                #    self.log_error("Camera does not exist: {0}".format(camera))
-                #    return
-
                 self.set_active_camera(shot_cam)
 
-                orig_visibility_flags = self.create_viewport_visibility_flags(self.get_viewport_visibility())
-                playblast_visibility_flags = self.create_viewport_visibility_flags(self.get_visibility())
-                    
-                model_editor = cmds.modelPanel(viewport_model_panel, q=True, modelEditor=True)
-                self.set_viewport_visibility(model_editor, playblast_visibility_flags)
-                
-                # Store original camera settings
-                if not overscan:
-                    overscan_attr = "{0}.overscan".format(shot_cam)
-                    orig_overscan = cmds.getAttr(overscan_attr)
-                    cmds.setAttr(overscan_attr, 1.0)
-                    
                 playblast_failed = False
                 try:
                     cmds.playblast(**options)
@@ -282,14 +267,6 @@ class SwingSequencePlayblast(SwingMaya):
                     traceback.print_exc()
                     self.log_error("Failed to create playblast. See script editor for details.")
                     playblast_failed = True
-                #finally:
-                #    # Restore original camera settings
-                #    if not overscan:
-                #        cmds.setAttr(overscan_attr, orig_overscan)
-                #    
-                #    # Restore original viewport settings
-                #    self.set_active_camera(orig_camera)
-                #    self.set_viewport_visibility(model_editor, orig_visibility_flags)
 
                 if playblast_failed:
                     continue
@@ -336,7 +313,8 @@ class SwingSequencePlayblast(SwingMaya):
             # Restore original camera settings
             if not overscan:
                 try:
-                    cmds.setAttr(overscan_attr, orig_overscan)
+                    if overscan_attr and orig_overscan:
+                        cmds.setAttr(overscan_attr, orig_overscan)
 
                     # Restore original viewport settings
                     self.set_active_camera(orig_camera)
