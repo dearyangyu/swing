@@ -13,11 +13,12 @@ from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
 from wildchildanimation.gui.swing_utils import fakestr
+
 class Ui_EntityInfoDialog(object):
     def setupUi(self, EntityInfoDialog):
         if not EntityInfoDialog.objectName():
             EntityInfoDialog.setObjectName(u"EntityInfoDialog")
-        EntityInfoDialog.resize(600, 800)
+        EntityInfoDialog.resize(648, 549)
         EntityInfoDialog.setSizeGripEnabled(True)
         self.verticalLayout = QVBoxLayout(EntityInfoDialog)
         self.verticalLayout.setObjectName(u"verticalLayout")
@@ -103,6 +104,35 @@ class Ui_EntityInfoDialog(object):
 
         self.verticalLayout.addWidget(self.lineTable)
 
+        self.horizontalLayout_2 = QHBoxLayout()
+        self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
+        self.checkBoxProjectFiles = QCheckBox(EntityInfoDialog)
+        self.checkBoxProjectFiles.setObjectName(u"checkBoxProjectFiles")
+
+        self.horizontalLayout_2.addWidget(self.checkBoxProjectFiles)
+
+        self.checkBoxOutputFiles = QCheckBox(EntityInfoDialog)
+        self.checkBoxOutputFiles.setObjectName(u"checkBoxOutputFiles")
+
+        self.horizontalLayout_2.addWidget(self.checkBoxOutputFiles)
+
+        self.checkBoxAllVersions = QCheckBox(EntityInfoDialog)
+        self.checkBoxAllVersions.setObjectName(u"checkBoxAllVersions")
+
+        self.horizontalLayout_2.addWidget(self.checkBoxAllVersions)
+
+        self.checkBoxCasted = QCheckBox(EntityInfoDialog)
+        self.checkBoxCasted.setObjectName(u"checkBoxCasted")
+
+        self.horizontalLayout_2.addWidget(self.checkBoxCasted)
+
+        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.horizontalLayout_2.addItem(self.horizontalSpacer)
+
+
+        self.verticalLayout.addLayout(self.horizontalLayout_2)
+
         self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.toolButtonAll = QToolButton(EntityInfoDialog)
@@ -117,7 +147,7 @@ class Ui_EntityInfoDialog(object):
 
         self.labelWorkingDirectory = QLabel(EntityInfoDialog)
         self.labelWorkingDirectory.setObjectName(u"labelWorkingDirectory")
-        self.labelWorkingDirectory.setMinimumSize(QSize(100, 0))
+        self.labelWorkingDirectory.setMinimumSize(QSize(60, 0))
 
         self.horizontalLayout.addWidget(self.labelWorkingDirectory)
 
@@ -143,11 +173,6 @@ class Ui_EntityInfoDialog(object):
         self.checkBoxExtractZips.setChecked(True)
 
         self.horizontalLayout.addWidget(self.checkBoxExtractZips)
-
-        self.checkBoxCasted = QCheckBox(EntityInfoDialog)
-        self.checkBoxCasted.setObjectName(u"checkBoxCasted")
-
-        self.horizontalLayout.addWidget(self.checkBoxCasted)
 
         self.horizontalSpacer_6 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
@@ -223,6 +248,9 @@ class Ui_EntityInfoDialog(object):
 
     def retranslateUi(self, EntityInfoDialog):
         EntityInfoDialog.setWindowTitle(fakestr(u"Entity Information", None))
+#if QT_CONFIG(tooltip)
+        EntityInfoDialog.setToolTip(fakestr(u"Include assets or shots casted into this object", None))
+#endif // QT_CONFIG(tooltip)
         self.labelProject.setText(fakestr(u"Project", None))
         self.labelEntity.setText(fakestr(u"Entity", None))
 #if QT_CONFIG(tooltip)
@@ -230,13 +258,25 @@ class Ui_EntityInfoDialog(object):
 #endif // QT_CONFIG(tooltip)
         self.toolButtonWeb.setText(fakestr(u"...", None))
         self.labelPreview.setText("")
+#if QT_CONFIG(tooltip)
+        self.checkBoxProjectFiles.setToolTip(fakestr(u"Show or hide project files", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkBoxProjectFiles.setText(fakestr(u"Show Project Files", None))
+#if QT_CONFIG(tooltip)
+        self.checkBoxOutputFiles.setToolTip(fakestr(u"Show or hide output files", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkBoxOutputFiles.setText(fakestr(u"Show Output Files", None))
+#if QT_CONFIG(tooltip)
+        self.checkBoxAllVersions.setToolTip(fakestr(u"Show latest version only", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkBoxAllVersions.setText(fakestr(u"Show All Version", None))
+        self.checkBoxCasted.setText(fakestr(u"Include Casted", None))
         self.toolButtonAll.setText(fakestr(u"+", None))
         self.toolButtonNone.setText(fakestr(u"-", None))
         self.labelWorkingDirectory.setText(fakestr(u"Root Folder", None))
         self.toolButtonWorkingDir.setText(fakestr(u"...", None))
         self.checkBoxSkipExisting.setText(fakestr(u"Skip Existing Files", None))
         self.checkBoxExtractZips.setText(fakestr(u"Extract Zip Files", None))
-        self.checkBoxCasted.setText(fakestr(u"Include casted", None))
         self.pushButtonDownload.setText(fakestr(u"Download", None))
         self.pushButtonPublish.setText(fakestr(u"Publish", None))
         self.pushButtonClose.setText(fakestr(u"Close", None))

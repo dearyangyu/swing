@@ -18,7 +18,7 @@ class Ui_SwingMain(object):
     def setupUi(self, SwingMain):
         if not SwingMain.objectName():
             SwingMain.setObjectName(u"SwingMain")
-        SwingMain.resize(650, 491)
+        SwingMain.resize(668, 491)
         SwingMain.setSizeGripEnabled(True)
         self.verticalLayout = QVBoxLayout(SwingMain)
         self.verticalLayout.setObjectName(u"verticalLayout")
@@ -282,6 +282,33 @@ class Ui_SwingMain(object):
 
         self.verticalLayout_2.addLayout(self.horizontalLayout_3)
 
+        self.horizontalLayout_6 = QHBoxLayout()
+        self.horizontalLayout_6.setObjectName(u"horizontalLayout_6")
+        self.checkBoxProjectFiles = QCheckBox(self.tabFiles)
+        self.checkBoxProjectFiles.setObjectName(u"checkBoxProjectFiles")
+        self.checkBoxProjectFiles.setChecked(True)
+
+        self.horizontalLayout_6.addWidget(self.checkBoxProjectFiles)
+
+        self.checkBoxOutputFiles = QCheckBox(self.tabFiles)
+        self.checkBoxOutputFiles.setObjectName(u"checkBoxOutputFiles")
+        self.checkBoxOutputFiles.setChecked(True)
+
+        self.horizontalLayout_6.addWidget(self.checkBoxOutputFiles)
+
+        self.checkBoxAllVersions = QCheckBox(self.tabFiles)
+        self.checkBoxAllVersions.setObjectName(u"checkBoxAllVersions")
+        self.checkBoxAllVersions.setChecked(True)
+
+        self.horizontalLayout_6.addWidget(self.checkBoxAllVersions)
+
+        self.horizontalSpacer_8 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.horizontalLayout_6.addItem(self.horizontalSpacer_8)
+
+
+        self.verticalLayout_2.addLayout(self.horizontalLayout_6)
+
         self.tableViewFiles = QTableView(self.tabFiles)
         self.tableViewFiles.setObjectName(u"tableViewFiles")
 
@@ -375,7 +402,7 @@ class Ui_SwingMain(object):
 
         self.retranslateUi(SwingMain)
 
-        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(1)
 
 
         QMetaObject.connectSlotsByName(SwingMain)
@@ -452,6 +479,18 @@ class Ui_SwingMain(object):
 #endif // QT_CONFIG(shortcut)
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabTasks), fakestr(u"Tasks", None))
         self.labelFileTableSelection.setText(fakestr(u"Files for selection", None))
+#if QT_CONFIG(tooltip)
+        self.checkBoxProjectFiles.setToolTip(fakestr(u"Show or hide Project files", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkBoxProjectFiles.setText(fakestr(u"Show Project Files", None))
+#if QT_CONFIG(tooltip)
+        self.checkBoxOutputFiles.setToolTip(fakestr(u"Show or hide Output files", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkBoxOutputFiles.setText(fakestr(u"Show Output Files", None))
+#if QT_CONFIG(tooltip)
+        self.checkBoxAllVersions.setToolTip(fakestr(u"Show latest version or all versions", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkBoxAllVersions.setText(fakestr(u"Show All Versions", None))
         self.toolButtonFileTableSelectAll.setText(fakestr(u" All", None))
         self.toolButtonFileSelectNone.setText(fakestr(u" None", None))
         self.toolButtonDownload.setText(fakestr(u" Download", None))

@@ -22,7 +22,6 @@ from wildchildanimation.gui.settings import SwingSettings
 from wildchildanimation.gui.image_loader import PreviewImageLoader
 
 from wildchildanimation.gui.loader import EntityLoaderThread
-#from wildchildanimation.gui.publish import PublishDialogGUI
 from wildchildanimation.gui.downloads import process_downloads
 
 from wildchildanimation.gui.entity_info_dialog import Ui_EntityInfoDialog
@@ -45,6 +44,7 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
         self.swing_settings = SwingSettings.get_instance()
         self.setupUi(self)
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint ^ QtCore.Qt.WindowMinMaxButtonsHint)
+        self.read_settings()
 
         self.entity = entity 
         self.threadpool = QtCore.QThreadPool.globalInstance()
@@ -85,6 +85,50 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
 
         self.setWorkingDir(self.swing_settings.swing_root())        
         self.checkBoxCasted.clicked.connect(self.check_casted)
+
+        self.checkBoxOutputFiles.clicked.connect(self.reload_files)
+        self.checkBoxProjectFiles.clicked.connect(self.reload_files)
+        self.checkBoxAllVersions.clicked.connect(self.reload_files)
+
+    def reload_files(self):
+        self.load_files(self.file_list)     
+
+    # save main dialog state
+    def write_settings(self):
+        self.settings = QtCore.QSettings()
+        self.settings.beginGroup(self.__class__.__name__)
+
+        self.settings.setValue("size", self.size())
+        self.settings.setValue("pos", self.pos())
+
+        self.settings.setValue("showBoxAllVersions", self.checkBoxAllVersions.isChecked())
+        self.settings.setValue("showBoxCasted", self.checkBoxCasted.isChecked())
+        self.settings.setValue("showBoxProjectFiles", self.checkBoxProjectFiles.isChecked())
+        self.settings.setValue("showBoxOutputFiles", self.checkBoxOutputFiles.isChecked())        
+        
+        self.settings.endGroup()
+
+    # load main dialog state
+    def read_settings(self):
+        self.settings = QtCore.QSettings()
+        self.settings.beginGroup(self.__class__.__name__)
+        
+        self.project_root = self.settings.value("projects_root", os.path.expanduser("~"))
+        self.resize(self.settings.value("size", QtCore.QSize(480, 520)))
+
+        print(self.settings.value("showBoxAllVersions", True))
+
+        self.checkBoxAllVersions.setChecked(self.is_setting_selected(self.settings, "showBoxAllVersions"))
+        self.checkBoxCasted.setChecked(self.is_setting_selected(self.settings, "showBoxCasted"))
+        self.checkBoxProjectFiles.setChecked(self.is_setting_selected(self.settings, "showBoxProjectFiles"))
+        self.checkBoxOutputFiles.setChecked(self.is_setting_selected(self.settings, "showBoxOutputFiles"))
+
+        self.settings.endGroup()  
+
+    def is_setting_selected(self, settings, value):
+        val = settings.value(value, True)
+        return val == 'true'
+
 
     def check_casted(self):
         if self.entity:
@@ -265,6 +309,7 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
             index += 1        
 
     def close_dialog(self):
+        self.write_settings()
         self.close()
 
     def select_wcd(self):
@@ -331,7 +376,59 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
                 self.tableView.viewport().update()      
 
 
-    def load_files(self, file_list):
+    def load_files(self, files_loaded):
+        self.file_list = files_loaded
+
+        # build a hashmap using file name
+        file_map = {}
+        for item in files_loaded:
+            item_key = "{}{}{}".format(item["entity_id"], item["task_type_id"], item["file_type"])
+
+            if not item_key in file_map:
+                file_map[item_key] = []
+
+            file_versions = file_map[item_key]
+            file_versions.append(item)
+
+            file_map[item_key] = sorted(file_versions, key = lambda x: x["file_updated_at"], reverse = True)
+            # item["file_revision"] > current["file_revision"]:    
+            #         
+
+        file_list = []
+
+        for file_name in file_map.keys():
+            file_versions = file_map[file_name]
+        
+            version_added = False
+            for item in file_versions:
+                if "output" in item["file_type"]:
+                    if not self.checkBoxOutputFiles.isChecked():
+                        continue # skip output files
+
+                if "working" in item["file_type"]:
+                    if not self.checkBoxProjectFiles.isChecked():
+                        continue # skip working file
+
+                if "task_type_id" in item:
+                    task_type_id = item["task_type_id"]
+
+                    found = False
+                    for tt in self.task_types:
+                        if task_type_id == tt["id"]:
+                            found = True
+                            break
+
+                    if not found:
+                        continue
+
+                if self.checkBoxAllVersions.isChecked():
+                    file_list.append(item)
+                else:
+                    if not version_added:
+                        file_list.append(item)
+                        version_added = True
+
+
         self.tableModelFiles = FileTableModel(self, working_dir = self.swing_settings.swing_root(), items = file_list)
         setup_file_table(self.tableModelFiles, self.tableView)
 

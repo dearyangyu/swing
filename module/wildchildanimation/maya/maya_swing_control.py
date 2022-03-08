@@ -1,42 +1,67 @@
-# -*- coding: utf-8 -*-
-# Maya Widget control for Treehouse: Swing
-#
+import inspect
 import sys
 import traceback
 
-#import maya.cmds as cmds
-#import maya.OpenMaya as om
-#import maya.OpenMayaUI as omui
+import maya.OpenMaya as om
+import maya.OpenMayaUI as omui
 import maya.utils as mutils
 
-from shiboken2 import wrapInstance, getCppPointer
+from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
+from wildchildanimation.maya.swing_maya_control_ui import Ui_SwingControlWidget
+
+from PySide2 import QtWidgets, QtCore
+
+from wildchildanimation.studio.maya_studio_handlers import MayaStudioHandler
+from wildchildanimation.gui.swing_gui import SwingGUI
+from wildchildanimation.maya.maya_scene_data import SceneData
 from wildchildanimation.maya.layout_control import LayoutControlDialog
 from wildchildanimation.gui.background_workers import TaskFileInfoThread
 from wildchildanimation.gui.settings import SwingSettings
 from wildchildanimation.gui.swing_utils import friendly_string
 from wildchildanimation.gui.background_workers import ProjectTypesLoader
-# ==== auto Qt load ====
-try:
-    from PySide2 import QtWidgets, QtCore
-    qtMode = 0
-except ImportError:
-    from PyQt5 import QtWidgets, QtCore
-    qtMode = 1
 
-from wildchildanimation.maya.workspace_control import WorkspaceControl
-from wildchildanimation.studio.maya_studio_handlers import MayaStudioHandler, maya_main_window
-from wildchildanimation.maya.swing_maya_control_ui import Ui_SwingControlWidget
+mixinWindows = {}
 
-from wildchildanimation.gui.swing_gui import SwingGUI
-from wildchildanimation.maya.maya_scene_data import SceneData
+class DockableBase(MayaQWidgetDockableMixin):
+    """
+    Convenience class for creating dockable Maya windows.
+    """
+    def __init__(self, controlName, **kwargs):
+        super(DockableBase, self).__init__(**kwargs)
+        self.setObjectName(controlName)   
+                                    
+    def show(self, *args, **kwargs):
+        """
+        Show UI with generated uiScript argument
+        """
+        modulePath = inspect.getmodule(self).__name__
+        className = self.__class__.__name__
+        super(DockableBase, self).show(dockable=True, uiScript="import {0}; {0}.{1}._restoreUI()".format(modulePath, className), **kwargs)
+        
+    @classmethod
+    def _restoreUI(cls):
+        """
+        Internal method to restore the UI when Maya is opened.
+        """
+        # Create UI instance
+        instance = cls()
+        # Get the empty WorkspaceControl created by Maya
+        workspaceControl = omui.MQtUtil.getCurrentParent()
+        # Grab the pointer to our instance as a Maya object
+        mixinPtr = omui.MQtUtil.findControl(instance.objectName())
+        # Add our UI to the WorkspaceControl
+        omui.MQtUtil.addWidgetToMayaLayout(int(mixinPtr), int(workspaceControl))
+        # Store reference to UI
+        global mixinWindows
+        mixinWindows[instance.objectName()] = instance	
 
-class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
+class SwingMayaUI(DockableBase, QtWidgets.QDialog, Ui_SwingControlWidget):   
+
+    # singleton instance    
+    ui_instance = None
 
     WINDOW_TITLE = "Treehouse: Swing"
     UI_NAME = "SwingMayaUI"
-
-    ui_instance = None
-    handler = None
 
     projects = []
     episodes = []
@@ -45,26 +70,13 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
     task = None
     task_info = None
 
-    @classmethod
-    def display(cls):
-        try:
-            if cls.ui_instance:
-                cls.ui_instance.show_workspace_control()
-            else:
-                cls.ui_instance = SwingMayaUI()
-        except:
-            traceback.print_exc(file=sys.stdout)
+    def __init__(self, parent=None):
+        super(SwingMayaUI, self).__init__(parent=parent, controlName = SwingMayaUI.UI_NAME)
 
-    @classmethod
-    def get_workspace_control_name(cls):
-        return "{0}".format(cls.UI_NAME)
-
-    def __init__(self, parent = maya_main_window()):
-        super(SwingMayaUI, self).__init__(parent)
+        print("SwingMayaUI::__init__")
 
         self.setObjectName(self.__class__.UI_NAME)
         self.setMinimumSize(600, 60)
-        self.create_workspace_control()
         self.setupUi(self)
 
         self.create_connections()
@@ -73,7 +85,49 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
         self.set_enabled(False)
 
         self.toolButtonRefresh.setEnabled(True)
-        self.toolButtonRefresh.setText("Connect")
+        self.toolButtonRefresh.setText("Connect")   
+
+    @classmethod
+    def display(cls):
+        print("SwingMayaUI::display")
+        try:
+            if not cls.ui_instance:
+                cls.ui_instance = SwingMayaUI()
+
+            cls.ui_instance._restoreUI()
+        except:
+            traceback.print_exc(file=sys.stdout)         
+
+    def log_output(self, text):
+        om.MGlobal.displayInfo(text)                  
+
+    def create_connections(self):
+        self.toolButtonRefresh.clicked.connect(self.connect_to_db)
+
+        self.toolButtonSwing.clicked.connect(self.on_show_swing)
+        self.toolButtonTask.clicked.connect(self.on_create)
+        self.toolButtonPlayblast.clicked.connect(self.on_playblast)
+        self.toolButtonBreakOut.clicked.connect(self.on_breakout_control)
+        self.toolButtonPublish.clicked.connect(self.on_publish)
+        self.toolButtonExport.clicked.connect(self.on_export)
+        self.toolButtonSearch.clicked.connect(self.on_search)
+        self.toolButtonEntityInfo.clicked.connect(self.on_entity_info)
+
+        self.comboBoxProject.currentIndexChanged.connect(self.project_changed)
+        self.comboBoxEpisode.currentIndexChanged.connect(self.episode_changed)
+        self.comboBoxTaskType.currentIndexChanged.connect(self.task_type_changed)
+        self.comboBoxTask.currentIndexChanged.connect(self.task_changed)
+
+        self.checkBoxDoneTasks.clicked.connect(self.refresh_tasks)   
+        # 
+
+    def set_enabled(self, status):
+        self.set_enabled_task_control(status)
+
+        self.comboBoxProject.setEnabled(status)
+        self.comboBoxEpisode.setEnabled(status)
+        self.comboBoxTaskType.setEnabled(status)
+        self.comboBoxTask.setEnabled(status)#   
 
     def set_enabled_task_control(self, status):
         self.toolButtonTask.setEnabled(status)
@@ -84,63 +138,9 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
         self.toolButtonSearch.setEnabled(status)
         self.toolButtonEntityInfo.setEnabled(status)
 
-        self.lineEditSearch.setEnabled(status)        
+        self.lineEditSearch.setEnabled(status)                  
 
-    def set_enabled(self, status):
-        self.set_enabled_task_control(status)
-
-        self.comboBoxProject.setEnabled(status)
-        self.comboBoxEpisode.setEnabled(status)
-        self.comboBoxTaskType.setEnabled(status)
-        self.comboBoxTask.setEnabled(status)
-
-    def selection_changed(self, source, selection): 
-        self.workspace_control_instance.log_output("selection_changed {} {}".format(source, selection))
-
-    def create_connections(self):
-        self.toolButtonSwing.clicked.connect(self.on_show_swing)
-
-        self.toolButtonRefresh.clicked.connect(self.connect)
-        self.toolButtonTask.clicked.connect(self.on_create)
-
-        #self.toolButtonPlayblast.clicked.connect(SwingGUI.get_instance().playblast_dialog)
-        self.toolButtonPlayblast.clicked.connect(self.on_playblast)
-        self.toolButtonPublish.clicked.connect(self.on_publish)
-        self.toolButtonExport.clicked.connect(self.on_export)
-
-        self.toolButtonSearch.clicked.connect(self.on_search)
-        self.toolButtonEntityInfo.clicked.connect(self.on_entity_info)
-
-        self.comboBoxProject.currentIndexChanged.connect(self.project_changed)
-        self.comboBoxEpisode.currentIndexChanged.connect(self.episode_changed)
-        self.comboBoxTaskType.currentIndexChanged.connect(self.task_type_changed)
-        self.comboBoxTask.currentIndexChanged.connect(self.task_changed)
-
-        self.toolButtonBreakOut.clicked.connect(self.on_breakout_control)
-
-        self.checkBoxDoneTasks.clicked.connect(self.refresh_tasks)
-
-    def create_workspace_control(self):
-        self.workspace_control_instance = WorkspaceControl(self.get_workspace_control_name())
-        self.workspace_control_instance.log_output("Swing: Loaded WorkspaceControl")
-
-        if self.restore_workspace_control():
-            self.workspace_control_instance.log_output("Swing: Found existing workspace control, restoring")            
-        else:
-            self.workspace_control_instance.log_output("Swing: Creating new workspace control instance")            
-            self.workspace_control_instance.create(self.WINDOW_TITLE, self, ui_script='from wildchildanimation.maya.maya_swing_control import SwingMayaUI\nSwingMayaUI()\n')
-
-    def restore_workspace_control(self):
-        if self.workspace_control_instance.exists():
-            self.workspace_control_instance.restore(self)
-            return True
-        return False        
-
-    def show_workspace_control(self):
-        self.workspace_control_instance.set_visible(True)
-        # self.connect()
-
-    def connect(self):
+    def connect_to_db(self):
         self.toolButtonRefresh.setEnabled(False)
         if self.handler.validate_connection():
             try:
@@ -149,12 +149,12 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
                 self.project_changed(self.comboBoxProject.currentIndex())
                 self.episode_changed(self.comboBoxEpisode.currentIndex())
                 self.toolButtonRefresh.setText("Refresh")
-                self.workspace_control_instance.log_output("Swing: Connected")    
+                self.log_output("Swing: Connected")    
 
                 sd = SceneData()
                 if sd.load_scene_descriptor():
                     try:
-                        print("Loading Scene Descriptor")
+                        self.log_output("Loading Scene Descriptor")
 
                         project_id, episode_id, task_id = sd.load_task_data()
                         self.set_to_project(project_id)
@@ -168,9 +168,9 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
                 traceback.print_exc(file=sys.stdout)
                 self.toolButtonRefresh.setText("Retry")
         else:
-            self.workspace_control_instance.log_output("Swing: Check connection settings")
+            self.log_output("Swing: Check connection settings")
             
-        self.toolButtonRefresh.setEnabled(True)
+        self.toolButtonRefresh.setEnabled(True)        
 
     def set_to_project(self, id):
         idx = 0
@@ -197,7 +197,7 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
                 break        
 
     def load_project_data(self, project_list):
-        self.workspace_control_instance.log_output("::load_project_data")
+        self.log_output("::load_project_data")
 
         self.projects = dict()
         for item in project_list:
@@ -251,7 +251,6 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
         self.tasks = []              
 
         for item in self.projects.keys():
-            ## self.workspace_control_instance.log_output("Item: {}".format(item))
             self.comboBoxProject.addItem(item, userData = self.projects[item])    
 
         self.comboBoxProject.blockSignals(False)
@@ -297,14 +296,12 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
                 self.comboBoxEpisode.addItem(item["episode"], userData = item)
 
         except:
-            self.workspace_control_instance.log_output("Error: project_changed:: {}".format("Exception"))
+            self.log_output("Error: project_changed:: {}".format("Exception"))
             traceback.print_exc(file=sys.stdout)            
 
     def project_loaded(self, results):
         self.task_types = results["task_types"]
         self.task_status = results["task_status"]      
-
-        self.workspace_control_instance.log_output("task_types: {}".format(self.task_types))
 
         self.comboBoxTaskType.blockSignals(True)        
         self.comboBoxTaskType.clear()
@@ -351,7 +348,7 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
         self.comboBoxTask.setEnabled(False)
         self.comboBoxTask.clear()
 
-        self.workspace_control_instance.log_output("refresh_tasks: project {} ep {} type {} is_done {}".format(project, episode_id, task_type, is_done))
+        self.log_output("refresh_tasks: project {} ep {} type {} is_done {}".format(project, episode_id, task_type, is_done))
         self.tasks = []
         
         items = self.handler.load_todo_tasks(project_id, episode_id, is_done)   
@@ -362,7 +359,7 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
                     continue # skip if not selected
             self.tasks.append(item)
 
-        self.workspace_control_instance.log_output("refresh_tasks: loaded {} tasks".format(len(self.tasks)))
+        self.log_output("refresh_tasks: loaded {} tasks".format(len(self.tasks)))
 
         # add a blank task to force user to select via combobox
         self.comboBoxTask.addItem("", userData = {"project_id": project_id, "episode_id": episode_id, "task_id": None } )  
@@ -374,30 +371,13 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
         self.comboBoxTask.setEnabled(len(self.tasks) > 0)
 
         self.comboBoxTask.setCurrentIndex(0)        
-        self.task_changed(self.comboBoxTask.currentIndex())          
-
-    def on_task_loaded(self, results):
-        self.task_info = results
-
-        self.task = self.task_info["task"]
-        self.task_dir = self.task_info["project_dir"]
-
-        self.toolButtonTask.setEnabled(True)
-        self.toolButtonPlayblast.setEnabled(True)
-        self.toolButtonPublish.setEnabled(True)
-        self.toolButtonExport.setEnabled(True)
-        self.toolButtonEntityInfo.setEnabled(True)
-
-        #working_file = self.handler.get_task_sections(self.task)
-        working_file = friendly_string("_".join(self.handler.get_task_sections(self.task)).lower())    
-        self.workspace_control_instance.log_output("Task: {} --> {}\{}.ma".format(self.task["id"], self.task_dir, working_file))
+        self.task_changed(self.comboBoxTask.currentIndex())      
 
     def task_changed(self, index):
         if index < 0:
             return None
 
         item = self.comboBoxTask.itemData(index)
-        #self.workspace_control_instance.log_output("Task: {}".format(item))
         task_id = item["task_id"]
 
         self.toolButtonTask.setEnabled(False)
@@ -407,32 +387,43 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
         self.toolButtonEntityInfo.setEnabled(False)
 
         if not task_id:
-            #self.workspace_control_instance.log_output("Nothing selected: {}".format(item))
-            #self.toolButtonTask.setToolTip("")
             return 
 
         self.taskLoader = TaskFileInfoThread(parent = self, task = task_id, project_root=SwingSettings.get_instance().swing_root())
         self.taskLoader.callback.loaded.connect(self.on_task_loaded)
-        QtCore.QThreadPool.globalInstance().start(self.taskLoader)
+        QtCore.QThreadPool.globalInstance().start(self.taskLoader)            
 
+    def on_task_loaded(self, results):
+        self.task_info = results
+
+        self.task = self.task_info["task"]
+        self.task_dir = self.task_info["project_dir"]
+
+        self.set_enabled_task_control(self.task is not None)
+
+        #working_file = self.handler.get_task_sections(self.task)
+        working_file = friendly_string("_".join(self.handler.get_task_sections(self.task)).lower())    
+        self.log_output("Task: {} --> {}\{}.ma".format(self.task["id"], self.task_dir, working_file))
+
+    def on_breakout_control(self):
+        self.layoutControl = LayoutControlDialog(self, self.handler, self.task)
+        self.layoutControl.show()        
 
     def on_breakout_control(self):
         self.layoutControl = LayoutControlDialog(self, self.handler, self.task)
         self.layoutControl.show()
-
 
     ### Studio Handlers
     def on_create(self):
         if not self.task_info:
             QtWidgets.QMessageBox.warning(self, 'Task not found', 'Please select a task before creating / loading')                  
 
-            self.workspace_control_instance.log_output("on_create::task_info not found")
+            self.log_output("on_create::task_info not found")
             return 
         try:
-            #self.workspace_control_instance.log_output("handler: {}".format(self.task_info))
             self.handler.on_create(parent = None, task = self.task)
         except:
-            self.workspace_control_instance.log_output("on_create:: {}".format("Exception"))
+            self.log_output("on_create:: {}".format("Exception"))
             traceback.print_exc(file=sys.stdout)
 
     def on_search(self):
@@ -440,21 +431,21 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
             project_id = self.comboBoxProject.currentData()["project_id"]
             # entity = self.comboBoxTask.currentData()
 
-            self.handler.on_search(parent = self.workspace_control_instance, project = project_id, text = self.lineEditSearch.text() )
+            self.handler.on_search(parent = self, project = project_id, text = self.lineEditSearch.text() )
         except:
-            self.workspace_control_instance.log_output("on_search:: {}".format("Exception"))
+            self.log_output("on_search:: {}".format("Exception"))
             traceback.print_exc(file=sys.stdout)
 
     def on_publish(self):
         if not self.task_info:
             QtWidgets.QMessageBox.warning(self, 'Task not found', 'Please select a task before publishing')                  
 
-            self.workspace_control_instance.log_output("on_publish: Task not found")
+            self.log_output("on_publish: Task not found")
             return 
         try:
             self.handler.on_publish(parent = None, task = self.task, task_types = self.task_types)        
         except:
-            self.workspace_control_instance.log_output("on_publish:: {}".format("Exception"))
+            self.log_output("on_publish:: {}".format("Exception"))
             traceback.print_exc(file=sys.stdout)            
         
 
@@ -462,21 +453,21 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
         if not self.task_info:
             QtWidgets.QMessageBox.warning(self, 'Task not found', 'Please select a task before playblasting')                  
 
-            self.workspace_control_instance.log_output("on_publish: Task not found")
+            self.log_output("on_publish: Task not found")
             return         
         try:
             self.handler.on_playblast(parent = None, task = self.task)
         except:
-            self.workspace_control_instance.log_output("on_playblast:: {}".format("Exception"))
+            self.log_output("on_playblast:: {}".format("Exception"))
             traceback.print_exc(file=sys.stdout)
 
     def on_entity_info(self):
         try:
             task = self.comboBoxTask.currentData()
 
-            self.handler.on_entity_info(parent = self.workspace_control_instance, entity_id = task["entity_id"], task_types = self.task_types)
+            self.handler.on_entity_info(parent = self, entity_id = task["entity_id"], task_types = self.task_types)
         except:
-            self.workspace_control_instance.log_output("on_entity_info:: {}".format("Exception"))
+            self.log_output("on_entity_info:: {}".format("Exception"))
             traceback.print_exc(file=sys.stdout)
             
     def on_show_swing(self):
@@ -486,15 +477,14 @@ class SwingMayaUI(QtWidgets.QWidget, Ui_SwingControlWidget):
             #self.threadpool.start(swing_loader)
             # 
         except:
-            self.workspace_control_instance.log_output("on_show_swing:: {}".format("Exception"))
+            self.log_output("on_show_swing:: {}".format("Exception"))
             traceback.print_exc(file=sys.stdout)
 
     def on_export(self):
         try:
             task = self.comboBoxTask.currentData()
 
-            self.handler.on_export(parent = self.workspace_control_instance, task = task)
+            self.handler.on_export(parent = self, task = task)
         except:
-            self.workspace_control_instance.log_output("on_export:: {}".format("Exception"))
+            self.log_output("on_export:: {}".format("Exception"))
             traceback.print_exc(file=sys.stdout)
-

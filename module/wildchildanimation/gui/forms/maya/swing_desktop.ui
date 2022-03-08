@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>650</width>
+    <width>668</width>
     <height>491</height>
    </rect>
   </property>
@@ -368,7 +368,7 @@
      <item>
       <widget class="QTabWidget" name="tabWidget">
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="tabTasks">
         <attribute name="title">
@@ -554,6 +554,62 @@
                 <bool>false</bool>
                </property>
               </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_6">
+             <item>
+              <widget class="QCheckBox" name="checkBoxProjectFiles">
+               <property name="toolTip">
+                <string>Show or hide Project files</string>
+               </property>
+               <property name="text">
+                <string>Show Project Files</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="checkBoxOutputFiles">
+               <property name="toolTip">
+                <string>Show or hide Output files</string>
+               </property>
+               <property name="text">
+                <string>Show Output Files</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="checkBoxAllVersions">
+               <property name="toolTip">
+                <string>Show latest version or all versions</string>
+               </property>
+               <property name="text">
+                <string>Show All Versions</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_8">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
              </item>
             </layout>
            </item>

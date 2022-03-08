@@ -449,7 +449,12 @@ class ResourceLoaderDialogGUI(QtWidgets.QDialog, Ui_MayaResourceLoaderDialog):
 
         ##worker.run() # debug
         self.set_enabled(False)
-        self.progressBar.setRange(0, self.resource["file_size"])
+        if self.resource["file_size"]:
+            file_size = self.resource["file_size"]
+        else:
+            file_size = 1
+
+        self.progressBar.setRange(0, file_size)
         self.threadpool.start(worker)  
 
     def file_loading(self, result):

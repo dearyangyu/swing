@@ -6,12 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>571</width>
-    <height>523</height>
+    <width>648</width>
+    <height>549</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Entity Information</string>
+  </property>
+  <property name="toolTip">
+   <string>Include assets or shots casted into this object</string>
   </property>
   <property name="sizeGripEnabled">
    <bool>true</bool>
@@ -159,6 +162,60 @@
     </widget>
    </item>
    <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <widget class="QCheckBox" name="checkBoxProjectFiles">
+       <property name="toolTip">
+        <string>Show or hide project files</string>
+       </property>
+       <property name="text">
+        <string>Show Project Files</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="checkBoxOutputFiles">
+       <property name="toolTip">
+        <string>Show or hide output files</string>
+       </property>
+       <property name="text">
+        <string>Show Output Files</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="checkBoxAllVersions">
+       <property name="toolTip">
+        <string>Show latest version only</string>
+       </property>
+       <property name="text">
+        <string>Show All Version</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="checkBoxCasted">
+       <property name="text">
+        <string>Include Casted</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <widget class="QToolButton" name="toolButtonAll">
@@ -178,7 +235,7 @@
       <widget class="QLabel" name="labelWorkingDirectory">
        <property name="minimumSize">
         <size>
-         <width>100</width>
+         <width>60</width>
          <height>0</height>
         </size>
        </property>
@@ -220,13 +277,6 @@
        </property>
        <property name="checked">
         <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QCheckBox" name="checkBoxCasted">
-       <property name="text">
-        <string>Include casted</string>
        </property>
       </widget>
      </item>

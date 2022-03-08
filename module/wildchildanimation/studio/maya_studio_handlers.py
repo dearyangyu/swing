@@ -22,14 +22,13 @@ _maya_loaded = False
 try:
     import maya.cmds as cmds
     import maya.mel as mel
-    import maya.OpenMaya as om
-    import maya.OpenMayaUI as omui
+    import maya.utils as mutils    
 
     import pymel.core as pm
     from pymel.util import putEnv
 
-    from PySide2 import QtWidgets    
-    from shiboken2 import wrapInstance
+    from PySide2 import QtWidgets   
+    import shiboken2 as shiboken 
 
     _maya_loaded = True
 except:
@@ -53,16 +52,20 @@ def maya_main_window():
     """
     Return the Maya main window widget as a Python object
     """
-    main_window_ptr = omui.MQtUtil.mainWindow()
-    if main_window_ptr:
-        return wrapInstance(int(main_window_ptr), QtWidgets.QWidget)
-    print("running console mode")
-    return None
+    #main_window_ptr = omui.MQtUtil.mainWindow()
+    #if main_window_ptr:
+    #    return wrapInstance(int(main_window_ptr), QtWidgets.QWidget)
+    #print("running console mode")
+    #return None
+
+    widgets = QtWidgets.QApplication.instance().topLevelWidgets()
+    parent = {o.objectName(): o for o in widgets}["MayaWindow"]  
+    return parent
 
 class MayaStudioHandler(SwingMaya, StudioInterface):
 
     NAME = "MayaStudioHandler"
-    VERSION = "0.0.10"
+    VERSION = "0.0.11"
     SUPPORTED_TYPES = [".ma", ".mb", ".fbx", ".obj", ".mov", ".mp4", ".wav", ".jpg", ".png", ".abc" ]
 
     def __init__(self):
@@ -131,12 +134,20 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
         self.log_output("searching for unresolved references {}".format(refs))
         return refs
 
-    # tries to import the file specified in source into the currently open scene
+    # def loading of file
     def load_file(self, **kwargs):
+        self.log_output("load_file")
+        try:
+            mutils.executeDeferred(lambda: self._load_file(**kwargs))
+        except:
+            self.workspace_control_instance.log_output("load_file:: {}".format("Exception"))
+            traceback.print_exc(file=sys.stdout)
+
+    def _load_file(self, **kwargs):
         source = kwargs["source"]
         force = kwargs["force"]
 
-        self.log_output("load_file '{}'".format(source))
+        self.log_output("_load_file '{}'".format(source))
         #working_dir = kwargs["working_dir"]
 
         #self.log_output("load_file:: {0} to {1}".format(source, working_dir))
@@ -155,6 +166,7 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
                         self.log_output("Aborted load file")
                         return
 
+                        
                 cmds.file(source, open = True, ignoreVersion = True, prompt = False, force = force)
             except:
                 traceback.print_exc(file=sys.stdout)
@@ -169,8 +181,17 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
         self.log_output("load_file {} completed".format(source))
         return True
 
-    # tries to import the file specified in source into the currently open scene
+    # def import of file
     def import_file(self, **kwargs):
+        self.log_output("import_file")
+        try:
+            mutils.executeDeferred(lambda: self._import_file(**kwargs))
+        except:
+            self.workspace_control_instance.log_output("import_file:: {}".format("Exception"))
+            traceback.print_exc(file=sys.stdout)
+
+    # tries to import the file specified in source into the currently open scene
+    def _import_file(self, **kwargs):
         source = kwargs["source"]
         self.log_output("import_file '{}'".format(source))
         #working_dir = kwargs["working_dir"]
@@ -196,8 +217,17 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
         self.log_output("import_file {} completed".format(source))
         return True  
 
-    # tries to import the file specified in source into the currently open scene
+    # def import of file
     def import_reference(self, **kwargs):
+        self.log_output("import_reference")
+        try:
+            mutils.executeDeferred(lambda: self._import_file(**kwargs))
+        except:
+            self.workspace_control_instance.log_output("import_reference:: {}".format("Exception"))
+            traceback.print_exc(file=sys.stdout)        
+
+    # tries to import the file specified in source into the currently open scene
+    def _import_reference(self, **kwargs):
         source = kwargs["source"]
         #working_dir = kwargs["working_dir"]
         namespace = kwargs["namespace"]

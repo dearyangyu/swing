@@ -73,6 +73,8 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
     file_monitor = None
 
+    file_data = []
+
     @classmethod
     def get_instance(cls, handler = StudioInterface()):
         if not cls.dlg_instance:
@@ -158,6 +160,10 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.tableViewTasks.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.tableViewTasks.doubleClicked.connect(self.task_table_double_click)        
 
+        self.checkBoxAllVersions.clicked.connect(self.reload_file_data)
+        self.checkBoxOutputFiles.clicked.connect(self.reload_file_data)
+        self.checkBoxProjectFiles.clicked.connect(self.reload_file_data)
+
         self.toolButtonShotInfo.clicked.connect(self.load_shot_info)
         set_button_icon(self.toolButtonShotInfo, "../resources/fa-free/solid/video.svg")        
 
@@ -188,6 +194,9 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
         ## Don't do playlists yet
         ##self.toolButtonPlaylists.setVisible(False)
+
+    def reload_file_data(self):
+        self.load_files(self.file_data)
 
     def get_file_monitor(self):
         if self.file_monitor == None:
@@ -438,6 +447,11 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.settings.beginGroup(ProjectNavWidget.__class__.__name__)
         self.settings.setValue("task_types", self.nav._user_task_types)
         self.settings.setValue("status_codes", self.nav._user_task_status)
+
+        self.settings.setValue("showBoxAllVersions", self.checkBoxAllVersions.isChecked())
+        self.settings.setValue("showBoxProjectFiles", self.checkBoxProjectFiles.isChecked())
+        self.settings.setValue("showBoxOutputFiles", self.checkBoxOutputFiles.isChecked())     
+
         self.settings.endGroup()              
 
     # load main dialog state
@@ -453,7 +467,16 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.last_shot = self.settings.value("last_project")
         self.project_root = self.swing_settings.swing_root()
         self.ffmpeg_bin = self.swing_settings.bin_ffmpeg()
-        self.settings.endGroup()              
+
+        self.checkBoxAllVersions.setChecked(self.is_setting_selected(self.settings, "showBoxAllVersions"))
+        self.checkBoxProjectFiles.setChecked(self.is_setting_selected(self.settings, "showBoxProjectFiles"))
+        self.checkBoxOutputFiles.setChecked(self.is_setting_selected(self.settings, "showBoxOutputFiles"))
+
+        self.settings.endGroup()    
+
+    def is_setting_selected(self, settings, value):
+        val = settings.value(value, True)
+        return val == 'true'
 
     def open_connection_settings(self):
         self.settingsDialog = SettingsDialog(parent = self)
@@ -776,6 +799,8 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         ## loader.run()
 
     def load_files(self, data):
+        self.file_data = data
+
         if len(data) == 0:
             self.tableViewFiles.setEnabled(False)
             self.files = []
@@ -783,8 +808,43 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             self.progressBarFileTable.setMaximum(1)            
             return 
 
-        self.files = data[0]
+        self.files = []
         self.entity = data[1]
+
+        # build a hashmap using file name
+        file_map = {}
+        for item in  data[0]:
+            item_key = "{}{}{}".format(item["entity_id"], item["task_type_id"], item["file_type"])
+
+            if not item_key in file_map:
+                file_map[item_key] = []
+
+            file_versions = file_map[item_key]
+            file_versions.append(item)
+
+            file_map[item_key] = sorted(file_versions, key = lambda x: x["file_updated_at"], reverse = True)
+            # item["file_revision"] > current["file_revision"]:            
+
+        for item_key in file_map.keys():
+            file_versions = file_map[item_key]
+        
+            version_added = False
+            for item in file_versions:
+                if "output" in item["file_type"]:
+                    if not self.checkBoxOutputFiles.isChecked():
+                        continue # skip output files
+
+                if "working" in item["file_type"]:
+                    if not self.checkBoxProjectFiles.isChecked():
+                        continue # skip working file
+
+                if self.checkBoxAllVersions.isChecked():
+                    self.files.append(item)
+                else:
+                    if not version_added:
+                        self.files.append(item)
+                        version_added = True
+        ### filter files by output, project and version
 
         self.tableModelFiles = FileTableModel(self, working_dir = self.swing_settings.swing_root(), items = self.files)
         setup_file_table(self.tableModelFiles, self.tableViewFiles)        
