@@ -36,7 +36,7 @@ class DockableBase(MayaQWidgetDockableMixin):
         """
         modulePath = inspect.getmodule(self).__name__
         className = self.__class__.__name__
-        super(DockableBase, self).show(dockable=True, uiScript="import {0}; {0}.{1}._restoreUI()".format(modulePath, className), **kwargs)
+        super(DockableBase, self).show(dockable=True, uiScript="import {0}; {0}.{1}.display()".format(modulePath, className), **kwargs)
         
     @classmethod
     def _restoreUI(cls):
