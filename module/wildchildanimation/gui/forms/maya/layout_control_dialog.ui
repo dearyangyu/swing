@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>603</width>
-    <height>233</height>
+    <width>561</width>
+    <height>238</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -34,7 +34,7 @@
      <item>
       <widget class="QPushButton" name="pushButtonSeqShots">
        <property name="text">
-        <string>Seq Shots</string>
+        <string>Sequencer</string>
        </property>
       </widget>
      </item>
@@ -47,37 +47,6 @@
      </item>
      <item>
       <spacer name="horizontalSpacer_6">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_5">
-     <item>
-      <widget class="QPushButton" name="pushButtonImagePlane">
-       <property name="text">
-        <string>Image Plane</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="labelImagePlane">
-       <property name="text">
-        <string>Add an image plane to the camera sequencer</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer_5">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>

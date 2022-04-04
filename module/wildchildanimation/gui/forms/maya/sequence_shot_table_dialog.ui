@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>699</width>
-    <height>556</height>
+    <width>794</width>
+    <height>615</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -50,7 +50,7 @@
           </property>
           <property name="maximumSize">
            <size>
-            <width>60</width>
+            <width>100</width>
             <height>16777215</height>
            </size>
           </property>
@@ -83,7 +83,7 @@
           </property>
           <property name="maximumSize">
            <size>
-            <width>60</width>
+            <width>100</width>
             <height>16777215</height>
            </size>
           </property>
@@ -116,7 +116,7 @@
           </property>
           <property name="maximumSize">
            <size>
-            <width>60</width>
+            <width>100</width>
             <height>16777215</height>
            </size>
           </property>
@@ -144,26 +144,6 @@
        </layout>
       </item>
      </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QCheckBox" name="checkBoxFilterTask">
-     <property name="text">
-      <string>Filter by Task</string>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QCheckBox" name="checkBoxImportAudio">
-     <property name="text">
-      <string>Import Audio </string>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
-     </property>
     </widget>
    </item>
    <item>
@@ -306,7 +286,7 @@
           </property>
           <property name="maximumSize">
            <size>
-            <width>60</width>
+            <width>100</width>
             <height>16777215</height>
            </size>
           </property>

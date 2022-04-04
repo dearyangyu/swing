@@ -22,7 +22,7 @@ class SwingMaya(QtCore.QObject):
 
     DEFAULT_FFMPEG_PATH = "C:/ffmpeg/ffmpeg-4.2.1/bin/ffmpeg.exe"
 
-    VERSION = "0.0.5"
+    VERSION = "0.0.2"
     TITLE = "Swing Maya"
 
     RESOLUTION_LOOKUP = {
@@ -368,7 +368,6 @@ class SwingMaya(QtCore.QObject):
         QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromLocalFile(path))
 
     def get_project_dir_path(self):
-        
         return cmds.workspace(q = True, rootDirectory = True)
 
     def get_scene_name(self):
@@ -477,42 +476,6 @@ class SwingMaya(QtCore.QObject):
 
         return dir_path
 
-    '''
-        Get a list of all shots from the camera sequencer
-    '''
-    def get_shot_list(self):
-        self.log_output("get_shot_list")
-
-        shots = []
-        shot_list = cmds.ls(type = "shot")
-
-        for item in shot_list:
-            shot = {}
-            shot["id"] = item
-            shot["name"] = cmds.shot(item, q=True, shotName = True)
-            shot["frame_in"] = int(cmds.shot(item, q=True, st = True))
-            shot["frame_out"] = int(cmds.shot(item, q=True, et = True))
-            shot["start"] = int(cmds.shot(item, q=True, sst = True))
-            shot["end"] = int(cmds.shot(item, q=True, set = True))
-            shot["audio"] = cmds.shot(item, q=True, aud = True)
-
-            if shot["audio"]:
-                shot["audio_file"] = cmds.getAttr("{}.filename".format(shot["audio"]))
-            else:
-                shot["audio_file"] = None
-
-            shots.append(shot)
-
-        shots = sorted(shots, key = lambda d: d['frame_in'])
-        #for item in shots:
-        #    self.log_output("Added shot {} {} {} {}".format(item["name"], item["frame_in"], item["frame_out"], item["audio_file"]))
-
-        ##self.shots = cmds.ls(type="shot")
-        ##self.shots = sorted(self.shots)
-        ##for s in self.shots:
-        ##    self._playblast.log_output("shot {}".format(s))
-
-        return shots
     #
     #
     # Exports the scene in layout format

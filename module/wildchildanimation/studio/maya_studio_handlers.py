@@ -221,7 +221,7 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
     def import_reference(self, **kwargs):
         self.log_output("import_reference")
         try:
-            mutils.executeDeferred(lambda: self._import_file(**kwargs))
+            mutils.executeDeferred(lambda: self._import_reference(**kwargs))
         except:
             self.workspace_control_instance.log_output("import_reference:: {}".format("Exception"))
             traceback.print_exc(file=sys.stdout)        

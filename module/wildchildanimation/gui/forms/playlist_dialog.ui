@@ -262,6 +262,13 @@
       </widget>
      </item>
      <item>
+      <widget class="QPushButton" name="pushButtonXml">
+       <property name="text">
+        <string>Gen XML</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QProgressBar" name="progressBar">
        <property name="maximum">
         <number>1</number>

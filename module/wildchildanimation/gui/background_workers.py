@@ -945,8 +945,11 @@ class ShotCreator(QtCore.QRunnable):
 
         #task_type = gazu.task.get_task_type_by_name("Layout")
         #todo: fix case insensitive search on gazu.task.get_task_type_by_name
-        task_type = gazu.task.get_task_type("821d35d1-819f-475c-90ee-47bce5839a28")
-        task_type = gazu.task.get_task_type_by_name("Anim-Block")
+        ## task_type = gazu.task.get_task_type("821d35d1-819f-475c-90ee-47bce5839a28")
+
+        # get layout task type
+        task_type = gazu.task.get_task_type("34401781-750a-4afb-a31f-8e11f263b066")
+        # task_type = gazu.task.get_task_type_by_name("Anim-Block")
         if not task_type:
             results = {
                 "status": "Error",
@@ -973,7 +976,7 @@ class ShotCreator(QtCore.QRunnable):
             self.callback.results.emit(results)
             return False                         
 
-        person = gazu.person.get_person_by_email("showadmin@digitalevolution.co.za")            
+        person = gazu.person.get_person_by_email("showadmin@wildchildanimation.com")            
         if not person:
             results = {
                 "status": "Error",

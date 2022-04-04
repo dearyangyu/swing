@@ -164,7 +164,9 @@ class BreakoutUploadDialog(QtWidgets.QDialog, Ui_BreakoutUploadDialog):
                 nb_frames = int(item["nb_frames"])
 
                 item["in"] = str(start_frame)
-                start_frame += nb_frames
+
+                # zero indexed
+                start_frame += nb_frames - 1
 
                 if handles:
                     start_frame += handle_count

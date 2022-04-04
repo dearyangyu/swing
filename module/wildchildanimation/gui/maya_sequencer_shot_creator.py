@@ -279,9 +279,10 @@ class SequencerShotCreator(QtWidgets.QDialog, Ui_SequenceShotTableDialog):
 
             images_dir = os.path.join(target_dir, "{}_{}".format(prefix, item_name), "images")
             if not os.path.exists(images_dir):
+                print("Skipping images_dir {} not in sequence".format(images_dir))
                 image_plane = None
             else:
-                image_plane = os.path.normpath(os.path.join(images_dir, "{}_{}_0001.jpg".format(prefix, item_name).lower()))
+                image_plane = os.path.normpath(os.path.join(images_dir, "{}_{}_0000.jpg".format(prefix, item_name).lower()))
                 if not os.path.exists(image_plane):
                     print("build_track::image_plane missing {}".format(image_plane))
                     image_plane = None

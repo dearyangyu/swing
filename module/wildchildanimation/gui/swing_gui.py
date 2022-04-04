@@ -196,7 +196,9 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         ##self.toolButtonPlaylists.setVisible(False)
 
     def reload_file_data(self):
+
         self.load_files(self.file_data)
+        self.write_settings()
 
     def get_file_monitor(self):
         if self.file_monitor == None:
@@ -448,9 +450,9 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.settings.setValue("task_types", self.nav._user_task_types)
         self.settings.setValue("status_codes", self.nav._user_task_status)
 
-        self.settings.setValue("showBoxAllVersions", self.checkBoxAllVersions.isChecked())
-        self.settings.setValue("showBoxProjectFiles", self.checkBoxProjectFiles.isChecked())
-        self.settings.setValue("showBoxOutputFiles", self.checkBoxOutputFiles.isChecked())     
+        self.settings.setValue("checkBoxAllVersions", self.checkBoxAllVersions.isChecked())
+        self.settings.setValue("checkBoxProjectFiles", self.checkBoxProjectFiles.isChecked())
+        self.settings.setValue("checkBoxOutputFiles", self.checkBoxOutputFiles.isChecked())     
 
         self.settings.endGroup()              
 
@@ -468,10 +470,12 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.project_root = self.swing_settings.swing_root()
         self.ffmpeg_bin = self.swing_settings.bin_ffmpeg()
 
-        self.checkBoxAllVersions.setChecked(self.is_setting_selected(self.settings, "showBoxAllVersions"))
-        self.checkBoxProjectFiles.setChecked(self.is_setting_selected(self.settings, "showBoxProjectFiles"))
-        self.checkBoxOutputFiles.setChecked(self.is_setting_selected(self.settings, "showBoxOutputFiles"))
+        self.settings.endGroup()  
 
+        self.settings.beginGroup(ProjectNavWidget.__class__.__name__)        
+        self.checkBoxAllVersions.setChecked(self.is_setting_selected(self.settings, "checkBoxAllVersions"))
+        self.checkBoxProjectFiles.setChecked(self.is_setting_selected(self.settings, "checkBoxProjectFiles"))
+        self.checkBoxOutputFiles.setChecked(self.is_setting_selected(self.settings, "checkBoxOutputFiles"))
         self.settings.endGroup()    
 
     def is_setting_selected(self, settings, value):
