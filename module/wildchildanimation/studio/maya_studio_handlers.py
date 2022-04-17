@@ -3,7 +3,6 @@
 # Studio Handler callback methods from Treehouse Swing
 #
 
-from email.mime import audio, image
 import time
 import os
 import glob
@@ -37,7 +36,7 @@ except:
 from wildchildanimation.gui.downloads import DownloadDialogGUI
 from wildchildanimation.gui.search import SearchFilesDialog
 from wildchildanimation.gui.swing_create import SwingCreateDialog
-from wildchildanimation.gui.swing_utils import fcount, fcount_name, friendly_string, write_log
+from wildchildanimation.gui.swing_utils import fcount, friendly_string, write_log
 from wildchildanimation.maya.swing_maya import SwingMaya
 
 from wildchildanimation.studio.studio_interface import StudioInterface

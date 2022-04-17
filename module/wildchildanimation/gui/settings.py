@@ -131,7 +131,7 @@ class SettingsDialog(QtWidgets.QDialog, Ui_SettingsDialog):
         self.lineEditEmail.setText(self.swing_settings.swing_user())
         self.lineEditPassword.setText(self.swing_settings.swing_password())
         self.lineEditProjectsFolder.setText(self.swing_settings.swing_root())
-        self.lineEditEditorialFolder.setText(self.swing_settings.swing_root())
+        self.lineEditEditorialFolder.setText(self.swing_settings.edit_root())
 
         set_button_icon(self.toolButtonProjectsFolder, "../resources/fa-free/solid/folder.svg")
         self.toolButtonProjectsFolder.clicked.connect(self.select_projects_dir)    

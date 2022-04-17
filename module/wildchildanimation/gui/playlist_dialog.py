@@ -11,6 +11,7 @@
 from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
+
 from wildchildanimation.gui.swing_utils import fakestr
 
 class Ui_PlaylistDialog(object):
@@ -18,7 +19,7 @@ class Ui_PlaylistDialog(object):
         if not PlaylistDialog.objectName():
             PlaylistDialog.setObjectName(u"PlaylistDialog")
         PlaylistDialog.setEnabled(True)
-        PlaylistDialog.resize(1033, 338)
+        PlaylistDialog.resize(973, 338)
         self.verticalLayout = QVBoxLayout(PlaylistDialog)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.horizontalLayoutProject = QHBoxLayout()
@@ -114,17 +115,17 @@ class Ui_PlaylistDialog(object):
 
         self.horizontalLayout_2.addWidget(self.radioButtonShowAll)
 
-        self.checkBoxSkipExisting = QCheckBox(PlaylistDialog)
-        self.checkBoxSkipExisting.setObjectName(u"checkBoxSkipExisting")
-        self.checkBoxSkipExisting.setChecked(True)
-
-        self.horizontalLayout_2.addWidget(self.checkBoxSkipExisting)
-
         self.checkBoxExtractZip = QCheckBox(PlaylistDialog)
         self.checkBoxExtractZip.setObjectName(u"checkBoxExtractZip")
         self.checkBoxExtractZip.setChecked(True)
 
         self.horizontalLayout_2.addWidget(self.checkBoxExtractZip)
+
+        self.checkBoxSequences = QCheckBox(PlaylistDialog)
+        self.checkBoxSequences.setObjectName(u"checkBoxSequences")
+        self.checkBoxSequences.setChecked(False)
+
+        self.horizontalLayout_2.addWidget(self.checkBoxSequences)
 
         self.horizontalSpacer_2 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
@@ -168,7 +169,7 @@ class Ui_PlaylistDialog(object):
         self.tableView.setSizePolicy(sizePolicy2)
         self.tableView.setSizeIncrement(QSize(0, 0))
         font1 = QFont()
-        font1.setPointSize(9)
+        font1.setPointSize(8)
         self.tableView.setFont(font1)
         self.tableView.setAlternatingRowColors(True)
         self.tableView.setSelectionBehavior(QAbstractItemView.SelectRows)
@@ -221,8 +222,8 @@ class Ui_PlaylistDialog(object):
         self.radioButtonLatestVersion.setText(fakestr(u"Latest", None))
         self.radioButtonLastDay.setText(fakestr(u"24H", None))
         self.radioButtonShowAll.setText(fakestr(u"All", None))
-        self.checkBoxSkipExisting.setText(fakestr(u"Skip Existing Files", None))
         self.checkBoxExtractZip.setText(fakestr(u"Extract Zip Files", None))
+        self.checkBoxSequences.setText(fakestr(u"Sequences (Sh 00's)", None))
         self.label_2.setText(fakestr(u"Search:", None))
         self.pushButtonProcess.setText(fakestr(u"Sync", None))
         self.pushButtonCancel.setText(fakestr(u"Close", None))

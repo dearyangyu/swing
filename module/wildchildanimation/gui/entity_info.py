@@ -65,7 +65,7 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
             self.threadpool.start(loader)
 
         set_button_icon(self.toolButtonWeb, "../resources/fa-free/solid/info-circle.svg")
-        self.toolButtonWeb.clicked.connect(self.open_url)
+        self.toolButtonWeb.clicked.connect(self.open_web)
         self.toolButtonWeb.setEnabled(False)            
 
         self.pushButtonDownload.clicked.connect(self.download_files)
@@ -129,7 +129,6 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
         val = settings.value(value, True)
         return val == 'true'
 
-
     def check_casted(self):
         if self.entity:
             loader = EntityFileLoader(self, entity_id = self.entity["id"], working_dir = self.working_dir, task_types = self.task_types, show_hidden = False, scan_cast = self.checkBoxCasted.isChecked())
@@ -172,8 +171,11 @@ class EntityInfoDialog(QtWidgets.QDialog, Ui_EntityInfoDialog):
             self.tableView.model().setData(index, False, QtCore.Qt.EditRole)
         self.tableView.update()
 
+    def open_web(self):
+        return self.open_url(self.url)
+
     def open_url(self, url):
-        link = QtCore.QUrl(self.url)
+        link = QtCore.QUrl(url)
         if not QtGui.QDesktopServices.openUrl(link):
             QtWidgets.QMessageBox.warning(self, 'Open Url', 'Could not open url')              
 

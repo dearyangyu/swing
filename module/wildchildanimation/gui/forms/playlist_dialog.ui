@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1033</width>
+    <width>973</width>
     <height>338</height>
    </rect>
   </property>
@@ -164,9 +164,9 @@
             </widget>
            </item>
            <item>
-            <widget class="QCheckBox" name="checkBoxSkipExisting">
+            <widget class="QCheckBox" name="checkBoxExtractZip">
              <property name="text">
-              <string>Skip Existing Files</string>
+              <string>Extract Zip Files</string>
              </property>
              <property name="checked">
               <bool>true</bool>
@@ -174,12 +174,12 @@
             </widget>
            </item>
            <item>
-            <widget class="QCheckBox" name="checkBoxExtractZip">
+            <widget class="QCheckBox" name="checkBoxSequences">
              <property name="text">
-              <string>Extract Zip Files</string>
+              <string>Sequences (Sh 00's)</string>
              </property>
              <property name="checked">
-              <bool>true</bool>
+              <bool>false</bool>
              </property>
             </widget>
            </item>
@@ -239,7 +239,7 @@
        </property>
        <property name="font">
         <font>
-         <pointsize>9</pointsize>
+         <pointsize>8</pointsize>
         </font>
        </property>
        <property name="alternatingRowColors">
@@ -258,13 +258,6 @@
       <widget class="QPushButton" name="pushButtonProcess">
        <property name="text">
         <string>Sync</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="pushButtonXml">
-       <property name="text">
-        <string>Gen XML</string>
        </property>
       </widget>
      </item>

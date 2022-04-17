@@ -13,7 +13,7 @@ except ImportError:
     from PyQt5 import QtCore
     from PyQt5.QtCore import pyqtSignal
 from wildchildanimation.gui.settings import SwingSettings
-from wildchildanimation.gui.swing_utils import extract_archive, scan_archive
+from wildchildanimation.gui.swing_utils import extract_archive, scan_archive, fcount
 from wildchildanimation.gui.background_workers import FileDownloader
 
 class WorkerSignal(QtCore.QObject):
@@ -26,13 +26,13 @@ class PlaylistWorker(QtCore.QRunnable):
 
     mode = "Download"
 
-    def __init__(self, parent, item, target, skip_existing = True, extract_zips = True, params = {}):
+    def __init__(self, parent, item, target, extract_zips = True, params = {}):
         super(PlaylistWorker, self).__init__(self, parent)
         self.parent = parent
-        self.item = item
+        self.selected_file = item
         self.target = target
+        self.skip_existing = False
 
-        self.skip_existing = skip_existing
         self.extract_zips = extract_zips
         self.check_archives = True
         self.params = params
@@ -40,7 +40,7 @@ class PlaylistWorker(QtCore.QRunnable):
         self.threadpool = QtCore.QThreadPool.globalInstance()
 
         try:
-            local_path = self.item["path"]
+            local_path = self.selected_file["path"]
             #edit_root = SwingSettings.get_instance().edit_root()
             test_path = local_path.replace("/mnt/content/productions", "Z://productions")
 
@@ -52,17 +52,17 @@ class PlaylistWorker(QtCore.QRunnable):
 
     def progress(self, status):
         # print("progress: {}".format(status))
-        status["item"] = self.item
+        status["item"] = self.selected_file
 
         self.callback.progress.emit(status)
 
     def done(self):
-        # print("done: {}".format(self.item))
+        # print("done: {}".format(self.selected_file))
 
         results = {
             "status": "ok",
             "message": "done",
-            "item": self.item,
+            "item": self.selected_file,
             "target": self.target,
         }
         self.callback.done.emit(results)
@@ -70,57 +70,51 @@ class PlaylistWorker(QtCore.QRunnable):
     def run(self):
         edit_api = "{}/edit".format(SwingSettings.get_instance().swing_server())
 
-        output_dir = "{}\\{}\\{}\\{}\\{}_{}_{}".format(self.target, self.item["ep"], self.item["sq"], self.item["sh"], self.item["sq"], self.item["sh"], self.item["name"])
-        target = os.path.join(output_dir, self.item["output_file_name"])
+        ##output_dir = "{}\\{}\\{}\\{}\\{}_{}_{}".format(self.target, self.selected_file["ep"], self.selected_file["sq"], self.selected_file["sh"], self.itselected_file["sq"], self.selected_file["sh"], self.selected_file["name"])
 
-        target_dir = os.path.dirname(self.target)
+        fn, ext = os.path.splitext(self.selected_file["output_file_name"])
+        item_name = os.path.normcase("{}_{}_{}".format(self.selected_file["ep"], self.selected_file["sq"], self.selected_file["sh"]))
+        output_name = os.path.normcase("{}/{}{}".format(item_name, item_name, ext))
+
+        target = os.path.join(self.target, output_name)
+
+        target_dir = os.path.dirname(target)
         if not os.path.exists(target_dir):
             os.makedirs(target_dir)
 
-        #if not target_dir.exists():
-        #    target_dir.mkdir(parents=True)
-
-        if os.path.exists(target):
-            if self.skip_existing:
-                results = {
-                    "status": "skipped",
-                    "message": "skipped",
-                    "item": self.item,
-                    "target": self.target,
-                }
-                self.callback.done.emit(results)                
-                return
-
-        fn, ext = os.path.splitext(self.item["output_file_name"])
+        fn, ext = os.path.splitext(self.selected_file["output_file_name"])
         if ext in StudioInterface.UNARCHIVE_TYPES:
-            if os.path.exists(os.path.join(output_dir, fn)):
+            if os.path.exists(os.path.join(target, fn)):
                 if self.skip_existing:
                     results = {
                         "status": "skipped",
                         "message": "skipped",
-                        "item": self.item,
+                        "item": self.selected_file,
                         "target": self.target,
                     }
                     self.callback.done.emit(results)                
                     return
 
         if self.mode == "Download":
-            url = "{}/api/output_file/{}".format(edit_api, self.item["output_file_id"])
+            url = "{}/api/output_file/{}".format(edit_api, self.selected_file["output_file_id"])
 
             # if we are downloading zips, store it in an archive folder
-            #if os.path.splitext(self.item["output_file_name"])[1] in StudioInterface.UNARCHIVE_TYPES:
+            #if os.path.splitext(self.selected_file["output_file_name"])[1] in StudioInterface.UNARCHIVE_TYPES:
 
-            worker = FileDownloader(self, self.item["output_file_id"], url, target, skip_existing = self.skip_existing, extract_zips = self.extract_zips)
+            worker = FileDownloader(self, self.selected_file["output_file_id"], url, target, skip_existing = self.skip_existing, extract_zips = self.extract_zips)
             worker.callback = self.callback
 
             self.threadpool.start(worker)
         else:
-            local_path = self.item["path"]
+            local_path = self.selected_file["path"]
             #edit_root = SwingSettings.get_instance().edit_root()
             source = local_path.replace("/mnt/content/productions", "Z://productions")
 
+            if not self.selected_file["output_file_name"] in source:
+                source = "{}/{}".format(source, self.selected_file["output_file_name"])
+
             if os.path.exists(source):
-                fn, ext = os.path.splitext(self.item["output_file_name"])
+                fn, ext = os.path.splitext(self.selected_file["output_file_name"])
 
                 if ext in StudioInterface.UNARCHIVE_TYPES:
                     #target = os.path.normpath(os.path.join(self.target, fn))
@@ -134,19 +128,19 @@ class PlaylistWorker(QtCore.QRunnable):
                     #        results = {
                     #            "status": "skipped",
                     #            "message": "invalid files in archive",
-                    #            "item": self.item,
+                    #            "item": self.selected_file,
                     #            "target": output_dir,
                     #        }
                     #        self.callback.done.emit(results)                
                     #        return                        
 
-                    if os.path.exists(output_dir):
+                    if os.path.exists(target_dir) and fcount(target_dir) > 0:
                         if self.skip_existing:
                             results = {
                                 "status": "skipped",
                                 "message": "skipped",
-                                "item": self.item,
-                                "target": output_dir,
+                                "item": self.selected_file,
+                                "target": target_dir,
                             }
                             self.callback.done.emit(results)                
                             return
@@ -156,37 +150,27 @@ class PlaylistWorker(QtCore.QRunnable):
                     results = {
                         "status": "Busy",
                         "message": "Extracting",
-                        "file_id": self.item["output_file_id"],
-                        "item": self.item,
-                        "target": output_dir,
+                        "file_id": self.selected_file["output_file_id"],
+                        "item": self.selected_file,
+                        "target": self.target,
                     }
                     self.progress(results)
 
-                    if not os.path.exists(output_dir):
-                        os.makedirs(output_dir)
+                    if not os.path.exists(target_dir):
+                        os.makedirs(target_dir)
 
-                    if extract_archive(SwingSettings.get_instance().bin_7z(), source, output_dir, extract_mode = "e"):
+                    if extract_archive(SwingSettings.get_instance().bin_7z(), source, target_dir, extract_mode = "e"):
                         results = {
                             "status": "Done",
                             "message": "Success",
-                            "item": self.item,
-                            "target": output_dir,
+                            "item": self.selected_file,
+                            "target": target_dir,
                         }
                         self.callback.done.emit(results)
-                        print("Extract complete {}".format(output_dir))
+                        print("Extract complete {}".format(target_dir))
                 else:
-                    if os.path.exists(target):
-                        if self.skip_existing:
-                            results = {
-                                "status": "skipped",
-                                "message": "skipped",
-                                "item": self.item,
-                                "target": self.target,
-                            }
-                            self.callback.done.emit(results)                
-                            return
+                    print("Copying {}->{}".format(source, target))
 
-                    print("Copying {}".format(source))
                     if not os.path.exists(os.path.dirname(target)):
                         os.makedirs(os.path.dirname(target))
                     shutil.copyfile(source, target)
@@ -194,7 +178,7 @@ class PlaylistWorker(QtCore.QRunnable):
             results = {
                 "status": "Complete",
                 "message": "Done",
-                "item": self.item,
+                "item": self.selected_file,
                 "target": self.target,
             }
 

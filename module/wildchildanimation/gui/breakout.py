@@ -187,7 +187,7 @@ class BreakoutUploadDialog(QtWidgets.QDialog, Ui_BreakoutUploadDialog):
         save_settings("last_breakout_playblast", self.lineEditPlayblastFolder.text())
         save_settings("last_breakout_projects", self.lineEditProjectsFolder.text())
 
-        current_scene = self.sequence["sequence"]
+        current_scene = self.sequence["sequence"].lower()
 
         # scan for playblasts
         root_folder = self.lineEditPlayblastFolder.text()
