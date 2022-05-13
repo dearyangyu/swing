@@ -170,11 +170,16 @@ def setpassword(service, account, password):
     s = p.read()
     p.close()
 
+#
+# force write_log to be thread safe,
+# one line of output, newline appended, flush output
+# 
 def write_log(*args):
     log = "{} swing: ".format(datetime.now().strftime("%Y/%m/%d %H:%M:%S.%f"))
     for log_data in args:
         log += " {}".format(log_data)
-    print(log)
+    log += "\n"
+    print(log, flush=True, end='')
 
 def friendly_string(string):
     return re.sub('\W+','_', str(string).strip())

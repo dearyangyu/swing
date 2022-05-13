@@ -1351,4 +1351,29 @@ class ProjectStatusTypeLoader(QtCore.QRunnable):
             results = rq.json()
 
         self.callback.loaded.emit(results)                        
-        return results         
+        return results    
+
+class WorkingFileGetLatestLoader(QtCore.QRunnable):
+
+    def __init__(self, filename):
+        super(WorkingFileGetLatestLoader, self).__init__(self)
+        self.settings = SwingSettings.get_instance()
+        self.request_url = "{}/edit/api/latest_working_file".format(self.settings.swing_server())
+        self.filename = filename
+        self.callback = LoadedSignal()    
+
+    def run(self):
+        params = { 
+            "username": self.settings.swing_user(),
+            "password": self.settings.swing_password(),
+            "filename": self.filename, 
+        }             
+
+        results = []
+        rq = requests.post(self.request_url, data = params)
+
+        if rq.status_code == 200:
+            results = rq.json()
+
+        self.callback.loaded.emit(results)                        
+        return results              

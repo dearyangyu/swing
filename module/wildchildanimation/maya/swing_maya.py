@@ -126,6 +126,9 @@ class SwingMaya(QtCore.QObject):
         self.set_resolution(SwingMaya.DEFAULT_RESOLUTION)
         self.set_frame_range(SwingMaya.DEFAULT_FRAME_RANGE)
 
+        if ffmpeg_path:
+            DEFAULT_FFMPEG_PATH = ffmpeg_path
+
     def set_maya_logging_enabled(self, enabled):
         self._log_to_maya = enabled
         if enabled:

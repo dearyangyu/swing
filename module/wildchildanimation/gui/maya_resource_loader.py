@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from tarfile import TarError
 import traceback
 import sys
 import os
@@ -342,9 +343,25 @@ class ResourceLoaderDialogGUI(QtWidgets.QDialog, Ui_MayaResourceLoaderDialog):
         try:
             try:
                 target_path = self.handler.get_working_file()
+                force_create = False
                 if not target_path or len(target_path) == 0:
-                    QtWidgets.QMessageBox.warning(self, 'Scene Error', 'No scene found. Please save the current scene or task first')        
-                    return False
+                    if self.resource and "target_path" in self.resource:
+                        check = QtWidgets.QMessageBox.question(self, 'Task not Found', 'No scene found. Would you like to create a new scene?\n\nName: {}\nDir: {}'.format(os.path.basename(self.resource["target_path"]), os.path.dirname(self.resource["target_path"])))  
+
+                        if check == QtWidgets.QMessageBox.Yes:
+                            force_create = True
+                            target_path = self.resource["target_path"]
+
+                            self.copy_file(self.resource_network_path, target_path, force_create)
+                            print("Copied to: {}".format(target_path))
+
+                            #print("background_process::Didn't think so ")
+                            #return False                       
+                    else:      
+                        # target_path = self.resource["target_path"]
+
+                        QtWidgets.QMessageBox.warning(self, 'Scene Error', 'No scene found. Please save the current scene or task first')        
+                        return False
 
                 print("background_process::resource network path = {} target path = {}".format(self.resource_network_path, target_path))                
 
@@ -352,22 +369,22 @@ class ResourceLoaderDialogGUI(QtWidgets.QDialog, Ui_MayaResourceLoaderDialog):
                 if self.rbOpenSource.isChecked():
                     print("background_process::open source")
 
-                    if os.path.exists(target_path):
+                    if os.path.exists(target_path) and not force_create:
                         print("background_process::Local file already exists, check with user ... ")
-                        reply = QtWidgets.QMessageBox.question(self, 'Confirm Overwrite', 'This will overwrite the existing file {}\r\n\r\nAre you sure you wish to continue ?'.format(target_path), QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
+                        reply = QtWidgets.QMessageBox.question(self, 'Confirm Overwrite', 'This will overwrite the existing file {}\r\n\r\nAre you sure you wish to continue ?'.format(target_path))
                         if not reply == QtWidgets.QMessageBox.Yes:
                             print("background_process::Didn't think so ")
                             return False
 
-                        if not self.resource_network_path:
-                            print("background_process::Not on Z: drive, have to download ... ")
+                    if not self.resource_network_path:
+                        print("background_process::Not on Z: drive, have to download ... ")
 
-                            self.download_file()
-                            return False
-                        else:
-                            print("background_process::Just copy it from Z: ")
-                            self.copy_file(self.resource_network_path, target_path)
-                        # check if remote
+                        self.download_file()
+                        return False
+                    else:
+                        print("background_process::Just copy it from Z: ")
+                        self.copy_file(self.resource_network_path, target_path)
+                    # check if remote
 
                     # open from Z: 
                     
@@ -400,13 +417,18 @@ class ResourceLoaderDialogGUI(QtWidgets.QDialog, Ui_MayaResourceLoaderDialog):
         # all done
 
     #copy file from server 
-    def copy_file(self, source, target):
+    def copy_file(self, source, target, force_create = False):
         print("copy_file file {} to {}".format(source, target))
+
+        target_dir = os.path.dirname(target)
+        if not os.path.exists(target_dir):
+            self.append_status("creating dir {}".format(target_dir))
+            os.makedirs(target_dir, mode=0o777)
 
         copy2(source, target, follow_symlinks=True)
         self.append_status("copy_file {}: load_file".format(source))
 
-        if (self.handler.load_file(source = target, force = self.checkBoxForce.isChecked())):
+        if (self.handler.load_file(source = target, force = self.checkBoxForce.isChecked() or force_create)):
             self.append_status("copy_file loading done")
         else:
             self.append_status("copy_file loading error", True)

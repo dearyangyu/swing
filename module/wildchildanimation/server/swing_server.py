@@ -1,278 +1,338 @@
 # -*- coding: utf-8 -*-
-import socket
 import os
-import getpass
-from pathlib import Path
+import shutil
 
 from _thread import *
+import zipfile
+
+from wildchildanimation.gui.background_workers import WorkingFileUploader
+from wildchildanimation.gui.settings import SwingSettings
 
 from wildchildanimation.gui.swing_utils import write_log
 
-PROPERTIES_FILE = "studioplugin.json"
-
-KITSU_HOST = "https://production.wildchildanimation.com/api"
-DEFAULT_HOST = "127.0.0.1"
-DEFAULT_PORT = 18099
-
-BYTE_SIZE = 1024
-BACKLOG = 5
-
-COMMAND_BYE    = "#bye#"
-COMMAND_STRING = "#cmd#"
-PUBLISH_ASSET = "publish_asset#"
-
-HEADER_LENGTH = 5
-
-from PyQt5 import QtCore
+# ==== auto Qt load ====
+try:
+    from PySide2 import QtCore
+    qtMode = 0
+except ImportError:
+    from PyQt5 import QtCore
+    qtMode = 1
 
 import sys
-import json
 import traceback
+import time
+import gazu
+import subprocess
 
-def normalize(item):
-    if "id" in item:
-        return item["id"]
-    return item
-
-def get_preferences_file():
-    return Path.home() / PROPERTIES_FILE    
-
-def load_properties():
-    properties = {}
-    properties_file = get_preferences_file()
-
-    # write_log("preference file", properties_file)
-
-    if properties_file.exists():
-        # write_log("preference file", properties_file)
-
-        with properties_file.open() as json_file:
-            try:
-                properties = json.load(json_file)
-                # write_log("preference file", "loaded", properties_file)
-            except:
-                write_log("preference file", "created", properties_file)
-                traceback.print_exc(file=sys.stdout)
-                properties = {}
-            # try to load json file
-        # try to open json file
-
-    # otherwise, reinit ---
-    if not "server" in properties:
-        properties["server"] = KITSU_HOST
-
-    if not "username" in properties:
-        properties["username"] = getpass.getuser()
-
-    if not "token" in properties:
-        properties["token"] = ""
-
-    if not "port" in properties:
-        properties["port"] = DEFAULT_PORT
-
-    if not "host" in properties:
-        properties["host"] = DEFAULT_HOST
-
-    if not "separator" in properties:
-        properties["separator"] = os.path.sep
-
-    return properties
-### load properties file local user preferences, re-init json if corrupt / not found    
+from datetime import datetime
 
 # ----------------------------------------------------------------------------------------------------------------------------------------------------------------
-# TCP Interface to Studio Tools Gui
-class ThreadedServer(QtCore.QThread):
-    loaded = QtCore.pyqtSignal(object)
+class SwingServer(QtCore.QObject):
 
-    # ----------------------------------------------------------------------------------------------------------------------------------------------------------------
-    # main workflow
-    def process(self, document):
-        ## write_log("PathHelper", self.path_helper.get_paths())
+    def __init__(self, project_name):
+        self.swing_settings = SwingSettings.get_instance()
+        self.project_name = project_name
+        self.connected = False
+        self.gazu_client = None
+        self.running = False    
 
-        data = json.loads(document)
+    def connect_to_server(self): 
+        if self.connected and self.gazu_client:
+            self.gazu_client = None
+            self.connected = False
 
-        ##write_log(app, client, args, command)
-        return { "status": "Not Implemented Yet", "data": data }
+        password = self.swing_settings.swing_password()
+        server = self.swing_settings.swing_server()
+        email = self.swing_settings.swing_user()
 
-    def __init__(self, address, props, task_status_signal = None):
-        QtCore.QThread.__init__(self)
-
-        self.address = address
-        self.properties = props
-
+        gazu.set_host("{}/api".format(server))
         try:
-            self.task_status_signal = task_status_signal
-            self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            self.socket.bind(self.address)
-            self.socket.listen()
-            self.may_run = True
-            write_log("server::created", self.address, BACKLOG)
-        except Exception as inst:
-            self.may_run = False
-            write_log("************************************************************")
-            write_log("**ERROR**", address, "\r\n***\r\n")
-            write_log("************************************************************")
-            write_log("\n\n")
-            traceback.print_exc(file=sys.stdout)
-            write_log("\n\n")
-            write_log("************************************************************")
-        return
+            self.gazu_client = gazu.log_in(email, password)
+            self.connected = True
+            self.user_email = email
+            self.project = gazu.project.get_project_by_name(self.project_name)
+            self.swing_root = self.swing_settings.swing_root()
 
-    def __del__(self):
-        self.wait()
+            if not self.project:
+                write_log("error: Project {} not found".format(self.project_name))
+                return False            
 
-    def stop(self):
-        self.may_run = False
-        self.terminate()
+            # check shot cache
+            self.shot_cache = gazu.task.get_task_type_by_name("Shot_Cache")
+            if not self.shot_cache:
+                write_log("error: Task Type {} not found".format("Anim-Block"))
+                return False   
 
-    def run(self):
-        while self.may_run:
-            write_log("threadedserver::threaded_execute", "waiting")
+            # check anim_final 
+            self.anim_final = gazu.task.get_task_type_by_name("Anim-Final")
+            if not self.anim_final:
+                write_log("error: Task Type {} not found".format("Anim-Block"))
+                return False  
 
-            client, addr = self.socket.accept()
-            try:
-                try:
-                    self.threaded_execute(client)
-                except Exception as inst:
-                    write_log("************************************************************")
-                    write_log("Command Error: let's see what happened ...")
-                    write_log("************************************************************")
-                    write_log("\n\n")
+            # check anim_anim 
+            self.anim_anim = gazu.task.get_task_type_by_name("Anim-Animation")
+            if not self.anim_anim:
+                write_log("error: Task Type {} not found".format("Anim-Block"))
+                return False  
 
-                    write_log(type(inst))
-                    write_log(inst.args)
-                    write_log(inst)
+            # check anim_block 
+            self.anim_block = gazu.task.get_task_type_by_name("Anim-Block")
+            if not self.anim_block:
+                write_log("error: Task Type {} not found".format("Anim-Block"))
+                return False 
 
-                    traceback.print_exc(file=sys.stdout)
+            self.final = gazu.task.get_task_status_by_name("Final (Client Approved)") 
+            if not self.final:
+                write_log("error: Task Status 'Final (Client Approved)' not found")
+                return False   
 
-                    write_log("\n\n")
-                    write_log("************************************************************")
-                    write_log("That's all I know, sorry ... ")
-                    write_log("************************************************************")
-                # process
-            finally:
-                if (client):
-                    client.close()
-            # done
+            self.wip = gazu.task.get_task_status_by_name("Work in Progress") 
+            if not self.wip:
+                write_log("error: Task Status 'WIP' not found")
+                return False                                                                                      
 
+            self.export = gazu.task.get_task_status_by_name("Export") 
+            if not self.export:
+                write_log("error: Task Status 'Export' not found")
+                return False  
 
-    def threaded_execute(self, client):
-        # receive the data length from client
-        write_log("server::execute::threaded_execute")
-        data_bytes = client.recv(HEADER_LENGTH)
-        write_log("server::execute::header", data_bytes)
+            self.review = gazu.task.get_task_status_by_name("Review") 
+            if not self.review:
+                write_log("error: Task Status 'Review' not found")
+                return False                                               
 
-        #client.send(data_bytes)
+            write_log("connected to {} as {}".format(self.project_name, email))
+        except:
+            return False
 
-        expected = int(data_bytes)
-        write_log("server::execute::header", "expecting", expected)
-
-        data_bytes = client.recv(expected)
-        write_log("server::execute::header", "received", len(data_bytes))
-
-        data = data_bytes.decode('utf-8')
-        ### write_log("server::execute", "\r\n", data, "\r\n")
-
-        #if not data:
-        #    print("bye")
-
-        results = None
-        try:
-            results = self.process(data)
-        except Exception as inst:
-            write_log("************************************************************")
-            write_log("Command Error: let's see what happened ...")
-            write_log("************************************************************")
-            write_log("\n\n")
-
-            write_log(type(inst))
-            write_log(inst.args)
-            write_log(inst)
-
-            traceback.print_exc(file=sys.stdout)
-
-            write_log("\n\n")
-            write_log("************************************************************")
-            write_log("That's all I know, sorry ... ")
-            write_log("************************************************************")
-        # pass
-
-        #if COMMAND_STRING in data:
-        #    self.run_command(data, client)
-        write_log("server::execute::result", "size", len(results))
-        RuntimeError("WhatTheFrek")
-
-        # return { "status": "OK" }
-        if "OK" in results["status"]:
-
-            if not results["data"]:
-                write_log("server::execute::result", "size", len(results))
-
-                message_length = str(len(COMMAND_BYE)).zfill(HEADER_LENGTH)
-                client.sendall(message_length.encode('utf-8'))
-                client.sendall(COMMAND_BYE.encode('utf-8'))
-            else:
-                write_log("server::execute::result", "size", len(results))
-                data = results["data"]
-                message = json.dumps(data)
-                message_length = str(len(message)).zfill(HEADER_LENGTH)
-
-                write_log("server results", "length", message_length)
-
-                client.sendall(message_length.encode('utf-8'))
-                client.sendall(message.encode('utf-8'))
-        else:
-            # should send an error message here
-            message_length = str(len(COMMAND_BYE)).zfill(HEADER_LENGTH)
-            client.sendall(message_length.encode('utf-8'))
-            client.sendall(COMMAND_BYE.encode('utf-8'))
-
-        client.close()
-# ----------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-
-class SwingServer(object):
-
-    ### #########################################################################
-    def load_data(self, command = None, args = None):
-        data = {}
-        data["application"] = {}
-        data["application"]["client"] = "studio-agent"
-        data["application"]["version"] = "1"
-        data["application"]["separator"] = os.sep
-        data["command"] = {}
-
-        if (command):
-            data["command"]["name"] = command
-
-        data["args"] = {}
-        if (args):
-            for key, val in args:
-                data["args"][key] = val
-
-        return data
-
-    def __init__(self, props, task_status_signal = None):
-        self.properties = props
-        self.task_status_signal = task_status_signal
-        self.address = (self.properties["host"], int(self.properties["port"]))
-        self.running = False
-        self.server = ThreadedServer(self.address, self.properties, self.task_status_signal)
-
-    def normalize(self, item):
-        if "id" in item:
-            return item["id"]
-        return item
+        return True   
 
     def start(self):
-        self.server.start()
+        if self.connect_to_server():
+            self.running = True
+            self.run()
+
+    def run(self):
+        while self.running:
+            try:
+                self.process()
+                self.flush_output()
+            except:
+                write_log("exception running swing server")
+                traceback.print_exc(file=sys.stdout)
+
+            # sleep 5 mins
+            time.sleep(60 * 5)
+
+    def zip_dir(self, path, zipfile):
+        for root, dirs, files in os.walk(path):
+            for file in files:
+                zipfile.write(os.path.join(root, file), os.path.relpath(os.path.join(root, file), os.path.join(path, '..')))        
+
+    def remove_dir(self, dir):
+        write_log("removing dir {}".format(dir))
+        shutil.rmtree(dir)
+
+    # scan through project working files, if task type found, call anim-export on it
+    # will first download project file to local working dir
+    # will then run anim_update on the project
+    # will run anim_export passing in the project_name to strip from file name
+    # lastly will zip and upload cache to kitsu
+    def shot_cache_working_files(self, episode_name, working_files, shot_cache_task, completed_status, task_type):
+        for item in working_files:
+            wf = working_files[item]
+            if wf["name"].lower().endswith(".ma"):
+                working_file_path = wf["path"]
+                task_name = "{}_".format(task_type["name"].replace("-", "_")).lower()
+
+                working_file_path = os.path.normpath(working_file_path.replace("/mnt/content/productions", "Z://productions"))    
+
+                if not wf["name"] in working_file_path:
+                    wf = os.path.join(working_file_path, wf["name"])
+
+                project_path = os.path.normpath(wf.replace("/mnt/content/productions", "Z://productions"))
+
+                if not os.path.exists(project_path) and os.path.isfile(project_path):
+                    write_log("error: file not found: {}".format(project_path))
+                    continue
+
+                working_path = os.path.normpath(project_path.replace("Z:\\productions", self.swing_root))
+                if not os.path.exists(os.path.dirname(working_path)):
+                    os.makedirs(os.path.dirname(working_path))
+
+                shutil.copy2(project_path, working_path)
+                try:
+                    # run anim update on the project file
+                    command_line = 'Z:\\env\\wca\\swing\\swing-main\\bin\\anim_update.bat'
+                    write_log("running: {} {} {} {} {} {}".format(shot_cache_task["project"]["name"], shot_cache_task["episode"]["name"], shot_cache_task["sequence"]["name"], shot_cache_task["entity"]["name"], command_line, item))
+
+                    #with subprocess.Popen([command_line, working_path], stdout=subprocess.PIPE) as proc:
+                    #    print(proc.stdout.read().splitlines())  
+
+                    proc = subprocess.Popen([command_line, working_path], shell = True, stderr=subprocess.PIPE)
+                    while True:
+                        output = proc.stderr.read(1)
+                        try:
+                            log = output.decode('utf-8')
+                            if log == '' and proc.poll() != None:
+                                break
+                            else:
+                                sys.stdout.write(log)
+                                sys.stdout.flush()
+                        except:
+                            print("Byte Code Error: Ignoring")
+                            print(traceback.format_exc())
+                        # continue
+
+                    # run shot cache on the project file                                          
+                    command_line = 'Z:\\env\\wca\\swing\\swing-main\\bin\\shot_cache.bat'
+                    write_log("running: {} {} {} {}".format(command_line, working_path, episode_name, task_name))
+
+                    #with subprocess.Popen([command_line, working_path, episode_name, task_name], stdout=subprocess.PIPE) as proc:
+                    #    print(proc.stdout.read().splitlines())
+                    proc = subprocess.Popen([command_line, working_path, episode_name, task_name], shell = True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+                    while True:
+                        output = proc.stderr.read(1)
+                        try:
+                            log = output.decode('utf-8')
+                            if log == '' and proc.poll() != None:
+                                break
+                            else:
+                                sys.stdout.write(log)
+                                sys.stdout.flush()
+                            self.flush_output()
+                        except:
+                            print("Byte Code Error: Ignoring")
+                            print(traceback.format_exc())
+                        # continue
+                    write_log("completed: {} {} {} {}".format(command_line, working_path, episode_name, task_name))
+                    self.flush_output()
+
+                    cache_dir = os.path.join(os.path.dirname(working_path), "cache")
+
+                    if os.path.exists(cache_dir):
+                        target = "{}/{}".format(os.path.dirname(working_path), "shot_cache.zip")
+                    
+                        try:
+                            if os.path.exists(target):
+                                os.remove(target)
+
+                            with zipfile.ZipFile(target, 'w', zipfile.ZIP_DEFLATED) as archive:
+                                try:
+                                    self.zip_dir(cache_dir, archive)
+                                    self.remove_dir(cache_dir)
+                                finally:
+                                    archive.close()  
+                        except:                                
+                            traceback.print_exc(file=sys.stdout)
+                            return False 
+                        self.flush_output()
+   
+                        server = SwingSettings.get_instance().swing_server()
+                        edit_api = "{}/edit".format(server)  
+
+                        worker = WorkingFileUploader(self, edit_api, shot_cache_task, target, "cache", "Maya", comment="Generated Shot Cache" , mode = "wip", file_model = None, task_status = completed_status["id"], archive_name = "cache.zip")                            
+                        worker.run()
+
+                        write_log("uploaded cache {}".format(target))
+                        self.flush_output()
+                    else:
+                        # set task to error
+                        comment_text = "Error generating shot_cache for task"
+                        gazu.task.add_comment(shot_cache_task, self.review, comment_text)
+
+
+                    write_log("finished: {} {} {} {} {} {}".format(shot_cache_task["project"]["name"], shot_cache_task["episode"]["name"], shot_cache_task["sequence"]["name"], shot_cache_task["entity"]["name"], command_line, item))
+                except:
+                    traceback.print_exc(file=sys.stdout)
+                    return False                    
+
+                # call anim cache
+        return True
+
+    def flush_output(self):
+        try:
+            sys.stdout.write('')
+            sys.stdout.flush() 
+        except:
+            pass
+
+    def process(self):
+        write_log("process::start")
+
+        tasks = gazu.task.all_tasks_for_task_type(self.project, self.shot_cache)
+
+
+        task_list = []
+        for task in tasks:
+            if task["id"] not in task_list and task["task_status_id"] == self.export["id"]:
+                task_list.append(task["id"])
+
+        # debug
+        ##task_id = gazu.task.get_task("3f275458-7747-431a-9c69-31e4608d4154")
+        ##task_list = [ task_id ]
+
+        write_log("process::checking {} for {} shots".format(self.shot_cache["name"].lower(), len(task_list)))
+        for task_id in task_list:
+            shot_cache_task = gazu.task.get_task(task_id)
+
+            # check if this task is already processing
+            # should_process = True
+
+            #data = shot_cache_task["data"]
+            #if not data:
+            #    data = {}
+            #    data["processing"] = "Busy"
+            #    data["started_at"] = datetime.now()    
+            #    gazu.task.update_task_data(task, data)
+            #else:
+            #    if "processing" in data:
+
+            shot = gazu.shot.get_shot(shot_cache_task["entity"]["id"])
+            episode = gazu.shot.get_episode(shot["episode_id"])
+
+            episode_details = episode["name"].split("_")
+            if len(episode_details) == 2:
+                episode_name = "{}_".format(episode_details[1].lower())
+            else:
+                episode_name = "{}_".format("".join(episode_details).lower())
+
+            task_type = self.anim_final
+            shot_task = gazu.task.get_task_by_entity(shot, task_type)
+            project_files = gazu.files.get_last_working_files(shot_task)
+            if len(project_files) > 0:
+                if self.shot_cache_working_files(episode_name, project_files, shot_cache_task, self.final, task_type):
+                    continue
+
+            task_type = self.anim_anim
+            shot_task = gazu.task.get_task_by_entity(shot, task_type)
+            project_files = gazu.files.get_last_working_files(shot_task)
+            if len(project_files) > 0:
+                if self.shot_cache_working_files(episode_name, project_files, shot_cache_task, self.wip, task_type):
+                    continue
+
+            task_type = self.anim_block
+            shot_task = gazu.task.get_task_by_entity(shot, task_type)
+            project_files = gazu.files.get_last_working_files(shot_task)
+            if len(project_files) > 0:
+                if self.shot_cache_working_files(episode_name, project_files, shot_cache_task, self.wip, task_type):
+                    continue
+
+            write_log("process::{} {} {} {} {} ({})".format(self.project_name, shot["episode_name"], shot["sequence_name"], shot["name"], self.export["name"], len(project_files)))    
+            self.flush_output() 
+
+
+        write_log("process::done")       
+
 
     def stop(self):
-        self.server.stop()
+        self.running = False
 
 if __name__ == "__main__":
-    write_log("starting test server on port 18099")
-    server = SwingServer(load_properties())
+    write_log("SwingServer::start")
+    #server = SwingServer(project_name = "Wind in the Willows")
+
+    #server = SwingServer(project_name = "Attack of the Killer Bunny S1")
+    server = SwingServer(project_name = "Wind in the Willows")
     server.start()
-    write_log("done starting test server on port 18099")
+    write_log("SwingServer::done")

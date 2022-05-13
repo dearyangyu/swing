@@ -64,7 +64,7 @@ def maya_main_window():
 class MayaStudioHandler(SwingMaya, StudioInterface):
 
     NAME = "MayaStudioHandler"
-    VERSION = "0.0.11"
+    VERSION = "0.0.12"
     SUPPORTED_TYPES = [".ma", ".mb", ".fbx", ".obj", ".mov", ".mp4", ".wav", ".jpg", ".png", ".abc" ]
 
     def __init__(self):
@@ -138,9 +138,12 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
         self.log_output("load_file")
         try:
             mutils.executeDeferred(lambda: self._load_file(**kwargs))
+
+            return True
         except:
             self.workspace_control_instance.log_output("load_file:: {}".format("Exception"))
             traceback.print_exc(file=sys.stdout)
+        return False            
 
     def _load_file(self, **kwargs):
         source = kwargs["source"]
@@ -185,9 +188,11 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
         self.log_output("import_file")
         try:
             mutils.executeDeferred(lambda: self._import_file(**kwargs))
+            return True
         except:
             self.workspace_control_instance.log_output("import_file:: {}".format("Exception"))
             traceback.print_exc(file=sys.stdout)
+        return False
 
     # tries to import the file specified in source into the currently open scene
     def _import_file(self, **kwargs):
@@ -221,9 +226,11 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
         self.log_output("import_reference")
         try:
             mutils.executeDeferred(lambda: self._import_reference(**kwargs))
+            return True
         except:
             self.workspace_control_instance.log_output("import_reference:: {}".format("Exception"))
             traceback.print_exc(file=sys.stdout)        
+        return False
 
     # tries to import the file specified in source into the currently open scene
     def _import_reference(self, **kwargs):

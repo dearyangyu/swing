@@ -21,7 +21,7 @@ except ImportError:
 
 from datetime import datetime
 
-from wildchildanimation.gui.swing_utils import human_size, my_date_format, resolve_content_path
+from wildchildanimation.gui.swing_utils import human_size, my_date_format
 
 class CheckBoxDelegate(QtWidgets.QStyledItemDelegate):
 

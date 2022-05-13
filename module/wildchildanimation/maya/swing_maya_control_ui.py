@@ -27,13 +27,14 @@ class Ui_SwingControlWidget(object):
         SwingControlWidget.setMinimumSize(QSize(640, 24))
         SwingControlWidget.setMaximumSize(QSize(16777215, 16777215))
         self.verticalLayout = QVBoxLayout(SwingControlWidget)
-        self.verticalLayout.setSpacing(5)
+        self.verticalLayout.setSpacing(2)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setSpacing(0)
         self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.horizontalLayout_3 = QHBoxLayout()
+        self.horizontalLayout_3.setSpacing(2)
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
         self.toolButtonRefresh = QToolButton(SwingControlWidget)
         self.toolButtonRefresh.setObjectName(u"toolButtonRefresh")
@@ -52,7 +53,7 @@ class Ui_SwingControlWidget(object):
         sizePolicy1.setVerticalStretch(0)
         sizePolicy1.setHeightForWidth(self.comboBoxProject.sizePolicy().hasHeightForWidth())
         self.comboBoxProject.setSizePolicy(sizePolicy1)
-        self.comboBoxProject.setMinimumSize(QSize(200, 0))
+        self.comboBoxProject.setMinimumSize(QSize(180, 0))
 
         self.horizontalLayout_3.addWidget(self.comboBoxProject)
 
@@ -65,7 +66,7 @@ class Ui_SwingControlWidget(object):
         self.comboBoxEpisode.setEnabled(False)
         sizePolicy1.setHeightForWidth(self.comboBoxEpisode.sizePolicy().hasHeightForWidth())
         self.comboBoxEpisode.setSizePolicy(sizePolicy1)
-        self.comboBoxEpisode.setMinimumSize(QSize(200, 0))
+        self.comboBoxEpisode.setMinimumSize(QSize(180, 0))
 
         self.horizontalLayout_3.addWidget(self.comboBoxEpisode)
 
@@ -91,7 +92,7 @@ class Ui_SwingControlWidget(object):
         self.comboBoxTask.setEnabled(False)
         sizePolicy1.setHeightForWidth(self.comboBoxTask.sizePolicy().hasHeightForWidth())
         self.comboBoxTask.setSizePolicy(sizePolicy1)
-        self.comboBoxTask.setMinimumSize(QSize(225, 0))
+        self.comboBoxTask.setMinimumSize(QSize(200, 0))
 
         self.horizontalLayout_3.addWidget(self.comboBoxTask)
 
@@ -119,12 +120,19 @@ class Ui_SwingControlWidget(object):
         self.horizontalLayout.addItem(self.horizontalSpacer_3)
 
         self.horizontalLayout_2 = QHBoxLayout()
+        self.horizontalLayout_2.setSpacing(2)
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
         self.toolButtonTask = QToolButton(SwingControlWidget)
         self.toolButtonTask.setObjectName(u"toolButtonTask")
         self.toolButtonTask.setEnabled(False)
 
         self.horizontalLayout_2.addWidget(self.toolButtonTask)
+
+        self.toolButtonUpdate = QToolButton(SwingControlWidget)
+        self.toolButtonUpdate.setObjectName(u"toolButtonUpdate")
+        self.toolButtonUpdate.setEnabled(False)
+
+        self.horizontalLayout_2.addWidget(self.toolButtonUpdate)
 
         self.toolButtonPlayblast = QToolButton(SwingControlWidget)
         self.toolButtonPlayblast.setObjectName(u"toolButtonPlayblast")
@@ -198,6 +206,10 @@ class Ui_SwingControlWidget(object):
         self.toolButtonTask.setToolTip(fakestr(u"Creates or Loads a Task", None))
 #endif // QT_CONFIG(tooltip)
         self.toolButtonTask.setText(fakestr(u"Task", None))
+#if QT_CONFIG(tooltip)
+        self.toolButtonUpdate.setToolTip(fakestr(u"Scan for and update any references in the scene", None))
+#endif // QT_CONFIG(tooltip)
+        self.toolButtonUpdate.setText(fakestr(u"Update", None))
 #if QT_CONFIG(tooltip)
         self.toolButtonPlayblast.setToolTip(fakestr(u"Playblast selected Task", None))
 #endif // QT_CONFIG(tooltip)
