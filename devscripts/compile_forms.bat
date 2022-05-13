@@ -66,3 +66,5 @@ c:\dev\github\wca-maya\venv\lib\site-packages\PySide2\rcc -g python C:\DEV\Githu
 
 echo "Compiling SwingMayaUI"
 c:\dev\github\wca-maya\venv\lib\site-packages\PySide2\uic --tr fakestr -g python -o c:\dev\Github\wca-maya\module\wildchildanimation\maya\swing_maya_control_ui.py C:\DEV\Github\wca-maya\module\wildchildanimation\gui\forms\maya\swing_maya_control.ui
+
+c:\dev\swing\env\lib\site-packages\PySide2\uic --tr fakestr -g python -o c:\dev\swing\module\wildchildanimation\maya\swing_maya_control_ui.py C:\DEV\swing\module\wildchildanimation\gui\forms\maya\swing_maya_control.ui
