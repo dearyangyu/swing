@@ -192,7 +192,8 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         for item in self.status_types:
             self.comboBoxTaskStatus.addItem(item["name"], userData = item) 
         
-        status_index = self.comboBoxTaskStatus.findText("Waiting for Approval")
+        # default to Work in Progress
+        status_index = self.comboBoxTaskStatus.findText("WIP")
         if status_index >= 0:
             self.comboBoxTaskStatus.setCurrentIndex(status_index)        
         else:

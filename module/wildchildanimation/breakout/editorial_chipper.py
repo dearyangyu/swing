@@ -52,7 +52,7 @@ def _process_shot(prefix, item, track_range, source, target_dir):
 
     video_output = "{}/{}_{}.%04d.jpg".format(images_dir, prefix, item_name)
     
-    command = FFMPEG + " -y -i " + source + " -start_number 0" + " -ss  " + start_time + " -to " + end_time + " " + video_output
+    command = FFMPEG + " -y -ignore_chapters 1 -i " + source + " -start_number 0" + " -ss  " + start_time + " -to " + end_time + " " + video_output
     try:
         os.system(command)
     except:

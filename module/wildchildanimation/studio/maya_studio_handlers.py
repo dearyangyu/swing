@@ -12,7 +12,7 @@ import traceback
 from PySide2 import QtCore
 
 from wildchildanimation.gui.background_workers import TaskFileInfoThread
-
+from wildchildanimation.maya.swing_maya_ref_update import MayaReferenceUpdater
 from wildchildanimation.gui.maya_resource_loader import ResourceLoaderDialogGUI
 from wildchildanimation.gui.publish import PublishDialogGUI
 from wildchildanimation.gui.settings import SwingSettings
@@ -64,7 +64,7 @@ def maya_main_window():
 class MayaStudioHandler(SwingMaya, StudioInterface):
 
     NAME = "MayaStudioHandler"
-    VERSION = "0.0.12"
+    VERSION = "0.0.14"
     SUPPORTED_TYPES = [".ma", ".mb", ".fbx", ".obj", ".mov", ".mp4", ".wav", ".jpg", ".png", ".abc" ]
 
     def __init__(self):
@@ -281,6 +281,9 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
     def on_task_create(self, results):
         task_dir = results["project_dir"]
         task = results["task"]
+        status = results["task"]["task_status"]["name"]
+
+        print("taskstatus***{}".format(status))
         
         working_file = friendly_string("_".join(self.get_task_sections(task)).lower())    
 
@@ -381,11 +384,19 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
                 else:
                     self.log_error("File extension not valid {0}".format(fn))
 
+            if not status in ("Work in Progress", "WIP"):
+                self.start_task(task["id"])
+                self.log_output("Started Task")
+
             self.log_output("saving scene descriptor to json")
             SceneData().save_task_data(task)
             
             self.log_output("create_file complete")
         return True 
+
+    def on_update_scene(self, **kwargs):
+        self.sceneUpdater = MayaReferenceUpdater()
+        self.sceneUpdater.update_references(show_gui = True)
 
     def on_create(self, **kwargs):
         try:
@@ -818,6 +829,42 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
         except:
             traceback.print_exc(file=sys.stdout)
             self.log_error("reset_workspace_control")               
+
+    def cleanup_scene(self):
+        self.log_output("cleanup_scene: cleaning ...")
+
+        # Deleting unkown nodes and plugin
+        items = cmds.ls(type="unknown")
+        if items: 
+            for node in items:
+                cmds.lockNode(node, lock=0)
+                cmds.delete(node)
+
+                self.log_output("clean_unknown_nodes - deleted {}".format(node))
+
+        # Delete all controller tags
+        ##items = cmds.ls(type='controller')
+        ##if items:
+        ##    for node in items:
+        ##        cmds.delete(node)
+        ##
+        ##        self.log_output("clean_unknown_nodes - deleted controller {}".format(node))
+
+        # Delete all unknown plugins
+        items = cmds.unknownPlugin(query=1, list=1)
+        if items:
+            for node in items:
+                cmds.unknownPlugin(node, remove=1)      
+
+                self.log_output("clean_unknown_nodes - removed plugin {}".format(node))
+
+        self.log_output("cleanup_scene: done")
+
+    def update_references(self):
+        updater = MayaReferenceUpdater()
+        updater.update_references(show_gui = True)    
+
+    
 
 '''
         # exports current selected

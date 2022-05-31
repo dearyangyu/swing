@@ -2,7 +2,7 @@
 # 
 # ==== auto Qt load ====
 from wildchildanimation.gui.settings import SwingSettings
-from wildchildanimation.gui.background_workers import ProjectEpisodeLoader, ProjectShotLoader, ProjectTaskTypeLoader, TaskTypeLoader, ToDoLoader
+from wildchildanimation.gui.background_workers import ProjectEpisodeLoader, ProjectShotLoader, ProjectTaskTypeLoader, TaskTypeLoader, ToDoLoader, StartTaskRunner
 from wildchildanimation.gui.swing_utils import connect_to_server
 import gazu
 
@@ -16,7 +16,7 @@ except ImportError:
 class StudioInterface(QtCore.QObject):
 
     NAME = "StudioInterface"
-    VERSION = "0.0.7"    
+    VERSION = "0.0.9"    
 
     def __init__(self):
         super(StudioInterface, self).__init__()
@@ -246,3 +246,7 @@ class StudioInterface(QtCore.QObject):
         user_email = SwingSettings.get_instance().swing_user()
         user = gazu.person.get_person_by_email(user_email)
         return user
+
+    def start_task(self, task_id):
+        startTask = StartTaskRunner(task_id)
+        startTask.run()        

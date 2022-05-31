@@ -131,6 +131,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
         self.toolButtonDownload.clicked.connect(self.download_files)
         self.toolButtonPublish.clicked.connect(self.on_publish)
+        self.toolButtonRenderPub.clicked.connect(self.on_render_pub)
 
         self.toolButtonPlayblast.clicked.connect(self.on_playblast)
         self.toolButtonExport.clicked.connect(self.on_export)
@@ -275,6 +276,10 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.publishTaskAction = self._loadActionIcon("&Publish", "../resources/fa-free/solid/share.svg")
         self.publishTaskAction.setStatusTip("Publish for review")
         self.publishTaskAction.triggered.connect(self.on_publish)
+
+        self.publishTaskAction = self._loadActionIcon("&Render Pub", "../resources/fa-free/solid/upload.svg")
+        self.publishTaskAction.setStatusTip("Encode and upload renders")
+        self.publishTaskAction.triggered.connect(self.on_render_pub)        
 
         self.taskInfoAction = self._loadActionIcon("&Entity Info", "../resources/fa-free/solid/info-circle.svg")
         self.taskInfoAction.setStatusTip("View Entity Entity")
@@ -433,6 +438,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
         self.settings.setValue("size", self.size())
         self.settings.setValue("pos", self.pos())
+        self.settings.setValue("tab", self.tabWidget.currentIndex())        
 
         if self.currentProject:
             self.settings.setValue("last_project", self.currentProject["project_id"])
@@ -462,6 +468,13 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.settings.beginGroup(self.__class__.__name__)
 
         self.resize(self.settings.value("size", QtCore.QSize(400, 400)))
+
+        try:
+            tab = self.settings.value("tab", 0)
+            self.tabWidget.setCurrentIndex(tab)
+        except:
+            pass
+
         #self.move(self.settings.value("pos", QtCore.QPoint(200, 200)))
 
         self.last_project = self.settings.value("last_project")
@@ -640,6 +653,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             self.tableViewTasks.setEnabled(False)
             self.toolButtonNew.setEnabled(False)
             self.toolButtonPublish.setEnabled(False)
+            self.toolButtonRenderPub.setEnabled(False)
             
             ##task_loader.run()
             self.threadpool.start(task_loader)
@@ -940,7 +954,8 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             self.labelTaskTableSelection.setText("Tasks: {} {}".format(self.currentProject["project"], data["episode"]["name"]))
             self.tableViewTasks.setEnabled(True)
             self.toolButtonNew.setEnabled(True)
-            self.toolButtonPublish.setEnabled(True)        
+            self.toolButtonPublish.setEnabled(True)   
+            self.toolButtonRenderPub.setEnabled(True)     
         else:
             self.labelTaskTableSelection.setText("No tasks found for {} {}".format(self.currentProject["project"], data["episode"]["name"]))
 
@@ -1083,7 +1098,12 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         if self.selected_task:        
             project_dir = self.selected_task["project_dir"]            
             self.handler.on_publish(parent = self, task = self.selected_task, project_dir = project_dir, task_types = task_types, status_types = status_types)
- 
+
+    def on_render_pub(self):
+        if self.selected_task:        
+            project_dir = self.selected_task["project_dir"]            
+            self.handler.on_render_pub(parent = self, task = self.selected_task, project_dir = project_dir)
+
     def task_info(self):
         if self.selected_task:
             entity_id = self.selected_task["entity_id"]

@@ -112,6 +112,7 @@ class SwingMayaUI(DockableBase, QtWidgets.QDialog, Ui_SwingControlWidget):
         self.toolButtonExport.clicked.connect(self.on_export)
         self.toolButtonSearch.clicked.connect(self.on_search)
         self.toolButtonEntityInfo.clicked.connect(self.on_entity_info)
+        self.toolButtonUpdate.clicked.connect(self.on_update_scene)
 
         self.comboBoxProject.currentIndexChanged.connect(self.project_changed)
         self.comboBoxEpisode.currentIndexChanged.connect(self.episode_changed)
@@ -136,6 +137,8 @@ class SwingMayaUI(DockableBase, QtWidgets.QDialog, Ui_SwingControlWidget):
         self.toolButtonBreakOut.setEnabled(status)
         self.toolButtonExport.setEnabled(status)
         self.toolButtonSearch.setEnabled(status)
+        self.toolButtonUpdate.setEnabled(status)
+        
         self.toolButtonEntityInfo.setEnabled(status)
 
         self.lineEditSearch.setEnabled(status)                  
@@ -488,3 +491,8 @@ class SwingMayaUI(DockableBase, QtWidgets.QDialog, Ui_SwingControlWidget):
         except:
             self.log_output("on_export:: {}".format("Exception"))
             traceback.print_exc(file=sys.stdout)
+
+    def on_update_scene(self):
+        self.handler.on_update_scene(parent = self)
+    
+

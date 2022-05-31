@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from argparse import SUPPRESS
+from contextlib import suppress
 import os
 import shutil
 
@@ -28,6 +30,32 @@ from datetime import datetime
 
 # ----------------------------------------------------------------------------------------------------------------------------------------------------------------
 class SwingServer(QtCore.QObject):
+
+    SUPPRESS_LINES = [
+        r"Unrecognized node type 'nodeGraphEditorInfo';",
+        r"Unrecognized node type 'Redshift",
+        r'Plug-in, "redshift4maya"',
+        r"Warning: Frame rate mismatch",
+        r"Imported animation keys may not match scene frames and become fractional",
+        r"You must either select the affected nodes or specify them on the command line",
+        r":redshiftOptions.postEffects' already has an incoming connection",
+        r"':defaultArnoldDisplayDriver.message' is already connected",
+        r"Result: Warning: handled a NAN float",
+        r"Errors have occurred while reading this scene that may result in data loss",
+        r"pymel : WARNING : found new MPx classes",
+        r"pymel.core : INFO : Updating pymel with pre-loaded plugins",
+        r"Warning: line 1: filePathEditor: Attribute",
+        r"qt.svg: Cannot open file ':/expression.svg'",
+        r"RuntimeError: file <maya console> line 1: Plug-in",
+        r"Could not find file: aiRectangleAreaLight.xml",
+        r"Errors loading XML",
+        r"Attempting to read fragment XML code from: aiRectangleAreaLight.xml",
+        r"Begin attempted read of a shade fragment XML file",
+        r"###############################################################################",
+        r"-------------------------------------------------------------------------------",
+        r"End attempted read of fragment XML.",
+        r"Warning: file: C:\Users\pniemandt.STUDIO\Documents\maya\2022\prefs\filePathEditorRegistryPrefs.mel"
+    ]
 
     def __init__(self, project_name):
         self.swing_settings = SwingSettings.get_instance()
@@ -122,7 +150,7 @@ class SwingServer(QtCore.QObject):
                 traceback.print_exc(file=sys.stdout)
 
             # sleep 5 mins
-            time.sleep(60 * 5)
+            time.sleep(5 * 60)
 
     def zip_dir(self, path, zipfile):
         for root, dirs, files in os.walk(path):
@@ -141,6 +169,7 @@ class SwingServer(QtCore.QObject):
     def shot_cache_working_files(self, episode_name, working_files, shot_cache_task, completed_status, task_type):
         for item in working_files:
             wf = working_files[item]
+
             if wf["name"].lower().endswith(".ma"):
                 working_file_path = wf["path"]
                 task_name = "{}_".format(task_type["name"].replace("-", "_")).lower()
@@ -160,55 +189,103 @@ class SwingServer(QtCore.QObject):
                 if not os.path.exists(os.path.dirname(working_path)):
                     os.makedirs(os.path.dirname(working_path))
 
+                cache_dir = os.path.join(os.path.dirname(working_path), "cache")                    
+                if os.path.exists(cache_dir):
+                    try:
+                        os.remove(cache_dir)    
+                        write_log("removed old cache dir: {}".format(cache_dir))
+                    except:
+                        write_log("error removing old cache dir: {}".format(cache_dir))                        
+                        print(traceback.format_exc())   
+
+                    target = "{}/{}".format(os.path.dirname(working_path), "shot_cache.zip")
+                    try:
+                        if os.path.exists(target):
+                            os.remove(target)    
+                            write_log("removed old shot_cache: {}".format(target))
+                    except:
+                        write_log("error removing shot_cache: {}".format(target))                        
+                        print(traceback.format_exc())                                            
+
                 shutil.copy2(project_path, working_path)
                 try:
                     # run anim update on the project file
                     command_line = 'Z:\\env\\wca\\swing\\swing-main\\bin\\anim_update.bat'
                     write_log("running: {} {} {} {} {} {}".format(shot_cache_task["project"]["name"], shot_cache_task["episode"]["name"], shot_cache_task["sequence"]["name"], shot_cache_task["entity"]["name"], command_line, item))
 
-                    #with subprocess.Popen([command_line, working_path], stdout=subprocess.PIPE) as proc:
-                    #    print(proc.stdout.read().splitlines())  
+                    time_start = datetime.now()
+                    suppress_count = 0
 
-                    proc = subprocess.Popen([command_line, working_path], shell = True, stderr=subprocess.PIPE)
+                    proc = subprocess.Popen([command_line, working_path], shell = False, stdout=subprocess.PIPE)
                     while True:
-                        output = proc.stderr.read(1)
+                        show_line = True
+                        output = proc.stdout.readline()
+                        # output = proc.stdout.read(1)
                         try:
                             log = output.decode('utf-8')
                             if log == '' and proc.poll() != None:
                                 break
                             else:
-                                sys.stdout.write(log)
+                                for item in SwingServer.SUPPRESS_LINES:
+                                    if item in log:
+                                        suppress_count += 1
+                                        show_line = False
+                                        break
+
+                                if show_line:
+                                    sys.stdout.write(log)
                                 sys.stdout.flush()
                         except:
                             print("Byte Code Error: Ignoring")
                             print(traceback.format_exc())
                         # continue
+
+                    time_end = datetime.now()
+                    try:
+                        write_log("anim update completed in {}, suppressed {} lines of warning".format((time_end - time_start), suppress_count))
+                    except:
+                        print(traceback.format_exc())
+
 
                     # run shot cache on the project file                                          
                     command_line = 'Z:\\env\\wca\\swing\\swing-main\\bin\\shot_cache.bat'
                     write_log("running: {} {} {} {}".format(command_line, working_path, episode_name, task_name))
 
-                    #with subprocess.Popen([command_line, working_path, episode_name, task_name], stdout=subprocess.PIPE) as proc:
-                    #    print(proc.stdout.read().splitlines())
-                    proc = subprocess.Popen([command_line, working_path, episode_name, task_name], shell = True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+                    time_start = datetime.now()     
+                    suppress_count = 0                                   
+
+                    proc = subprocess.Popen([command_line, working_path, episode_name, task_name], shell = False, stdout=subprocess.PIPE)
                     while True:
-                        output = proc.stderr.read(1)
+                        #output = proc.stdout.read(1)
+                        output = proc.stdout.readline()
                         try:
                             log = output.decode('utf-8')
                             if log == '' and proc.poll() != None:
                                 break
                             else:
-                                sys.stdout.write(log)
+                                for item in SwingServer.SUPPRESS_LINES:
+                                    if item in log:
+                                        suppress_count += 1
+                                        show_line = False
+                                        break                                        
+
+                                if show_line:
+                                    sys.stdout.write(log)
                                 sys.stdout.flush()
-                            self.flush_output()
                         except:
                             print("Byte Code Error: Ignoring")
                             print(traceback.format_exc())
                         # continue
-                    write_log("completed: {} {} {} {}".format(command_line, working_path, episode_name, task_name))
+
+                    time_end = datetime.now()
+                    try:
+                        write_log("shot cache completed in {}, suppressed {} lines of warning".format((time_end - time_start), suppress_count))
+                    except:
+                        print(traceback.format_exc())
+
                     self.flush_output()
 
-                    cache_dir = os.path.join(os.path.dirname(working_path), "cache")
+                    time_start = datetime.now()                    
 
                     if os.path.exists(cache_dir):
                         target = "{}/{}".format(os.path.dirname(working_path), "shot_cache.zip")
@@ -217,6 +294,7 @@ class SwingServer(QtCore.QObject):
                             if os.path.exists(target):
                                 os.remove(target)
 
+                            write_log("zipping: {}".format(target))
                             with zipfile.ZipFile(target, 'w', zipfile.ZIP_DEFLATED) as archive:
                                 try:
                                     self.zip_dir(cache_dir, archive)
@@ -231,10 +309,13 @@ class SwingServer(QtCore.QObject):
                         server = SwingSettings.get_instance().swing_server()
                         edit_api = "{}/edit".format(server)  
 
-                        worker = WorkingFileUploader(self, edit_api, shot_cache_task, target, "cache", "Maya", comment="Generated Shot Cache" , mode = "wip", file_model = None, task_status = completed_status["id"], archive_name = "cache.zip")                            
+                        write_log("uploading: {}".format(target))
+                        worker = WorkingFileUploader(self, edit_api, shot_cache_task, target, "cache", "Maya", comment="Generated Shot Cache" , mode = "wip", file_model = None, task_status = completed_status["id"], archive_name = "shot_cache.zip")                            
                         worker.run()
 
-                        write_log("uploaded cache {}".format(target))
+                        time_end = datetime.now()
+                        write_log("zip and uploaded completed in {}".format(time_end - time_start))
+
                         self.flush_output()
                     else:
                         # set task to error
@@ -243,6 +324,7 @@ class SwingServer(QtCore.QObject):
 
 
                     write_log("finished: {} {} {} {} {} {}".format(shot_cache_task["project"]["name"], shot_cache_task["episode"]["name"], shot_cache_task["sequence"]["name"], shot_cache_task["entity"]["name"], command_line, item))
+                    return True
                 except:
                     traceback.print_exc(file=sys.stdout)
                     return False                    
@@ -262,7 +344,6 @@ class SwingServer(QtCore.QObject):
 
         tasks = gazu.task.all_tasks_for_task_type(self.project, self.shot_cache)
 
-
         task_list = []
         for task in tasks:
             if task["id"] not in task_list and task["task_status_id"] == self.export["id"]:
@@ -276,17 +357,9 @@ class SwingServer(QtCore.QObject):
         for task_id in task_list:
             shot_cache_task = gazu.task.get_task(task_id)
 
-            # check if this task is already processing
-            # should_process = True
-
-            #data = shot_cache_task["data"]
-            #if not data:
-            #    data = {}
-            #    data["processing"] = "Busy"
-            #    data["started_at"] = datetime.now()    
-            #    gazu.task.update_task_data(task, data)
-            #else:
-            #    if "processing" in data:
+            if not shot_cache_task["task_status_id"] == self.export["id"]:
+                write_log("skipping task {} not available, task in use or in error".format(shot_cache_task["id"]))
+                continue
 
             shot = gazu.shot.get_shot(shot_cache_task["entity"]["id"])
             episode = gazu.shot.get_episode(shot["episode_id"])
@@ -301,26 +374,31 @@ class SwingServer(QtCore.QObject):
             shot_task = gazu.task.get_task_by_entity(shot, task_type)
             project_files = gazu.files.get_last_working_files(shot_task)
             if len(project_files) > 0:
+                gazu.task.start_task(shot_cache_task)
                 if self.shot_cache_working_files(episode_name, project_files, shot_cache_task, self.final, task_type):
                     continue
+                    # return True
 
             task_type = self.anim_anim
             shot_task = gazu.task.get_task_by_entity(shot, task_type)
             project_files = gazu.files.get_last_working_files(shot_task)
             if len(project_files) > 0:
+                gazu.task.start_task(shot_cache_task)
                 if self.shot_cache_working_files(episode_name, project_files, shot_cache_task, self.wip, task_type):
                     continue
+                    #return True
 
             task_type = self.anim_block
             shot_task = gazu.task.get_task_by_entity(shot, task_type)
             project_files = gazu.files.get_last_working_files(shot_task)
             if len(project_files) > 0:
                 if self.shot_cache_working_files(episode_name, project_files, shot_cache_task, self.wip, task_type):
+                    gazu.task.start_task(shot_cache_task)
                     continue
+                    #return True
 
             write_log("process::{} {} {} {} {} ({})".format(self.project_name, shot["episode_name"], shot["sequence_name"], shot["name"], self.export["name"], len(project_files)))    
             self.flush_output() 
-
 
         write_log("process::done")       
 

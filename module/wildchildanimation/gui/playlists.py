@@ -477,16 +477,21 @@ class PlaylistDialog(QtWidgets.QDialog, Ui_PlaylistDialog):
 
 class PlaylistModel(QtCore.QAbstractTableModel):
 
-    COLUMNS = ["", "Shot", "Task", "v", "File Name", "Updated", "Status" ]
+    COLUMNS = ["", "Shot", "Task", "v", "Frames", "In", "Out", "File Name", "Updated", "Status" ]
     items = []
 
     COL_SELECT = 0
     COL_SHOT = 1
-    COL_TASK = 2
-    COL_VERSION = 3
-    COL_NAME = 4
-    COL_UPDATED = 5
-    COL_STATUS = 6
+    COL_TASK = 2        
+    COL_VERSION = 3    
+
+    COL_FRAMES = 4
+    COL_IN = 5
+    COL_OUT = 6
+
+    COL_NAME = 7
+    COL_UPDATED = 8
+    COL_STATUS = 9
 
     def __init__(self, data, task_types, parent = None, mode = "show_all", sequences = False):
         super(PlaylistModel, self).__init__(parent)
@@ -680,6 +685,17 @@ class PlaylistModel(QtCore.QAbstractTableModel):
 
         elif PlaylistModel.COL_TASK == col_index:
             return item["name"]
+
+        elif PlaylistModel.COL_FRAMES == col_index:
+            return item["nb_frames"]
+
+        elif PlaylistModel.COL_IN == col_index:
+            if item["data"] and "frame_in" in item["data"]:
+                return item["data"]["frame_in"]
+
+        elif PlaylistModel.COL_OUT == col_index:
+            if item["data"] and "frame_out" in item["data"]:
+                return item["data"]["frame_out"]                                    
 
         elif PlaylistModel.COL_VERSION == col_index:
             return item["version"]            

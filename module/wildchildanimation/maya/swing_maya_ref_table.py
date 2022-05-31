@@ -70,9 +70,9 @@ class RefTableModel(QtCore.QAbstractTableModel):
                 else:
                     return None
 
-            elif col == RefTableModel.COL_UPDATED_AT:
+            elif col == RefTableModel.COL_COMMENTS:
                 if item["update"]:
-                    return item["update"]["comments"]
+                    return item["update"]["comment"]
                 else:
                     return None                    
         return None   
@@ -94,7 +94,7 @@ class RefTableModel(QtCore.QAbstractTableModel):
         if col == RefTableModel.COL_SELECTED:
             return QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsEnabled            
 
-        return QtCore.Qt.ItemIsEnabled                   
+        return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable                  
 
 class RefTableDialog(QtWidgets.QDialog, Ui_ShotTableDialog):
 
@@ -103,9 +103,11 @@ class RefTableDialog(QtWidgets.QDialog, Ui_ShotTableDialog):
 
         ##shot_list = list(filter(lambda x: ('witw_' in x["name"]), shot_list)) 
         self.setupUi(self)
-        self.setModal(True)
+        ## self.setModal(True)
+        self.setMinimumSize(QtCore.QSize(640, 480))
+        self.read_settings()   
 
-        self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
+        ## self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
         self.setWindowTitle("swing::update references")
 
         self.model = RefTableModel(parent, ref_list)
@@ -138,12 +140,30 @@ class RefTableDialog(QtWidgets.QDialog, Ui_ShotTableDialog):
         # self.tableView.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
 #tableViewPowerDegree->verticalHeader()->setDefaultSectionSize(tableViewPowerDegree->verticalHeader()->minimumSectionSize());
 
-        self.status = 'OK'
+        self.status = 'Cancel'
 
         self.buttonClear.clicked.connect(self.select_none)
         self.buttonAll.clicked.connect(self.select_all)
         self.buttonCancel.clicked.connect(self.cancel_dialog)
         self.buttonOk.clicked.connect(self.close_dialog)
+
+    # save main dialog state
+    def write_settings(self):
+        self.settings = QtCore.QSettings()
+
+        self.settings.beginGroup(self.__class__.__name__)
+        self.settings.setValue("size", self.size())
+        self.settings.endGroup()        
+
+    # load main dialog state
+    def read_settings(self):
+        self.settings = QtCore.QSettings()
+        self.settings.beginGroup(self.__class__.__name__)
+        
+        self.resize(self.settings.value("size", QtCore.QSize(480, 520)))
+
+        # self.move(self.settings.value("pos", QtCore.QPoint(0, 200)))
+        self.settings.endGroup()            
 
     def is_all_selected(self):
         all_selected = True
@@ -169,9 +189,11 @@ class RefTableDialog(QtWidgets.QDialog, Ui_ShotTableDialog):
         return selected
 
     def close_dialog(self):
+        self.write_settings()        
         self.status = 'OK'
         self.close()
 
     def cancel_dialog(self):
+        self.write_settings()        
         self.status = 'Cancel'
         self.close()                    

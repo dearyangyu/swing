@@ -1,0 +1,5 @@
+imath==0.0.2
+numpy==1.22.3
+OpenEXR @ file:///Z:/env/wca/env/Scripts/OpenEXR-1.3.8-cp39-cp39-win_amd64.whl
+Pillow==9.1.0
+

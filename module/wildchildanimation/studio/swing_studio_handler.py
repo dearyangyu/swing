@@ -5,6 +5,8 @@ import platform
 import sys
 import traceback
 
+from wildchildanimation.gui.swing_render_submit import SwingRenderSubmitDialog
+
 from wildchildanimation.gui.breakout import BreakoutUploadDialog
 from wildchildanimation.gui.downloads import DownloadDialogGUI
 from wildchildanimation.gui.loader import LoaderDialogGUI
@@ -32,7 +34,7 @@ except ImportError:
 class SwingStudioHandler(StudioInterface):
 
     NAME = "SwingStudioHandler"
-    VERSION = "0.0.6"      
+    VERSION = "0.0.8"      
 
     def __init__(self):
         super(SwingStudioHandler, self).__init__()
@@ -97,6 +99,15 @@ class SwingStudioHandler(StudioInterface):
                 self.publishDialog.set_output_dir(project_dir)
 
         self.publishDialog.show()
+
+    def on_render_pub(self, **kwargs):
+        parent = kwargs["parent"]
+        task = kwargs["task"] 
+        project_dir = kwargs["project_dir"]
+
+        self.renderPubDialog = SwingRenderSubmitDialog(parent = parent, task = task)
+        self.renderPubDialog.set_working_dir(project_dir)
+        self.renderPubDialog.show()
 
 
     def on_load(self, **kwargs):

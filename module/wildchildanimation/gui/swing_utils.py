@@ -361,4 +361,39 @@ def external_extract(program, archive, directory, extract_mode = "x" ):
         # extract all items in 64bit
     # open zip file in read binary
 
+def external_compress(program, archive, directory, compress_level = "-mx0" ):
+    try:
+        ## 7za a -t7z files.7z *.txt
+        #drive_name = directory[:1]
+        #os.chdir("{}:".format(drive_name))
+        cwd = os.getcwd()
+        try:
+            os.chdir(directory)
+            # proc = subprocess.Popen(cmd, shell = True, stderr=subprocess.PIPE)
+            proc = subprocess.Popen([program, "a", archive, "{}/*.exr".format(directory), compress_level], shell = True, stderr=subprocess.PIPE)
+
+            while True:
+                output = proc.stderr.read(1)
+                try:
+                    log = output.decode('utf-8')
+                    if log == '' and proc.poll() != None:
+                        break
+                    else:
+                        sys.stdout.write(log)
+                        sys.stdout.flush()
+                except:
+                    print("Byte Code Error: Ignoring")
+                    print(traceback.format_exc())
+                # continue
+        except:
+            print(traceback.format_exc())
+        finally:
+            os.chdir(cwd)        
+
+        # print("{} {} {} {} {}/*.exr".format(program, "a", compress_level, archive, directory))
+        return True
+    except:
+        traceback.print_exc(file=sys.stdout)
+        return False    
+
 ## zip_directory("C:/Work/testdir")

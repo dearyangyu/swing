@@ -163,16 +163,20 @@ class BreakoutUploadDialog(QtWidgets.QDialog, Ui_BreakoutUploadDialog):
             if item["nb_frames"]:
                 nb_frames = int(item["nb_frames"])
 
-                item["in"] = str(start_frame)
+                item["in"] = str("0")
+                item["out"] = str(nb_frames - 1)
+
+
+                ## item["in"] = str(start_frame)
 
                 # zero indexed
-                start_frame += nb_frames - 1
+                ##start_frame += nb_frames - 1
 
-                if handles:
-                    start_frame += handle_count
+                ##if handles:
+                ##    start_frame += handle_count
                     
-                item["out"] = str(start_frame)
-                start_frame += 1                
+                ##item["out"] = str(start_frame)
+                ##start_frame += 1                
 
         self.model.layoutChanged.emit()
                 

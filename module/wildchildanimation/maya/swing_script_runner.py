@@ -51,7 +51,7 @@ class SwingScriptRunner():
         return False           
 
     def anim_export(self):
-        script_name = 'anim_export_v0_11.mel'
+        script_name = 'server_export_v0_1.mel'
         method = 'animExport'
 
         write_log("script_runner '{}' '{}'".format(script_name, method))
@@ -62,9 +62,9 @@ class SwingScriptRunner():
             write_log("Sourcing mel script: {}".format(mel_command))
             mel.eval(mel_command)
 
-            mel_command = 'animExport("{}", "{}")'.format(self.episode_name, self.task_name)
-            write_log("Exec mel method: {}".format(mel_command))
-            mel.eval(mel_command)
+            #mel_command = 'animExport("{}", "{}")'.format(self.episode_name, self.task_name)
+            #write_log("Exec mel method: {}".format(mel_command))
+            #mel.eval(mel_command)
 
             return True
         except:

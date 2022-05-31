@@ -93,7 +93,7 @@ class UploadMonitorDialog(QtWidgets.QDialog, Ui_UploadMonitorDialog):
         self.task = task
 
     def file_loading(self, results):
-        print("file loading: {}".format(results))
+        ## print("file loading: {}".format(results))
 
         message = results["message"]
         source = results["source"]     
@@ -106,7 +106,7 @@ class UploadMonitorDialog(QtWidgets.QDialog, Ui_UploadMonitorDialog):
 
     def file_loaded(self, results):
         upload_index = self.progressBar.value()
-        print("file_loaded {}: {} {} {} {}".format(len(self.queue), results['status'], upload_index, results['source'], results['message']))
+        ## print("file_loaded {}: {} {} {} {}".format(len(self.queue), results['status'], upload_index, results['source'], results['message']))
 
         status = results["status"]
 

@@ -18,7 +18,7 @@ class Ui_SwingMain(object):
     def setupUi(self, SwingMain):
         if not SwingMain.objectName():
             SwingMain.setObjectName(u"SwingMain")
-        SwingMain.resize(668, 491)
+        SwingMain.resize(700, 491)
         SwingMain.setSizeGripEnabled(True)
         self.verticalLayout = QVBoxLayout(SwingMain)
         self.verticalLayout.setObjectName(u"verticalLayout")
@@ -242,6 +242,12 @@ class Ui_SwingMain(object):
 
         self.horizontalLayout_4.addWidget(self.toolButtonPublish)
 
+        self.toolButtonRenderPub = QToolButton(self.tabTasks)
+        self.toolButtonRenderPub.setObjectName(u"toolButtonRenderPub")
+        self.toolButtonRenderPub.setEnabled(False)
+
+        self.horizontalLayout_4.addWidget(self.toolButtonRenderPub)
+
         self.horizontalSpacer_2 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
         self.horizontalLayout_4.addItem(self.horizontalSpacer_2)
@@ -402,7 +408,7 @@ class Ui_SwingMain(object):
 
         self.retranslateUi(SwingMain)
 
-        self.tabWidget.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(0)
 
 
         QMetaObject.connectSlotsByName(SwingMain)
@@ -477,6 +483,7 @@ class Ui_SwingMain(object):
 #if QT_CONFIG(shortcut)
         self.toolButtonPublish.setShortcut(fakestr(u"Alt+P", None))
 #endif // QT_CONFIG(shortcut)
+        self.toolButtonRenderPub.setText(fakestr(u"Render Pub", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabTasks), fakestr(u"Tasks", None))
         self.labelFileTableSelection.setText(fakestr(u"Files for selection", None))
 #if QT_CONFIG(tooltip)

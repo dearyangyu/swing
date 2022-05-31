@@ -1377,3 +1377,15 @@ class WorkingFileGetLatestLoader(QtCore.QRunnable):
 
         self.callback.loaded.emit(results)                        
         return results              
+
+
+class StartTaskRunner(QtCore.QRunnable):
+
+    def __init__(self, task_id):
+        super(StartTaskRunner, self).__init__(self)
+        self.settings = SwingSettings.get_instance()
+        self.task_id = task_id
+
+    def run(self):
+        gazu.task.start_task(self.task_id)
+        return True 

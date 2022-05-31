@@ -53,7 +53,7 @@ class MayaReferenceUpdater(SwingMaya):
 
     def load_maya_references(self):
         refs = []
-        for ref in pm.listReferences(recursive=True):
+        for ref in pm.listReferences(recursive=False):
 
             # returns a list of FileReferences
             refs.append(ref) 
@@ -61,75 +61,96 @@ class MayaReferenceUpdater(SwingMaya):
         return refs
 
     def list_reference_updates(self):
+        file_list = []
         ref_updates = []
 
         self.connect_to_server()
-
-
         for ref in self.load_maya_references():
             try:
                 filename = ntpath.basename(ref.path)
+                if not filename in file_list:
+                    loader = WorkingFileGetLatestLoader(filename)
+                    check_ref = loader.run()
 
-                loader = WorkingFileGetLatestLoader(filename)
-                check_ref = loader.run()
+                    if check_ref is None or len(check_ref) == 0:
+                        reference = {
+                            "ref": ref,
+                            "update": None
+                        }
 
-                if check_ref is None or len(check_ref) == 0:
-                    reference = {
-                        "ref": ref,
-                        "update": None
-                    }
+                    else:
+                        working_file = gazu.files.get_working_file(check_ref[0])
+                        reference = {
+                            "ref": ref,
+                            "update": working_file
+                        }
 
-                else:
-                    working_file = gazu.files.get_working_file(check_ref[0])
-                    reference = {
-                        "ref": ref,
-                        "update": working_file
-                    }
-                ref_updates.append(reference)
+                    if not reference in ref_updates:
+                        ref_updates.append(reference)
+
+                    file_list.append(filename)
+
             except:
                 traceback.print_exc(file=sys.stdout)    
 
         return ref_updates
 
     def update_references(self, show_gui = True):
-        self.log_output("update_references")  
+        log_file = os.path.join(self.get_scene_path(), "swing_update.log")
 
-        ref_list = self.list_reference_updates()
-        self.log_output("update_references {} refs".format(len(ref_list)))  
+        if os.path.exists(log_file) and os.path.isfile(log_file):
+            logger = open(log_file, 'a') 
+        else:
+            logger = open(log_file, 'w')
 
-        if show_gui:
-            self.log_output("update_references: show_gui")  
-
-            # def __init__(self, parent = None, ref_list = []):
-            dialog = RefTableDialog(ref_list = ref_list)
-            dialog.exec()
-
-            if dialog.status == 'OK':
-                self.log_output("update_references: updating references")  
-                ref_list = dialog.get_selected()
-            else:
-                self.log_output("update_references: cancel")  
-                return False
-
-        ## check and update references
-        self.log_output("list_reference_updates: open Undo")  
-        cmds.undoInfo(state=True, infinity=True)
         try:
-            for item in ref_list:
-                if item["update"]:
-                    ref_update = os.path.join(item["update"]["path"], item["update"]["name"])
-                    ref_update = ref_update.replace("/mnt/content/productions", "Z://productions")
+            self.log_output("update_references")  
 
-                    self.log_output("Updating {} to {}".format(item["ref"].path, ref_update))
+            ref_list = self.list_reference_updates()
+            self.log_output("update_references {} refs".format(len(ref_list)))  
 
-                    try:
-                        item["ref"].replaceWith(ref_update)
-                    except:
-                        traceback.print_exc(file=sys.stdout)                        
-                    
+            if show_gui:
+                self.log_output("update_references: show_gui")  
+
+                # def __init__(self, parent = None, ref_list = []):
+                dialog = RefTableDialog(ref_list = ref_list)
+                dialog.exec()
+
+                if dialog.status == 'OK':
+                    self.log_output("update_references: updating references")  
+                    ref_list = dialog.get_selected()
+                else:
+                    self.log_output("update_references: cancel")  
+                    return False
+
+            ## check and update references
+            self.log_output("list_reference_updates: open Undo")  
+            cmds.undoInfo(state=True, infinity=True)
+            try:
+                for item in ref_list:
+                    if item["update"]:
+                        ref_update = os.path.join(item["update"]["path"], item["update"]["name"])
+                        ref_update = ref_update.replace("/mnt/content/productions", "Z://productions")
+
+                        ref_target = item["ref"].path
+
+                        self.log_output("Updating {} to {}".format(ref_target, ref_update))
+
+                        try:
+                            item["ref"].replaceWith(ref_update)
+                            logger.write("{} updated with {}\n".format(ref_target, ref_update))
+                        except:
+                            traceback.print_exc(file=sys.stdout)                        
+                            logger.write("ERROR: Could not update updated {}\n".format(ref_target))
+                        
+            finally:
+                cmds.undoInfo(closeChunk=True)
+                self.log_output("update_refs: close Undo")  
+
+            self.log_output("update_refs: done")                  
+
         finally:
-            cmds.undoInfo(closeChunk=True)
-            self.log_output("update_refs: close Undo")  
+            logger.flush()
+            logger.close()
 
-        self.log_output("update_refs: done")                  
         return True
