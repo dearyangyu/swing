@@ -831,32 +831,23 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
             self.log_error("reset_workspace_control")               
 
     def cleanup_scene(self):
-        self.log_output("cleanup_scene: cleaning ...")
 
         # Deleting unkown nodes and plugin
-        items = cmds.ls(type="unknown")
-        if items: 
-            for node in items:
+        unknownNodes = cmds.ls(type="unknown")
+        for node in unknownNodes:
+            print("Deleting {}".format(node))
+            try:
                 cmds.lockNode(node, lock=0)
+            except:
+                self.log_output("Node {} not locked or not exist".format(node))
+            if cmds.objExists(node):
                 cmds.delete(node)
 
-                self.log_output("clean_unknown_nodes - deleted {}".format(node))
-
-        # Delete all controller tags
-        ##items = cmds.ls(type='controller')
-        ##if items:
-        ##    for node in items:
-        ##        cmds.delete(node)
-        ##
-        ##        self.log_output("clean_unknown_nodes - deleted controller {}".format(node))
-
-        # Delete all unknown plugins
-        items = cmds.unknownPlugin(query=1, list=1)
-        if items:
-            for node in items:
-                cmds.unknownPlugin(node, remove=1)      
-
-                self.log_output("clean_unknown_nodes - removed plugin {}".format(node))
+        unknownPlugins = cmds.unknownPlugin(query=1, list=1)
+        if unknownPlugins:
+            for plugin in unknownPlugins:
+                self.log_output("Removing {}".format(plugin))
+                cmds.unknownPlugin(plugin, remove=1)
 
         self.log_output("cleanup_scene: done")
 
@@ -864,7 +855,6 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
         updater = MayaReferenceUpdater()
         updater.update_references(show_gui = True)    
 
-    
 
 '''
         # exports current selected

@@ -95,7 +95,7 @@ class MayaReferenceUpdater(SwingMaya):
 
         return ref_updates
 
-    def update_references(self, show_gui = True):
+    def update_references(self, show_gui = True, rigs_only = False):
         log_file = os.path.join(self.get_scene_path(), "swing_update.log")
 
         if os.path.exists(log_file) and os.path.isfile(log_file):
@@ -128,6 +128,9 @@ class MayaReferenceUpdater(SwingMaya):
             cmds.undoInfo(state=True, infinity=True)
             try:
                 for item in ref_list:
+                    # if rigs_only:
+                    #    print()
+
                     if item["update"]:
                         ref_update = os.path.join(item["update"]["path"], item["update"]["name"])
                         ref_update = ref_update.replace("/mnt/content/productions", "Z://productions")

@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-from argparse import SUPPRESS
-from contextlib import suppress
 import os
 import shutil
 
@@ -63,6 +61,7 @@ class SwingServer(QtCore.QObject):
         self.connected = False
         self.gazu_client = None
         self.running = False    
+        self.log = []
 
     def connect_to_server(self): 
         if self.connected and self.gazu_client:
@@ -161,12 +160,24 @@ class SwingServer(QtCore.QObject):
         write_log("removing dir {}".format(dir))
         shutil.rmtree(dir)
 
+    def server_log(self, text):
+        log = "{} swing: ".format(datetime.now().strftime("%Y/%m/%d %H:%M:%S.%f"))
+        log += " {}".format(text)
+
+        self.log.append(log.strip())          
+        print(log)              
+
     # scan through project working files, if task type found, call anim-export on it
     # will first download project file to local working dir
     # will then run anim_update on the project
     # will run anim_export passing in the project_name to strip from file name
     # lastly will zip and upload cache to kitsu
     def shot_cache_working_files(self, episode_name, working_files, shot_cache_task, completed_status, task_type):
+        SUPPRESS_LINES = True
+
+        self.log = []
+        self.server_log("Exporting {}".format(episode_name))
+
         for item in working_files:
             wf = working_files[item]
 
@@ -181,9 +192,14 @@ class SwingServer(QtCore.QObject):
 
                 project_path = os.path.normpath(wf.replace("/mnt/content/productions", "Z://productions"))
 
+                self.server_log("Exporting {}".format(project_path))
+
+
                 if not os.path.exists(project_path) and os.path.isfile(project_path):
-                    write_log("error: file not found: {}".format(project_path))
+                    self.server_log("error: file not found: {}".format(project_path))
                     continue
+
+                #
 
                 working_path = os.path.normpath(project_path.replace("Z:\\productions", self.swing_root))
                 if not os.path.exists(os.path.dirname(working_path)):
@@ -193,25 +209,25 @@ class SwingServer(QtCore.QObject):
                 if os.path.exists(cache_dir):
                     try:
                         os.remove(cache_dir)    
-                        write_log("removed old cache dir: {}".format(cache_dir))
+                        self.server_log("removed old cache dir: {}".format(cache_dir))
                     except:
-                        write_log("error removing old cache dir: {}".format(cache_dir))                        
+                        self.server_log("error removing old cache dir: {}".format(cache_dir))                        
                         print(traceback.format_exc())   
 
                     target = "{}/{}".format(os.path.dirname(working_path), "shot_cache.zip")
                     try:
                         if os.path.exists(target):
                             os.remove(target)    
-                            write_log("removed old shot_cache: {}".format(target))
+                            self.server_log("removed old shot_cache: {}".format(target))
                     except:
-                        write_log("error removing shot_cache: {}".format(target))                        
+                        self.server_log("error removing shot_cache: {}".format(target))                        
                         print(traceback.format_exc())                                            
 
                 shutil.copy2(project_path, working_path)
                 try:
                     # run anim update on the project file
                     command_line = 'Z:\\env\\wca\\swing\\swing-main\\bin\\anim_update.bat'
-                    write_log("running: {} {} {} {} {} {}".format(shot_cache_task["project"]["name"], shot_cache_task["episode"]["name"], shot_cache_task["sequence"]["name"], shot_cache_task["entity"]["name"], command_line, item))
+                    self.server_log("running: {} {} {} {} {} {}".format(shot_cache_task["project"]["name"], shot_cache_task["episode"]["name"], shot_cache_task["sequence"]["name"], shot_cache_task["entity"]["name"], command_line, item))
 
                     time_start = datetime.now()
                     suppress_count = 0
@@ -226,30 +242,35 @@ class SwingServer(QtCore.QObject):
                             if log == '' and proc.poll() != None:
                                 break
                             else:
-                                for item in SwingServer.SUPPRESS_LINES:
-                                    if item in log:
-                                        suppress_count += 1
-                                        show_line = False
-                                        break
+                                if SUPPRESS_LINES: 
+                                    for item in SwingServer.SUPPRESS_LINES:
+                                        if item in log:
+                                            suppress_count += 1
+                                            show_line = False
+                                            break
 
                                 if show_line:
-                                    sys.stdout.write(log)
+                                    # sys.stdout.write(log)
+                                    log = log.strip()
+                                    if log != '':
+                                        self.server_log(log)
+
                                 sys.stdout.flush()
                         except:
-                            print("Byte Code Error: Ignoring")
+                            self.server_log("Byte Code Error: Ignoring")
                             print(traceback.format_exc())
                         # continue
 
                     time_end = datetime.now()
                     try:
-                        write_log("anim update completed in {}, suppressed {} lines of warning".format((time_end - time_start), suppress_count))
+                        self.server_log("anim update completed in {}, suppressed {} lines of warning".format((time_end - time_start), suppress_count))
                     except:
                         print(traceback.format_exc())
 
 
                     # run shot cache on the project file                                          
                     command_line = 'Z:\\env\\wca\\swing\\swing-main\\bin\\shot_cache.bat'
-                    write_log("running: {} {} {} {}".format(command_line, working_path, episode_name, task_name))
+                    self.server_log("running: {} {} {} {}".format(command_line, working_path, episode_name, task_name))
 
                     time_start = datetime.now()     
                     suppress_count = 0                                   
@@ -263,27 +284,37 @@ class SwingServer(QtCore.QObject):
                             if log == '' and proc.poll() != None:
                                 break
                             else:
-                                for item in SwingServer.SUPPRESS_LINES:
-                                    if item in log:
-                                        suppress_count += 1
-                                        show_line = False
-                                        break                                        
+                                if SUPPRESS_LINES: 
+                                    for item in SwingServer.SUPPRESS_LINES:
+                                        if item in log:
+                                            suppress_count += 1
+                                            show_line = False
+                                            break                                        
 
                                 if show_line:
-                                    sys.stdout.write(log)
+                                    # sys.stdout.write(log)
+                                    log = log.strip()
+                                    if log != '':
+                                        self.server_log(log)
                                 sys.stdout.flush()
                         except:
-                            print("Byte Code Error: Ignoring")
+                            self.server_log("Byte Code Error: Ignoring")
                             print(traceback.format_exc())
                         # continue
 
                     time_end = datetime.now()
                     try:
-                        write_log("shot cache completed in {}, suppressed {} lines of warning".format((time_end - time_start), suppress_count))
+                        self.server_log("shot cache completed in {}, suppressed {} lines of warning".format((time_end - time_start), suppress_count))
                     except:
                         print(traceback.format_exc())
 
                     self.flush_output()
+
+                    log_out = os.path.join(os.path.dirname(working_path), "cache", "swing_export.log")
+                    with open(log_out, 'w') as f:
+                        for item in self.log:
+                            f.write("%s\n" % item.strip())
+                    f.close()
 
                     time_start = datetime.now()                    
 
@@ -294,7 +325,7 @@ class SwingServer(QtCore.QObject):
                             if os.path.exists(target):
                                 os.remove(target)
 
-                            write_log("zipping: {}".format(target))
+                            self.server_log("zipping: {}".format(target))
                             with zipfile.ZipFile(target, 'w', zipfile.ZIP_DEFLATED) as archive:
                                 try:
                                     self.zip_dir(cache_dir, archive)
@@ -309,12 +340,12 @@ class SwingServer(QtCore.QObject):
                         server = SwingSettings.get_instance().swing_server()
                         edit_api = "{}/edit".format(server)  
 
-                        write_log("uploading: {}".format(target))
+                        self.server_log("uploading: {}".format(target))
                         worker = WorkingFileUploader(self, edit_api, shot_cache_task, target, "cache", "Maya", comment="Generated Shot Cache" , mode = "wip", file_model = None, task_status = completed_status["id"], archive_name = "shot_cache.zip")                            
                         worker.run()
 
                         time_end = datetime.now()
-                        write_log("zip and uploaded completed in {}".format(time_end - time_start))
+                        self.server_log("zip and uploaded completed in {}".format(time_end - time_start))
 
                         self.flush_output()
                     else:
@@ -323,7 +354,9 @@ class SwingServer(QtCore.QObject):
                         gazu.task.add_comment(shot_cache_task, self.review, comment_text)
 
 
-                    write_log("finished: {} {} {} {} {} {}".format(shot_cache_task["project"]["name"], shot_cache_task["episode"]["name"], shot_cache_task["sequence"]["name"], shot_cache_task["entity"]["name"], command_line, item))
+                    self.server_log("finished: {} {} {} {} {} {}".format(shot_cache_task["project"]["name"], shot_cache_task["episode"]["name"], shot_cache_task["sequence"]["name"], shot_cache_task["entity"]["name"], command_line, item))
+                    self.server_log("******************************************************************************************")
+                   
                     return True
                 except:
                     traceback.print_exc(file=sys.stdout)
@@ -354,6 +387,7 @@ class SwingServer(QtCore.QObject):
         ##task_list = [ task_id ]
 
         write_log("process::checking {} for {} shots".format(self.shot_cache["name"].lower(), len(task_list)))
+        write_log(r"**************************************************")
         for task_id in task_list:
             shot_cache_task = gazu.task.get_task(task_id)
 
