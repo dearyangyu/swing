@@ -34,7 +34,7 @@ class SwingSettings(QtCore.QObject):
 
     _APP_NAME = "treehouse: swing"
     _APP_SHORTNAME = "swing"
-    _APP_VERSION = "0.0.0.30"
+    _APP_VERSION = "0.0.0.31"
     _APP_DESCRIPTION = "treehouse: swing"    
     _CONNECTIONS_FILE = "Z:/env/wca/swing/swing-main/swing_connections.json" 
 
@@ -76,9 +76,10 @@ class SwingSettings(QtCore.QObject):
     def load_settings(self):
         self._swing_password = load_keyring('swing', 'password', 'Not A Password')
 
-        write_log("Loading connections {}".format(SwingSettings._CONNECTIONS_FILE))
+
         if not os.path.exists(SwingSettings._CONNECTIONS_FILE):
             SwingSettings._CONNECTIONS_FILE = os.path.abspath(os.path.join(sys.path[0], "../../../", "swing_connections.json")) 
+        write_log("Loading connections {}".format(SwingSettings._CONNECTIONS_FILE))
 
         with open(SwingSettings._CONNECTIONS_FILE, 'r') as json_file:
             self._connections = json.load(json_file)  
