@@ -249,11 +249,21 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
 
             self.textEditShotInfo.setText(self.shot["description"])
 
-            self.lineEditFrameIn.setText(self.shot["frame_in"])
-            self.lineEditFrameIn.setEnabled(False)
+            if "data" in self.shot:
+                shot_data = self.shot["data"]
+                if "frame_in" in shot_data:
+                    self.lineEditFrameIn.setText(F'{shot_data["frame_in"]}')
+                self.lineEditFrameIn.setEnabled(False)
 
-            self.lineEditFrameOut.setText(self.shot["frame_out"])
+                if "frame_out" in shot_data:
+                    self.lineEditFrameOut.setText(F'{shot_data["frame_out"]}')
+
             self.lineEditFrameOut.setEnabled(False)            
+
+            #self.lineEditFrameIn.setText(self.shot["frame_in"])
+            #self.lineEditFrameIn.setEnabled(False)
+            #self.lineEditFrameOut.setText(self.shot["frame_out"])
+            #self.lineEditFrameOut.setEnabled(False)            
 
             if self.shot["nb_frames"] and self.shot["nb_frames"] > 0:
                 text = "{} frames".format(self.shot["nb_frames"])
