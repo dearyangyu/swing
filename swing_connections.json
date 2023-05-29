@@ -1,5 +1,5 @@
 [
-	{"url": "https://production.wildchildanimation.com" }, 
-	{"url": "https://roadrunner.wildchildanimation.com"},
-	{"url": "https://coyote.wildchildanimation.com"}
+	{"url": "https://production.wildchildanimation.com", "shared_folder": "", "site": "remote"}, 
+	{"url": "https://roadrunner.wildchildanimation.com", "shared_folder": "", "site": "remote"},
+	{"url": "https://coyote.wildchildanimation.com", "shared_folder": "", "site": "remote"}
 ]
