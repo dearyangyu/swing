@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-
-import traceback
-import sys
 import os
 import json
 
@@ -16,8 +13,6 @@ except ImportError:
     from PyQt5 import QtCore, QtWidgets
     import sip
     qtMode = 1
-
-from datetime import datetime
 
 from wildchildanimation.gui.swing_utils import *
 from wildchildanimation.gui.breakout_upload_dialog import Ui_BreakoutUploadDialog

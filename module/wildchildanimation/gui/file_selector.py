@@ -1,12 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import traceback
 import sys
 import os
-import glob
-import subprocess
-import zipfile 
-
 
 # ==== auto Qt load ====
 try:
@@ -39,15 +34,15 @@ class FileExcludeWalker(QtCore.QRunnable):
         for root, dirs, files in os.walk(self.root, topdown=False):
             for name in files:
                 if any(name.endswith(ext) for ext in self.exclude):
-                    results.append({'path': os.path.join(root, name), 'selected': QtCore.Qt.Unchecked, 'timestamp': os.path.getmtime(os.path.join(root, name))})
+                    results.append({'path': os.path.normpath(os.path.join(root, name)), 'selected': QtCore.Qt.Unchecked, 'timestamp': os.path.getmtime(os.path.join(root, name))})
                 else:
-                    results.append({'path': os.path.join(root, name), 'selected': QtCore.Qt.Checked, 'timestamp': os.path.getmtime(os.path.join(root, name))})
+                    results.append({'path': os.path.normpath(os.path.join(root, name)), 'selected': QtCore.Qt.Checked, 'timestamp': os.path.getmtime(os.path.join(root, name))})
 
             for name in dirs:
                 if any(name.endswith(ext) for ext in self.exclude):
-                    results.append({'path': os.path.join(root, name), 'selected': QtCore.Qt.Unchecked, 'timestamp': os.path.getmtime(os.path.join(root, name))})
+                    results.append({'path': os.path.normpath(os.path.join(root, name)), 'selected': QtCore.Qt.Unchecked, 'timestamp': os.path.getmtime(os.path.join(root, name))})
                 else:
-                    results.append({'path': os.path.join(root, name), 'selected': QtCore.Qt.Checked, 'timestamp': os.path.getmtime(os.path.join(root, name))})
+                    results.append({'path': os.path.normpath(os.path.join(root, name)), 'selected': QtCore.Qt.Checked, 'timestamp': os.path.getmtime(os.path.join(root, name))})
 
         self.callback.walked.emit(results)                        
         return results    
@@ -65,18 +60,18 @@ class FileIncludeWalker(QtCore.QRunnable):
         for root, dirs, files in os.walk(self.root, topdown=False):
             for name in files:
                 if any(name.endswith(ext) for ext in self.include):
-                    results.append({'path': os.path.join(root, name), 'selected': QtCore.Qt.Checked, 'timestamp': os.path.getmtime(os.path.join(root, name))})
+                    results.append({'path': os.path.normpath(os.path.join(root, name)), 'selected': QtCore.Qt.Checked, 'timestamp': os.path.getmtime(os.path.join(root, name))})
 
                 elif any(name in item for item in self.include):
-                    results.append({'path': os.path.join(root, name), 'selected': QtCore.Qt.Checked, 'timestamp': os.path.getmtime(os.path.join(root, name))})
+                    results.append({'path': os.path.normpath(os.path.join(root, name)), 'selected': QtCore.Qt.Checked, 'timestamp': os.path.getmtime(os.path.join(root, name))})
                 else:
-                    results.append({'path': os.path.join(root, name), 'selected': QtCore.Qt.Unchecked, 'timestamp': os.path.getmtime(os.path.join(root, name))})
+                    results.append({'path': os.path.normpath(os.path.join(root, name)), 'selected': QtCore.Qt.Unchecked, 'timestamp': os.path.getmtime(os.path.join(root, name))})
                     
             for name in dirs:
                 if any(name.endswith(ext) for ext in self.include):
-                    results.append({'path': os.path.join(root, name), 'selected': QtCore.Qt.Checked, 'timestamp': os.path.getmtime(os.path.join(root, name))})
+                    results.append({'path': os.path.normpath(os.path.join(root, name)), 'selected': QtCore.Qt.Checked, 'timestamp': os.path.getmtime(os.path.join(root, name))})
                 else:
-                    results.append({'path': os.path.join(root, name), 'selected': QtCore.Qt.Unchecked, 'timestamp': os.path.getmtime(os.path.join(root, name))})
+                    results.append({'path': os.path.normpath(os.path.join(root, name)), 'selected': QtCore.Qt.Unchecked, 'timestamp': os.path.getmtime(os.path.join(root, name))})
 
         self.callback.walked.emit(results)                        
         return results             

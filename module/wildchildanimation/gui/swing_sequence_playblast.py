@@ -176,6 +176,7 @@ class SwingSequencePlayblast(SwingMaya):
             os.makedirs(output_dir)
 
         playblast_failed = True
+        playblasted_shots = []        
 
         # pop gui back to original settings no matter what happens with playblasting
         try:
@@ -191,7 +192,7 @@ class SwingSequencePlayblast(SwingMaya):
                 # clear old files
 
             # sets target file name, adds' container extension
-            playblasted_shots = []
+
             count = 1
             for shot_details in shots:
                 shot = shot_details["name"]

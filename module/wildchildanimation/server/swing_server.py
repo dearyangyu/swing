@@ -5,8 +5,12 @@ import shutil
 from _thread import *
 import zipfile
 
+from wildchildanimation.gui.swing_utils import friendly_string
+
 from wildchildanimation.gui.background_workers import WorkingFileUploader
 from wildchildanimation.gui.settings import SwingSettings
+from wildchildanimation.studio.openexr.swing_convert import SwingConvert
+from wildchildanimation.gui.swing_utils import extract_archive
 
 from wildchildanimation.gui.swing_utils import write_log
 
@@ -28,6 +32,8 @@ from datetime import datetime
 
 # ----------------------------------------------------------------------------------------------------------------------------------------------------------------
 class SwingServer(QtCore.QObject):
+
+    ENCODE_DIR = "H:\\Encodes"
 
     SUPPRESS_LINES = [
         r"Unrecognized node type 'nodeGraphEditorInfo';",
@@ -52,7 +58,12 @@ class SwingServer(QtCore.QObject):
         r"###############################################################################",
         r"-------------------------------------------------------------------------------",
         r"End attempted read of fragment XML.",
-        r"Warning: file: C:\Users\pniemandt.STUDIO\Documents\maya\2022\prefs\filePathEditorRegistryPrefs.mel"
+        r"filePathEditorRegistryPrefs.mel",
+        r"Undo:",
+        r"anim_export::was in Root",
+        r"anim_export::Already in Root",
+        r"maya\FBX\Logs\2020.2.3\maya2022exp.log",
+        r"translateXtranslateYtranslateZrotateXrotateYrotateZparentConstraint"
     ]
 
     def __init__(self, project_name):
@@ -90,6 +101,12 @@ class SwingServer(QtCore.QObject):
                 write_log("error: Task Type {} not found".format("Anim-Block"))
                 return False   
 
+            # check shot cache
+            self.render = gazu.task.get_task_type_by_name("Renders")
+            if not self.render:
+                write_log("error: Task Type {} not found".format("Renders"))
+                return False                   
+
             # check anim_final 
             self.anim_final = gazu.task.get_task_type_by_name("Anim-Final")
             if not self.anim_final:
@@ -116,6 +133,11 @@ class SwingServer(QtCore.QObject):
             self.wip = gazu.task.get_task_status_by_name("Work in Progress") 
             if not self.wip:
                 write_log("error: Task Status 'WIP' not found")
+                return False                   
+
+            self.wfa = gazu.task.get_task_status_by_name("Waiting for Approval") 
+            if not self.wfa:
+                write_log("error: Task Status 'WIP' not found")
                 return False                                                                                      
 
             self.export = gazu.task.get_task_status_by_name("Export") 
@@ -127,6 +149,11 @@ class SwingServer(QtCore.QObject):
             if not self.review:
                 write_log("error: Task Status 'Review' not found")
                 return False                                               
+
+            self.render_status = gazu.task.get_task_status_by_name("Render") 
+            if not self.render_status:
+                write_log("error: Task Status 'Render' not found")
+                return False                   
 
             write_log("connected to {} as {}".format(self.project_name, email))
         except:
@@ -165,9 +192,9 @@ class SwingServer(QtCore.QObject):
         log += " {}".format(text)
 
         self.log.append(log.strip())          
-        print(log)              
+        print(log)       
 
-    # scan through project working files, if task type found, call anim-export on it
+     # scan through project working files, if task type found, call anim-export on it
     # will first download project file to local working dir
     # will then run anim_update on the project
     # will run anim_export passing in the project_name to strip from file name
@@ -175,30 +202,37 @@ class SwingServer(QtCore.QObject):
     def shot_cache_working_files(self, episode_name, working_files, shot_cache_task, completed_status, task_type):
         SUPPRESS_LINES = True
 
+        files = []
+        for item in working_files:
+            file_item = {}
+            file_item["working_file"] = working_files[item]
+            file_item["updated_at"] = working_files[item]["updated_at"]
+            files.append(file_item)
+
+        project_files = sorted(files, key=lambda d: time.strptime(d['updated_at'], r'%Y-%m-%dT%H:%M:%S'), reverse=True)            
+
         self.log = []
         self.server_log("Exporting {}".format(episode_name))
 
-        for item in working_files:
-            wf = working_files[item]
+        for item in project_files:
+            wf = item["working_file"]
 
             if wf["name"].lower().endswith(".ma"):
                 working_file_path = wf["path"]
                 task_name = "{}_".format(task_type["name"].replace("-", "_")).lower()
 
-                working_file_path = os.path.normpath(working_file_path.replace("/mnt/content/productions", "Z://productions"))    
+                working_file_path = os.path.normpath(working_file_path.replace("/mnt/content/productions", SwingSettings.get_instance().shared_root()))    
 
                 if not wf["name"] in working_file_path:
                     wf = os.path.join(working_file_path, wf["name"])
 
-                project_path = os.path.normpath(wf.replace("/mnt/content/productions", "Z://productions"))
+                project_path = os.path.normpath(wf.replace("/mnt/content/productions", SwingSettings.get_instance().shared_root()))
 
                 self.server_log("Exporting {}".format(project_path))
-
 
                 if not os.path.exists(project_path) and os.path.isfile(project_path):
                     self.server_log("error: file not found: {}".format(project_path))
                     continue
-
                 #
 
                 working_path = os.path.normpath(project_path.replace("Z:\\productions", self.swing_root))
@@ -267,7 +301,6 @@ class SwingServer(QtCore.QObject):
                     except:
                         print(traceback.format_exc())
 
-
                     # run shot cache on the project file                                          
                     command_line = 'Z:\\env\\wca\\swing\\swing-main\\bin\\shot_cache.bat'
                     self.server_log("running: {} {} {} {}".format(command_line, working_path, episode_name, task_name))
@@ -277,6 +310,7 @@ class SwingServer(QtCore.QObject):
 
                     proc = subprocess.Popen([command_line, working_path, episode_name, task_name], shell = False, stdout=subprocess.PIPE)
                     while True:
+                        show_line = True
                         #output = proc.stdout.read(1)
                         output = proc.stdout.readline()
                         try:
@@ -375,67 +409,75 @@ class SwingServer(QtCore.QObject):
     def process(self):
         write_log("process::start")
 
-        tasks = gazu.task.all_tasks_for_task_type(self.project, self.shot_cache)
+        tasks = gazu.task.all_tasks_for_task_status(self.project, self.shot_cache, self.export)
+        #
+        # check for any shot cache tasks
+        if len(tasks) > 0:
+            write_log("process::checking {} for {} shots".format(self.shot_cache["name"].lower(), len(tasks)))
+            write_log(r"**************************************************")
 
-        task_list = []
-        for task in tasks:
-            if task["id"] not in task_list and task["task_status_id"] == self.export["id"]:
-                task_list.append(task["id"])
+            # sort tasks by shot priority
+            for t in tasks:
+                t["priority"] = 0
 
-        # debug
-        ##task_id = gazu.task.get_task("3f275458-7747-431a-9c69-31e4608d4154")
-        ##task_list = [ task_id ]
+                shot = gazu.shot.get_shot(t["entity_id"])
+                if "data" in shot:
+                    if "priority" in shot["data"]:
+                        t["priority"] = shot["data"]["priority"]
 
-        write_log("process::checking {} for {} shots".format(self.shot_cache["name"].lower(), len(task_list)))
-        write_log(r"**************************************************")
-        for task_id in task_list:
-            shot_cache_task = gazu.task.get_task(task_id)
+            tasks = sorted(tasks, key=lambda d: d['priority'], reverse=True) 
 
-            if not shot_cache_task["task_status_id"] == self.export["id"]:
-                write_log("skipping task {} not available, task in use or in error".format(shot_cache_task["id"]))
-                continue
+            for task_id in tasks:
+                shot_cache_task = gazu.task.get_task(task_id)
 
-            shot = gazu.shot.get_shot(shot_cache_task["entity"]["id"])
-            episode = gazu.shot.get_episode(shot["episode_id"])
-
-            episode_details = episode["name"].split("_")
-            if len(episode_details) == 2:
-                episode_name = "{}_".format(episode_details[1].lower())
-            else:
-                episode_name = "{}_".format("".join(episode_details).lower())
-
-            task_type = self.anim_final
-            shot_task = gazu.task.get_task_by_entity(shot, task_type)
-            project_files = gazu.files.get_last_working_files(shot_task)
-            if len(project_files) > 0:
-                gazu.task.start_task(shot_cache_task)
-                if self.shot_cache_working_files(episode_name, project_files, shot_cache_task, self.final, task_type):
+                if not shot_cache_task["task_status_id"] == self.export["id"]:
+                    task_details = "{} episode {} shot {} {} status {}".format(self.project["name"], shot_cache_task["episode"]["name"], shot_cache_task["sequence"]["name"], shot_cache_task["entity"]["name"], shot_cache_task["task_status"]["name"])
+                    write_log("skipping {}".format(task_details))                    
                     continue
-                    # return True
 
-            task_type = self.anim_anim
-            shot_task = gazu.task.get_task_by_entity(shot, task_type)
-            project_files = gazu.files.get_last_working_files(shot_task)
-            if len(project_files) > 0:
-                gazu.task.start_task(shot_cache_task)
-                if self.shot_cache_working_files(episode_name, project_files, shot_cache_task, self.wip, task_type):
-                    continue
-                    #return True
+                shot = gazu.shot.get_shot(shot_cache_task["entity"]["id"])
+                episode = gazu.shot.get_episode(shot["episode_id"])
 
-            task_type = self.anim_block
-            shot_task = gazu.task.get_task_by_entity(shot, task_type)
-            project_files = gazu.files.get_last_working_files(shot_task)
-            if len(project_files) > 0:
-                if self.shot_cache_working_files(episode_name, project_files, shot_cache_task, self.wip, task_type):
+                episode_details = episode["name"].split("_")
+                if len(episode_details) == 2:
+                    episode_name = "{}_".format(episode_details[1].lower())
+                else:
+                    episode_name = "{}_".format("".join(episode_details).lower())
+
+                task_type = self.anim_final
+                shot_task = gazu.task.get_task_by_entity(shot, task_type)
+
+                project_files = gazu.files.get_last_working_files(shot_task)
+                if len(project_files) > 0:
                     gazu.task.start_task(shot_cache_task)
-                    continue
-                    #return True
+                    if self.shot_cache_working_files(episode_name, project_files, shot_cache_task, self.final, task_type):
+                        continue
+                        # return True
 
-            write_log("process::{} {} {} {} {} ({})".format(self.project_name, shot["episode_name"], shot["sequence_name"], shot["name"], self.export["name"], len(project_files)))    
-            self.flush_output() 
+                task_type = self.anim_anim
+                shot_task = gazu.task.get_task_by_entity(shot, task_type)
+
+                project_files = gazu.files.get_last_working_files(shot_task)
+                if len(project_files) > 0:
+                    gazu.task.start_task(shot_cache_task)
+                    if self.shot_cache_working_files(episode_name, project_files, shot_cache_task, self.wip, task_type):
+                        continue
+                        #return True
+
+                task_type = self.anim_block
+                shot_task = gazu.task.get_task_by_entity(shot, task_type)
+
+                project_files = gazu.files.get_last_working_files(shot_task)
+                if len(project_files) > 0:
+                    gazu.task.start_task(shot_cache_task)                    
+                    if self.shot_cache_working_files(episode_name, project_files, shot_cache_task, self.wip, task_type):
+                        continue
+                        #return True
+
+                write_log("process::{} {} {} {} {} ({})".format(self.project_name, shot["episode_name"], shot["sequence_name"], shot["name"], self.export["name"], len(project_files)))    
+                self.flush_output() 
 
         write_log("process::done")       
-
 
     def stop(self):
         self.running = False
@@ -444,7 +486,8 @@ if __name__ == "__main__":
     write_log("SwingServer::start")
     #server = SwingServer(project_name = "Wind in the Willows")
 
-    #server = SwingServer(project_name = "Attack of the Killer Bunny S1")
+    ##server = SwingServer(project_name = "Attack of the Killer Bunny S1")
+
     server = SwingServer(project_name = "Wind in the Willows")
     server.start()
     write_log("SwingServer::done")

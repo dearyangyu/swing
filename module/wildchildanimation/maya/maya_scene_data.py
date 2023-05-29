@@ -24,7 +24,7 @@ class SceneData(object):
             file_name = os.path.basename(self.get_scene_name())
             fn, ext = os.path.splitext(file_name)
 
-            scene_descriptor = os.path.join(working_folder, "{}-swing.json".format(fn))
+            scene_descriptor = os.path.join(working_folder, "swing.json")
 
             if os.path.exists(scene_descriptor):
                 with open(scene_descriptor) as json_file:
@@ -43,7 +43,7 @@ class SceneData(object):
             #file_name = os.path.basename(self.get_scene_name())
             #fn, ext = os.path.splitext(file_name)
 
-            scene_descriptor = os.path.join(working_folder, "{}-swing.json".format(self.working_file))
+            scene_descriptor = os.path.join(working_folder, "swing.json")
             with open(scene_descriptor, 'w') as json_file:
                 try:
                     json.dump(self.scene_descriptor, json_file)

@@ -18,6 +18,7 @@ except:
     _stand_alone = True
 
 from wildchildanimation.maya.swing_maya import SwingMaya
+from wildchildanimation.gui.settings import SwingSettings
 from wildchildanimation.gui.swing_playblast_dialog import Ui_PlayblastDialog
 from wildchildanimation.gui.swing_utils import load_settings, save_settings, open_folder
 
@@ -52,7 +53,10 @@ class SwingPlayblast(SwingMaya):
 
 
     def set_ffmpeg_path(self, ffmpeg_path):
-        self._ffmpeg_path = ffmpeg_path
+        if not ffmpeg_path:
+            self._ffmpeg_path = SwingSettings.get_instance().bin_ffmpeg()
+        else:
+            self._ffmpeg_path = ffmpeg_path
 
     def get_ffmpeg_path(self):
         return self._ffmpeg_path
@@ -159,8 +163,10 @@ class SwingPlayblast(SwingMaya):
         output_dir = file_parts[0]
         filename = file_parts[1]
 
-
         if len(filename) == 0 or len(output_dir) == 0:
+            if len(output_dir) == 0:
+                output_dir = self.resolve_output_directory_path(output_dir)
+
             self.log_error("playblast: invalid filename or directory [{}] [{}]".format(filename, output_dir))        
             return
 
@@ -608,6 +614,7 @@ class SwingPlayblastUi(QtWidgets.QDialog, Ui_PlayblastDialog):
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
 
         self._playblast = SwingPlayblast()
+        self.artist = None
 
         self._encoder_settings_dialog = None
         self._visibility_dialog = None

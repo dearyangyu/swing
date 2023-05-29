@@ -24,7 +24,7 @@ from wildchildanimation.gui.maya_sequence_shot_table_dialog import Ui_SequenceSh
 from wildchildanimation.gui.swing_utils import set_button_icon
 
 CLEAN_NAME = [
-    ".mp4"
+    ".mp4", ".mov"
 ]
 
 class SequencerShotTableModel(QtCore.QAbstractTableModel):    
@@ -51,7 +51,6 @@ class SequencerShotTableModel(QtCore.QAbstractTableModel):
         for item in self.shots:
             item["selected"] = True
             
-
     def rowCount(self, parent = QtCore.QModelIndex()):
         return len(self.shots)
 
@@ -158,6 +157,7 @@ class SequencerShotCreator(QtWidgets.QDialog, Ui_SequenceShotTableDialog):
         print("SequencerShotCreator::Project {}".format(self.task["project"]))
         print("SequencerShotCreator::Episode {}".format(self.task["episode"]))
         print("SequencerShotCreator::Sequence {}".format(self.sequence))
+        print("SequencerShotCreator::FPS {}".format(self.fps))
 
         prefix_sections = []
         if self.task["project"]["code"]:
@@ -207,7 +207,7 @@ class SequencerShotCreator(QtWidgets.QDialog, Ui_SequenceShotTableDialog):
             export_dir = os.path.dirname(self.last_xml_file)
             export_dir = os.path.join(export_dir, "exports")
             if os.path.exists(export_dir):
-                self.lineEditExportDir.setText(export_dir)
+                self.lineEditExportDir.setText(os.path.normpath(export_dir))
 
             self.read_xml()
 
@@ -253,9 +253,13 @@ class SequencerShotCreator(QtWidgets.QDialog, Ui_SequenceShotTableDialog):
 
         shots = []
 
-        prefix = self.lineEditShotPrefix.text()
+        ##prefix = self.lineEditShotPrefix.text()
+        ## overriding prefix for SDMP for now
+        ## prefix = ""
+
         target_dir = self.lineEditExportDir.text()
 
+        start_frame = 0
 
         for n, item in enumerate(track):
             if not isinstance(item, otio.schema.Clip):
@@ -265,39 +269,49 @@ class SequencerShotCreator(QtWidgets.QDialog, Ui_SequenceShotTableDialog):
 
             item_name = item.name
 
+            shot_parts = item_name.split("_")
+            item_name = "{}_{}_{}".format(shot_parts[0], shot_parts[1], shot_parts[2])              
+
             for clip_item in CLEAN_NAME:
                 if clip_item in item_name:
                     #print("Cleaning {} from {}".format(clip_item, item_name))
                     item_name = item_name.replace(clip_item, "")
 
             if self.sequence and self.checkBoxFilterTask.isChecked():
-                if not self.sequence["name"].lower() in item_name.lower():
+                scene = "_{}_".format(self.sequence["name"].lower())
+                print("Checking {} against {}".format(scene, item_name.lower()))
+                if not scene in item_name.lower():
                     print("Skipping item {} not in sequence {}".format(item_name, self.sequence["name"]))
                     continue
 
             #item_name = "{}_{}".format(prefix, item_name.lower())
 
-            images_dir = os.path.join(target_dir, "{}_{}".format(prefix, item_name), "images")
+            images_dir = os.path.join(target_dir, "{}".format(item_name), "images")
             if not os.path.exists(images_dir):
                 print("Skipping images_dir {} not in sequence".format(images_dir))
                 image_plane = None
             else:
-                image_plane = os.path.normpath(os.path.join(images_dir, "{}_{}_0000.jpg".format(prefix, item_name).lower()))
+                image_plane = os.path.normpath(os.path.join(images_dir, "{}.0000.jpg".format(item_name)))
                 if not os.path.exists(image_plane):
                     print("build_track::image_plane missing {}".format(image_plane))
                     image_plane = None
 
             audio_file = None
             if self.checkBoxImportAudio.isChecked():   
-                audio_dir = os.path.join(target_dir, "{}_{}".format(prefix, item_name), "audio")
+                audio_dir = os.path.join(target_dir, "{}".format(item_name), "audio")
                 if os.path.exists(audio_dir):
-                    audio_file = os.path.normpath(os.path.join(audio_dir, "{}_{}.wav".format(prefix, item_name).lower()))
+                    audio_file = os.path.normpath(os.path.join(audio_dir, "{}.wav".format(item_name)))
                     if not os.path.exists(audio_file):
                         print("build_track::audio_file missing {}".format(audio_file))      
                         audio_file = None
 
-            shot = "{}_{}".format(prefix, item_name).lower()
+            shot_parts = item_name.split("_")
+            shot = "{}_{}_{}".format(shot_parts[0], shot_parts[1], shot_parts[2])
+
+            #shot = "{}".format(item_name).lower()
             camera = "{}_cam".format(shot)
+
+            frame_count = track_range.end_time_exclusive().value - track_range.start_time.value - 1
 
             shot = {
                 "id": shot,
@@ -305,16 +319,21 @@ class SequencerShotCreator(QtWidgets.QDialog, Ui_SequenceShotTableDialog):
                 "shotName": shot,
                 "track": track_no,
                 "currentCamera": camera,
-                "startTime": track_range.start_time.value + 1,
-                "endTime": track_range.end_time_exclusive().value,
-                "sequencerStartTime": track_range.start_time.value + 1,
-                "sequencerEndTime": track_range.end_time_exclusive().value,
+                #"startTime": track_range.start_time.value + 1,
+                #"endTime": track_range.end_time_exclusive().value,
+                #"sequencerStartTime": track_range.start_time.value + 1,
+                #"sequencerEndTime": track_range.end_time_exclusive().value,
+                "startTime": start_frame,
+                "endTime": start_frame + frame_count,
+                "sequencerStartTime": start_frame, 
+                "sequencerEndTime": start_frame + frame_count,
                 "audio": audio_file,
                 "image_plane": image_plane,
                 "padding": self.spinBoxPadShots.value()
             }                         
 
             shots.append(shot)
+            start_frame = start_frame + frame_count + self.spinBoxPadShots.value()
 
         self.model = SequencerShotTableModel(self, shots)
         self.tableView.setModel(self.model)
@@ -388,7 +407,9 @@ class SequencerShotCreator(QtWidgets.QDialog, Ui_SequenceShotTableDialog):
         else:
             padding = None
 
-        self.handler.on_sequencer_create_shots(shot_list = self.model.shots, fps = self.fps, image_plane = image_plane, padding = padding)
+        export_dir = self.lineEditExportDir.text()            
+
+        self.handler.on_sequencer_create_shots(shot_list = self.model.shots, fps = self.fps, image_plane = image_plane, padding = padding, export_dir = export_dir)
         self.status = 'OK'
         self.write_settings()
         self.close()        

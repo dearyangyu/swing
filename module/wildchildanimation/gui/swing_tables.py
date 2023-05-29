@@ -214,6 +214,16 @@ class FileTableModel(QtCore.QAbstractTableModel):
                     if "color" in item["download_status"]:
                         return item["download_status"]["color"]
 
+        if role == QtCore.Qt.ForegroundRole:
+            col = index.column()
+            row = index.row()
+
+            if col == FileTableModel._COL_TASK:
+                item = self.items[row]
+                if "task_type" in item and item["task_type"]:
+                    return QtGui.QBrush(QtCore.Qt.black)
+                        
+
         return None
 ###########################################################################
 def setup_file_table(tableModelFiles, tableView):
@@ -381,7 +391,14 @@ class TaskTableModel(QtCore.QAbstractTableModel):
                     return QtGui.QColor(item["task_type"]["color"])      
             elif col == TaskTableModel.COL_STATUS:
                 if "task_status" in item:
-                    return QtGui.QColor(item["task_status"]["color"])      
+                    return QtGui.QColor(item["task_status"]["color"])  
+
+        if role == QtCore.Qt.ForegroundRole:
+            col = index.column()
+            row = index.row()
+
+            if col == TaskTableModel.COL_TYPE:
+                return QtGui.QBrush(QtCore.Qt.black)  
 
         return None
 ###########################################################################

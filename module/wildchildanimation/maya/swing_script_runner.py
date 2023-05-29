@@ -1,7 +1,10 @@
-import os
+import subprocess
 import sys
 import traceback
+import glob
+
 from wildchildanimation.gui.swing_utils import write_log
+from wildchildanimation.studio.maya_studio_handlers import MayaStudioHandler
 
 _maya_loaded = False    
 try:
@@ -13,7 +16,7 @@ except:
 class SwingScriptRunner():
 
     NAME = "SwingScriptRunner"
-    VERSION = "0.0.8"
+    VERSION = "0.0.9"
 
     SCRIPT_PATH = "Z:/env/wca/swing/swing-main/scripts"
 
@@ -70,7 +73,29 @@ class SwingScriptRunner():
         except:
             write_log("Exception during script")
             traceback.print_exc(file=sys.stdout)
-        return False            
+        return False  
+
+    def layout_breakout(self):
+        write_log("script_runner 'layout_breakout'")
+        try:
+            swingMaya = MayaStudioHandler()
+
+            ## swingMaya.cleanup_scene()
+            breakout_path = swingMaya.chainsaw_panel('breakout.csv')
+
+            for item in glob.glob("{}/*.ma".format(breakout_path)):
+                cmds = [ "Z:\\env\\wca\\swing\\swing-main\\bin\\anim_prep.bat", item ] 
+
+                print("Running command: {}".format(str(cmds)))
+                #proc = s
+                subprocess.run(cmds, shell = False, stderr=subprocess.PIPE)
+                print("Completed command: {}".format(str(cmds)))                
+
+            return True
+        except:
+            write_log("Exception during script")
+            traceback.print_exc(file=sys.stdout)
+        return False  
 
     def run_script(self, script_name, method = None):
         write_log("script_runner '{}' '{}'".format(script_name, method))

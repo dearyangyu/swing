@@ -13,12 +13,13 @@ from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
 from wildchildanimation.gui.swing_utils import fakestr
+
 class Ui_SettingsDialog(object):
     def setupUi(self, SettingsDialog):
         if not SettingsDialog.objectName():
             SettingsDialog.setObjectName(u"SettingsDialog")
         SettingsDialog.setWindowModality(Qt.ApplicationModal)
-        SettingsDialog.resize(361, 478)
+        SettingsDialog.resize(429, 551)
         SettingsDialog.setFocusPolicy(Qt.StrongFocus)
         SettingsDialog.setModal(True)
         self.verticalLayout = QVBoxLayout(SettingsDialog)
@@ -40,10 +41,15 @@ class Ui_SettingsDialog(object):
 
         self.horizontalLayout.addWidget(self.labelServer)
 
-        self.lineEditServer = QLineEdit(SettingsDialog)
-        self.lineEditServer.setObjectName(u"lineEditServer")
+        self.comboBoxServer = QComboBox(SettingsDialog)
+        self.comboBoxServer.setObjectName(u"comboBoxServer")
+        sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.comboBoxServer.sizePolicy().hasHeightForWidth())
+        self.comboBoxServer.setSizePolicy(sizePolicy)
 
-        self.horizontalLayout.addWidget(self.lineEditServer)
+        self.horizontalLayout.addWidget(self.comboBoxServer)
 
 
         self.verticalLayout.addLayout(self.horizontalLayout)
@@ -69,6 +75,7 @@ class Ui_SettingsDialog(object):
         self.labelPassword = QLabel(SettingsDialog)
         self.labelPassword.setObjectName(u"labelPassword")
         self.labelPassword.setMinimumSize(QSize(120, 0))
+        self.labelPassword.setTextFormat(Qt.AutoText)
 
         self.horizontalLayout_3.addWidget(self.labelPassword)
 
@@ -89,24 +96,45 @@ class Ui_SettingsDialog(object):
 
         self.horizontalLayout_4 = QHBoxLayout()
         self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
-        self.labelProjectsFolder = QLabel(SettingsDialog)
-        self.labelProjectsFolder.setObjectName(u"labelProjectsFolder")
-        self.labelProjectsFolder.setMinimumSize(QSize(120, 0))
+        self.labelWorkingFolder = QLabel(SettingsDialog)
+        self.labelWorkingFolder.setObjectName(u"labelWorkingFolder")
+        self.labelWorkingFolder.setMinimumSize(QSize(120, 0))
 
-        self.horizontalLayout_4.addWidget(self.labelProjectsFolder)
+        self.horizontalLayout_4.addWidget(self.labelWorkingFolder)
 
-        self.lineEditProjectsFolder = QLineEdit(SettingsDialog)
-        self.lineEditProjectsFolder.setObjectName(u"lineEditProjectsFolder")
+        self.lineEditWorkingFolder = QLineEdit(SettingsDialog)
+        self.lineEditWorkingFolder.setObjectName(u"lineEditWorkingFolder")
 
-        self.horizontalLayout_4.addWidget(self.lineEditProjectsFolder)
+        self.horizontalLayout_4.addWidget(self.lineEditWorkingFolder)
 
-        self.toolButtonProjectsFolder = QToolButton(SettingsDialog)
-        self.toolButtonProjectsFolder.setObjectName(u"toolButtonProjectsFolder")
+        self.toolButtonWorkingFolder = QToolButton(SettingsDialog)
+        self.toolButtonWorkingFolder.setObjectName(u"toolButtonWorkingFolder")
 
-        self.horizontalLayout_4.addWidget(self.toolButtonProjectsFolder)
+        self.horizontalLayout_4.addWidget(self.toolButtonWorkingFolder)
 
 
         self.verticalLayout.addLayout(self.horizontalLayout_4)
+
+        self.horizontalLayout_12 = QHBoxLayout()
+        self.horizontalLayout_12.setObjectName(u"horizontalLayout_12")
+        self.labelSharedFolder = QLabel(SettingsDialog)
+        self.labelSharedFolder.setObjectName(u"labelSharedFolder")
+        self.labelSharedFolder.setMinimumSize(QSize(120, 0))
+
+        self.horizontalLayout_12.addWidget(self.labelSharedFolder)
+
+        self.lineEditSharedFolder = QLineEdit(SettingsDialog)
+        self.lineEditSharedFolder.setObjectName(u"lineEditSharedFolder")
+
+        self.horizontalLayout_12.addWidget(self.lineEditSharedFolder)
+
+        self.toolButtonSharedFolder = QToolButton(SettingsDialog)
+        self.toolButtonSharedFolder.setObjectName(u"toolButtonSharedFolder")
+
+        self.horizontalLayout_12.addWidget(self.toolButtonSharedFolder)
+
+
+        self.verticalLayout.addLayout(self.horizontalLayout_12)
 
         self.label_14 = QLabel(SettingsDialog)
         self.label_14.setObjectName(u"label_14")
@@ -218,6 +246,54 @@ class Ui_SettingsDialog(object):
 
         self.verticalLayout.addLayout(self.horizontalLayout_7)
 
+        self.labelUE = QLabel(SettingsDialog)
+        self.labelUE.setObjectName(u"labelUE")
+        self.labelUE.setFont(font)
+
+        self.verticalLayout.addWidget(self.labelUE)
+
+        self.horizontalLayout_10 = QHBoxLayout()
+        self.horizontalLayout_10.setObjectName(u"horizontalLayout_10")
+        self.labelUEEditorBin = QLabel(SettingsDialog)
+        self.labelUEEditorBin.setObjectName(u"labelUEEditorBin")
+        self.labelUEEditorBin.setMinimumSize(QSize(120, 0))
+
+        self.horizontalLayout_10.addWidget(self.labelUEEditorBin)
+
+        self.lineEditUEBin = QLineEdit(SettingsDialog)
+        self.lineEditUEBin.setObjectName(u"lineEditUEBin")
+
+        self.horizontalLayout_10.addWidget(self.lineEditUEBin)
+
+        self.toolButtonUESelect = QToolButton(SettingsDialog)
+        self.toolButtonUESelect.setObjectName(u"toolButtonUESelect")
+
+        self.horizontalLayout_10.addWidget(self.toolButtonUESelect)
+
+
+        self.verticalLayout.addLayout(self.horizontalLayout_10)
+
+        self.horizontalLayout_11 = QHBoxLayout()
+        self.horizontalLayout_11.setObjectName(u"horizontalLayout_11")
+        self.labelUEProject = QLabel(SettingsDialog)
+        self.labelUEProject.setObjectName(u"labelUEProject")
+        self.labelUEProject.setMinimumSize(QSize(120, 0))
+
+        self.horizontalLayout_11.addWidget(self.labelUEProject)
+
+        self.lineEditUEProject = QLineEdit(SettingsDialog)
+        self.lineEditUEProject.setObjectName(u"lineEditUEProject")
+
+        self.horizontalLayout_11.addWidget(self.lineEditUEProject)
+
+        self.toolButtonUESelectUEProject = QToolButton(SettingsDialog)
+        self.toolButtonUESelectUEProject.setObjectName(u"toolButtonUESelectUEProject")
+
+        self.horizontalLayout_11.addWidget(self.toolButtonUESelectUEProject)
+
+
+        self.verticalLayout.addLayout(self.horizontalLayout_11)
+
         self.verticalSpacer_2 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
 
         self.verticalLayout.addItem(self.verticalSpacer_2)
@@ -247,26 +323,31 @@ class Ui_SettingsDialog(object):
         self.labelTreeHouse.setText(fakestr(u"Treehouse:", None))
         self.labelServer.setText(fakestr(u"Server", None))
 #if QT_CONFIG(tooltip)
-        self.lineEditServer.setToolTip(fakestr(u"Server URL - https://example.wildchildanimation.com", None))
+        self.comboBoxServer.setToolTip(fakestr(u"Treehouse server URL", None))
 #endif // QT_CONFIG(tooltip)
         self.labelEmail.setText(fakestr(u"Email", None))
 #if QT_CONFIG(tooltip)
-        self.lineEditEmail.setToolTip(fakestr(u"Logon email address", None))
+        self.lineEditEmail.setToolTip(fakestr(u"User logon address", None))
 #endif // QT_CONFIG(tooltip)
         self.labelPassword.setText(fakestr(u"Password", None))
 #if QT_CONFIG(tooltip)
-        self.lineEditPassword.setToolTip(fakestr(u"Logon password", None))
+        self.lineEditPassword.setToolTip(fakestr(u"User password", None))
 #endif // QT_CONFIG(tooltip)
         self.label_10.setText(fakestr(u"Storage:", None))
-        self.labelProjectsFolder.setText(fakestr(u"Projects Folder", None))
+        self.labelWorkingFolder.setText(fakestr(u"Working Folder", None))
 #if QT_CONFIG(tooltip)
-        self.lineEditProjectsFolder.setToolTip(fakestr(u"<html><head/><body><p>Root directory for projects</p><p><br/></p><p>Shots will be downloaded to:</p><p><span style=\" font-weight:600;\">root/project/assets</span></p><p><br/></p><p>Assets will be downloaded to: </p><p><span style=\" font-weight:600;\">root/project/assets</span></p></body></html>", None))
+        self.lineEditWorkingFolder.setToolTip(fakestr(u"<html><head/><body><p>Root directory for projects</p><p>Shots will be downloaded to:</p><p><span style=\" font-weight:600;\">root/project/shots</span></p><p>Assets will be downloaded to: </p><p><span style=\" font-weight:600;\">root/project/assets</span></p></body></html>", None))
 #endif // QT_CONFIG(tooltip)
-        self.toolButtonProjectsFolder.setText(fakestr(u"...", None))
+        self.toolButtonWorkingFolder.setText(fakestr(u"...", None))
+        self.labelSharedFolder.setText(fakestr(u"Shared Folder", None))
+#if QT_CONFIG(tooltip)
+        self.lineEditSharedFolder.setToolTip(fakestr(u"<html><head/><body><p>Mapped drive to shared content</p></body></html>", None))
+#endif // QT_CONFIG(tooltip)
+        self.toolButtonSharedFolder.setText(fakestr(u"...", None))
         self.label_14.setText(fakestr(u"Playlist", None))
         self.labelEditorialFolder.setText(fakestr(u"Editorial Folder", None))
 #if QT_CONFIG(tooltip)
-        self.lineEditEditorialFolder.setToolTip(fakestr(u"<html><head/><body><p>Root directory for projects</p><p><br/></p><p>Shots will be downloaded to:</p><p><span style=\" font-weight:600;\">root/project/assets</span></p><p><br/></p><p>Assets will be downloaded to: </p><p><span style=\" font-weight:600;\">root/project/assets</span></p></body></html>", None))
+        self.lineEditEditorialFolder.setToolTip(fakestr(u"Destination for playlist downloads", None))
 #endif // QT_CONFIG(tooltip)
         self.toolButtonEditorialFolder.setText(fakestr(u"...", None))
         self.label_6.setText(fakestr(u"Applications:", None))
@@ -278,14 +359,28 @@ class Ui_SettingsDialog(object):
         self.toolButtonFfmpegBin.setText(fakestr(u"...", None))
         self.labelFfprobeBin.setText(fakestr(u"ffprobe binary", None))
 #if QT_CONFIG(tooltip)
-        self.lineEditFfprobeBin.setToolTip(fakestr(u"<html><head/><body><p>Location of ffmpeg executable, usually something like </p><p><br/></p><p>C:\\ffmpeg\\ffmpeg-20200831-4a11a6f-win64-static\\bin\\ffmpeg.exe</p></body></html>", None))
+        self.lineEditFfprobeBin.setToolTip(fakestr(u"<html><head/><body><p>Location of ffprobe executable, usually something like </p><p><br/></p><p>C:\\ffmpeg\\ffmpeg-20200831-4a11a6f-win64-static\\bin\\ffmpeg.exe</p></body></html>", None))
 #endif // QT_CONFIG(tooltip)
         self.toolButtonFfprobeBin.setText(fakestr(u"...", None))
         self.label7Zip.setText(fakestr(u"7zip - compress and extract archive", None))
         self.label7ZipBin.setText(fakestr(u"7zip binary", None))
 #if QT_CONFIG(tooltip)
-        self.lineEdit7zBinary.setToolTip(fakestr(u"<html><head/><body><p>Location of ffmpeg executable, usually something like </p><p><br/></p><p>C:\\ffmpeg\\ffmpeg-20200831-4a11a6f-win64-static\\bin\\ffmpeg.exe</p></body></html>", None))
+        self.lineEdit7zBinary.setToolTip(fakestr(u"<html><head/><body><p>Location of 7z.exe executable</p><p><br/></p></body></html>", None))
 #endif // QT_CONFIG(tooltip)
         self.toolButton7zSelect.setText(fakestr(u"...", None))
+        self.labelUE.setText(fakestr(u"Unreal Engine", None))
+        self.labelUEEditorBin.setText(fakestr(u"UE Editor", None))
+#if QT_CONFIG(tooltip)
+        self.lineEditUEBin.setToolTip(fakestr(u"<html><head/><body><p>Path to UE4Editor.exe</p></body></html>", None))
+#endif // QT_CONFIG(tooltip)
+        self.toolButtonUESelect.setText(fakestr(u"...", None))
+#if QT_CONFIG(tooltip)
+        self.labelUEProject.setToolTip(fakestr(u"Path to UE Project", None))
+#endif // QT_CONFIG(tooltip)
+        self.labelUEProject.setText(fakestr(u"UE Project", None))
+#if QT_CONFIG(tooltip)
+        self.lineEditUEProject.setToolTip(fakestr(u"Path to UE Project", None))
+#endif // QT_CONFIG(tooltip)
+        self.toolButtonUESelectUEProject.setText(fakestr(u"...", None))
     # retranslateUi
 

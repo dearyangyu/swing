@@ -42,7 +42,7 @@ class PlaylistWorker(QtCore.QRunnable):
         try:
             local_path = self.selected_file["path"]
             #edit_root = SwingSettings.get_instance().edit_root()
-            test_path = local_path.replace("/mnt/content/productions", "Z://productions")
+            test_path = local_path.replace("/mnt/content/productions", SwingSettings.get_instance().shared_root())
 
             if os.path.exists(test_path):
                 self.mode = "Copy"
@@ -79,11 +79,25 @@ class PlaylistWorker(QtCore.QRunnable):
         target = os.path.join(self.target, output_name)
 
         target_dir = os.path.dirname(target)
-        if not os.path.exists(target_dir):
+        if os.path.exists(target_dir):
+            for item in os.listdir(target_dir):
+                old_file = os.path.join(target_dir, item)
+                if os.path.isfile(old_file):
+                    print("swing::playlist: removing {}".format(old_file))
+                    os.remove(old_file)
+                    ## pass
+        else:
+        # if not os.path.exists(target_dir):
             os.makedirs(target_dir)
 
         fn, ext = os.path.splitext(self.selected_file["output_file_name"])
-        if ext in StudioInterface.UNARCHIVE_TYPES:
+
+        is_archive = False
+        for item in StudioInterface.UNARCHIVE_TYPES:
+            if item in ext:
+                is_archive = True
+
+        if is_archive:
             if os.path.exists(os.path.join(target, fn)):
                 if self.skip_existing:
                     results = {
@@ -108,15 +122,23 @@ class PlaylistWorker(QtCore.QRunnable):
         else:
             local_path = self.selected_file["path"]
             #edit_root = SwingSettings.get_instance().edit_root()
-            source = local_path.replace("/mnt/content/productions", "Z://productions")
+            source = local_path.replace("/mnt/content/productions", SwingSettings.get_instance().shared_root())
 
             if not self.selected_file["output_file_name"] in source:
                 source = "{}/{}".format(source, self.selected_file["output_file_name"])
 
+            versions = [ ".7zv1", ".7zv2", ".7zv3", ".7zv4", ".7zv5", ".7zv6", ".7zv7", ".7zv8", ".7zv9"]
+
+            for item in versions:
+                if item in source:
+                    source = source.replace(item, ".7z")
+                    break
+
             if os.path.exists(source):
                 fn, ext = os.path.splitext(self.selected_file["output_file_name"])
 
-                if ext in StudioInterface.UNARCHIVE_TYPES:
+                # if ext in StudioInterface.UNARCHIVE_TYPES:
+                if is_archive:
                     #target = os.path.normpath(os.path.join(self.target, fn))
 
                     #
@@ -145,7 +167,8 @@ class PlaylistWorker(QtCore.QRunnable):
                             self.callback.done.emit(results)                
                             return
                         
-                    print("Extracting {}".format(source))
+                    print("swing::playlist: extracting {}".format(source))
+                    print("swing::playlist: target {}".format(target_dir))
 
                     results = {
                         "status": "Busy",
@@ -159,7 +182,12 @@ class PlaylistWorker(QtCore.QRunnable):
                     if not os.path.exists(target_dir):
                         os.makedirs(target_dir)
 
-                    if extract_archive(SwingSettings.get_instance().bin_7z(), source, target_dir, extract_mode = "e"):
+                    extract_mode = 'e'
+
+                    if '.zip' in source:
+                        extract_mode = 'x'
+
+                    if extract_archive(SwingSettings.get_instance().bin_7z(), source, target_dir, extract_mode = extract_mode):
                         results = {
                             "status": "Done",
                             "message": "Success",
@@ -167,9 +195,17 @@ class PlaylistWorker(QtCore.QRunnable):
                             "target": target_dir,
                         }
                         self.callback.done.emit(results)
-                        print("Extract complete {}".format(target_dir))
+                        print("swing::playlist: extract complete {}".format(target_dir))
+                        print("------------------------------------")
+
+                        #Todo: Check if people uploaded as a zip folder, check sub folders
+                        #if fcount(target_dir) == 1:
+                        #    directory_contents = os.listdir(target_dir)
+                        #    for item in directory_contents:
+                        #        if os.path.isdir(item):
+                        #            print("Found subdir {}".format(item))
                 else:
-                    print("Copying {}->{}".format(source, target))
+                    print("swing::playlist: copying {}->{}".format(source, target))
 
                     if not os.path.exists(os.path.dirname(target)):
                         os.makedirs(os.path.dirname(target))

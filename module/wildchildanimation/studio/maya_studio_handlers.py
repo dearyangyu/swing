@@ -3,6 +3,7 @@
 # Studio Handler callback methods from Treehouse Swing
 #
 
+import re
 import time
 import os
 import glob
@@ -27,7 +28,6 @@ try:
     from pymel.util import putEnv
 
     from PySide2 import QtWidgets   
-    import shiboken2 as shiboken 
 
     _maya_loaded = True
 except:
@@ -64,8 +64,16 @@ def maya_main_window():
 class MayaStudioHandler(SwingMaya, StudioInterface):
 
     NAME = "MayaStudioHandler"
-    VERSION = "0.0.14"
+    VERSION = "0.0.16"
     SUPPORTED_TYPES = [".ma", ".mb", ".fbx", ".obj", ".mov", ".mp4", ".wav", ".jpg", ".png", ".abc" ]
+
+    # show's lenses for Lenskit  
+    lensKit = [14,22,32,40,55,80,135,180,240]   
+
+    def strip_version(self, name):
+        pattern = r'v\d+'
+        stripped_name = re.sub(pattern, '', name)
+        return stripped_name.strip()
 
     def __init__(self):
         super(MayaStudioHandler, self).__init__()
@@ -283,9 +291,38 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
         task = results["task"]
         status = results["task"]["task_status"]["name"]
 
+        force_lowercase = True
+        if "project" in task:
+            project = task["project"]  
+            print("Found Project: {}".format(project))
+
+            if "data" in project:
+                project_data = project["data"]
+                print("Found project_data: {}".format(project_data))
+                ##Found project_data: {'force_lowercase': 'False'}
+
+                try:
+                    if "force_lowercase" in project_data:
+                        force_lowercase = project_data["force_lowercase"] == "True"
+                        print("Found force_lowercase: {}".format(force_lowercase))
+                    else:
+                        print("***Force Lower Case not found in Project Metadata: {}".format(project_data))
+                except:
+                    force_lowercase = True
+
         print("taskstatus***{}".format(status))
-        
-        working_file = friendly_string("_".join(self.get_task_sections(task)).lower())    
+        task_sections = self.get_task_sections(task)
+
+        if force_lowercase:
+            working_file = friendly_string("_".join(task_sections).lower())
+
+            ##project_prefix = "{}_{}_".format(task_sections[0], task_sections[0]).lower()
+            ##working_file = working_file.replace(project_prefix, "{}_".format(task_sections[0])).lower()
+        else:
+            working_file = friendly_string("_".join(task_sections))    
+
+            ##project_prefix = "{}_{}_".format(task_sections[0], task_sections[0])
+            ##working_file = working_file.replace(project_prefix, "{}_".format(task_sections[0]))
 
         #add software
         working_file_name = "{}.ma".format(working_file)
@@ -293,16 +330,40 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
 
         existingFile = None
         if os.path.exists(task_dir):
+            print("task_dir -> {} working file -> {}".format(task_dir, working_file_name))
+            ##task_dir -> D:\Productions\WCA\wca_work\assets\char\hero_asset\ld\hero_asset -> char_wca_hero_asset_ld.ma   
+
+            existingFile = None
             if os.path.exists(os.path.join(task_dir, working_file_name)):
+                print("Searching {} for files".format(os.path.join(task_dir, working_file_name)))
+
                 existingFile = os.path.join(task_dir, working_file_name)
 
+                print("working_file -> {}".format(working_file))
+                print("existingFile -> {}".format(existingFile))                
+
                 # check for incremental saves
-                file_list = glob.glob("{}*.ma".format(os.path.join(task_dir, working_file)))
+                file_list = glob.glob("{}*.ma".format(os.path.join(task_dir, self.strip_version(working_file))))
                 if len(file_list) > 0:
                     # load last file by modified date
                     file_list.sort(key=lambda x: os.path.getmtime(x), reverse=True)
                     existingFile = file_list[0]
- 
+
+            elif os.path.exists(task_dir):
+                print("Searching {} for files".format(task_dir))
+
+                print("working_file -> {}".format(working_file))
+                print("existingFile -> {}".format(existingFile))                
+
+                # check for incremental saves
+                file_list = glob.glob("{}*.ma".format(os.path.join(task_dir, self.strip_version(working_file))))
+                if len(file_list) > 0:
+                    # load last file by modified date
+                    file_list.sort(key=lambda x: os.path.getmtime(x), reverse=True)
+                    existingFile = file_list[0]
+
+            if existingFile:
+
                 # self.createDialog.checkBoxLoadExisting.setVisible(True)
                 self.createDialog.labelFileDetails.setText("Working file [{}] found, last modified: {}".format(existingFile, self.last_modified(existingFile)))
                 self.createDialog.lineEditEntity.setText(existingFile)
@@ -384,7 +445,8 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
                 else:
                     self.log_error("File extension not valid {0}".format(fn))
 
-            if not status in ("Work in Progress", "WIP"):
+            if not status.lower() in ("work in progress", "wip"):
+                self.log_output("Changing Task Status: {}".format(status))
                 self.start_task(task["id"])
                 self.log_output("Started Task")
 
@@ -522,8 +584,10 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
                 else:
                     print("No alembic files found")
 
+            print("Checking task type: {}".format(task_type))                    
+
             playblast_dir = None
-            if "layout" in task_type.lower():
+            if ("layout" in task_type.lower()) or (task_type.lower().startswith("la")):
                 print("Checking for playblasts")
                 # get latest version from playblasts folder
 
@@ -565,8 +629,8 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
                     print("Checking playblast_dir: {}".format(playblast_dir))
                     file_list = self.scan_working_dir(playblast_dir, '*.mp4')
                     if len(file_list) > 0:
-                        self.log_output("Adding playblast: {}".format(file_list[0]))
-                        self.publishDialog.set_output_file(file_list[0])
+                        self.log_output("Adding playblast: {}".format(os.path.normpath(file_list[0])))
+                        self.publishDialog.set_output_file(os.path.normpath(file_list[0]))
 
             self.publishDialog.show()     #
         except:
@@ -633,18 +697,23 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
             scene_dir = self.get_scene_path()
             scene_name = self.get_scene_name()
 
+            task_type = task["task_type"]
+            if "name" in task_type:
+                task_type = task["task_type"]["name"]            
+
             self.log_output("on_playblast::task {}".format(task))
             self.log_output("on_playblast::task_dir {}".format(task_dir))
             self.log_output("on_playblast::working_file {}".format(working_file))
             self.log_output("on_playblast::artist {}".format(artist))
             self.log_output("on_playblast::scene_name  {}".format(scene_name))
             self.log_output("on_playblast::scene_dir  {}".format(scene_dir))
+            self.log_output("on_playblast::task_type  {}".format(task_type))            
 
             if len(scene_dir) == 0 or scene_name == 'untitled':
                 QtWidgets.QMessageBox.warning(None, 'Playblasting unsaved changes', 'Please save the current project file or load a saved task before playblasting')
                 return False
 
-            if "layout" in working_file.lower():
+            if "layout" in working_file.lower() or task_type == "La":
                 dialog = SwingSequencePlayblastUi()
 
                 playblast_count = 1
@@ -700,6 +769,7 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
         image_plane = kwargs["image_plane"]
         padding = kwargs["padding"]
         frame_rate = kwargs["fps"]
+        export_dir = kwargs["export_dir"]
 
         '''
                 "id": item_name.split('.')[0],
@@ -817,7 +887,15 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
                 mel.eval('fitPanel -all;')
             except:
                 traceback.print_exc(file=sys.stdout)
-                print("Error adjusting sequencerPanelBarSection1Callback")                
+                print("Error adjusting sequencerPanelBarSection1Callback")  
+
+            try:
+                self.layout_camera_setup(image_path = export_dir)
+                self.log_output("calling camera setup")
+            except:
+                traceback.print_exc(file=sys.stdout)                
+                self.log_output("error calling camera setup")                
+
 
         return True
 
@@ -853,7 +931,151 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
 
     def update_references(self):
         updater = MayaReferenceUpdater()
-        updater.update_references(show_gui = True)    
+        updater.update_references(show_gui = True)  
+
+
+    ### layout_camera_setup_v0_7.py
+    # Author: Derik vd Berg  
+
+    #Find all non default cameras in the scene
+    def findAllCameras(self):
+        allCams = cmds.ls(type='camera')
+        seqCams = []
+        for cam in allCams:
+            if cam.find('persp') != -1:
+                pass
+            elif cam.find('top') != -1:
+                pass 
+            elif cam.find('front') != -1:
+                pass
+            elif cam.find('side') != -1:
+                pass  
+            else:
+                seqCams.append(cam)    
+        return(seqCams)       
+
+    #Build a lenskit and set focalLength to closet currently set focalLenght
+    #Also sets all needed camera settings
+    def setupCamera(self, seqShots, image_path):
+        #build focalLegnth lenskit
+        lensKitString = ''
+        lensKitString = str('')
+        for lens in MayaStudioHandler.lensKit:
+            lensKitString = lensKitString + (str(lens) + ':')
+            
+        lensKitString = lensKitString.rstrip(lensKitString[-1])
+        self.log_output('Current lens kit : ' + lensKitString)
+        for seqshot in seqShots:
+            camTransform = cmds.listConnections( ("{}.currentCamera".format(seqshot)), d=False, s=True )
+            #camTransform = cmds.listRelatives(cam, parent=True)
+            cam = cmds.listRelatives(camTransform, shapes = True)
+            animCurve = cmds.createNode('animCurveTL',n = (cam[0] + 'lensCurve'), ss=True)
+            cmds.setKeyframe(animCurve, t=0, v=14, itt='linear', ott='linear')
+            
+            focal = self.getClosestFocal(cam[0])
+            
+            count = 0
+            lensIndex = 0
+            
+            for lens in MayaStudioHandler.lensKit:
+                cmds.setKeyframe(animCurve, t=count, v=lens, itt='linear', ott='linear')
+                if lens == focal:
+                    lensIndex = count
+                count = count +1
+            try:
+                cmds.addAttr(camTransform[0],ln = 'lensKit', at = 'enum', en = lensKitString)
+            except:
+                self.log_output("could not create Lenskit attribute for {} .. It may already exist".format(camTransform[0]))
+            cmds.setAttr ((camTransform[0] + '.lensKit'),e = True, keyable = True)
+            cmds.setAttr ((camTransform[0] + '.lensKit'), lensIndex)
+            
+            try:
+                cmds.connectAttr((camTransform[0] + '.lensKit'),(animCurve + '.input'))
+            except:
+                self.log_output("{} Lenskit already connected".format(camTransform[0]))
+            try:
+                cmds.connectAttr((animCurve + '.output'),(cam[0] + '.focalLength'))
+            except:
+                self.log_output("{} Focal length already connected".format(cam[0]))
+            
+            #set camera filmback and gate masks
+            cmds.setAttr ((camTransform[0] + '.verticalFilmAperture'), 0.79725)
+            cmds.setAttr ((camTransform[0] + '.displayFilmGate'), 1)
+            cmds.setAttr ((camTransform[0] + '.displayGateMask'), 1)
+            cmds.setAttr ((camTransform[0] + '.displaySafeAction'), 1)
+            
+            #set far clip plane
+            cmds.setAttr ((cam[0] + '.nearClipPlane'), 1)
+            cmds.setAttr ((cam[0] + '.farClipPlane'), 1000000)
+            #set the camera locator scale to make it appear larger in view
+            cmds.setAttr ((cam[0] + '.locatorScale'), 10)
+            
+            #Create imageplane on currentCamera and place in corner
+            ip = cmds.imagePlane(camera=cam[0],w = 16, h = 9, lt = True, sia = False)
+            ipsx = cmds.getAttr(ip[1] + '.sizeX')
+            ipsy = cmds.getAttr(ip[1] + '.sizeY')
+            cmds.setAttr((ip[1] + '.depth'), 10)
+            cmds.setAttr((ip[1] + '.offsetX'), -0.46)
+            cmds.setAttr((ip[1] + '.offsetY'), 0.25)
+            cmds.setAttr((ip[1] + '.sizeX'), (ipsx * 0.3))
+            cmds.setAttr((ip[1] + '.sizeY'), (ipsy * 0.3))
+            cmds.setAttr((ip[1] + '.alphaGain'), 0.5)
+
+            image_plane_path = "{}/{}/images/{}.0000.jpg".format(image_path, seqshot, seqshot)
+            
+            self.assign_image_to_imageplane(ip[1], seqshot, image_plane_path)
+            cmds.setAttr((ip[1] + ".useFrameExtension"), 1)
+
+            #parent camera to CAMERAS group
+            try:
+                cmds.parent( camTransform[0], "|CAMERAS" )
+            except:
+                self.log_output("could not parent {} to CAMERAS group".format(camTransform[0]))    
+
+    def assign_image_to_imageplane(self, imageplane, seqshot, image_path):
+        self.log_output("Setting image plane {} {} {}".format(imageplane, seqshot, image_path))
+
+        start_frame = cmds.getAttr("{}.startFrame".format(seqshot))  # Query shot's start frame.
+        end_frame = end_frame = cmds.getAttr("{}.endFrame".format(seqshot))  # Query shot's end frame.
+
+        cmds.setAttr((imageplane + ".imageName"), image_path, type = "string")
+        cmds.currentTime(start_frame)
+        cmds.setAttr(imageplane + ".frameExtension", 0)
+        cmds.setKeyframe(imageplane + ".fe", inTangentType = "linear", outTangentType = "linear")
+        cmds.currentTime(end_frame)
+        cmds.setAttr(imageplane + ".frameExtension", (end_frame - start_frame))
+        cmds.setKeyframe(imageplane + ".fe", inTangentType = "linear", outTangentType = "linear")
+        cmds.selectKey(imageplane, at = "fe", r = True, k = True, time = (start_frame , end_frame))
+        cmds.keyTangent(itt = "linear", ott = "linear")        
+            
+            
+    #function to get the closets focalLenth available in the lenskit
+    def getClosestFocal(self, seqCam): 
+        focal = cmds.getAttr(str(seqCam) + '.focalLength')
+        return MayaStudioHandler.lensKit[min(range(len(MayaStudioHandler.lensKit)), key = lambda i: abs(MayaStudioHandler.lensKit[i]-focal))]
+
+    #create layout groups
+    def createGroups(self):
+        cmds.createNode('transform' , name = 'CAMERAS')
+        cmds.createNode('transform' , name = 'ENVIRONMENT')
+        cmds.createNode('transform' , name = 'PROPS')
+        cmds.createNode('transform' , name = 'PROXY')
+            
+    #Sets the scene settings like fps etc.
+    def setScene(self):
+        cmds.currentUnit( time='pal' )
+        cmds.setAttr('defaultResolution.width',1920)
+        cmds.setAttr('defaultResolution.height',1080)    
+
+    def layout_camera_setup(self, image_path):
+        self.log_output("Setup Layout Camera: Image Path {}".format(image_path))
+        #Main execution part 
+        # get all sequencer shot nodes to set camera settings on       
+        seqShots = cmds.ls(type = "shot")           
+
+        self.createGroups()
+        self.setupCamera(seqShots, image_path)
+        self.setScene()
 
 
 '''

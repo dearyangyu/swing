@@ -13,9 +13,6 @@ from wildchildanimation.maya.swing_maya import SwingMaya
 try:
     import pymel.core as pm
     import maya.cmds as cmds
-    import maya.mel as mel
-    import maya.OpenMaya as om
-    import maya.OpenMayaUI as omui
     _stand_alone = False
     _log_to_maya = True
 except:
@@ -125,7 +122,7 @@ class MayaReferenceUpdater(SwingMaya):
 
             ## check and update references
             self.log_output("list_reference_updates: open Undo")  
-            cmds.undoInfo(state=True, infinity=True)
+            ## cmds.undoInfo(state=True, infinity=True)
             try:
                 for item in ref_list:
                     # if rigs_only:
@@ -133,7 +130,7 @@ class MayaReferenceUpdater(SwingMaya):
 
                     if item["update"]:
                         ref_update = os.path.join(item["update"]["path"], item["update"]["name"])
-                        ref_update = ref_update.replace("/mnt/content/productions", "Z://productions")
+                        ref_update = ref_update.replace("/mnt/content/productions", SwingSettings.get_instance().shared_root())
 
                         ref_target = item["ref"].path
 
@@ -146,9 +143,10 @@ class MayaReferenceUpdater(SwingMaya):
                             traceback.print_exc(file=sys.stdout)                        
                             logger.write("ERROR: Could not update updated {}\n".format(ref_target))
                         
-            finally:
-                cmds.undoInfo(closeChunk=True)
-                self.log_output("update_refs: close Undo")  
+            except:
+                traceback.print_exc(file=sys.stdout)   
+                ## cmds.undoInfo(closeChunk=True)
+                ## self.log_output("update_refs: close Undo")  
 
             self.log_output("update_refs: done")                  
 

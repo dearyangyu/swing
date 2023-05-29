@@ -21,7 +21,7 @@ class Ui_RenderSubmitDialog(object):
             RenderSubmitDialog.setObjectName(u"RenderSubmitDialog")
         RenderSubmitDialog.setWindowModality(Qt.ApplicationModal)
         RenderSubmitDialog.setEnabled(True)
-        RenderSubmitDialog.resize(449, 489)
+        RenderSubmitDialog.resize(505, 461)
         RenderSubmitDialog.setModal(True)
         self.verticalLayout = QVBoxLayout(RenderSubmitDialog)
         self.verticalLayout.setObjectName(u"verticalLayout")
@@ -189,6 +189,107 @@ class Ui_RenderSubmitDialog(object):
 
         self.verticalLayoutEntity.addLayout(self.horizontalLayout_3)
 
+        self.horizontalLayout_10 = QHBoxLayout()
+        self.horizontalLayout_10.setObjectName(u"horizontalLayout_10")
+        self.labelRenderQuality = QLabel(RenderSubmitDialog)
+        self.labelRenderQuality.setObjectName(u"labelRenderQuality")
+        self.labelRenderQuality.setMinimumSize(QSize(100, 0))
+        self.labelRenderQuality.setMaximumSize(QSize(100, 16777215))
+
+        self.horizontalLayout_10.addWidget(self.labelRenderQuality)
+
+        self.radioButtonHq = QRadioButton(RenderSubmitDialog)
+        self.radioButtonHq.setObjectName(u"radioButtonHq")
+
+        self.horizontalLayout_10.addWidget(self.radioButtonHq)
+
+        self.radioButtonLq = QRadioButton(RenderSubmitDialog)
+        self.radioButtonLq.setObjectName(u"radioButtonLq")
+
+        self.horizontalLayout_10.addWidget(self.radioButtonLq)
+
+        self.horizontalSpacer_6 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.horizontalLayout_10.addItem(self.horizontalSpacer_6)
+
+
+        self.verticalLayoutEntity.addLayout(self.horizontalLayout_10)
+
+        self.horizontalLayout_11 = QHBoxLayout()
+        self.horizontalLayout_11.setObjectName(u"horizontalLayout_11")
+        self.labelHandles = QLabel(RenderSubmitDialog)
+        self.labelHandles.setObjectName(u"labelHandles")
+        self.labelHandles.setMinimumSize(QSize(100, 0))
+        self.labelHandles.setMaximumSize(QSize(100, 16777215))
+
+        self.horizontalLayout_11.addWidget(self.labelHandles)
+
+        self.labelHandlesIn = QLabel(RenderSubmitDialog)
+        self.labelHandlesIn.setObjectName(u"labelHandlesIn")
+
+        self.horizontalLayout_11.addWidget(self.labelHandlesIn)
+
+        self.spinBoxHandlesIn = QSpinBox(RenderSubmitDialog)
+        self.spinBoxHandlesIn.setObjectName(u"spinBoxHandlesIn")
+
+        self.horizontalLayout_11.addWidget(self.spinBoxHandlesIn)
+
+        self.labelHandlesOut = QLabel(RenderSubmitDialog)
+        self.labelHandlesOut.setObjectName(u"labelHandlesOut")
+
+        self.horizontalLayout_11.addWidget(self.labelHandlesOut)
+
+        self.spinBoxHandlesOut = QSpinBox(RenderSubmitDialog)
+        self.spinBoxHandlesOut.setObjectName(u"spinBoxHandlesOut")
+
+        self.horizontalLayout_11.addWidget(self.spinBoxHandlesOut)
+
+        self.horizontalSpacer_7 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.horizontalLayout_11.addItem(self.horizontalSpacer_7)
+
+
+        self.verticalLayoutEntity.addLayout(self.horizontalLayout_11)
+
+        self.horizontalLayout_9 = QHBoxLayout()
+        self.horizontalLayout_9.setObjectName(u"horizontalLayout_9")
+        self.labelNamingConvention = QLabel(RenderSubmitDialog)
+        self.labelNamingConvention.setObjectName(u"labelNamingConvention")
+        font = QFont()
+        font.setBold(True)
+        font.setWeight(75)
+        self.labelNamingConvention.setFont(font)
+
+        self.horizontalLayout_9.addWidget(self.labelNamingConvention)
+
+
+        self.verticalLayoutEntity.addLayout(self.horizontalLayout_9)
+
+        self.horizontalLayout_8 = QHBoxLayout()
+        self.horizontalLayout_8.setObjectName(u"horizontalLayout_8")
+        self.labelWarningMessage = QLabel(RenderSubmitDialog)
+        self.labelWarningMessage.setObjectName(u"labelWarningMessage")
+        font1 = QFont()
+        font1.setPointSize(9)
+        font1.setBold(True)
+        font1.setWeight(75)
+        self.labelWarningMessage.setFont(font1)
+        self.labelWarningMessage.setStyleSheet(u"color: red")
+
+        self.horizontalLayout_8.addWidget(self.labelWarningMessage)
+
+        self.checkBoxOverride = QCheckBox(RenderSubmitDialog)
+        self.checkBoxOverride.setObjectName(u"checkBoxOverride")
+
+        self.horizontalLayout_8.addWidget(self.checkBoxOverride)
+
+        self.horizontalSpacer_2 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.horizontalLayout_8.addItem(self.horizontalSpacer_2)
+
+
+        self.verticalLayoutEntity.addLayout(self.horizontalLayout_8)
+
         self.verticalLayoutEntityInfo = QVBoxLayout()
         self.verticalLayoutEntityInfo.setObjectName(u"verticalLayoutEntityInfo")
         self.labelNotes = QLabel(RenderSubmitDialog)
@@ -250,6 +351,15 @@ class Ui_RenderSubmitDialog(object):
         self.labelRenderPath.setText(fakestr(u"Render Path", None))
         self.toolButtonSelectPath.setText(fakestr(u"...", None))
         self.labelArchiveName.setText(fakestr(u"Archive Name", None))
+        self.labelRenderQuality.setText(fakestr(u"Render Quality", None))
+        self.radioButtonHq.setText(fakestr(u"HQ", None))
+        self.radioButtonLq.setText(fakestr(u"LQ", None))
+        self.labelHandles.setText(fakestr(u"Handles", None))
+        self.labelHandlesIn.setText(fakestr(u"In", None))
+        self.labelHandlesOut.setText(fakestr(u"Out", None))
+        self.labelNamingConvention.setText(fakestr(u"Naming: {xxx}_sc{xxx}_sh{xxx}.{xxxx} i.e: 104_sc110_sh010.0073", None))
+        self.labelWarningMessage.setText(fakestr(u"Warning: Shot name error - Frame count error", None))
+        self.checkBoxOverride.setText(fakestr(u"Override and Upload", None))
         self.labelNotes.setText(fakestr(u"Notes and Comments", None))
         self.labelStatus.setText("")
         self.pushButtonGo.setText(fakestr(u"Go", None))

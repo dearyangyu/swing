@@ -26,7 +26,7 @@ except ImportError:
     from PyQt5 import QtCore
     from PyQt5.QtCore import pyqtSignal
 from wildchildanimation.gui.settings import SwingSettings
-from wildchildanimation.gui.swing_utils import write_log, resolve_content_path, extract_archive
+from wildchildanimation.gui.swing_utils import write_log, resolve_content_path, extract_archive, connect_to_server
 from wildchildanimation.gui.swing_updater import update
 
 class LoadedSignal(QtCore.QObject):
@@ -248,8 +248,8 @@ class AssetTypeLoaderThread(QtCore.QRunnable):
         self.callback = LoadedSignal()        
 
     def run(self):
+        connect_to_server(SwingSettings.get_instance().swing_user(), SwingSettings.get_instance().swing_password())
         results = gazu.asset.all_asset_types_for_project(gazu.project.get_project(self.project_id))
-
         self.callback.loaded.emit(results)        
 
 class AssetLoaderThread(QtCore.QRunnable):
@@ -264,9 +264,15 @@ class AssetLoaderThread(QtCore.QRunnable):
         self.project = gazu.project.get_project(self.project_id)
 
         if self.asset_type:
-            results = gazu.asset.all_assets_for_project_and_type(self.project, self.asset_type)
+            asset_list = gazu.asset.all_assets_for_project_and_type(self.project, self.asset_type)
         else:
-            results = gazu.asset.all_assets_for_project(self.project)
+            asset_list = gazu.asset.all_assets_for_project(self.project)
+
+        results = []
+
+        for item in asset_list:
+            if not item["canceled"]:
+                results.append(item)
 
         self.callback.loaded.emit(results)          
 
@@ -1239,13 +1245,16 @@ class ProjectEpisodeLoader(QtCore.QRunnable):
         }             
 
         results = []
-        rq = requests.post(self.request_url, data = params)
-        if rq.status_code == 200:
-            found = rq.json()
-            for item in found:
-                results.append(item)
+        try:
+            rq = requests.post(self.request_url, data = params)
+            if rq.status_code == 200:
+                found = rq.json()
+                for item in found:
+                    results.append(item)
 
-        self.callback.loaded.emit(results)                        
+            self.callback.loaded.emit(results)                        
+        except:
+            print("Error connecting to server: Please check connection settings")
         return results      
 
 class ProjectShotLoader(QtCore.QRunnable):

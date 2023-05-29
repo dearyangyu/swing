@@ -48,6 +48,11 @@ class Ui_SwingMain(object):
 
         self.connectionLayout.addWidget(self.toolButtonPlayblast)
 
+        self.toolButtonEpisodes = QToolButton(SwingMain)
+        self.toolButtonEpisodes.setObjectName(u"toolButtonEpisodes")
+
+        self.connectionLayout.addWidget(self.toolButtonEpisodes)          
+
         self.toolButtonPlaylists = QToolButton(SwingMain)
         self.toolButtonPlaylists.setObjectName(u"toolButtonPlaylists")
 
@@ -428,7 +433,9 @@ class Ui_SwingMain(object):
         self.toolButtonPlayblast.setToolTip(fakestr(u"Open DCC Playblast", None))
 #endif // QT_CONFIG(tooltip)
         self.toolButtonPlayblast.setText(fakestr(u"Playblast", None))
-        self.toolButtonPlaylists.setText(fakestr(u"Playlists", None))
+        self.toolButtonPlaylists.setText(fakestr(u"Shot-Playlists", None))
+        self.toolButtonEpisodes.setText(fakestr(u"Ep-Playlists", None))        
+        
 #if QT_CONFIG(tooltip)
         self.toolButtonExport.setToolTip(fakestr(u"Open DCC Export", None))
 #endif // QT_CONFIG(tooltip)

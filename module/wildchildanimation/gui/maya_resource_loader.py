@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from tarfile import TarError
 import traceback
 import sys
 import os
@@ -94,13 +93,13 @@ class ResourceLoaderDialogGUI(QtWidgets.QDialog, Ui_MayaResourceLoaderDialog):
             self.lineEditTarget.setText(download_path)
 
             # we assume that we are 1) on Windows, and 2) have a Z: drive mapped to content/productions
-            server_path = os.path.normpath(resource_item.replace("/mnt/content/productions", "Z://productions"))
+            server_path = os.path.normpath(resource_item.replace("/mnt/content/productions", SwingSettings.get_instance().shared_root()))
 
             # we also want to know what file type we are dealing with
             fn, ext = os.path.splitext(resource_item)
 
             print("check_network: Checking LAN for {}{} ".format(fn, ext))
-            if os.path.exists(server_path):
+            if not SwingSettings.get_instance().is_remote() and os.path.exists(server_path):
                 self.lineEditNetworkStatus.setText("Found {}".format(server_path))
 
                 self.set_download_only(False)
@@ -165,14 +164,18 @@ class ResourceLoaderDialogGUI(QtWidgets.QDialog, Ui_MayaResourceLoaderDialog):
             self.project_name = self.project["code"]
         else:
             self.project_name = self.project["name"]
-        self.sections.append(self.project_name)                                
 
+        ## self.sections.append(self.project_name)                                
         if self.entity["type"] == "Asset":
             self.entity_type_name = self.entity_type["name"]
 
             # check if we have a shortened form of the name
             if self.entity_type_name in self.handler.ASSET_TYPE_LOOKUP:
                 self.entity_type_name = self.handler.ASSET_TYPE_LOOKUP[self.entity_type_name]
+
+            if not self.project_name in self.entity["name"]:
+                self.sections.append(self.project_name) 
+
             self.sections.append(self.entity_type_name)
             self.sections.append(friendly_string(self.entity["name"]))
 
@@ -192,6 +195,9 @@ class ResourceLoaderDialogGUI(QtWidgets.QDialog, Ui_MayaResourceLoaderDialog):
             # parent sequence not found
 
             if self.episode:
+                if not self.project_name in self.episode["name"]:
+                    self.sections.append(self.project_name) 
+
                 self.sections.append(self.episode["name"])
 
             if self.sequence:

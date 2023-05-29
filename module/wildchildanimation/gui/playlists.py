@@ -190,6 +190,7 @@ class PlaylistDialog(QtWidgets.QDialog, Ui_PlaylistDialog):
 
     def checkItems(self, select):
         idx = self.tableView.selectedIndexes()
+        
         for index in idx:
             row_index = index.row()
             try:
@@ -242,15 +243,15 @@ class PlaylistDialog(QtWidgets.QDialog, Ui_PlaylistDialog):
 
                 # D:\Productions\editorial\wotw\wotw_edit\wip\101_ALICKOFPAINT\sc010\sh010\sc010_sh010_Anim-Animation\witw_101_alickofpaint_sc010_sh010_anim_animation_v004.mp4
 
-                file_path = os.path.join(editorial_folder, output_name)
+                file_path = os.path.dirname(os.path.join(editorial_folder, output_name))
 
                 #output_dir = "{}/{}".format(self.lineEditFolder.text(), self.episode["name"])
                 #file_path = os.path.normpath(os.path.join(output_dir, self.selected_file["output_file_name"]))
 
-                if os.path.isfile(file_path):
+                if os.path.isdir(file_path):
                     #reply = QtWidgets.QMessageBox.question(self, 'File found:', 'Would you like to open the existing folder?', QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
                     #if reply == QtWidgets.QMessageBox.Yes:
-                    open_folder(os.path.dirname(file_path))
+                    open_folder(file_path)
                     return True       
 
             except:
@@ -265,60 +266,74 @@ class PlaylistDialog(QtWidgets.QDialog, Ui_PlaylistDialog):
         else:
             self.playlist_file = json.loads("{}")
 
-        #model = self.tableView.model()
-        model = self.proxy
-        self.count = 0 
-        for x in range(model.rowCount()):
-            item = model.data(model.index(x, 0), QtCore.Qt.UserRole)
-            item["model_index"] = x
-
-            if not item["selected"]:
-                continue
-
-            shot_name = item["shot_name"]
-
-            if not shot_name in self.playlist_file:
-                self.playlist_file[shot_name] = { "version": 1, "updated_at": None }
-
-            playlist_item = self.playlist_file[shot_name]
-
-            should_process = False
-            if item["version"] > playlist_item["version"]:
-                should_process = True
-
-            if not playlist_item["updated_at"]:
-                should_process = True
-            else:
-                # updated_at = datetime.strptime(updated_at, '%Y-%m-%dT%H:%M:%S.%f')
-
+        old_max = QtCore.QThread.idealThreadCount()
+        self.threadpool.setMaxThreadCount(3)
+        try:
+            model = self.tableView.model()
+            
+            ## model = self.proxy
+            self.count = 0 
+            for x in range(model.rowCount()):
+                item = model.data(model.index(x, 0), QtCore.Qt.UserRole)
                 item_date = datetime.strptime(item["updated_at"], '%Y-%m-%dT%H:%M:%S.%f') #'2022-04-07T11:31:11.419272'
-                export_date = datetime.strptime(playlist_item["updated_at"], '%Y-%m-%dT%H:%M:%S.%f')
+                item["model_index"] = x
 
-                if export_date < item_date:
+                if not item["selected"]:
+                    continue
+
+                shot_name = item["shot_name"]
+
+                if not shot_name in self.playlist_file:
+                    self.playlist_file[shot_name] = { "version": 1, "updated_at": None }
+
+                playlist_item = self.playlist_file[shot_name]
+
+                should_process = False
+                if item["version"] > playlist_item["version"]:
                     should_process = True
 
-                #item_date = time.str
-                # or playlist_item["updated_at"] < 
+                if not playlist_item["updated_at"]:
+                    should_process = True
+                else:
+                    # updated_at = datetime.strptime(updated_at, '%Y-%m-%dT%H:%M:%S.%f')
 
-            if should_process:
-                worker = PlaylistWorker(self, item, target = self.lineEditFolder.text(), extract_zips = self.checkBoxExtractZip.isChecked())
-                worker.callback.progress.connect(self.update_progress)
-                worker.callback.done.connect(self.update_done)
-                
-                self.count += 1
-                self.threadpool.start(worker)
+                    export_date = datetime.strptime(playlist_item["updated_at"], '%Y-%m-%dT%H:%M:%S.%f')
 
-                playlist_item["version"] = item["version"]
-                playlist_item["updated_at"] = item["updated_at"]
+                    if export_date < item_date:
+                        should_process = True
 
-                self.playlist_file[shot_name] = playlist_item                
-            else:
-                model.setData(model.index(x, PlaylistModel.COL_STATUS), "Skipped", QtCore.Qt.EditRole)
-                #worker.run()
+                    #item_date = time.str
+                    # or playlist_item["updated_at"] < 
 
-        self.save_playlist_file(self.get_playlist_file_name())    
-        if self.count > 0:        
-            self.progressBar.setMaximum(self.count)
+                if should_process:
+                    print("swing::playlist: processing: {}:{} --> {}".format(item["output_file_name"], item_date, item["shot_name"]))
+
+                    worker = PlaylistWorker(self, item, target = self.lineEditFolder.text(), extract_zips = self.checkBoxExtractZip.isChecked())
+                    worker.callback.progress.connect(self.update_progress)
+                    worker.callback.done.connect(self.update_done)
+                    
+                    self.count += 1
+                    self.threadpool.start(worker)
+                    self.threadpool.waitForDone()
+
+                    self.update()
+                    
+                    ###worker.run()
+
+                    playlist_item["version"] = item["version"]
+                    playlist_item["updated_at"] = item["updated_at"]
+
+                    self.playlist_file[shot_name] = playlist_item                
+                else:
+                    model.setData(model.index(x, PlaylistModel.COL_STATUS), "Skipped", QtCore.Qt.EditRole)
+                    #worker.run()
+
+            self.save_playlist_file(self.get_playlist_file_name())    
+            if self.count > 0:        
+                self.progressBar.setMaximum(self.count)
+
+        finally:
+            self.threadpool.setMaxThreadCount(old_max)
 
     def update_progress(self, status):
         for row in range(self.tableView.model().rowCount()):
@@ -520,19 +535,21 @@ class PlaylistModel(QtCore.QAbstractTableModel):
         _task_types = {}
 
         for item in playlists:
-            ## always skip the zipped playblast upload
-            if "playblasts" in item["output_file_name"].lower():
-                continue
-
             ## if viewing sequences
             if self.sequences:
                 # only show shot 00's
                 if not item["sh"].lower() == "sh000":
                     continue
+
+                ## only show zipped playblasts
+                if not "playblasts" in item["output_file_name"].lower():
+                    continue                
+
             else:
                 # otherwise always skip shot 00's
                 if item["sh"].lower() == "sh000":
                     continue
+
 
             shot_name = "{} {} {}".format(item["ep"], item["sq"], item["sh"]).lower()
 

@@ -1,6 +1,7 @@
 import copy
 import csv
 import os
+import glob
 import traceback
 import sys
 
@@ -127,7 +128,7 @@ class SwingMaya(QtCore.QObject):
         self.set_frame_range(SwingMaya.DEFAULT_FRAME_RANGE)
 
         if ffmpeg_path:
-            DEFAULT_FFMPEG_PATH = ffmpeg_path
+            self.DEFAULT_FFMPEG_PATH = ffmpeg_path
 
     def set_maya_logging_enabled(self, enabled):
         self._log_to_maya = enabled
@@ -251,7 +252,7 @@ class SwingMaya(QtCore.QObject):
 
     def preset_to_visibility(self, visibility_preset):
         if not visibility_preset in SwingMaya.VIEWPORT_VISIBILITY_PRESETS.keys():
-            self.log_error("Invaild visibility preset: {0}".format(visibility_preset))
+            self.log_error("Invalid visibility preset: {0}".format(visibility_preset))
             return None
 
         visibility_data = []
@@ -374,18 +375,39 @@ class SwingMaya(QtCore.QObject):
         
         return cmds.workspace(q = True, rootDirectory = True)
 
+    def get_scene_path(self):
+        file_name = cmds.file(q=True, sn=True)
+        return os.path.dirname(file_name)
+
     def get_scene_name(self):
         scene_name = cmds.file(q= True, sceneName = True, shortName = True)
         if scene_name:
             scene_name = os.path.splitext(scene_name)[0]
         else:
             scene_name = "untitled"
-
+    
         return scene_name
-
-    def get_scene_path(self):
-        file_name = cmds.file(q=True, sn=True)
-        return os.path.dirname(file_name)
+    
+    def to_number(self, text):
+        return ''.join(filter(str.isdigit, text))
+        
+    def get_scene_camera(self):
+        scene = self.get_scene_name()
+        scene_parts = scene.split('_')
+        
+        if len(scene_parts) > 4:
+            scene_name = "{}_{}_{}".format(self.to_number(scene_parts[1]), self.to_number(scene_parts[3]), self.to_number(scene_parts[4]))
+            
+            cameras = cmds.ls(type = 'camera')
+            
+            for c in cameras:
+                camera_parts = c.split('_')
+                if len(camera_parts) >= 4:
+                    camera_name = "{}_{}_{}".format(self.to_number(camera_parts[1]), self.to_number(camera_parts[2]), self.to_number(camera_parts[3]))
+                    
+                    if camera_name == scene_name:
+                        return c
+        return None        
 
     def get_working_file(self):
         return cmds.file(q=True, sn=True)
@@ -480,6 +502,87 @@ class SwingMaya(QtCore.QObject):
 
         return dir_path
 
+    ########################################################################################
+    #Derik's added functions
+    def get_shot_name_from_scene_name(self):
+        scene_name = self.get_scene_name()
+        scene_name_split = scene_name.split('_')
+        length = len(scene_name_split)
+        count = 0
+        name = ['']
+        while count < length:
+
+            name.append(scene_name_split[count])   
+            count = count + 1    
+        
+        proj = name[1]
+        ep = name[2]
+        scene = name[3]
+        shot = name[4]
+
+        return(proj, ep, scene, shot)
+
+    def set_evaluation_mode(self, evaluation_mode): #("off" = DG ,  "serial", "serialUncached" and "parallel")
+        cmds.evaluationManager( mode= evaluation_mode )
+
+
+    def get_scene_framerange(self):
+        timeline_start = cmds.playbackOptions(q = True, ast = True)
+        timeline_end = cmds.playbackOptions(q = True, aet = True)
+        playback_start = cmds.playbackOptions(q = True, min = True)
+        playback_end = cmds.playbackOptions(q = True, max = True)
+    
+        return timeline_start, timeline_end, playback_start, playback_end 
+
+    def unlock_attributes(self, transform):
+        attrs = cmds.listAttr(transform, visible = True)
+        if attrs:
+            for attr in attrs:
+                try:
+                    cmds.setAttr(transform + "." + attr, lock = 0)
+                except:
+                    pass
+                    #self.log_output(transform + "." + attr + "could not be set")
+
+    def make_attr_keyable(self, transform):
+        attrs = cmds.listAttr(transform, visible = True)
+        if attrs:
+            for attr in attrs:
+                try:
+                    cmds.setAttr(transform + "." + attr, keyable = 1)
+                except:
+                    pass
+                    #self.log_output(transform + "." + attr + "could not be set")
+        
+    def check_referenced_anim_curve_lockstate(self):
+        is_ref_files_locked = cmds.optionVar(q = 'refLockEditable')
+        return is_ref_files_locked
+
+    def unlock_referenced_anim_curves(self):
+        cmds.optionVar( iv=('refLockEditable', True))
+
+    def lock_referenced_anim_curves(self):
+        cmds.optionVar( iv=('refLockEditable', False))
+        
+    def bake_hierarchy_to_keys(self, object, bake_shape, startframe, endframe):
+        cmds.bakeResults(object, hi = 'below', simulation = True, t = (startframe,endframe), shape = False, sampleBy = 1, oversamplingRate = 1, disableImplicitControl = True, preserveOutsideKeys = True, sparseAnimCurveBake = False, removeBakedAttributeFromLayer = False, removeBakedAnimFromLayer = False, bakeOnOverrideLayer = False, minimizeRotation = True, controlPoints = False)
+    
+    def import_references(self):
+        all_ref_paths = cmds.file(q=True, reference=True) or []  # Get a list of all top-level references in the scene.
+
+        for ref_path in all_ref_paths:
+            if cmds.referenceQuery(ref_path, isLoaded=True):  # Only import it if it's loaded, otherwise it would throw an error.
+                cmds.file(ref_path, importReference=True)  # Import the reference.
+
+                new_ref_paths = cmds.file(q=True, reference=True)  # If the reference had any nested references they will now become top-level references, so recollect them.
+                if new_ref_paths:
+                    for new_ref_path in new_ref_paths:
+                        if new_ref_path not in all_ref_paths:  # Only add on ones that we don't already have.
+                            all_ref_paths.append(new_ref_path)
+
+    #End of Derik's added functions
+    ########################################################################################
+
     '''
         Get a list of all shots from the camera sequencer
     '''
@@ -516,6 +619,59 @@ class SwingMaya(QtCore.QObject):
         ##    self._playblast.log_output("shot {}".format(s))
 
         return shots
+
+    def chainsaw_panel(self, csv_filename):
+        self.log_output("chainsaw: exporting {}, csv: {}, path: ".format(self.get_scene_name(), csv_filename, self.get_scene_path()))
+        try:
+            break_out_dir = "{}/breakout".format(self.get_scene_path())
+
+            if not os.path.exists(break_out_dir):
+                os.makedirs(break_out_dir, mode=0o777, exist_ok=False)
+
+            all_shots = cmds.ls(type="shot")
+
+            self.log_output("chainsaw: found {} shots".format(len(all_shots)))
+
+            with open("{}/{}".format(break_out_dir, csv_filename), 'w') as csv_file:
+                writer = csv.writer(csv_file)            
+                try:
+                    for shot_name in all_shots:
+                        self.log_output("chainsaw: processing {} ".format(shot_name))
+
+                        shot_start = cmds.getAttr(shot_name + ".startFrame")
+                        shot_end = cmds.getAttr(shot_name + ".endFrame")
+                        shot_cam = cmds.listConnections(shot_name + ".currentCamera")         
+
+                        # only interested in the first camera for the shot
+                        if len(shot_cam) >= 1:
+                            shot_cam = shot_cam[0]
+
+                        self.log_output("chainsaw: shot_cam {} ".format(shot_cam))  
+                        ## self.set_active_camera(shot_cam)                          
+
+                        cmds.playbackOptions(animationStartTime=shot_start, minTime=shot_start, animationEndTime=shot_end, maxTime=shot_end)
+                        ## cmds.lookThru(shot_cam)
+                        cmds.currentTime(shot_start)                
+
+                        shot_file_name = "{}/{}.ma".format(break_out_dir, shot_name)
+
+                        self.log_output("chainsaw: processing {} -> {}".format(shot_name, shot_file_name))
+
+                        cmds.file(rn = shot_file_name)
+                        cmds.file(save=True, type='mayaAscii')                    
+
+                        writer.writerow([shot_name, shot_start, shot_end, shot_cam])
+
+                    return break_out_dir
+                finally:
+                    csv_file.close()
+        except:
+            traceback.print_exc(file=sys.stdout)
+            self.log_error("chainsaw error: args {}".format(csv_filename))               
+
+        return False
+
+
     #
     #
     # Exports the scene in layout format
@@ -525,7 +681,7 @@ class SwingMaya(QtCore.QObject):
     # Last Modified: 2021/04/05
     #
     def chainsaw(self, csv_filename):
-        self.log_output("chainsaw: exporting to {} using prefix".format(csv_filename))
+        self.log_output("chainsaw: exporting {}, csv: {}".format(self.get_scene_name(), csv_filename))
         try:
             break_out_dir = "{}/breakout".format(self.get_scene_path())
 
@@ -548,6 +704,9 @@ class SwingMaya(QtCore.QObject):
                         # only interested in the first camera for the shot
                         if len(shot_cam) >= 1:
                             shot_cam = shot_cam[0]
+
+                        self.log_output("chainsaw: shot_cam {} ".format(shot_cam))  
+                        ## self.set_active_camera(shot_cam)                          
 
                         cmds.playbackOptions(animationStartTime=shot_start, minTime=shot_start, animationEndTime=shot_end, maxTime=shot_end)
                         cmds.lookThru(shot_cam)
@@ -609,10 +768,14 @@ class SwingMaya(QtCore.QObject):
             #if seqcamtype == 'camera':
             #    cam_trans = cmds.listRelatives(seqcam,type='transform',p=True)
 
-            #cam_trans = cmds.listRelatives(cam, p = True)
+            cam_trans = cmds.listRelatives(cam, f = True, p = True)
+            self.log_output("anim_prep::checking if {} is in {}".format(shot_name, cam_trans))
+
             if str(shot_name) in str(cam_trans):
-                self.log_output("Keeping camera for shot '{}'".format(cam_trans))
+                self.log_output("anim_prep::keeping camera for shot '{}'".format(cam_trans))
                 continue
+            else:
+                self.log_output("anim_prep::removing cam trans {}".format(cam_trans))
 
             ##print(cam_trans)
             cmds.delete(cam_trans)    
@@ -621,6 +784,7 @@ class SwingMaya(QtCore.QObject):
         # delete unused sequencer shot nodes    
         for cur_shot in all_shots:
             if cur_shot != shot_name:
+                cmds.lockNode(cur_shot, lock=False)                
                 cmds.delete(cur_shot)
                 self.log_output("anim_prep::removed shot '{}'".format(cur_shot))
 
@@ -644,7 +808,8 @@ class SwingMaya(QtCore.QObject):
                 pass
             else:
                 cmds.select(animCurve, add = True)
-            
+        #Unlock graph editor keys
+        mel.eval('GraphEditorUnlockChannel;')    
         #Key start and end of shot    
         cmds.currentTime(start)
         cmds.setKeyframe()
@@ -657,11 +822,29 @@ class SwingMaya(QtCore.QObject):
         self.log_output("Keyed start {} and end {}".format(start, end))
         
         #shift Keys to frame 0
-        cmds.keyframe(edit=True, iub=False, an = 'objects', o = 'move', fc = 0, relative=True, timeChange=-(start),time=((-500),(5000000)))
+
+        keys = cmds.ls(sl = True)
+        for key in keys:
+            cmds.select(key, r = True)
+            cmds.selectKey(key, add = True, k = True)
+            mel.eval('GraphEditorUnlockChannel;')
+            con = cmds.listConnections(key) 
+            if con == None:
+                pass
+            else:
+                try:
+                    cmds.keyframe(edit=True, iub=False, an = 'objects', o = 'move', fc = 0, relative=True, timeChange=-(start),time=((-500),(5000000)))
+                except:
+                    print('I didn not move :{}'.format(key))
+
+        #cmds.keyframe(edit=True, iub=False, an = 'objects', o = 'move', fc = 0, relative=True, timeChange=-(start),time=((-500),(5000000)))
         cmds.playbackOptions(animationStartTime=0, minTime=0, animationEndTime=(end - start), maxTime=(end - start))
         self.log_output("Shifted keys to origin")
         
         #delete keys outside shot range
+
+        cmds.select(keys,r = True)
+        
         frontcut_start = -5000
         frontcut_end = -2
         backcut_start = end - start + 2
@@ -671,10 +854,85 @@ class SwingMaya(QtCore.QObject):
         self.log_output("Removed keys out of bounds")
 
         #Delete current shot sequencer node    
+        cmds.lockNode(shot_name, lock=False)               
         cmds.delete(shot_name)
         self.log_output("Removed sequencer node")
 
+        try:
+            self.removeHiddenReferences()
+        except:
+            self.log_output("anim_prep: error removing hidden references")        
+
         #Save file    
         cmds.file(save = True, type='mayaAscii') 
-        self.log_output("Saved scene")             
+        self.log_output("Saved scene")       
+
+
+    def removeHiddenReferences(self):
+        cmds.currentTime(0, edit=True )
+        rootNodes = cmds.ls(assemblies = True)
+        self.log_output("removeHiddenReferences::Scanning root nodes: {}".format(rootNodes))
+
+        for rootNode in rootNodes:
+            if cmds.referenceQuery( rootNode, isNodeReferenced = True):
+                vis = cmds.getAttr(rootNode + '.visibility')
+                if vis:
+                    pass
+                else:
+                    is_hiddenoutliner = cmds.getAttr(rootNode + ".hiddenInOutliner")
+                    if is_hiddenoutliner:
+                        pass
+                    else:
+                        refNode = cmds.referenceQuery(rootNode, referenceNode = True)
+                        try:
+                            cmds.file(removeReference = True, referenceNode = refNode)
+                            self.log_output("removeHiddenReferences::Removed: {}".format(refNode))
+                        except:
+                            self.log_output("removeHiddenReferences::{} - Could not remove reference. hierarchy might be dirty".format(rootNode))
+        
+            else:
+                children = cmds.listRelatives( rootNode, fullPath = True, c=True)
+                if children:
+                    self.log_output("Processing {}".format(children))
+
+                    for child in children:
+                        if rootNode == 'ENVIRONMENT':
+                            pass
+                        else:
+                            if cmds.referenceQuery(child, isNodeReferenced = True):
+                                vis = cmds.getAttr(child + '.visibility')
+                                if vis:
+                                    pass
+                                else:
+                                    refNode = cmds.referenceQuery(child, referenceNode = True)
+                                    try:
+                                        cmds.file(removeReference = True, referenceNode = refNode)
+                                        self.log_output("removeHiddenReferences::Removed: {}".format(refNode))
+                                    except:
+                                        self.log_output("removeHiddenReferences::{} Could not remove reference. hierarchy might be dirty".format(child))
+
+        fosterparents = cmds.ls(type = 'fosterParent')
+        if fosterparents:
+            for fp in fosterparents:
+                cmds.delete(fp)      
+                self.log_output("removeHiddenReferences::Removed fosterParent: {}".format(fp))
+
+    # Mandi Matakovic / 2022-09-14
+    # grab latest model file in directory
+    def import_latest(self, asset_path):
+        fileType = r".ma"
+        file = glob.glob(r"{}/*{}".format(asset_path, fileType)) #filepath and extention
+        latestFile = max(file, key=os.path.getctime) #look for the latest file
+
+        cmds.file(latestFile, i=True, mergeNamespacesOnClash=True, namespace=':') #import the file
+
+        print('----------------------------------')
+        print('imported:')
+        print(latestFile)
+        print('----------------------------------')        
+
+
+        
+                                
+
 

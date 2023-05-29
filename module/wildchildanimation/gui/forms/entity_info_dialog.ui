@@ -201,6 +201,13 @@
       </widget>
      </item>
      <item>
+      <widget class="QCheckBox" name="checkBoxLayoutScene">
+       <property name="text">
+        <string>Layout Scene</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <spacer name="horizontalSpacer">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>

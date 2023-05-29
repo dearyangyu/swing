@@ -10,8 +10,15 @@ try:
     from PySide2 import QtWidgets
     qtMode = 0
 except ImportError:
-    from PyQt5 import QtCore, QtWidgets
-    qtMode = 1
+    try:
+        from PyQt5 import QtCore, QtWidgets
+        qtMode = 1
+    except ImportError:
+        try:
+            from PyQt6 import QtCore, QtWidgets
+            qtMode = 2
+        except:
+            print("Error, no QT library found")
 
 from wildchildanimation.gui.desktop_layout_control_dialog import Ui_DesktopLayoutDialog
 from wildchildanimation.gui.file_select_dialog import FileListDialog

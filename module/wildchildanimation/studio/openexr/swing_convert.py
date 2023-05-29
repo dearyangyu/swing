@@ -8,6 +8,7 @@
 import os
 import sys
 import traceback
+import time
 
 try:
     import OpenEXR
@@ -69,24 +70,24 @@ class ConvertRunnable(QtCore.QRunnable):
             # Providing new png file path every time using exr file name to create png file with same name
             png_path = os.path.join(self.target_dir, os.path.splitext(exr_file)[0] + '.png')
             Image.merge('RGB', rgb8).save(png_path, 'PNG')
-            count += 1
 
-            print("Progress::Emit -> {}".format(exr_file))
+            print("{}/{}: EXR::PNG -> {}".format(count, len(self.file_list), exr_file))
             self.callback.loaded.emit(count)
+            count += 1
 
         return True            
 
 
 class SwingConvert(QtCore.QObject):
 
-    def __init__(self, media_file, source_dir, temp_dir, audio_path = None, preset_speed="veryfast", framerate=25, artist="WCA-Teams", album="WITW", genre="children-animation"):
+    def __init__(self, media_file, source_dir, temp_dir, audio_path = None, preset_speed="veryfast", framerate=25, caption="Render", artist="WCA-Teams", album="WITW", genre="children-animation"):
         super(SwingConvert, self).__init__() 
 
         self.media_file = media_file
         self.source_dir = source_dir
         self.temp_dir = temp_dir
 
-        self.shot_and_scene_name = os.listdir(self.source_dir)[0].split('.')[0]
+        self.caption = caption
 
         self.settings = SwingSettings.get_instance()
         self.threadpool = QtCore.QThreadPool.globalInstance()
@@ -97,12 +98,15 @@ class SwingConvert(QtCore.QObject):
 
         self.source_files = []
 
+        self.artist = artist
+        self.album = album
+
         ## self.exr_files = os.listdir("{}/*.exr".format(self.exr_files_loc))
         
         # Creating -metadata string using is repeatingly
         # Creating list of metadata add information
         self.metadata = "-metadata"
-        self.metalist = [f"title='{self.shot_and_scene_name}'", f"artist='{artist}'", f"album='{album}'", f"genre='{genre}'"]
+        self.metalist = [f"title='{self.caption}'", f"artist='{self.artist}'", f"album='{self.album}'", f"genre='{genre}'"]
 
     # Fuction returns add metadata section of to ffmpeg command
     def add_meta_information(self):
@@ -120,9 +124,9 @@ class SwingConvert(QtCore.QObject):
             exr_files_exist = OpenEXR.isOpenExrFile(item_path)
 
             if exr_files_exist:
-                print(item_path)   
+                print("OpenEXR.isOpenExrFile::{}".format(item_path))
             else:
-                print(f"Error: Please check your exr files directory, {item_path} is not exr file.")
+                print(f"OpenEXR.isOpenExrFile: Invalid file - Please check your exr files directory, {item_path} is not exr file.")
                 return False
         return True
 
@@ -139,10 +143,12 @@ class SwingConvert(QtCore.QObject):
     def rename_png_files(self):
         for count, filename in enumerate(os.listdir(self.temp_dir)):
             z_fill = str(count).zfill(4)
-            new_file_name = f"{self.shot_and_scene_name}.{z_fill}.png"
+            new_file_name = f"{self.caption}.{z_fill}.png"
             src =f"{self.temp_dir}\{filename}"
-            destination_dir = f"{self.temp_dir}\{new_file_name }"
-            os.rename(src, destination_dir)
+            target = f"{self.temp_dir}\{new_file_name }"
+            os.rename(src, target)
+
+            print("{} -> {}".format(src, target))
         
         return True
 
@@ -152,16 +158,8 @@ class SwingConvert(QtCore.QObject):
                 os.remove(os.path.join(temp_dir_path, item))
         return True
 
-    def convert_progress(self, count):
-        print("***{}".format(count))
-
-        if self.progressBar:
-            self.progressBar.setValue(count)
-
-        print("Progress {}".format(count))
-
     # Converts files from EXR to PNG
-    def convert(self, progressBar = None):
+    def convert(self):
         for item in os.listdir(self.source_dir):
             if item.lower().endswith(".exr"):
                 self.source_files.append(item)
@@ -175,65 +173,122 @@ class SwingConvert(QtCore.QObject):
         if not self.check_png_folder_is_empty():
             self.remove_temp_dir(self.temp_dir)
 
-        count = 0
-        if progressBar:
-            self.progressBar = progressBar
-            self.progressBar.setMinimum(1)
-            self.progressBar.setMaximum(len(self.source_files))
-            self.progressBar.setValue(count)
-        else:
-            self.progressBar = None
-
         self.worker = ConvertRunnable(self.source_dir, self.temp_dir, self.source_files)
-        self.worker.callback.loaded.connect(self.convert_progress)
-
-        ##self.worker.run()
-        self.threadpool.start(self.worker)
+        self.worker.run()
+    
         return True
+        
+        ## self.threadpool.start(self.worker)
+        ## return True
 
     # Returns complete ffmpeg return command
-    def ffmpeg_convert_command(self):
+    def ffmpeg_convert_command2(self):
         if self.audio_path:
             self.audio_path = f'-i "{self.audio_path}" -c:v copy -c:a aac'
         
         meta_information = self.add_meta_information()
 
         ffmpeg_command = self.settings.bin_ffmpeg()
-           
-        cmd = '{} -y -probesize 5000000 -f image2 -r {} -i "{}" {} -c:v libx265 -preset {} -crf 0 {} -y "{}"'.format( 
+
+        filters = []
+        text_graph = ''
+        caption = ''
+
+        #caption = "{} - {}".format(self.title, self.artist)            
+        #filters.append("drawtext=font=Consolas: fontsize=18: fontcolor=white: x=(w-text_w)/2: y=20: text='{}' ".format(caption, 24))
+                #ffmpeg_cmd += " -vf \"drawtext=font=Consolas: fontsize=24: fontcolor=white: text='{}': r={}: x=(w-tw-20): y=h-lh-20: box=1: boxcolor=black\" ".format(caption, 24)
+
+        # Timecode Burn-In
+        #filters.append("drawtext=font=Consolas: fontsize=18: fontcolor=white: x=5: y=20: timecode='00\:00\:00\:00': r={}: ".format(self.framerate))
+        #filters.append("drawtext=font=Consolas: fontsize=18: fontcolor=white: x=(w-text_w)-5: y=20: start_number=1: text='%{frame_num}' ")
+
+        for i in range(len(filters)):
+            text_graph += filters[i]
+            if i < len(filters) - 1:
+                text_graph += ', '
+
+        cmd = '{} -y -probesize 5000000 -f image2 -r -i "{}" {} {} -c:v libx265 -preset {} -crf 0 {} -y "{}"'.format( 
             ffmpeg_command,
             self.framerate, 
-            os.path.join(self.temp_dir, f'{self.shot_and_scene_name}.%04d.png'),
+            os.path.join(self.temp_dir, f'{self.caption}.%04d.png'),
             self.audio_path,
             self.preset_speed,
             meta_information,
-            os.path.join(self.media_file, f'{self.shot_and_scene_name}.mov')
+            os.path.join(self.media_file, f'{self.caption}.mov')
         )
 
         return cmd
+
+    def ffmpeg_convert_command(self):
+        meta_information = self.add_meta_information()
+
+        ffmpeg_cmd = self.settings.bin_ffmpeg()
+        ffmpeg_cmd += r' -y -framerate {0} -i "{1}"'.format(self.framerate, os.path.join(self.temp_dir, f'{self.caption}.%04d.png'))        
+
+        if self.audio_path:
+            ffmpeg_cmd += f'-i "{self.audio_path}" -c:v copy -c:a aac'
+
+        filters = []
+        text_graph = ''
+
+        title = self.caption
+        if self.artist:
+            title = "{} - {}".format(self.caption, self.artist)            
+
+        filters.append(r"drawtext=font=Consolas: fontsize=18: fontcolor=white: x=(w-text_w)/2: y=20: text='{}' ".format(title.strip(), 24))
+            #ffmpeg_cmd += " -vf \"drawtext=font=Consolas: fontsize=24: fontcolor=white: text='{}': r={}: x=(w-tw-20): y=h-lh-20: box=1: boxcolor=black\" ".format(caption, 24)
+
+        # Timecode Burn-In
+        filters.append(r"drawtext=font=Consolas: fontsize=18: fontcolor=white: x=5: y=20: timecode='00\:00\:00\:00': r={}: ".format(self.framerate))
+        filters.append(r"drawtext=font=Consolas: fontsize=18: fontcolor=white: x=(w-text_w)-5: y=20: start_number=1: text='%{frame_num}' ")
+
+        for i in range(len(filters)):
+            text_graph += filters[i]
+            if i < len(filters) - 1:
+                text_graph += ', '
+
+        if len(text_graph) > 0:
+            ffmpeg_cmd += r' -vf "{}"'.format(text_graph)
+
+        ffmpeg_cmd += r' -c:v libx265 '
+
+        if self.audio_path:
+            ffmpeg_cmd += r' -filter_complex "[1:0] apad" -shortest'      
+
+        ffmpeg_cmd += r' "{0}"'.format(self.media_file)             
+        return ffmpeg_cmd        
     
     # Runs FFMPEG command using subprocess  
-    def exr_to_png_mp4_convert(self, progressBar, textEdit):
-        exr_to_png_convert_success = self.convert(progressBar=progressBar)
+    def exr_to_png_mp4_convert(self):
+        exr_to_png_convert_success = self.convert()
 
         # exr_to_png_convert_success = True
         cmd = self.ffmpeg_convert_command()
+
+        print("***********")
+        print("{}".format(cmd))
+        print("***********")
+
         if exr_to_png_convert_success:
             self.rename_png_files()
             print("Converting files to .mov file.")
-            proc = subprocess.Popen(cmd, shell = True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+            proc = subprocess.Popen(cmd, shell = False, stdout=subprocess.PIPE)
             while True:
-                output = proc.stderr.read(1)
+                #output = proc.stdout.read(1)
+                output = proc.stdout.readline()
                 try:
                     log = output.decode('utf-8')
                     if log == '' and proc.poll() != None:
                         break
                     else:
-                        sys.stdout.write(log)
-                        sys.stdout.flush()
+                        print(log)
                 except:
-                    print("Byte Code Error: Ignoring")
+                    self.server_log("Byte Code Error: Ignoring")
                     print(traceback.format_exc())
+                # continue
+
+                return os.path.join(self.source_dir, self.media_file)
         else:
-            traceback.print_exc(file=sys.stdout)
             return False   
+
+

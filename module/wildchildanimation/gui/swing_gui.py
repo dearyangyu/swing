@@ -30,7 +30,7 @@ from wildchildanimation.gui.background_workers import AssetLoaderThread, AssetTy
 
 from wildchildanimation.gui.downloads import DownloadDialogGUI
 from wildchildanimation.gui.playlists import PlaylistDialog
-from wildchildanimation.gui.breakout import BreakoutUploadDialog
+from wildchildanimation.gui.playlists_episode import PlaylistEpisodeDialog
 
 from wildchildanimation.gui.swing_tables import FileTableModel, TaskTableModel, setup_file_table
 from wildchildanimation.gui.swing_utils import load_combo, fcount, open_folder, resolve_content_path, resource_path, set_button_icon, set_target, write_log
@@ -140,6 +140,9 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.toolButtonLayout.clicked.connect(self.breakout_dialog)
         self.toolButtonLayout.setEnabled(False)
 
+        self.toolButtonEpisodes.clicked.connect(self.on_playlist_episodes)
+        self.toolButtonEpisodes.setEnabled(False)
+
         self.toolButtonPlaylists.clicked.connect(self.on_playlists)
         self.toolButtonPlaylists.setEnabled(False)
 
@@ -190,7 +193,8 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         if self.connect_to_server():
             self.labelConnection.setText("Connected")
             self.nav.load_open_projects()
-            self.version_check()
+            # disble version check for now
+            # self.version_check()
             self.set_enabled(True)
 
         ## Don't do playlists yet
@@ -277,9 +281,9 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.publishTaskAction.setStatusTip("Publish for review")
         self.publishTaskAction.triggered.connect(self.on_publish)
 
-        self.publishTaskAction = self._loadActionIcon("&Render Pub", "../resources/fa-free/solid/upload.svg")
-        self.publishTaskAction.setStatusTip("Encode and upload renders")
-        self.publishTaskAction.triggered.connect(self.on_render_pub)        
+        self.renderpubTaskAction = self._loadActionIcon("&Render Pub", "../resources/fa-free/solid/upload.svg")
+        self.renderpubTaskAction.setStatusTip("Encode and upload renders")
+        self.renderpubTaskAction.triggered.connect(self.on_render_pub)        
 
         self.taskInfoAction = self._loadActionIcon("&Entity Info", "../resources/fa-free/solid/info-circle.svg")
         self.taskInfoAction.setStatusTip("View Entity Entity")
@@ -304,6 +308,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
         self.tableViewTasks.addAction(self.newTaskDirAction)
         self.tableViewTasks.addAction(self.publishTaskAction)
+        self.tableViewTasks.addAction(self.renderpubTaskAction)
         self.tableViewTasks.addAction(self.taskInfoAction)
         self.tableViewTasks.addAction(self.openTaskFolderAction)
         self.tableViewTasks.addAction(self.createTaskFolderAction)
@@ -685,6 +690,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
                 is_main_pack = self.currentEpisode["episode"] == "all"
                 self.toolButtonLayout.setEnabled(not is_main_pack)
                 self.toolButtonPlaylists.setEnabled(not is_main_pack)
+                self.toolButtonEpisodes.setEnabled(not is_main_pack)
 
             self.tasks_changed()
         except:
@@ -742,6 +748,8 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             loader = AssetLoaderThread(self, project["project_id"], self.currentAssetType)
             loader.callback.loaded.connect(self.asset_loaded)
             self.threadpool.start(loader)
+
+            ## debug loader.run()
 
     def load_shot_files(self, index):
         if not self.nav.is_loaded():
@@ -887,6 +895,8 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
     def select_row(self, index):
         self.tableViewFiles.model().setData(index, QtCore.Qt.Checked, QtCore.Qt.EditRole)
         self.tableViewFiles.model().layoutChanged.emit()
+
+        self.selected_file = self.tableViewFiles.model().data(index, QtCore.Qt.UserRole)        
         # self.tableViewFiles.update()
         # print("current row is %d", index.row())
 
@@ -999,6 +1009,14 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         else:
             QtWidgets.QMessageBox.information(self, 'Break Out', 'Please select a project and an episode first')  
 
+    def on_playlist_episodes(self):
+        if self.nav.get_project() and self.nav.get_episode():
+            self.playlist_dialog = PlaylistEpisodeDialog(self)
+            self.playlist_dialog.set_project_episode(self.nav.get_project()["project_id"], self.nav.get_episode()["episode_id"], self.nav.get_task_types())
+
+            self.playlist_dialog.exec_()
+        else:
+            QtWidgets.QMessageBox.information(self, 'Playlists', 'Please select a project and an episode first')  
 
     def on_playlists(self):
         if self.nav.get_project() and self.nav.get_episode():

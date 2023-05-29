@@ -16,7 +16,7 @@ except ImportError:
 class StudioInterface(QtCore.QObject):
 
     NAME = "StudioInterface"
-    VERSION = "0.0.9"    
+    VERSION = "0.0.10"    
 
     def __init__(self):
         super(StudioInterface, self).__init__()
@@ -210,27 +210,38 @@ class StudioInterface(QtCore.QObject):
         sections = []
         if "project" in task:
             if "code" in task["project"] and task["project"]["code"] and len(task["project"]["code"]) > 0:
-                sections.append(task["project"]["code"])
+                project_name = task["project"]["code"]
+                ##sections.append(task["project"]["code"])
             else:
-                sections.append(task["project"]["name"])
+                project_name = task["project"]["name"]
+                ##sections.append(task["project"]["name"])
 
         if "entity_type" in task:
             if task["entity_type"]["name"] == "Shot":
+                if not project_name in task["episode"]["name"]:
+                    sections.append(project_name)
+
                 if "episode" in task:
                     sections.append(task["episode"]["name"])
 
                 if "sequence" in task:
                     sections.append(task["sequence"]["name"])
-            else:
-                if task["entity_type"]["name"] in StudioInterface.ASSET_TYPE_LOOKUP:
-                    sections.append(StudioInterface.ASSET_TYPE_LOOKUP[task["entity_type"]["name"]])
-                else:
-                    sections.append(task["entity_type"]["name"])                
+            #else:
+            #    if task["entity_type"]["name"] in StudioInterface.ASSET_TYPE_LOOKUP:
+            #        sections.append(StudioInterface.ASSET_TYPE_LOOKUP[task["entity_type"]["name"]])
+            #    else:
+            #        sections.append(task["entity_type"]["name"])                
 
         if "entity" in task:
             if "code" in task["entity"] and task["entity"]["code"]  and len(task["entity"]["code"]) > 0:
+                if not project_name in task["entity"]["code"]:
+                    sections.append(project_name)
+
                 sections.append(task["entity"]["code"])
             else:
+                if not project_name in task["entity"]["name"]:
+                    sections.append(project_name)
+
                 sections.append(task["entity"]["name"])                 
 
         if "task_type" in task:

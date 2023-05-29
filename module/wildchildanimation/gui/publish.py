@@ -16,7 +16,6 @@ except ImportError:
     from PyQt5 import QtCore, QtWidgets
     qtMode = 1
 
-import gazu
 from wildchildanimation.gui.background_workers import SoftwareLoader, TaskFileInfoThread, WorkingFileUploader, ProjectTaskTypeLoader, ProjectStatusTypeLoader
 from wildchildanimation.gui.swing_utils import set_button_icon
 from wildchildanimation.gui.image_loader import PreviewImageLoader
@@ -157,24 +156,45 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
     def task_loaded(self, results):
         self.task = results["task"]
 
-        name = ""
-        if "entity_type" in self.task:
-            name = '{} {}'.format(name, self.task["entity_type"]["name"])
-        else:
-            name = '{} {}'.format(name, self.task["entity_type_name"])
+        title = self.task["project"]["code"]
 
-        if "entity" in self.task:
-            name = '{} {}'.format(name, self.task["entity"]["name"])
-        else:
-            name = '{} {}'.format(name, self.task["entity_name"])
+        task_for = ""
+        task_name = ""
 
         if "task_type" in self.task:
             task_type = self.task["task_type"]["name"]
-            name = '{} {}'.format(name, self.task["task_type"]["name"])   
         else:
             task_type = self.task["task_type_name"]
+        title += " / {}".format(task_type)
+        task_for += task_type
 
-        name = '{} {}'.format(name, task_type)   
+        if "entity_type" in self.task:
+            entity_type = self.task["entity_type"]["name"]
+        else:
+            entity_type = self.task["entity_type_name"]
+
+        sequence = ""
+        if entity_type in ["Shot", "Edit"]:
+            if "sequence" in self.task:
+                if "episode" in self.task:
+                    sequence = "{} / {}".format(self.task["episode"]["name"], self.task["sequence"]["name"])
+                else:
+                    sequence = self.task["sequence"]["name"]
+
+                title += " / {}".format(sequence)  
+                task_for += " / {}".format(sequence)  
+        else:
+            title += " / {}".format(entity_type)  
+            task_for += " / {}".format(entity_type)  
+
+        
+        if "entity" in self.task:
+            entity_name = self.task["entity"]["name"]
+        else:
+            entity_name = self.task["entity_name"]
+        title += " / {}".format(entity_name)        
+        task_name = "{}".format(entity_name)        
+
         if "final" in task_type.lower():
             self.output_mode = "render"
             self.groupBoxOutputFiles.setTitle("Final Output")
@@ -182,22 +202,23 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
             self.output_mode = "wip"
             self.groupBoxOutputFiles.setTitle("Media for Review")
 
-        self.lineEditSelection.setText(name)
-        self.lineEditFor.setText("{}: {}".format(self.task["entity_type"]["name"], self.task["entity"]["name"]))        
         self.lineEditProject.setText(self.task["project"]["name"])
+        self.lineEditFor.setText(task_for)        
+        self.lineEditSelection.setText(task_name)
 
-        self.reviewTitleLineEdit.setText("Review: {}: {}".format(self.task["entity_type"]["name"], self.task["entity"]["name"]))
+        self.reviewTitleLineEdit.setText("Review: {} {} {}".format(self.task["project"]["code"], task_for, task_name))
 
         # load artist allowed task status codes
         for item in self.status_types:
-            self.comboBoxTaskStatus.addItem(item["name"], userData = item) 
+            if item["is_artist_allowed"]:
+                self.comboBoxTaskStatus.addItem(item["name"], userData = item) 
         
         # default to Work in Progress
-        status_index = self.comboBoxTaskStatus.findText("WIP")
-        if status_index >= 0:
-            self.comboBoxTaskStatus.setCurrentIndex(status_index)        
-        else:
-            self.comboBoxTaskStatus.setCurrentIndex(0)                    
+        found = -1
+        for idx in range(0, self.comboBoxTaskStatus.count()):
+            if self.comboBoxTaskStatus.itemText(idx).lower() in ["wip", "work in progress"]:
+                found = idx
+        self.comboBoxTaskStatus.setCurrentIndex(found)                    
 
         idx = 0
         sel = -1
@@ -215,7 +236,7 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
             imageLoader.callback.results.connect(self.load_preview_image)
             self.threadpool.start(imageLoader)
 
-        self.setWindowTitle("swing: publisher - {}".format(name))
+        self.setWindowTitle("swing: publisher - {}".format(title))
         self.set_enabled(True)
 
 
@@ -303,6 +324,9 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         self.workingFileEdit.setText("")
 
     def set_output_file(self, selected_file):
+        if not selected_file in self.output_files:
+            self.output_files.append(selected_file)
+            
         self.radioButtonOutputFile.setChecked(True)
         self.radioButtonOutputDir.setChecked(False)
 
@@ -592,14 +616,14 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         model = self.tableViewReferences.model().items
         for item in model:
             source = item["item"]
-            mode = item["type"]
-
+            # mode = item["type"]
+            
             if os.path.exists(source):
                 file_base = os.path.basename(source)
                 file_name, file_ext = os.path.splitext(file_base)
 
                 worker = WorkingFileUploader(self, edit_api, self.task, source, file_name, self.get_software()["name"], comment=task_comments, 
-                    mode = mode, task_status = self.comboBoxTaskStatus.currentData(QtCore.Qt.UserRole)["id"])                    
+                    task_status = self.comboBoxTaskStatus.currentData(QtCore.Qt.UserRole)["id"])                    
                     
                 worker.callback.progress.connect(self.monitor.file_loading)
                 worker.callback.done.connect(self.monitor.file_loaded)
@@ -641,7 +665,7 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
             self.last_work_dir = "."
         
         #Get the file location
-        q = QtWidgets.QFileDialog.getOpenFileNames(self, "Add secondary assets", self.last_work_dir, "Alembic file (*.abc);;FBX files (*.fbx);;Images (*.png *.jpg);;Zip files (*.zip);;All Files (*.*)")
+        q = QtWidgets.QFileDialog.getOpenFileNames(self, "Add secondary assets", self.last_work_dir, "FBX files (*.fbx);;Alembic file (*.abc);;Images (*.png *.jpg);;Zip files (*.zip *.7z);;JSON files (*.json);;All Files (*.*)")
         if not (q):
             return 
 
@@ -690,11 +714,14 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
             elif fext in [".png", ".jpg", ".bmp" ]:
                 self.add_reference_file(item, "Image")
 
-            elif ".zip" == fext:
+            elif fext in [".7z", ".zip", ".rar"]:
                 self.add_reference_file(item, "Zip")
 
+            elif fext in [".json"]:
+                self.add_reference_file(item, "Json")                
+
             else:
-                print("Reference type {}.{} not supported yet".format(fn, fext))
+                print("Reference type {}{} not supported yet".format(fn, fext))
 
         self.load_reference_table()
 

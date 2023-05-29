@@ -72,8 +72,19 @@ def fcount_name(path, name):
             if not f in [ ".source", ".history"]:
                 count += 1
 
-    return count        
+    return count     
 
+def dir_count(path):
+    """ Counts the number of sub directories in a directory """
+    count = 0
+    if not os.path.exists(path):
+        return count
+
+    for f in os.listdir(path):
+        if os.path.isdir(os.path.join(path, f)): 
+            count += 1
+
+    return count  
 
 def open_folder(directory):
     file_info = QtCore.QFileInfo(directory)
@@ -303,7 +314,7 @@ def scan_archive(archive):
 # open zip file in read binary    
 
 # extract archive using 7zip
-def external_extract(program, archive, directory, extract_mode = "x" ):
+def external_extract(program, archive, directory, extract_mode = "x", cpu_threads = "1" ):
     #
     ## Usage: 7z <command> [<switches>...] <archive_name> [<file_names>...] [@listfile]
     
@@ -351,8 +362,29 @@ def external_extract(program, archive, directory, extract_mode = "x" ):
         #os.chdir("{}:".format(drive_name))
         os.chdir(directory)
 
-        with subprocess.Popen([program, extract_mode, "-y", archive], stdout=subprocess.PIPE) as proc:
-            print(proc.stdout.read().splitlines())
+        cpu_thread_count = "-mmt{}".format(cpu_threads)
+
+        time_start = datetime.now()     
+
+        proc = subprocess.Popen([program, extract_mode, cpu_thread_count, "-y", archive], shell = False, stdout=subprocess.PIPE)
+        while True:
+            output = proc.stdout.readline()
+            try:
+                log = output.decode('utf-8')
+                if log == '' and proc.poll() != None:
+                    break
+                else:
+                    print(log.strip())
+            except:
+                print(traceback.format_exc())
+            # continue
+
+        time_end = datetime.now()
+        try:
+            print(r"swing: extracting {} completed in {}".format(directory, (time_end - time_start)))
+            print(r"")
+        except:
+            print(traceback.format_exc())
 
         return True
     except:

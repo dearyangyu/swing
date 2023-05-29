@@ -146,6 +146,10 @@ class SwingCreateDialog(QtWidgets.QDialog, Ui_SwingCreateDialog):
         self.asset = None
         self.project = data["project"]
 
+        self.force_lowercase = True
+        if self.project["data"] and "force_lowercase" in self.project["data"]:
+            self.force_lowercase = self.project["data"]["force_lowercase"] == "True"
+
         self.project_name = self.project["name"]
         self.episode_name = None
         self.sequence_name = None
@@ -165,8 +169,13 @@ class SwingCreateDialog(QtWidgets.QDialog, Ui_SwingCreateDialog):
                 self.project_name = self.project["code"]
             else:
                 self.project_name = self.project["name"]
-            sections.append(self.project_name)
-                
+
+            try:
+                if not self.project_name in self.entity["episode_name"]:
+                    sections.append(self.project_name)  
+            except:
+                pass
+
             if "episode_name" in self.shot:
                 self.episode_name = self.shot["episode_name"]
                 sections.append(self.episode_name)
@@ -185,10 +194,14 @@ class SwingCreateDialog(QtWidgets.QDialog, Ui_SwingCreateDialog):
                     sections.append(self.task["task_type"]["name"])          
                 self.task_type_name = self.task["task_type"]["name"]
 
-            self.lineEditEntity.setText(friendly_string("_".join(sections).lower()))
-            
-            self.lineEditAssetType.setText(self.task_type_name)
+            text_data = friendly_string("_".join(sections))
+            text_data = text_data.replace("SDMP_SDMP", "SDMP")
 
+            if self.force_lowercase:
+                text_data = text_data.lower()
+
+            self.lineEditEntity.setText(text_data)
+            self.lineEditAssetType.setText(self.task_type_name)
             self.lineEditFrameIn.setText(self.shot["frame_in"])
             self.lineEditFrameIn.setEnabled(False)
             self.lineEditFrameOut.setText(self.shot["frame_out"])
@@ -218,14 +231,16 @@ class SwingCreateDialog(QtWidgets.QDialog, Ui_SwingCreateDialog):
                 self.project_name = self.project["code"]
             else:
                 self.project_name = self.project["name"]
-            sections.append(self.project_name)  
 
-            if "asset_type_name" in self.asset:
-                self.asset_type_name = self.asset["asset_type_name"].strip()
-                if self.asset_type_name in StudioInterface.ASSET_TYPE_LOOKUP:
-                    sections.append(StudioInterface.ASSET_TYPE_LOOKUP[self.asset_type_name])                     
-                else:
-                    sections.append(self.asset_type_name)                 
+            if not self.project_name in self.entity["name"]:
+                sections.append(self.project_name)  
+
+            #if "asset_type_name" in self.asset:
+            #    self.asset_type_name = self.asset["asset_type_name"].strip()
+            #    if self.asset_type_name in StudioInterface.ASSET_TYPE_LOOKUP:
+            #        sections.append(StudioInterface.ASSET_TYPE_LOOKUP[self.asset_type_name])                     
+            #    else:
+            #        sections.append(self.asset_type_name)                 
 
             self.asset_name = self.entity["name"].strip() 
             sections.append(self.asset_name)
@@ -237,7 +252,15 @@ class SwingCreateDialog(QtWidgets.QDialog, Ui_SwingCreateDialog):
                     sections.append(self.task["task_type"]["name"])          
                 self.task_type_name = self.task["task_type"]["name"]
 
-            self.lineEditEntity.setText(friendly_string("_".join(sections).lower()))
+            sections.append("v001")
+
+            text_data = friendly_string("_".join(sections))
+            text_data = friendly_string("_".join(sections))
+            text_data = text_data.replace("SDMP_SDMP", "SDMP")
+
+            if self.force_lowercase:
+                text_data = text_data.lower()
+            self.lineEditEntity.setText(text_data)
 
             self.lineEditAssetType.setText(self.asset_type_name)
             self.lineEditFrameIn.setText("")
@@ -246,6 +269,7 @@ class SwingCreateDialog(QtWidgets.QDialog, Ui_SwingCreateDialog):
             self.lineEditFrameOut.setEnabled(False)
             self.lineEditFrameCount.setText("")
             self.lineEditFrameCount.setEnabled(False)         
+        #
 
         self.toolButtonWeb.setEnabled(self.url is not None)
         self.set_enabled(True)
@@ -334,9 +358,6 @@ class SwingCreateDialog(QtWidgets.QDialog, Ui_SwingCreateDialog):
             self.updateDialog.show()
         else:
             QtWidgets.QMessageBox.information(self, 'Task: Update', 'No updates found')               
-
-
-
 
 """     def process(self):
         self.append_status("Creating new scene")

@@ -11,6 +11,11 @@ import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 import os
+
+#
+# Enable PyQT5 fix for Mac Big Sur / 
+os.environ['QT_MAC_WANTS_LAYER'] = '1'
+
 import sys
 
 #

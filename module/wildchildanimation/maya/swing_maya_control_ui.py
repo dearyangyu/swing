@@ -90,9 +90,13 @@ class Ui_SwingControlWidget(object):
         self.comboBoxTask = QComboBox(SwingControlWidget)
         self.comboBoxTask.setObjectName(u"comboBoxTask")
         self.comboBoxTask.setEnabled(False)
-        sizePolicy1.setHeightForWidth(self.comboBoxTask.sizePolicy().hasHeightForWidth())
-        self.comboBoxTask.setSizePolicy(sizePolicy1)
-        self.comboBoxTask.setMinimumSize(QSize(200, 0))
+        sizePolicy2 = QSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
+        sizePolicy2.setHorizontalStretch(0)
+        sizePolicy2.setVerticalStretch(0)
+        sizePolicy2.setHeightForWidth(self.comboBoxTask.sizePolicy().hasHeightForWidth())
+        self.comboBoxTask.setSizePolicy(sizePolicy2)
+        self.comboBoxTask.setMinimumSize(QSize(300, 0))
+        self.comboBoxTask.setMaximumSize(QSize(400, 16777215))
 
         self.horizontalLayout_3.addWidget(self.comboBoxTask)
 
@@ -100,10 +104,6 @@ class Ui_SwingControlWidget(object):
         self.checkBoxDoneTasks.setObjectName(u"checkBoxDoneTasks")
 
         self.horizontalLayout_3.addWidget(self.checkBoxDoneTasks)
-
-        self.horizontalSpacer_5 = QSpacerItem(5, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
-
-        self.horizontalLayout_3.addItem(self.horizontalSpacer_5)
 
         self.toolButtonSwing = QToolButton(SwingControlWidget)
         self.toolButtonSwing.setObjectName(u"toolButtonSwing")
@@ -114,10 +114,6 @@ class Ui_SwingControlWidget(object):
 
 
         self.horizontalLayout.addLayout(self.horizontalLayout_3)
-
-        self.horizontalSpacer_3 = QSpacerItem(5, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
-
-        self.horizontalLayout.addItem(self.horizontalSpacer_3)
 
         self.horizontalLayout_2 = QHBoxLayout()
         self.horizontalLayout_2.setSpacing(2)
@@ -160,6 +156,10 @@ class Ui_SwingControlWidget(object):
 
 
         self.horizontalLayout.addLayout(self.horizontalLayout_2)
+
+        self.horizontalSpacer_3 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.horizontalLayout.addItem(self.horizontalSpacer_3)
 
         self.horizontalSpacer_2 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 

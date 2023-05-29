@@ -21,10 +21,11 @@ try:
 except:
     darkStyle = False
 
-from wildchildanimation.gui.swing_utils import connect_to_server, load_keyring, set_button_icon
+from wildchildanimation.gui.swing_utils import connect_to_server, load_keyring, set_button_icon, write_log
 from wildchildanimation.gui.background_workers import ProjectLoaderThread, ProjectShotLoader, ProjectTypesLoader
 from wildchildanimation.gui.project_nav_widget import Ui_ProjectNavWidget
 from wildchildanimation.gui.entity_select import *
+from wildchildanimation.gui.settings import SwingSettings
 
 class NavigationChangedSignal(QObject):
 
@@ -212,41 +213,53 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
         ##loader.run()
 
     def projects_loaded(self, results): 
-        self._software = results["software"]
-        ##self._task_types = results["task_types"]
-        ##self._task_status = results["task_status"]
+        try:
+            self._software = results["software"]
+            ##self._task_types = results["task_types"]
+            ##self._task_status = results["task_status"]
 
-        project_dict = {}
-        for item in results["projects"]:
-            project_id = item["project_id"]
-            if not project_id in project_dict:
-                project_dict[project_id] = { "project_id": project_id, "project": item["project"], "episodes": [] }
+            project_dict = {}
+            for item in results["projects"]:
+                project_id = item["project_id"]
+                if not project_id in project_dict:
+                    project_dict[project_id] = { "project_id": project_id, "project": item["project"], "episodes": [] }
 
-            project = project_dict[project_id]
-            project["episodes"].append(item)
+                project = project_dict[project_id]
+                project["episodes"].append(item)
 
-        self._projects = []
-        for item in project_dict:
-            self._projects.append(project_dict[item])
+            self._projects = []
+            for item in project_dict:
+                self._projects.append(project_dict[item])
 
-        self._status["projects"] = True
-        self._status["episodes"] = True
+            self._status["projects"] = True
+            self._status["episodes"] = True
 
-        self.comboBoxProject.blockSignals(True)
-        self.comboBoxProject.clear()
+            self.comboBoxProject.blockSignals(True)
+            self.comboBoxProject.clear()
 
-        for item in self._projects:
-            self.comboBoxProject.addItem(item["project"], userData = item)
-        self.comboBoxProject.blockSignals(False)
+            for item in self._projects:
+                self.comboBoxProject.addItem(item["project"], userData = item)
+            self.comboBoxProject.blockSignals(False)
 
-        self.comboBoxEpisode.clear()
-        self.comboBoxSequence.clear()
+            self.comboBoxEpisode.clear()
+            self.comboBoxSequence.clear()
 
-        self.project_changed(self.comboBoxProject.currentIndex())
+            self.project_changed(self.comboBoxProject.currentIndex())
+        except:
+            print("Error loading project properties: Please check connection settings")
+            
         self.set_enabled(True)
 
     def project_changed(self, index):
         project = self.comboBoxProject.itemData(index)
+
+        if not project:
+            write_log("Error: No open project could be loaded, please check settings")
+            write_log("Server: {}".format(SwingSettings.get_instance().swing_server()))
+            write_log("Artist: {}".format(SwingSettings.get_instance().swing_user()))
+
+            return False
+
 
         loader = ProjectTypesLoader(self, project["project_id"])        
         loader.callback.loaded.connect(self.project_loaded)

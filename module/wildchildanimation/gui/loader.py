@@ -40,7 +40,7 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
         self.setupUi(self)
 
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
-        self.read_settings()                
+        self.read_settings()    
 
         self.handler = handler
         self.entity = entity
@@ -385,7 +385,6 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
     # sets up pathing
     #
     def check_network(self, file_item):
-
         # working remotely - remember file name 
         #self.target_path = None
         #self.target_item = None
@@ -399,12 +398,11 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
             if not source_item.endswith(file_item["file_name"]):
                 source_item = os.path.join(file_item["file_path"], file_item["file_name"])
 
-            test_path = os.path.normpath(source_item.replace("/mnt/content/productions", "Z://productions"))
+            test_path = os.path.normpath(source_item.replace("/mnt/content/productions", SwingSettings.get_instance().shared_root()))
             fn, ext = os.path.splitext(source_item)
 
             print("Checking if file {}{} exists on LAN: {}".format(fn, ext, source_item))
-
-            if os.path.exists(test_path):
+            if not SwingSettings.get_instance().is_remote() and os.path.exists(test_path):
                 self.cbNetworkSource.setEnabled(True)
                 self.cbNetworkSource.setChecked(True)
 
@@ -499,7 +497,7 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
                     self.import_ref(self.source_path, self.target_path)
                     return True
         else:
-            print("File not available locally: {}".format(item))
+            print("File not available locally: {}".format(item["file_name"]))
 
         if "library-file" in item['file_type']:
             url = "{}/api/library_file/{}".format(edit_api, item["entity_id"])
@@ -511,11 +509,29 @@ class LoaderDialogGUI(QtWidgets.QDialog, Ui_LoaderDialog):
             url = "{}/api/working_file/{}".format(edit_api, item["file_id"])
             ## set_target_name(item, target_name_dir)
 
+            ##ToD: check target_item["target_path"]
+
+            try:
+                if not self.target_item:
+                    print("Adding target path")
+                    self.target_item = { "target_path": item["target_path"], "file_name": item["file_name"] }
+            except:
+                pass
+
             worker = FileDownloader(self, item["file_id"], url, self.target_item["target_path"], skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
         else:
             #target_name = os.path.normpath(os.path.join(target_name_dir, item["name"]))
             url = "{}/api/output_file/{}".format(edit_api, item["file_id"])
             ## set_target_name(item, target_name_dir)
+
+            ##ToD: check target_item["target_path"]
+            try:
+                if not self.target_item:
+                    print("Adding target path")
+                    self.target_item = { "target_path": item["target_path"], "file_name": item["file_name"] }
+
+            except:
+                pass            
 
             worker = FileDownloader(self, item["file_id"], url,  self.target_item["target_path"], skip_existing = self.checkBoxSkipExisting.isChecked(), extract_zips = self.checkBoxExtractZips.isChecked())
             # file type

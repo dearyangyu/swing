@@ -20,12 +20,11 @@ except:
 
 # ==== auto Qt load ====
 try:
-    from PySide2 import QtGui
     from PySide2 import QtCore
     from PySide2 import QtWidgets
     qtMode = 0
 except ImportError:
-    from PyQt5 import QtGui, QtCore, QtWidgets
+    from PyQt5 import QtCore, QtWidgets
     qtMode = 1
 
 
@@ -45,11 +44,22 @@ class SwingRenderSubmitDialog(QtWidgets.QDialog, Ui_RenderSubmitDialog):
         self.pushButtonGo.clicked.connect(self.process)
 
         self.toolButtonSelectPath.clicked.connect(self.select_render_directory)
+        self.checkBoxOverride.setChecked(False)
 
         self.updateUI()
-        ##self.textEditNotes.setEnabled(True)
-        #self.progressBar.setRange(0, len(self.model.files))
-        #self.progressBar.setValue("")
+        self.clear_warnings()
+
+    def clear_warnings(self):
+        self.warningMessage = ""
+        self.labelWarningMessage.setVisible(False)
+        self.checkBoxOverride.setVisible(False)
+        
+
+    def show_warning(self):
+        self.labelWarningMessage.setText(self.warningMessage)
+
+        self.labelWarningMessage.setVisible(True)
+        self.checkBoxOverride.setVisible(True)
 
     # save main dialog state
     def write_settings(self):
@@ -58,6 +68,15 @@ class SwingRenderSubmitDialog(QtWidgets.QDialog, Ui_RenderSubmitDialog):
         self.settings.beginGroup(self.__class__.__name__)
         self.settings.setValue("pos", self.pos())
         self.settings.setValue("working_dir", self.lineEditRenderPath.text())
+
+        self.settings.setValue("handles_in", self.spinBoxHandlesIn.value())
+        self.settings.setValue("handles_out", self.spinBoxHandlesOut.value())
+
+        if self.radioButtonHq.isChecked():
+            self.settings.setValue("render_quality", "HQ")
+        else:
+            self.settings.setValue("render_quality", "LQ")
+        
         self.settings.endGroup()
 
     # load main dialog state
@@ -67,6 +86,17 @@ class SwingRenderSubmitDialog(QtWidgets.QDialog, Ui_RenderSubmitDialog):
         
         self.resize(self.settings.value("size", QtCore.QSize(480, 520)))
         self.working_dir = self.settings.value("working_dir", "~")
+
+        self.spinBoxHandlesIn.setValue(self.settings.value("handles_in", 0))
+        self.spinBoxHandlesOut.setValue(self.settings.value("handles_out", 0))
+        
+        if "HQ" == self.settings.value("render_quality", "HQ"):
+            self.radioButtonHq.setChecked(True)
+            self.radioButtonLq.setChecked(False)
+        else:
+            self.radioButtonHq.setChecked(False)
+            self.radioButtonLq.setChecked(True)
+
 
     # The following three methods set up dragging and dropping for the app
     def dragEnterEvent(self, e):
@@ -114,17 +144,9 @@ class SwingRenderSubmitDialog(QtWidgets.QDialog, Ui_RenderSubmitDialog):
         self.working_dir = selected_dir
 
         self.lineEditRenderPath.setText(selected_dir)
-        #self.lineEditH265Path.setText("{}/{}.mp4".format(q, self.prefix))
-        #self.checkBoxEncodeH265.setChecked(True)
-
         self.lineEditArchiveName.setText("{}/{}.7z".format(selected_dir, self.prefix))        
 
-        #self.radioButtonWorkingFile.setChecked(False)
-        #self.radioButtonWorkingDir.setChecked(True)
-
-        #self.scan_working_dir(selected_dir)
-        #self.workingDirEdit.setText(selected_dir)
-        #self.workingFileEdit.setText("")        
+        self.scan_working_dir()
 
     def updateUI(self):
         self.lineEditProject.setText(self.task["project"]["name"])
@@ -135,11 +157,12 @@ class SwingRenderSubmitDialog(QtWidgets.QDialog, Ui_RenderSubmitDialog):
         if "nb_frames" in self.task["entity"]:
             self.lineEditFrameCount.setText(str(self.task["entity"]["nb_frames"]))
 
-        if "frame_in" in self.task["entity"]["data"]:
-            self.lineEditFrameIn.setText(str(self.task["entity"]["data"]["frame_in"]))
+        if "data" in self.task["entity"] and self.task["entity"]["data"]:
+            if "frame_in" in self.task["entity"]["data"]:
+                self.lineEditFrameIn.setText(str(self.task["entity"]["data"]["frame_in"]))
 
-        if "frame_out" in self.task["entity"]["data"]:
-            self.lineEditFrameOut.setText(str(self.task["entity"]["data"]["frame_out"]))
+            if "frame_out" in self.task["entity"]["data"]:
+                self.lineEditFrameOut.setText(str(self.task["entity"]["data"]["frame_out"]))
 
         self.prefix = friendly_string("{}_{}_{}_{}".format(
             self.task["project"]["code"], 
@@ -149,6 +172,7 @@ class SwingRenderSubmitDialog(QtWidgets.QDialog, Ui_RenderSubmitDialog):
         ).lower())
 
         self.wfa = gazu.task.get_task_status_by_name("Waiting For Approval")
+        self.render = gazu.task.get_task_status_by_name("Render")
 
     def close_dialog(self):
         self.write_settings()
@@ -160,9 +184,28 @@ class SwingRenderSubmitDialog(QtWidgets.QDialog, Ui_RenderSubmitDialog):
             self.set_working_dir(q)        
 
     def is_done(self, status):
+        shot = gazu.shot.get_shot(self.task["entity"]["id"])        
+        data = shot["data"]
+
+        if not data:
+            data = {}
+
+        if self.radioButtonHq.isChecked():
+            data["Render_Status"] = "HQ"
+        else:
+            data["Render_Status"] = "LQ"
+
+        # gazu.shot.update_shot_data(shot, data)
+        # update shot render quality
+
         self.labelStatus.setText("Completed")
 
     def process(self):
+        if not self.scan_working_dir():
+            if not self.checkBoxOverride.isChecked():
+                QtWidgets.QMessageBox.warning(self, 'Render Pub Error:', 'Please check render folder for naming and frame range')
+                return False
+
         self.write_settings()
 
         server = SwingSettings.get_instance().swing_server()
@@ -171,7 +214,6 @@ class SwingRenderSubmitDialog(QtWidgets.QDialog, Ui_RenderSubmitDialog):
         self.monitor = UploadMonitorDialog(self)
         self.monitor.set_task(self.task)
         self.output_mode = "render"
-
 
         if SwingSettings.get_instance().bin_7z():
             prog = SwingSettings.get_instance().bin_7z()
@@ -189,7 +231,7 @@ class SwingRenderSubmitDialog(QtWidgets.QDialog, Ui_RenderSubmitDialog):
                 file_base = os.path.basename(arc_name)
                 file_name, file_ext = os.path.splitext(file_base)
 
-                worker = WorkingFileUploader(self, edit_api, self.task, arc_name, file_name, "Maya",  comment=task_comments, mode = self.output_mode, task_status = self.wfa["id"])
+                worker = WorkingFileUploader(self, edit_api, self.task, arc_name, file_name, "Maya",  comment=task_comments, mode = self.output_mode, task_status = self.render["id"])
 
                 worker.callback.progress.connect(self.monitor.file_loading)
                 worker.callback.done.connect(self.monitor.file_loaded)
@@ -201,3 +243,50 @@ class SwingRenderSubmitDialog(QtWidgets.QDialog, Ui_RenderSubmitDialog):
 
         #convert = SwingConvert("{}/encode".format(self.working_dir), self.working_dir, "{}/png".format(self.working_dir))
         #convert.convert(self.progressBar)
+
+    def scan_working_dir(self):
+        # Warning: Shot name error - Frame count error
+        handles = (int)(self.spinBoxHandlesIn.value() + self.spinBoxHandlesOut.value())
+        try:
+            render_dir = self.lineEditRenderPath.text()    
+            frame_count = 0
+
+            # 104_sc110_sh010.0073
+            for filename in os.scandir(render_dir):
+                if os.path.isfile(filename):
+
+                    shot_name, extension = os.path.splitext(filename.name)
+                    shot_parts = shot_name.split("_")
+
+                    if len(shot_parts) < 3:
+                        self.warningMessage = "Error: Unexpected name format. Expecting epXXX_scXXX_shXXX.xxxx, found: {}".format(filename.name)
+                        self.show_warning()
+                        return False
+
+
+                    if ".exr" in extension.lower():
+                        validEp = shot_parts[0] in self.task["episode"]["name"]
+                        validSeq  = self.task["sequence"]["name"] in shot_parts[1]
+                        validShot = self.task["entity"]["name"] in shot_parts[2]
+
+                        if validEp and validSeq and validShot:
+                            frame_count += 1
+                        else:
+                            self.warningMessage = "Error: Found invalid shots in directory"
+                            print("Naming error: {}".format(shot_name))
+                            self.show_warning()
+                            return False                            
+
+            if not frame_count == int((self.task["entity"]["nb_frames"] + handles)):
+                self.warningMessage = "Error: Expected {} frames, found {}".format(int(self.task["entity"]["nb_frames"]), frame_count)
+                self.show_warning()
+                return False
+
+            return True
+
+        except:
+            print(traceback.format_exc())              
+            return False
+
+        return False  
+
