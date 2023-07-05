@@ -18,7 +18,7 @@ class Ui_SwingTimelineDialog(object):
     def setupUi(self, SwingTimelineDialog):
         if not SwingTimelineDialog.objectName():
             SwingTimelineDialog.setObjectName(u"SwingTimelineDialog")
-        SwingTimelineDialog.resize(904, 518)
+        SwingTimelineDialog.resize(1010, 518)
         self.verticalLayout_2 = QVBoxLayout(SwingTimelineDialog)
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
         self.horizontalLayoutProject = QHBoxLayout()
@@ -138,20 +138,35 @@ class Ui_SwingTimelineDialog(object):
 
         self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.pushButtonScanEDL = QPushButton(SwingTimelineDialog)
-        self.pushButtonScanEDL.setObjectName(u"pushButtonScanEDL")
+        self.pushButtonScanXML = QPushButton(SwingTimelineDialog)
+        self.pushButtonScanXML.setObjectName(u"pushButtonScanXML")
 
-        self.horizontalLayout.addWidget(self.pushButtonScanEDL)
+        self.horizontalLayout.addWidget(self.pushButtonScanXML)
 
         self.pushButtonUpdateKitsu = QPushButton(SwingTimelineDialog)
         self.pushButtonUpdateKitsu.setObjectName(u"pushButtonUpdateKitsu")
 
         self.horizontalLayout.addWidget(self.pushButtonUpdateKitsu)
 
-        self.checkBoxUploadMedia = QCheckBox(SwingTimelineDialog)
-        self.checkBoxUploadMedia.setObjectName(u"checkBoxUploadMedia")
+        self.checkBoxForceUpload = QCheckBox(SwingTimelineDialog)
+        self.checkBoxForceUpload.setObjectName(u"checkBoxForceUpload")
 
-        self.horizontalLayout.addWidget(self.checkBoxUploadMedia)
+        self.horizontalLayout.addWidget(self.checkBoxForceUpload)
+
+        self.checkBoxUploadVideo = QCheckBox(SwingTimelineDialog)
+        self.checkBoxUploadVideo.setObjectName(u"checkBoxUploadVideo")
+
+        self.horizontalLayout.addWidget(self.checkBoxUploadVideo)
+
+        self.checkBoxUploadAudio = QCheckBox(SwingTimelineDialog)
+        self.checkBoxUploadAudio.setObjectName(u"checkBoxUploadAudio")
+
+        self.horizontalLayout.addWidget(self.checkBoxUploadAudio)
+
+        self.checkBoxUploadImages = QCheckBox(SwingTimelineDialog)
+        self.checkBoxUploadImages.setObjectName(u"checkBoxUploadImages")
+
+        self.horizontalLayout.addWidget(self.checkBoxUploadImages)
 
         self.pushButtonUpdateTrackingSheet = QPushButton(SwingTimelineDialog)
         self.pushButtonUpdateTrackingSheet.setObjectName(u"pushButtonUpdateTrackingSheet")
@@ -202,6 +217,12 @@ class Ui_SwingTimelineDialog(object):
 
         self.verticalLayoutShotTable.addWidget(self.tableView)
 
+        self.textEditLog = QTextEdit(SwingTimelineDialog)
+        self.textEditLog.setObjectName(u"textEditLog")
+        self.textEditLog.setMaximumSize(QSize(16777215, 100))
+
+        self.verticalLayoutShotTable.addWidget(self.textEditLog)
+
         self.horizontalLayoutButtons = QHBoxLayout()
         self.horizontalLayoutButtons.setObjectName(u"horizontalLayoutButtons")
         self.pushButtonSelectAll = QPushButton(SwingTimelineDialog)
@@ -234,12 +255,6 @@ class Ui_SwingTimelineDialog(object):
 
         self.verticalLayout_2.addLayout(self.verticalLayoutShotTable)
 
-        self.textEditLog = QTextEdit(SwingTimelineDialog)
-        self.textEditLog.setObjectName(u"textEditLog")
-        self.textEditLog.setMaximumSize(QSize(16777215, 100))
-
-        self.verticalLayout_2.addWidget(self.textEditLog)
-
 
         self.retranslateUi(SwingTimelineDialog)
 
@@ -254,9 +269,12 @@ class Ui_SwingTimelineDialog(object):
         self.toolButtonSelectEDLFile.setText(fakestr(u"...", None))
         self.labelSource.setText(fakestr(u"Source", None))
         self.toolButtonSelectSource.setText(fakestr(u"...", None))
-        self.pushButtonScanEDL.setText(fakestr(u"Scan EDL", None))
+        self.pushButtonScanXML.setText(fakestr(u"Scan XML", None))
         self.pushButtonUpdateKitsu.setText(fakestr(u"Update Kitsu", None))
-        self.checkBoxUploadMedia.setText(fakestr(u"Upload Media", None))
+        self.checkBoxForceUpload.setText(fakestr(u"Force", None))
+        self.checkBoxUploadVideo.setText(fakestr(u"Upload Video", None))
+        self.checkBoxUploadAudio.setText(fakestr(u"Upload Audio", None))
+        self.checkBoxUploadImages.setText(fakestr(u"Upload Images", None))
         self.pushButtonUpdateTrackingSheet.setText(fakestr(u"Update Tracking Sheet", None))
         self.pushButtonExtractVideo.setText(fakestr(u"Extract Video", None))
         self.pushButtonExtractAudio.setText(fakestr(u"Extract Audio", None))

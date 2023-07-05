@@ -54,9 +54,12 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     if darkStyle:
         # setup stylesheet
-        app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
-        # or in new API
-        # app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))        
+        if qtMode == 0:
+            app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyside2'))
+        elif qtMode == 1:
+            app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))        
+        else:
+            app.setStyleSheet(qdarkstyle.load_stylesheet())
     
     SwingGUI.show_dialog(SwingStudioHandler())
     sys.exit(app.exec_())

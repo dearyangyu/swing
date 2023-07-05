@@ -94,9 +94,9 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     if darkStyle:
         # setup stylesheet
-        app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
+        app.setStyleSheet(qdarkstyle.load_stylesheet())
         # or in new API
-        app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))        
+        ## app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))        
 
     nav = RegisterServerDialog()
     nav.show()

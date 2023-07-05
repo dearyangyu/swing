@@ -636,7 +636,7 @@ class FileDownloader(QtCore.QRunnable):
 
         size = os.path.getsize(self.target)
         ###
-        if self.extract_zips and file_extension.lower() in  [ ".zip", ".rar" ]:
+        if self.extract_zips and file_extension.lower() in  [ ".zip", ".rar", ".7z" ]:
             zip_root = os.path.normpath(os.path.join(working_dir, filename))
 
             status = {

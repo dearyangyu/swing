@@ -310,7 +310,7 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
                 except:
                     force_lowercase = True
 
-        print("taskstatus***{}".format(status))
+        ## print("taskstatus***{}".format(status))
         task_sections = self.get_task_sections(task)
 
         if force_lowercase:
@@ -325,89 +325,56 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
             ##working_file = working_file.replace(project_prefix, "{}_".format(task_sections[0]))
 
         #add software
-        working_file_name = "{}.ma".format(working_file)
+        ##working_file_name = "{}.ma".format(working_file)
         self.createDialog = SwingCreateDialog(parent = None, task_id = task["id"], entity_id = task["entity"]["id"])
-
-        existingFile = None
-        if os.path.exists(task_dir):
-            print("task_dir -> {} working file -> {}".format(task_dir, working_file_name))
-            ##task_dir -> D:\Productions\WCA\wca_work\assets\char\hero_asset\ld\hero_asset -> char_wca_hero_asset_ld.ma   
-
-            existingFile = None
-            if os.path.exists(os.path.join(task_dir, working_file_name)):
-                print("Searching {} for files".format(os.path.join(task_dir, working_file_name)))
-
-                existingFile = os.path.join(task_dir, working_file_name)
-
-                print("working_file -> {}".format(working_file))
-                print("existingFile -> {}".format(existingFile))                
-
-                # check for incremental saves
-                file_list = glob.glob("{}*.ma".format(os.path.join(task_dir, self.strip_version(working_file))))
-                if len(file_list) > 0:
-                    # load last file by modified date
-                    file_list.sort(key=lambda x: os.path.getmtime(x), reverse=True)
-                    existingFile = file_list[0]
-
-            elif os.path.exists(task_dir):
-                print("Searching {} for files".format(task_dir))
-
-                print("working_file -> {}".format(working_file))
-                print("existingFile -> {}".format(existingFile))                
-
-                # check for incremental saves
-                file_list = glob.glob("{}*.ma".format(os.path.join(task_dir, self.strip_version(working_file))))
-                if len(file_list) > 0:
-                    # load last file by modified date
-                    file_list.sort(key=lambda x: os.path.getmtime(x), reverse=True)
-                    existingFile = file_list[0]
-
-            if existingFile:
-
-                # self.createDialog.checkBoxLoadExisting.setVisible(True)
-                self.createDialog.labelFileDetails.setText("Working file [{}] found, last modified: {}".format(existingFile, self.last_modified(existingFile)))
-                self.createDialog.lineEditEntity.setText(existingFile)
-               
-                self.createDialog.rbOpenExisting.setChecked(True)
-
-                # self.createDialog.checkBoxLoadExisting.setVisible(True)
-                # self.createDialog.labelFileDetails.setText("Existing file last modified: {}".format(self.last_modified(existingFile)))
-                # self.createDialog.rbOpenExisting.setChecked(True)
 
         result = self.createDialog.exec_()
         if result:
             working_dir = self.createDialog.get_working_dir()
-            file_name = self.createDialog.get_file_name()
+            working_file = self.createDialog.get_working_file()
 
-            if existingFile and not self.createDialog.rbOpenExisting.isChecked():
+            ## Load the file from the server
+            if working_file and self.createDialog.rbLoad.isChecked():
+                working_file["target_path"] = os.path.join(working_dir, working_file["file_name"])
+                self.log_output("swing::on_create load server working file {}".format(working_file))
 
-                if QtWidgets.QMessageBox.question(None, 'Warning: Existing file found', 'If you continue, this file will be lost, are you sure?') != QtWidgets.QMessageBox.StandardButton.Yes:
-                    self.log_output("Aborted load file")
-                    return
+                loaderDialog = ResourceLoaderDialogGUI(parent = None, handler = self, resource = working_file, entity = task["entity"], namespace = None)
+                loaderDialog.exec_()                  
+                return True
 
-            if existingFile and self.createDialog.rbOpenExisting.isChecked():
-                self.load_file(source = existingFile, working_dir = working_dir, force = True)
-            else:
+            # Load the file from the local file system            
+            if working_file:
+                self.log_output("swing::on_create opening existing file {}".format(working_file))
+                file_name = os.path.join(working_dir, working_file["file_name"])
+
+                if file_name and self.createDialog.rbOpenExisting.isChecked():
+                    self.log_output("swing::on_create opening existing file {}".format(file_name))
+                    self.load_file(source = file_name, working_dir = working_dir, force = True)
+                    return True
+                
+            if self.createDialog.rbCreateNew.isChecked():
+                project_file = os.path.join(working_dir, working_file["file_name"])
+                self.log_output("swing::on_create creating new file {}".format(project_file))
+
                 frame_in = self.createDialog.get_start_frame()
                 frame_out = self.createDialog.get_end_frame()
                 frame_rate = self.createDialog.get_frame_rate()
 
-                project_file = os.path.join(working_dir, file_name)
+                if os.path.exists(project_file):
+                    if QtWidgets.QMessageBox.question(None, 'Warning: Existing file found', F'Found: {os.path.basename(file_name)}\r\nIf you continue, this file will be lost, are you sure?') != QtWidgets.QMessageBox.StandardButton.Yes:
+                        self.log_output("swing::on_create aborted load file")
+                        return False
 
                 #directory = self.createDialog.working_dir        
-                self.log_output("on_create {} [{}]".format(working_dir, file_name))
-                self.log_output("on_create frame_in [{}]".format(frame_in))
-                self.log_output("on_create frame_out [{}]".format(frame_out))
-                self.log_output("on_create frame_rate [{}]".format(frame_rate))
+                self.log_output("swing::on_create {}".format(project_file))
+                self.log_output("swing::on_create frame_in [{}]".format(frame_in))
+                self.log_output("swing::on_create frame_out [{}]".format(frame_out))
+                self.log_output("swing::on_create frame_rate [{}]".format(frame_rate))
 
-                #self.log_output("Source  {0}".format(kwargs["source"]))
-                #self.log_output("Working Dir {0}".format(kwargs["working_dir"]))
-                #self.log_output("Namespace {0}".format(kwargs["namespace"]))
-
-                fn, fext = os.path.splitext(file_name)
+                fn, fext = os.path.splitext(project_file)
 
                 if fext in MayaStudioHandler.SUPPORTED_TYPES:
-                    self.log_output("Creating file {}".format(project_file))
+                    self.log_output("swing::on_create creating file {}".format(project_file))
 
                     prompt_val = cmds.file(prompt=True, q=True)
                     try:
@@ -416,24 +383,22 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
                         cmds.file(new = True, force = True)
                         cmds.file(rename = project_file)
 
-                        self.log_output("setting frame rate to {}".format(frame_rate))
+                        self.log_output("swing::on_createsetting frame rate to {}".format(frame_rate))
                         frame_rate = self.set_frame_rate(frame_rate)
 
-                        self.log_output("setting animation range from {} to {}".format(frame_in, frame_out))
+                        self.log_output("swing::on_createsetting animation range from {} to {}".format(frame_in, frame_out))
                         cmds.playbackOptions(edit=True, animationStartTime = frame_in, animationEndTime = frame_out)
                         cmds.playbackOptions(edit=True, minTime = frame_in, maxTime = frame_out)
 
                         start = cmds.playbackOptions(q=True, min=True)
-                        self.log_output("set start to {}".format(start))
+                        self.log_output("swing::on_createset start to {}".format(start))
                         cmds.currentTime(start, edit = True)
 
-                        self.log_output("save file {}".format(project_file))
+                        self.log_output("swing::on_createsave file {}".format(project_file))
                         cmds.file(save = True, type='mayaAscii')
 
                         #playButtonStart;
                         #timeField -edit -value `currentTime -query` TimeSlider|MainTimeSliderLayout|formLayout8|timeField1;
-
-
                         self.log_output("on_create <-- {}".format(project_file))
                     except:
                         traceback.print_exc(file=sys.stdout)
@@ -794,6 +759,8 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
             self.log_output("setting frame rate to {}".format(frame_rate))
             self.set_frame_rate(frame_rate)
 
+        shot_image_planes = {}
+
         for shot in shot_list:
             if shot["selected"]:
                 #self.log_output("Creating Shot {} {} {} {}".format(shot["id"], shot["sequencerStartTime"], shot["sequencerEndTime"], shot["currentCamera"]))
@@ -820,45 +787,10 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
                         e=True,
                         audio=shot["audio"]
                     )
+                    self.log_output("Created shot name: {} id: {} audio: {} image plane: {}".format(shot["shotName"], shot["id"], shot["audio"], shot["image_plane"]))
 
                 if image_plane:
-                    image_plane_shape = "imgpln_{}".format(shot["shotName"]) 
-                    
-                    try:
-                        print("Creating image plane {}:{}".format(image_plane_shape, shot["image_plane"]))
-                        #ips = cmds.imagePlane(name = image_plane_shape, camera = cameras[1], fileName = shot["image_plane"])
-                        ips = cmds.imagePlane(name = image_plane_shape, camera = camera, fileName = shot["image_plane"])
-                        print("Created {} -> {}".format(ips[0], ips[1]))
-                        
-                        #camera_plane_shape = "{}Shape".format(camera)
-
-                        print("selecting image plane {}".format(ips[0]))
-                        mel.eval("select -r {} ;".format(ips[0]))
-
-                        print("set useFrameExtension {}".format(ips[0]))
-                        mel.eval('setAttr "{}.useFrameExtension" 1;'.format(ips[0]))
-
-                        print("set alphaGain {}".format(image_plane_shape))
-                        mel.eval('setAttr "{}->{}.alphaGain" {};'.format(ips[0], ips[1], image_plane["alphaGain"]))
-
-                        print("set sizeX {}".format(image_plane_shape))
-                        mel.eval('setAttr "{}->{}.sizeX" {};'.format(ips[0], ips[1], image_plane["sizeX"]))
-
-                        print("set offsetX {}".format(image_plane_shape))
-                        mel.eval('setAttr "{}->{}.offsetX" {};'.format(ips[0], ips[1], image_plane["offsetX"]))
-
-                        print("set offsetY {}".format(image_plane_shape))
-                        mel.eval('setAttr "{}->{}.offsetY" {};'.format(ips[0], ips[1], image_plane["offsetY"]))
-                    except:
-                        traceback.print_exc(file=sys.stdout)
-                        print("Error adjusting img plane")
-                    # 
-
-                #if shot["image_plane"]:
-                #    cmds.shot(shot["id"],
-                #        e=True,
-                #        clip=shot["image_plane"]
-                #    )
+                    shot_image_planes[shot["shotName"]] = shot["image_plane"]
 
                 # add padding
                 if padding:
@@ -883,14 +815,17 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
                 cmds.currentTime(start, edit = True)
 
                 self.log_output("set fitPanel all")
-                mel.eval('sequencerPanelBarSection1Callback("FrameAllBtn", "sequenceEditorPanel1SequenceEditor", "sequenceEditorPanel1Window|sequenceEditorPanel1|sequenceBaseForm|sequenceToolbarFrame");')
-                mel.eval('fitPanel -all;')
+                try:
+                    mel.eval('sequencerPanelBarSection1Callback("FrameAllBtn", "sequenceEditorPanel1SequenceEditor", "sequenceEditorPanel1Window|sequenceEditorPanel1|sequenceBaseForm|sequenceToolbarFrame");')
+                    mel.eval('fitPanel -all;')
+                except:
+                    pass
             except:
                 traceback.print_exc(file=sys.stdout)
                 print("Error adjusting sequencerPanelBarSection1Callback")  
 
             try:
-                self.layout_camera_setup(image_path = export_dir)
+                self.layout_camera_setup(shot_image_planes)
                 self.log_output("calling camera setup")
             except:
                 traceback.print_exc(file=sys.stdout)                
@@ -956,7 +891,7 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
 
     #Build a lenskit and set focalLength to closet currently set focalLenght
     #Also sets all needed camera settings
-    def setupCamera(self, seqShots, image_path):
+    def setupCamera(self, seqShots, shot_image_planes_dict):
         #build focalLegnth lenskit
         lensKitString = ''
         lensKitString = str('')
@@ -966,6 +901,8 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
         lensKitString = lensKitString.rstrip(lensKitString[-1])
         self.log_output('Current lens kit : ' + lensKitString)
         for seqshot in seqShots:
+            self.log_output("setupCamera: Shot: {}".format(seqshot))
+
             camTransform = cmds.listConnections( ("{}.currentCamera".format(seqshot)), d=False, s=True )
             #camTransform = cmds.listRelatives(cam, parent=True)
             cam = cmds.listRelatives(camTransform, shapes = True)
@@ -1021,9 +958,15 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
             cmds.setAttr((ip[1] + '.sizeY'), (ipsy * 0.3))
             cmds.setAttr((ip[1] + '.alphaGain'), 0.5)
 
-            image_plane_path = "{}/{}/images/{}.0000.jpg".format(image_path, seqshot, seqshot)
-            
-            self.assign_image_to_imageplane(ip[1], seqshot, image_plane_path)
+            if seqshot in shot_image_planes_dict:
+                image_plane_path = shot_image_planes_dict[seqshot]
+                self.log_output("Assigning Shot Image Plane {}:{}".format(seqshot, image_plane_path))
+                #
+                # image_plane_path = "{}/{}/images/{}.0000.jpg".format(shot_image_plane, seqshot, seqshot)
+                ##V:\productions\HNL\hnl_work\shots\hnl_ep000\sc010\sh000\breakout
+                ##V:\productions\HNL\hnl_work\shots\hnl_ep000\sc010\sh000\breakout/hnl_ep000_sc010/images/hnl_ep000_sc010.0000.jpg
+                
+                self.assign_image_to_imageplane(ip[1], seqshot, image_plane_path)
             cmds.setAttr((ip[1] + ".useFrameExtension"), 1)
 
             #parent camera to CAMERAS group
@@ -1067,14 +1010,13 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
         cmds.setAttr('defaultResolution.width',1920)
         cmds.setAttr('defaultResolution.height',1080)    
 
-    def layout_camera_setup(self, image_path):
-        self.log_output("Setup Layout Camera: Image Path {}".format(image_path))
+    def layout_camera_setup(self, shot_image_planes):
         #Main execution part 
         # get all sequencer shot nodes to set camera settings on       
         seqShots = cmds.ls(type = "shot")           
 
         self.createGroups()
-        self.setupCamera(seqShots, image_path)
+        self.setupCamera(seqShots, shot_image_planes)
         self.setScene()
 
 

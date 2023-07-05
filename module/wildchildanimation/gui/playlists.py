@@ -107,7 +107,8 @@ class PlaylistDialog(QtWidgets.QDialog, Ui_PlaylistDialog):
         self.resize(self.settings.value("size", QtCore.QSize(480, 520)))
 
         self.checkBoxSequences.setChecked(self.is_setting_selected(self.settings, "show_sequences"))
-        self.checkBoxExtractZip.setChecked(self.is_setting_selected(self.settings, "extract_zip"))        
+        self.checkBoxExtractZip.setChecked(self.is_setting_selected(self.settings, "extract_zip"))     
+
         ##self.move(self.settings.value("pos", QtCore.QPoint(0, 200)))
         self.settings.endGroup()        
 

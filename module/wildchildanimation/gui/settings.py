@@ -34,7 +34,7 @@ class SwingSettings(QtCore.QObject):
 
     _APP_NAME = "treehouse: swing"
     _APP_SHORTNAME = "swing"
-    _APP_VERSION = "0.0.0.33"
+    _APP_VERSION = "0.0.0.34"
     _APP_DESCRIPTION = "treehouse: swing"    
     _CONNECTIONS_FILE = "Z:/env/wca/swing/swing-main/swing_connections.json" 
 
@@ -310,9 +310,9 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     if darkStyle:
         # setup stylesheet
-        app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
+        app.setStyleSheet(qdarkstyle.load_stylesheet())
         # or in new API
-        app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))        
+        ## app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))        
 
     dialog = SettingsDialog()
     dialog.show()

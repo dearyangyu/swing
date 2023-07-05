@@ -2,7 +2,7 @@
 '''
     Utility functions
 '''
-# ==== auto Qt load ====
+# ==== auto Qt load ====0
 try:
     from PySide2 import QtCore, QtGui
     qtMode = 0
@@ -364,9 +364,26 @@ def external_extract(program, archive, directory, extract_mode = "x", cpu_thread
 
         cpu_thread_count = "-mmt{}".format(cpu_threads)
 
-        time_start = datetime.now()     
+        time_start = datetime.now()   
 
-        proc = subprocess.Popen([program, extract_mode, cpu_thread_count, "-y", archive], shell = False, stdout=subprocess.PIPE)
+        if ".tpl"  in archive:
+            #
+            # Extract first folder in .tpl to top level directory
+            # this is to cater for the directory being zipped as top level, vs. the content of the directory being zipped
+            # 7zip
+            # -- working_folder.tpl
+            # ---- folder_contents
+            #
+            output_dir = F'-o{os.path.dirname(directory)}'
+            output_contents = "*\*"
+
+            print(F"Swing::Extracting -> {program} {extract_mode} {cpu_thread_count} -y {archive} {output_dir} {output_contents}")
+
+            proc = subprocess.Popen([program, extract_mode, cpu_thread_count, "-y", archive, output_dir, output_contents], shell = False, stdout=subprocess.PIPE)
+        else:
+            print(F"Swing::Extracting -> {program} {extract_mode} {cpu_thread_count} -y {archive}")
+
+            proc = subprocess.Popen([program, extract_mode, cpu_thread_count, "-y", archive], shell = False, stdout=subprocess.PIPE)
         while True:
             output = proc.stdout.readline()
             try:

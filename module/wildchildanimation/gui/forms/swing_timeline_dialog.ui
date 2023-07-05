@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>904</width>
+    <width>1010</width>
     <height>518</height>
    </rect>
   </property>
@@ -195,9 +195,9 @@
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
-        <widget class="QPushButton" name="pushButtonScanEDL">
+        <widget class="QPushButton" name="pushButtonScanXML">
          <property name="text">
-          <string>Scan EDL</string>
+          <string>Scan XML</string>
          </property>
         </widget>
        </item>
@@ -209,9 +209,30 @@
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="checkBoxUploadMedia">
+        <widget class="QCheckBox" name="checkBoxForceUpload">
          <property name="text">
-          <string>Upload Media</string>
+          <string>Force</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBoxUploadVideo">
+         <property name="text">
+          <string>Upload Video</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBoxUploadAudio">
+         <property name="text">
+          <string>Upload Audio</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBoxUploadImages">
+         <property name="text">
+          <string>Upload Images</string>
          </property>
         </widget>
        </item>
@@ -287,6 +308,16 @@
       </widget>
      </item>
      <item>
+      <widget class="QTextEdit" name="textEditLog">
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>100</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item>
       <layout class="QHBoxLayout" name="horizontalLayoutButtons">
        <item>
         <widget class="QPushButton" name="pushButtonSelectAll">
@@ -332,16 +363,6 @@
       </layout>
      </item>
     </layout>
-   </item>
-   <item>
-    <widget class="QTextEdit" name="textEditLog">
-     <property name="maximumSize">
-      <size>
-       <width>16777215</width>
-       <height>100</height>
-      </size>
-     </property>
-    </widget>
    </item>
   </layout>
  </widget>

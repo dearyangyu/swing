@@ -383,12 +383,12 @@ class ResourceLoaderDialogGUI(QtWidgets.QDialog, Ui_MayaResourceLoaderDialog):
                             return False
 
                     if not self.resource_network_path:
-                        print("background_process::Not on Z: drive, have to download ... ")
+                        print("background_process::Not on shared drive, have to download ... ")
 
                         self.download_file()
                         return False
                     else:
-                        print("background_process::Just copy it from Z: ")
+                        print("background_process::Just copy it from the shared drive ")
                         self.copy_file(self.resource_network_path, target_path)
                     # check if remote
 

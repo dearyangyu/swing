@@ -180,11 +180,18 @@ class FileTableModel(QtCore.QAbstractTableModel):
                     if isinstance(item, dict):
                         text = item["download_status"]["message"]
                         return text
-
-                if item["file_size"]:
-                    size = int(item["file_size"])
-                    if (size):
-                        return human_size(size)
+                    
+                if "file_size" in item:
+                    if item["file_size"]:
+                        size = int(item["file_size"])
+                        if (size):
+                            return human_size(size)
+                if "size" in item:
+                    if item["size"]:
+                        size = int(item["size"])
+                        if (size):
+                            return human_size(size)                    
+                        
                 #return item["size"]
             elif col == FileTableModel._COL_VERSION:
                 return item["file_revision"]
@@ -198,7 +205,10 @@ class FileTableModel(QtCore.QAbstractTableModel):
                         return item["type"]
                     return ""
             elif col == FileTableModel._COL_COMMENT:
-                return item["file_comment"]                
+                if "file_comment" in item:
+                    return item["file_comment"]                
+                elif "comment" in item:
+                    return item["comment"]                
 
         if role == QtCore.Qt.BackgroundRole:
             col = index.column()

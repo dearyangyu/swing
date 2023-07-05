@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+from datetime import datetime
 
 # ==== auto Qt load ====
 try:
@@ -11,13 +12,54 @@ except ImportError:
     from PyQt5 import QtGui, QtCore, QtWidgets
     qtMode = 1
 
-
 from wildchildanimation.gui.settings import SwingSettings
 from wildchildanimation.gui.swing_utils import friendly_string, set_button_icon
-from wildchildanimation.studio.studio_interface import StudioInterface
 from wildchildanimation.gui.background_workers import EntityLoaderThread, TaskFileInfoThread, SoftwareLoader
 from wildchildanimation.gui.swing_create_dialog import Ui_SwingCreateDialog
 from wildchildanimation.gui.swing_update_task import SwingUpdateTaskDialog
+
+class WorkingFileTableModel(QtCore.QAbstractTableModel):
+
+    COL_ITEM = -1
+    COL_FILE_NAME = 0
+    COL_FILE_SIZE = 1
+    COL_FILE_MODIFIED = 2
+
+    columns = [
+        "File Name", "Size", "Modified"
+    ]    
+
+    def __init__(self, file_list = None):
+        super(WorkingFileTableModel, self).__init__()
+        self.file_list = file_list
+
+    def columnCount(self, parent = QtCore.QModelIndex()):
+        return len(self.columns)        
+
+    def headerData(self, section, orientation, role):
+        if role == QtCore.Qt.DisplayRole:
+            if orientation == QtCore.Qt.Horizontal:
+                return str(self.columns[section])        
+
+    def data(self, index, role):
+        item = self.file_list[index.row()]
+        col = index.column()
+
+        if role == QtCore.Qt.UserRole:
+            return item
+
+        if role == QtCore.Qt.DisplayRole:
+            if WorkingFileTableModel.COL_FILE_NAME == col:
+                return item["file_name"]
+            elif WorkingFileTableModel.COL_FILE_SIZE == col:
+                return item["size"]
+            elif WorkingFileTableModel.COL_FILE_MODIFIED == col:
+                return item["timestamp"].strftime("%Y-%m-%d %H:%M:%S")
+            
+    def rowCount(self, index):
+        if self.file_list:
+            return len(self.file_list)       
+        return 0        
 
 '''
     Ui_SwingCreateDialog class
@@ -67,8 +109,10 @@ class SwingCreateDialog(QtWidgets.QDialog, Ui_SwingCreateDialog):
         self.pushButtonCancel.clicked.connect(self.cancel_dialog)
         self.pushButtonImport.clicked.connect(self.close_dialog)
 
-        self.setWorkingDir(self.swing_settings.swing_root())
         self.rbOpenExisting.setChecked(True)
+
+        self.rbLoad.clicked.connect(self.load_working_files)
+        self.rbOpenExisting.clicked.connect(self.scan_working_dir)
 
         self.lineEditEntity.setEnabled(False)
         self.lineEditAssetType.setEnabled(False)
@@ -77,6 +121,17 @@ class SwingCreateDialog(QtWidgets.QDialog, Ui_SwingCreateDialog):
         # self.pushButtonUpdate.setVisible(False)
         self.pushButtonUpdate.setEnabled(False)
         self.pushButtonUpdate.clicked.connect(self.on_update)
+
+        self.selected_working_file = None
+
+        self.working_files = []
+        self.local_files = []
+
+        self.tableView.setSelectionBehavior(QtWidgets.QTableView.SelectRows) 
+        self.tableView.doubleClicked.connect(self.file_selected)
+        self.tableView.clicked.connect(self.row_selected)
+
+        self.comboBoxSoftware.currentIndexChanged.connect(self.software_changed)
 
     def set_enabled(self, enabled):
         self.toolButtonWeb.setEnabled(enabled)
@@ -95,6 +150,7 @@ class SwingCreateDialog(QtWidgets.QDialog, Ui_SwingCreateDialog):
 
         self.rbCreateNew.setEnabled(enabled)
         self.rbOpenExisting.setEnabled(enabled)
+        self.rbLoad.setEnabled(enabled)
 
     # save main dialog state
     def write_settings(self):
@@ -125,14 +181,20 @@ class SwingCreateDialog(QtWidgets.QDialog, Ui_SwingCreateDialog):
     def software_loaded(self, results):
         self.software = results["software"]
 
+        self.comboBoxSoftware.blockSignals(True)
         self.comboBoxSoftware.clear()
         for item in self.software:
             self.comboBoxSoftware.addItem(item["name"], userData = item)
+
+        self.comboBoxSoftware.blockSignals(False)            
 
         if not self.default_software == '':
             self.select_software(self.default_software)
         else:
             self.comboBoxSoftware.setCurrentIndex(0)
+
+    def software_changed(self, index):
+        self.setWorkingDir(self.lineEditWorkingDir.text())
 
     def select_software(self, software_name):
         index = self.comboBoxSoftware.findText(software_name)
@@ -145,6 +207,8 @@ class SwingCreateDialog(QtWidgets.QDialog, Ui_SwingCreateDialog):
         self.shot = None
         self.asset = None
         self.project = data["project"]
+        # self.working_files = gazu.files.get_all_working_files_for_entity(self.entity)
+        # self.working_files = sorted(self.working_files, key=lambda x: x["updated_at"], reverse=True)
 
         self.force_lowercase = True
         if self.project["data"] and "force_lowercase" in self.project["data"]:
@@ -205,11 +269,11 @@ class SwingCreateDialog(QtWidgets.QDialog, Ui_SwingCreateDialog):
 
             if "data" in self.shot:
                 shot_data = self.shot["data"]
-                if "frame_in" in shot_data:
+                if shot_data and "frame_in" in shot_data:
                     self.lineEditFrameIn.setText(F'{shot_data["frame_in"]}')
                 self.lineEditFrameIn.setEnabled(False)
 
-                if "frame_out" in shot_data:
+                if shot_data and "frame_out" in shot_data:
                     self.lineEditFrameOut.setText(F'{shot_data["frame_out"]}')
 
             self.lineEditFrameOut.setEnabled(False)            
@@ -259,8 +323,6 @@ class SwingCreateDialog(QtWidgets.QDialog, Ui_SwingCreateDialog):
                     sections.append(self.task["task_type"]["name"])          
                 self.task_type_name = self.task["task_type"]["name"]
 
-            sections.append("v001")
-
             text_data = friendly_string("_".join(sections))
             text_data = friendly_string("_".join(sections))
             text_data = text_data.replace("SDMP_SDMP", "SDMP")
@@ -286,18 +348,37 @@ class SwingCreateDialog(QtWidgets.QDialog, Ui_SwingCreateDialog):
         self.task_info = results
         self.task_dir = results["task_dir"]
         self.task = results["task"]
+        self.working_files = []
 
         if "working_files" in self.task_info:
-            self.working_files = self.task_info["working_files"]
+            print("Loaded Working Files for Task: {}".format(self.task_info["working_files"].values()))
+
+            for fn in self.task_info["working_files"]:
+                wf = self.task_info["working_files"][fn]
+
+                wf["file_name"] = fn
+                wf["timestamp"] = datetime.strptime(wf["updated_at"], '%Y-%m-%dT%H:%M:%S')
+
+                if not fn in wf["path"]:
+                    wf["file_path"] = os.path.join(fn, wf["path"])
+                else:
+                    wf["file_path"] = wf["path]"]
+
+                self.working_files.append(wf)
+
             if len(self.working_files) > 0:
                 # self.pushButtonUpdate.setVisible(True)
                 self.pushButtonUpdate.setEnabled(True)
+
+        self.working_files = sorted(self.working_files, key=lambda x: x["updated_at"], reverse=True)
 
         self.setWorkingDir(results["project_dir"])
 
     def setWorkingDir(self, working_dir):
         self.working_dir = os.path.normpath(working_dir)
         self.lineEditWorkingDir.setText(self.working_dir)
+
+        self.scan_working_dir()
 
     def close_dialog(self):
         self.write_settings()
@@ -312,9 +393,57 @@ class SwingCreateDialog(QtWidgets.QDialog, Ui_SwingCreateDialog):
     def select_wcd(self):
         test_dir = self.lineEditWorkingDir.text()
         q = QtWidgets.QFileDialog.getExistingDirectory(self, 'Select working directory', dir=test_dir)
-        if (q and q[0] != ''): 
-            self.working_dir = q[0]
-            self.lineEditWorkingDir.setText(self.working_dir)
+        if (q and q != ''): 
+            self.setWorkingDir(q)
+
+    def set_file_model(self, files):
+        self.tableView.setModel(WorkingFileTableModel(files))
+
+        self.tableView.setAlternatingRowColors(True)
+        self.tableView.setColumnWidth(WorkingFileTableModel.COL_FILE_NAME, 300)
+        self.tableView.setColumnWidth(WorkingFileTableModel.COL_FILE_SIZE, 100)
+        self.tableView.setColumnWidth(WorkingFileTableModel.COL_FILE_MODIFIED, 200)     
+
+    def scan_working_dir(self):
+        self.local_files = []
+        software = self.comboBoxSoftware.currentData()
+
+        last_uploaded = None
+        for wf in self.working_files:
+            _, ext = os.path.splitext(wf["file_name"])
+
+            if (ext.lower() in software["file_extension"].lower()) or (software["secondary_extensions"] and ext.lower() in software["secondary_extensions"].lower()):            
+                last_uploaded = wf
+
+        root_dir = self.lineEditWorkingDir.text()
+        if os.path.exists(root_dir):
+            for f in os.listdir(root_dir):
+                _, ext = os.path.splitext(f)
+
+                if (ext.lower() in software["file_extension"].lower()) or (software["secondary_extensions"] and ext.lower() in software["secondary_extensions"].lower()):
+
+                    file_info = {
+                        "file_name": f,
+                        "size": os.path.getsize(os.path.join(root_dir, f)),
+                        "timestamp": datetime.fromtimestamp(os.path.getmtime(os.path.join(root_dir, f))),
+                        "item": f,
+                        "type": "local",
+                    }
+
+                    if last_uploaded:
+                        file_info["should_update"] = last_uploaded["timestamp"] > file_info["timestamp"]
+
+                    self.local_files.append(file_info)
+
+        self.local_files = sorted(self.local_files, key=lambda x: x["timestamp"], reverse=True)
+        self.set_file_model(self.local_files)  
+
+        if len(self.local_files) + len(self.working_files) == 0:
+            self.rbCreateNew.setChecked(True)
+
+    def load_working_files(self):
+
+        self.set_file_model(self.working_files)
 
     def append_status(self, status_message, error = None):
         cursor = QtGui.QTextCursor(self.textEditStatus.document()) 
@@ -328,9 +457,6 @@ class SwingCreateDialog(QtWidgets.QDialog, Ui_SwingCreateDialog):
 
     def get_software(self):
         return self.comboBoxSoftware.currentData()
-
-    def get_file_name(self):
-        return os.path.normpath("{}{}".format(self.lineEditEntity.text().strip(), self.get_software()["file_extension"]))
 
     def get_working_dir(self):
         return self.lineEditWorkingDir.text().strip()        
@@ -364,7 +490,37 @@ class SwingCreateDialog(QtWidgets.QDialog, Ui_SwingCreateDialog):
         if self.updateDialog.scan_files() > 0:
             self.updateDialog.show()
         else:
-            QtWidgets.QMessageBox.information(self, 'Task: Update', 'No updates found')               
+            QtWidgets.QMessageBox.information(self, 'Task: Update', 'No updates found')     
+
+    def row_selected(self):
+        for idx in self.tableView.selectionModel().selectedIndexes():
+            row_number = idx.row()
+            column_number = idx.column()          
+            self.selected_working_file = self.tableView.model().data(idx, QtCore.Qt.UserRole)
+            break
+
+    def file_selected(self):
+        if self.selected_working_file:
+            self.close_dialog()
+
+
+        #for idx in self.tableView.selectionModel().selectedIndexes():
+        #    row_number = idx.row()
+        #    column_number = idx.column()          
+        #    item = self.tableView.model().data(idx, QtCore.Qt.DisplayRole)
+
+        #    print("Selected {} {} {}".format(row_number, column_number, item))
+
+    def get_working_file(self):
+        if self.rbLoad.isChecked() or self.rbOpenExisting.isChecked():
+            return self.selected_working_file
+        else:
+            software = self.comboBoxSoftware.currentData()
+            working_file = {
+                "file_name": F"{self.lineEditEntity.text()}_v001{software['file_extension']}"
+            }
+            return working_file
+
 
 """     def process(self):
         self.append_status("Creating new scene")

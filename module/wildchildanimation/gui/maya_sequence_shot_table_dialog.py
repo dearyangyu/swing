@@ -18,7 +18,7 @@ class Ui_SequenceShotTableDialog(object):
     def setupUi(self, SequenceShotTableDialog):
         if not SequenceShotTableDialog.objectName():
             SequenceShotTableDialog.setObjectName(u"SequenceShotTableDialog")
-        SequenceShotTableDialog.resize(699, 556)
+        SequenceShotTableDialog.resize(725, 387)
         self.verticalLayout_5 = QVBoxLayout(SequenceShotTableDialog)
         self.verticalLayout_5.setObjectName(u"verticalLayout_5")
         self.tableView = QTableView(SequenceShotTableDialog)
@@ -32,12 +32,29 @@ class Ui_SequenceShotTableDialog(object):
         self.verticalLayout_4.setSpacing(0)
         self.verticalLayout_4.setObjectName(u"verticalLayout_4")
         self.verticalLayout_4.setContentsMargins(0, 0, 0, 0)
+        self.horizontalLayout_7 = QHBoxLayout()
+        self.horizontalLayout_7.setObjectName(u"horizontalLayout_7")
+        self.labelEdit = QLabel(self.groupBox_2)
+        self.labelEdit.setObjectName(u"labelEdit")
+        self.labelEdit.setMinimumSize(QSize(100, 0))
+        self.labelEdit.setMaximumSize(QSize(100, 16777215))
+
+        self.horizontalLayout_7.addWidget(self.labelEdit)
+
+        self.comboBoxEdit = QComboBox(self.groupBox_2)
+        self.comboBoxEdit.setObjectName(u"comboBoxEdit")
+
+        self.horizontalLayout_7.addWidget(self.comboBoxEdit)
+
+
+        self.verticalLayout_4.addLayout(self.horizontalLayout_7)
+
         self.horizontalLayout_5 = QHBoxLayout()
         self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
         self.labelXmlFile = QLabel(self.groupBox_2)
         self.labelXmlFile.setObjectName(u"labelXmlFile")
         self.labelXmlFile.setMinimumSize(QSize(100, 0))
-        self.labelXmlFile.setMaximumSize(QSize(60, 16777215))
+        self.labelXmlFile.setMaximumSize(QSize(100, 16777215))
 
         self.horizontalLayout_5.addWidget(self.labelXmlFile)
 
@@ -59,7 +76,7 @@ class Ui_SequenceShotTableDialog(object):
         self.labelExportDir = QLabel(self.groupBox_2)
         self.labelExportDir.setObjectName(u"labelExportDir")
         self.labelExportDir.setMinimumSize(QSize(100, 0))
-        self.labelExportDir.setMaximumSize(QSize(60, 16777215))
+        self.labelExportDir.setMaximumSize(QSize(100, 16777215))
 
         self.horizontalLayout_6.addWidget(self.labelExportDir)
 
@@ -81,7 +98,7 @@ class Ui_SequenceShotTableDialog(object):
         self.labelShotPrefix = QLabel(self.groupBox_2)
         self.labelShotPrefix.setObjectName(u"labelShotPrefix")
         self.labelShotPrefix.setMinimumSize(QSize(100, 0))
-        self.labelShotPrefix.setMaximumSize(QSize(60, 16777215))
+        self.labelShotPrefix.setMaximumSize(QSize(100, 16777215))
 
         self.horizontalLayout_3.addWidget(self.labelShotPrefix)
 
@@ -99,18 +116,6 @@ class Ui_SequenceShotTableDialog(object):
 
 
         self.verticalLayout_5.addWidget(self.groupBox_2)
-
-        self.checkBoxFilterTask = QCheckBox(SequenceShotTableDialog)
-        self.checkBoxFilterTask.setObjectName(u"checkBoxFilterTask")
-        self.checkBoxFilterTask.setChecked(True)
-
-        self.verticalLayout_5.addWidget(self.checkBoxFilterTask)
-
-        self.checkBoxImportAudio = QCheckBox(SequenceShotTableDialog)
-        self.checkBoxImportAudio.setObjectName(u"checkBoxImportAudio")
-        self.checkBoxImportAudio.setChecked(True)
-
-        self.verticalLayout_5.addWidget(self.checkBoxImportAudio)
 
         self.groupBoxImagePlane = QGroupBox(SequenceShotTableDialog)
         self.groupBoxImagePlane.setObjectName(u"groupBoxImagePlane")
@@ -192,7 +197,7 @@ class Ui_SequenceShotTableDialog(object):
         self.labelShotPadding = QLabel(self.groupBoxShotPadding)
         self.labelShotPadding.setObjectName(u"labelShotPadding")
         self.labelShotPadding.setMinimumSize(QSize(100, 0))
-        self.labelShotPadding.setMaximumSize(QSize(60, 16777215))
+        self.labelShotPadding.setMaximumSize(QSize(100, 16777215))
 
         self.horizontalLayout_2.addWidget(self.labelShotPadding)
 
@@ -202,6 +207,16 @@ class Ui_SequenceShotTableDialog(object):
         self.spinBoxPadShots.setValue(100)
 
         self.horizontalLayout_2.addWidget(self.spinBoxPadShots)
+
+        self.checkBoxFilterTask = QCheckBox(self.groupBoxShotPadding)
+        self.checkBoxFilterTask.setObjectName(u"checkBoxFilterTask")
+
+        self.horizontalLayout_2.addWidget(self.checkBoxFilterTask)
+
+        self.checkBoxImportAudio = QCheckBox(self.groupBoxShotPadding)
+        self.checkBoxImportAudio.setObjectName(u"checkBoxImportAudio")
+
+        self.horizontalLayout_2.addWidget(self.checkBoxImportAudio)
 
         self.horizontalSpacer_2 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
@@ -256,13 +271,12 @@ class Ui_SequenceShotTableDialog(object):
     def retranslateUi(self, SequenceShotTableDialog):
         SequenceShotTableDialog.setWindowTitle(fakestr(u"Dialog", None))
         self.groupBox_2.setTitle(fakestr(u"Editorial", None))
+        self.labelEdit.setText(fakestr(u"Edit", None))
         self.labelXmlFile.setText(fakestr(u"XML File", None))
         self.toolButtonXmlFile.setText(fakestr(u"...", None))
         self.labelExportDir.setText(fakestr(u"Export Dir", None))
         self.toolButtonExportDir.setText(fakestr(u"...", None))
         self.labelShotPrefix.setText(fakestr(u"Shot Prefix", None))
-        self.checkBoxFilterTask.setText(fakestr(u"Filter by Task", None))
-        self.checkBoxImportAudio.setText(fakestr(u"Import Audio ", None))
         self.groupBoxImagePlane.setTitle(fakestr(u"Image Plane", None))
         self.labeAlphaGain.setText(fakestr(u"alphaGain", None))
         self.labelSizeX.setText(fakestr(u"sizeX", None))
@@ -270,6 +284,8 @@ class Ui_SequenceShotTableDialog(object):
         self.labelOffsetY.setText(fakestr(u"Offset Y", None))
         self.groupBoxShotPadding.setTitle(fakestr(u"Shot Padding", None))
         self.labelShotPadding.setText(fakestr(u"Pad Shots", None))
+        self.checkBoxFilterTask.setText(fakestr(u"Filter Task", None))
+        self.checkBoxImportAudio.setText(fakestr(u"Import Audio", None))
         self.buttonAll.setText(fakestr(u"All", None))
         self.buttonClear.setText(fakestr(u"None", None))
         self.buttonCancel.setText(fakestr(u"Cancel", None))

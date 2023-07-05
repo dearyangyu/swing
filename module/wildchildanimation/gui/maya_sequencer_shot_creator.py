@@ -20,6 +20,9 @@ except ImportError:
     from PyQt5 import QtCore, QtWidgets
     qtMode = 1
 
+import gazu
+
+from wildchildanimation.gui.settings import SwingSettings
 from wildchildanimation.gui.maya_sequence_shot_table_dialog import Ui_SequenceShotTableDialog
 from wildchildanimation.gui.swing_utils import set_button_icon
 
@@ -133,6 +136,16 @@ class SequencerShotTableModel(QtCore.QAbstractTableModel):
 
 class SequencerShotCreator(QtWidgets.QDialog, Ui_SequenceShotTableDialog):
 
+    ALLOWED_MOVIE_EXTENSION = [
+        ".avi",
+        ".m4v",
+        ".mkv",
+        ".mov",
+        ".mp4",
+        ".webm",
+        ".wmv",
+    ]       
+
     def __init__(self, parent = None, shot_list = [], handler = None, task = None):
         super(SequencerShotCreator, self).__init__(parent) # Call the inherited classes __init__ method
 
@@ -152,23 +165,31 @@ class SequencerShotCreator(QtWidgets.QDialog, Ui_SequenceShotTableDialog):
         self.task = task
         self.fps = task["project"]["fps"]
         self.sequence = self.task["sequence"]
+        self.episode = self.task["episode"]
 
         print("SequencerShotCreator::Task {}".format(self.task))
         print("SequencerShotCreator::Project {}".format(self.task["project"]))
-        print("SequencerShotCreator::Episode {}".format(self.task["episode"]))
+        print("SequencerShotCreator::Episode {}".format(self.episode))
         print("SequencerShotCreator::Sequence {}".format(self.sequence))
         print("SequencerShotCreator::FPS {}".format(self.fps))
 
         prefix_sections = []
         if self.task["project"]["code"]:
-            prefix_sections.append(self.task["project"]["code"])
+            self.project_code = self.task["project"]["code"]
+            # prefix_sections.append(self.task["project"]["code"])
         else:
-            prefix_sections.append(self.task["project"]["name"])
+            self.project_code = self.task["project"]["name"]
+            # prefix_sections.append(self.task["project"]["name"])
+
+        episode_name = self.episode["name"]
+
+        if not self.project_code in episode_name:
+            prefix_sections.append(self.project_code)
 
         prefix_sections.append(self.task["episode"]["name"])
         prefix_sections.append(self.task["sequence"]["name"])
 
-        self.lineEditShotPrefix.setText(friendly_string("_".join(prefix_sections).lower()))
+        self.lineEditShotPrefix.setText(self.project_code)
 
         self.tableView.setColumnWidth(SequencerShotTableModel.COL_SELECTED, 40)
         self.tableView.setColumnWidth(SequencerShotTableModel.COL_SHOT_NAME, 175)
@@ -195,8 +216,30 @@ class SequencerShotCreator(QtWidgets.QDialog, Ui_SequenceShotTableDialog):
         self.toolButtonXmlFile.clicked.connect(self.select_xml_file)
         set_button_icon(self.toolButtonXmlFile, "../resources/fa-free/solid/folder.svg")
 
-        self.toolButtonExportDir.clicked.connect(self.select_export_Dir)
+        self.toolButtonExportDir.clicked.connect(self.select_export_dir)
         set_button_icon(self.toolButtonExportDir, "../resources/fa-free/solid/folder.svg")
+
+        self.scan_breakout_folder()
+
+    def scan_breakout_folder(self):
+        self.shot = gazu.shot.get_shot_by_name(self.sequence, 'sh000')
+
+        breakout_task_type = gazu.task.get_task_type_by_name("Breakout")
+        if not breakout_task_type:
+            print("Error loading breakout_task_type, aborting")
+            return False
+        
+        self.breakout_task = gazu.task.get_task_by_entity(self.shot, breakout_task_type)
+        if not self.breakout_task:
+            print("Breakout Task for Shot {} not found, aborting".format(self.shot))
+            return False
+
+        self.shot_path = gazu.files.build_working_file_path(self.breakout_task)
+        self.shot_path = os.path.normpath(self.shot_path.replace("/mnt/content/productions", SwingSettings.get_instance().shared_root()))
+
+        self.lineEditExportDir.setText(os.path.dirname(self.shot_path))
+        print(F"Loaded layout shot {self.shot} {self.shot_path}")
+        ##edits = gazu.edit.all_edits_for_project(self.task["project"])
 
     def select_xml_file(self):
         q = QtWidgets.QFileDialog.getOpenFileName(self, "Open Editorial XML File", self.last_xml_file, "XML (*.xml);; All Files (*.*)")
@@ -211,7 +254,7 @@ class SequencerShotCreator(QtWidgets.QDialog, Ui_SequenceShotTableDialog):
 
             self.read_xml()
 
-    def select_export_Dir(self):
+    def select_export_dir(self):
         q = QtWidgets.QFileDialog.getExistingDirectory(self, "Select directory containing shots and audio", self.last_export_dir)
         if q:
             self.last_export_dir = q            
@@ -265,17 +308,36 @@ class SequencerShotCreator(QtWidgets.QDialog, Ui_SequenceShotTableDialog):
             if not isinstance(item, otio.schema.Clip):
                 continue
 
+            name, extension = os.path.splitext(item.name)            
+
+            if extension not in SequencerShotCreator.ALLOWED_MOVIE_EXTENSION:
+                continue
+
+            if not name.lower().startswith("sc"):
+                continue             
+
             track_range = track.range_of_child_at_index(n)
-
             item_name = item.name
-
-            shot_parts = item_name.split("_")
-            item_name = "{}_{}_{}".format(shot_parts[0], shot_parts[1], shot_parts[2])              
 
             for clip_item in CLEAN_NAME:
                 if clip_item in item_name:
                     #print("Cleaning {} from {}".format(clip_item, item_name))
-                    item_name = item_name.replace(clip_item, "")
+                    item_name = item_name.replace(clip_item, "")            
+
+            shot_parts = item_name.split("_")
+
+            if len(shot_parts) >= 3:
+                sequence_name = shot_parts[1]
+                shot_name = shot_parts[2]
+
+                item_name = "{}_{}_{}".format(shot_parts[0], sequence_name, shot_name)
+            else:
+                sequence_name = shot_parts[0]
+                shot_name = shot_parts[1]
+
+                item_name = "{}_{}_{}".format(self.episode["name"], sequence_name, shot_name)              
+
+            print(F"Scanning Shot {item_name} Sequence {self.sequence['name']}")                    
 
             if self.sequence and self.checkBoxFilterTask.isChecked():
                 scene = "_{}_".format(self.sequence["name"].lower())
@@ -285,10 +347,17 @@ class SequencerShotCreator(QtWidgets.QDialog, Ui_SequenceShotTableDialog):
                     continue
 
             #item_name = "{}_{}".format(prefix, item_name.lower())
+            ## V:\productions\HNL\hnl_work\shots\hnl_ep000\sc010\sh000\breakout\sc010_sh000_breakout
+            master_scene = self.shot_path
+            master_scene = self.shot_path.replace(self.sequence['name'], sequence_name)
+            master_scene = self.shot_path.replace("sh000", shot_name)
 
-            images_dir = os.path.join(target_dir, "{}".format(item_name), "images")
+            print(F"Checking {master_scene}")
+
+            ## images_dir = os.path.join(target_dir, "{}".format(item_name), "images")
+            images_dir = master_scene
             if not os.path.exists(images_dir):
-                print("Skipping images_dir {} not in sequence".format(images_dir))
+                print("Skipping images_dir {} not found".format(images_dir))
                 image_plane = None
             else:
                 image_plane = os.path.normpath(os.path.join(images_dir, "{}.0000.jpg".format(item_name)))
@@ -298,25 +367,26 @@ class SequencerShotCreator(QtWidgets.QDialog, Ui_SequenceShotTableDialog):
 
             audio_file = None
             if self.checkBoxImportAudio.isChecked():   
-                audio_dir = os.path.join(target_dir, "{}".format(item_name), "audio")
+                ## audio_dir = os.path.join(target_dir, "{}".format(item_name), "audio")
+                audio_dir = master_scene
                 if os.path.exists(audio_dir):
                     audio_file = os.path.normpath(os.path.join(audio_dir, "{}.wav".format(item_name)))
                     if not os.path.exists(audio_file):
                         print("build_track::audio_file missing {}".format(audio_file))      
                         audio_file = None
 
-            shot_parts = item_name.split("_")
-            shot = "{}_{}_{}".format(shot_parts[0], shot_parts[1], shot_parts[2])
+            #shot_parts = item_name.split("_")
+            #shot = "{}_{}_{}".format(shot_parts[0], shot_parts[1], shot_parts[2])
 
             #shot = "{}".format(item_name).lower()
-            camera = "{}_cam".format(shot)
+            camera = "{}_cam".format(item_name)
 
             frame_count = track_range.end_time_exclusive().value - track_range.start_time.value - 1
 
             shot = {
-                "id": shot,
+                "id": item_name,
                 "e": False,
-                "shotName": shot,
+                "shotName": item_name,
                 "track": track_no,
                 "currentCamera": camera,
                 #"startTime": track_range.start_time.value + 1,
@@ -349,6 +419,22 @@ class SequencerShotCreator(QtWidgets.QDialog, Ui_SequenceShotTableDialog):
 
         self.settings.setValue("last_xml_file", self.last_xml_file)
         self.settings.setValue("last_export_dir", self.last_export_dir)
+
+        if self.groupBoxImagePlane.isChecked():
+            self.settings.setValue("image_plane", "True")
+        else:
+            self.settings.setValue("image_plane", "False")
+
+        if self.checkBoxFilterTask.isChecked():
+            self.settings.setValue("filter_task", "True")
+        else:
+            self.settings.setValue("filter_task", "False")
+
+        if self.checkBoxImportAudio.isChecked():
+            self.settings.setValue("import_audio", "True")
+        else:
+            self.settings.setValue("import_audio", "False")
+
         #self.settings.setValue("software", self.comboBoxSoftware.currentText())
 
         #self.settings.setValue("output_dir_path_le", self.output_dir_path_le.text())
@@ -366,6 +452,11 @@ class SequencerShotCreator(QtWidgets.QDialog, Ui_SequenceShotTableDialog):
 
         self.last_xml_file = self.settings.value("last_xml_file", os.path.expanduser("~"))
         self.last_export_dir = self.settings.value("last_export_dir", os.path.expanduser("~"))
+
+        self.groupBoxImagePlane.setChecked(self.settings.value("image_plane", "True") == "True")
+        self.checkBoxFilterTask.setChecked(self.settings.value("filter_task", "True") == "True")
+        self.checkBoxImportAudio.setChecked(self.settings.value("import_audio", "True") == "True")
+
         self.settings.endGroup()            
 
     def is_all_selected(self):
@@ -392,6 +483,8 @@ class SequencerShotCreator(QtWidgets.QDialog, Ui_SequenceShotTableDialog):
         return selected
 
     def process(self):
+        self.write_settings()
+
         if self.groupBoxImagePlane.isChecked():
             image_plane = {
                 "alphaGain": self.doubleSpinBoxAlphaGain.value(),
@@ -411,7 +504,7 @@ class SequencerShotCreator(QtWidgets.QDialog, Ui_SequenceShotTableDialog):
 
         self.handler.on_sequencer_create_shots(shot_list = self.model.shots, fps = self.fps, image_plane = image_plane, padding = padding, export_dir = export_dir)
         self.status = 'OK'
-        self.write_settings()
+
         self.close()        
         QtWidgets.QMessageBox.information(self, 'swing: shot sequencer', 'Shots created')               
 

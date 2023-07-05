@@ -264,7 +264,7 @@ class SwingRenderSubmitDialog(QtWidgets.QDialog, Ui_RenderSubmitDialog):
                         return False
 
 
-                    if ".exr" in extension.lower():
+                    if extension.lower() in [ ".exr", ".png", ".jpg" ]:
                         validEp = shot_parts[0] in self.task["episode"]["name"]
                         validSeq  = self.task["sequence"]["name"] in shot_parts[1]
                         validShot = self.task["entity"]["name"] in shot_parts[2]

@@ -14,6 +14,7 @@ import datetime
 import opentimelineio as otio
 import io
 import re
+import filecmp
 
 import xml.etree.ElementTree as ET
 
@@ -119,7 +120,7 @@ class SwingTimelineDialog(QtWidgets.QDialog, Ui_SwingTimelineDialog):
 
         self.pushButtonCancel.clicked.connect(self.close_dialog)
 
-        self.toolButtonSelectEDLFile.clicked.connect(self.select_edl_file)
+        self.toolButtonSelectEDLFile.clicked.connect(self.select_xml_file)
         self.toolButtonSelectSource.clicked.connect(self.select_source)
 
         set_button_icon(self.pushButtonSelectAll, "../resources/fa-free/solid/plus.svg")
@@ -145,7 +146,7 @@ class SwingTimelineDialog(QtWidgets.QDialog, Ui_SwingTimelineDialog):
         #self.lineEditSearch.textChanged.connect(self.search)
         self._createContextMenu()
 
-        self.pushButtonScanEDL.clicked.connect(self.scan_edl)
+        self.pushButtonScanXML.clicked.connect(self.scan_xml)
         self.threadpool = QtCore.QThreadPool()
         self.threadpool.setMaxThreadCount(self.spinBoxThreadCount.value())
         self.busy_count = 0
@@ -167,7 +168,7 @@ class SwingTimelineDialog(QtWidgets.QDialog, Ui_SwingTimelineDialog):
         self.pushButtonSelectNone.setEnabled(is_enabled)
         self.pushButtonSelectAll.setEnabled(is_enabled)
         self.spinBoxThreadCount.setEnabled(is_enabled)
-        self.pushButtonScanEDL.setEnabled(is_enabled)
+        self.pushButtonScanXML.setEnabled(is_enabled)
 
         self.lineEditEDLFile.setEnabled(is_enabled)
         self.lineEditSource.setEnabled(is_enabled)
@@ -177,7 +178,10 @@ class SwingTimelineDialog(QtWidgets.QDialog, Ui_SwingTimelineDialog):
         self.comboBoxEpisode.setEnabled(is_enabled)
         self.comboBoxProject.setEnabled(is_enabled)
 
-        self.checkBoxUploadMedia.setEnabled(is_enabled)
+        self.checkBoxUploadAudio.setEnabled(is_enabled)
+        self.checkBoxUploadVideo.setEnabled(is_enabled)
+        self.checkBoxUploadImages.setEnabled(is_enabled)
+
         self.pushButtonUpdateTrackingSheet.setEnabled(is_enabled)
 
     def thread_count_changed(self):
@@ -232,16 +236,21 @@ class SwingTimelineDialog(QtWidgets.QDialog, Ui_SwingTimelineDialog):
         self.settings.setValue("source_file", self.lineEditSource.text())
         self.settings.setValue("thread_count", self.spinBoxThreadCount.value())
 
-        if self.checkBoxUploadMedia.isChecked():
-            self.settings.setValue("upload_media", "True")
+        if self.checkBoxUploadVideo.isChecked():
+            self.settings.setValue("upload_video", "True")
         else:
-            self.settings.setValue("upload_media", "False")
+            self.settings.setValue("upload_video", "False")
 
-        #self.settings.setValue("extract_zip", self.checkBoxExtractZip.isChecked())
-        #self.settings.setValue("software", self.comboBoxSoftware.currentText())
-        #self.settings.setValue("output_dir_path_le", self.output_dir_path_le.text())
-        #self.settings.setValue("output_filename_le", self.output_filename_le.text())
-        
+        if self.checkBoxUploadAudio.isChecked():
+            self.settings.setValue("upload_audio", "True")
+        else:
+            self.settings.setValue("upload_audio", "False")           
+
+        if self.checkBoxUploadImages.isChecked():
+            self.settings.setValue("upload_images", "True")
+        else:
+            self.settings.setValue("upload_images", "False")                  
+
         self.settings.endGroup()
         self.settings.sync()
 
@@ -255,11 +264,11 @@ class SwingTimelineDialog(QtWidgets.QDialog, Ui_SwingTimelineDialog):
         self.lineEditEDLFile.setText(self.settings.value("edl_file", ""))
         self.lineEditSource.setText(self.settings.value("source_file", ""))
         self.spinBoxThreadCount.setValue(self.settings.value("thread_count", 3))
-        self.checkBoxUploadMedia.setChecked(self.settings.value("upload_media", "True") == "True")
 
-        #self.checkBoxSequences.setChecked(self.is_setting_selected(self.settings, "show_sequences"))
-        #self.checkBoxExtractZip.setChecked(self.is_setting_selected(self.settings, "extract_zip"))        
-        ##self.move(self.settings.value("pos", QtCore.QPoint(0, 200)))
+        self.checkBoxUploadVideo.setChecked(self.settings.value("upload_video", "True") == "True")
+        self.checkBoxUploadAudio.setChecked(self.settings.value("upload_audio", "True") == "True")
+        self.checkBoxUploadImages.setChecked(self.settings.value("upload_images", "True") == "True")
+
         self.settings.endGroup()        
 
     def is_setting_selected(self, settings, value):
@@ -441,7 +450,7 @@ class SwingTimelineDialog(QtWidgets.QDialog, Ui_SwingTimelineDialog):
 
         return start_time, end_time, frame_count
             
-    def scan_edl(self):
+    def scan_xml(self):
         # self.write_settings()
         self.project = self.comboBoxProject.currentData(QtCore.Qt.UserRole)
         self.episode = self.comboBoxEpisode.currentData(QtCore.Qt.UserRole)
@@ -586,7 +595,7 @@ class SwingTimelineDialog(QtWidgets.QDialog, Ui_SwingTimelineDialog):
             start_time, end_time, frame_count = self.read_timecodes(clip)            
 
             print("{} {} -> {}".format(name, start_time, end_time))  
-            output = "{}/{}_{}/video/{}_{}.mp4".format(target_dir, prefix, name, prefix, name)  
+            output = "{}/{}_{}/video/{}_{}.mp4".format(target_dir, prefix, name, self.episode["name"], name)  
 
             if not os.path.exists(os.path.dirname(output)):
                 os.makedirs(os.path.dirname(output))                    
@@ -642,7 +651,7 @@ class SwingTimelineDialog(QtWidgets.QDialog, Ui_SwingTimelineDialog):
             start_time, end_time, frame_count = self.read_timecodes(clip)            
 
             print("{} {}:{}".format(name, start_time, end_time))  
-            output = "{}/{}_{}/audio/{}_{}.wav".format(target_dir, prefix, name, prefix, name)  
+            output = "{}/{}_{}/audio/{}_{}.wav".format(target_dir, prefix, name, self.episode["name"], name)  
 
             if not os.path.exists(os.path.dirname(output)):
                 os.makedirs(os.path.dirname(output))
@@ -698,7 +707,7 @@ class SwingTimelineDialog(QtWidgets.QDialog, Ui_SwingTimelineDialog):
             start_time, end_time, frame_count = self.read_timecodes(clip)            
 
             print("{} {}:{}".format(name, start_time, end_time))  
-            output = "{}/{}_{}/images/{}_{}.%04d.jpg".format(target_dir, prefix, name, prefix, name)  
+            output = "{}/{}_{}/images/{}_{}.%04d.jpg".format(target_dir, prefix, name, self.episode["name"], name)  
 
             if not os.path.exists(os.path.dirname(output)):
                 os.makedirs(os.path.dirname(output))
@@ -724,7 +733,7 @@ class SwingTimelineDialog(QtWidgets.QDialog, Ui_SwingTimelineDialog):
 
         self.extract_video()
         self.extract_audio()
-        self.extract_images()
+        # self.extract_images()
 
     def command_callback(self, data):
         self.textEditLog.append(data)
@@ -733,6 +742,44 @@ class SwingTimelineDialog(QtWidgets.QDialog, Ui_SwingTimelineDialog):
         if self.busy_count == 0:
             self.enable_controls(True)
             self.textEditLog.append("All exports completed")  
+
+    def zip_images(self, program, archive, directory, compress_level = "-mx0" ):
+        try:
+            ## 7za a -t7z files.7z *.txt
+            #drive_name = directory[:1]
+            #os.chdir("{}:".format(drive_name))
+            cwd = os.getcwd()
+            try:
+                os.chdir(directory)
+                # proc = subprocess.Popen(cmd, shell = True, stderr=subprocess.PIPE)
+                proc = subprocess.Popen([program, "a", archive, "{}/*.jpg".format(directory), compress_level], shell = True, stderr=subprocess.PIPE)
+
+                while True:
+                    output = proc.stderr.read(1)
+                    try:
+                        log = output.decode('utf-8')
+                        if log == '' and proc.poll() != None:
+                            break
+                        else:
+                            sys.stdout.write(log)
+                            sys.stdout.flush()
+                    except:
+                        print("Byte Code Error: Ignoring")
+                        print(traceback.format_exc())
+                    # continue
+            except:
+                print(traceback.format_exc())
+            finally:
+                os.chdir(cwd)        
+
+            # print("{} {} {} {} {}/*.exr".format(program, "a", compress_level, archive, directory))
+            return True
+        except:
+            traceback.print_exc(file=sys.stdout)
+            return False                
+
+    def media_uploaded_callback(self, data):
+        self.textEditLog.append("{}: {}".format(data["source"], data["message"]))
 
     def get_shot_task(self, shot, task_type_name, task_status = None):
         tasks = gazu.task.all_tasks_for_shot(shot)
@@ -744,7 +791,10 @@ class SwingTimelineDialog(QtWidgets.QDialog, Ui_SwingTimelineDialog):
                 if t["task_type_name"] == task_type_name:
                         return t
 
-        return False           
+        return False        
+
+    def build_file_name(self, file_path):
+        return os.path.normpath(file_path.replace("/mnt/content/productions", SwingSettings.get_instance().shared_root()))   
 
     def update_kitsu(self): 
         name, _ = os.path.splitext(self.lineEditEDLFile.text())  
@@ -754,7 +804,7 @@ class SwingTimelineDialog(QtWidgets.QDialog, Ui_SwingTimelineDialog):
         if not self.model:
             QtWidgets.QMessageBox.information("Please load and scan an EDL first")
             return False
-
+        
         self.project = self.comboBoxProject.currentData(QtCore.Qt.UserRole)
         self.episode = self.comboBoxEpisode.currentData(QtCore.Qt.UserRole)  
 
@@ -764,25 +814,45 @@ class SwingTimelineDialog(QtWidgets.QDialog, Ui_SwingTimelineDialog):
         connect_to_server("showadmin@wildchildanimation.com", "Monday@01")
 
         task_types = gazu.task.all_task_types_for_project(self.project)
-        layout_task_type = None
+        breakout_task_type = None
         for t in task_types:
-            if t["name"].lower() == 'layout':
-                layout_task_type = t
+            if t["name"].lower() == 'breakout':
+                breakout_task_type = t
                 break
 
-        if not layout_task_type:
-            QtWidgets.QMessageBox.information("Layout task type not found")
+        if not breakout_task_type:
+            QtWidgets.QMessageBox.information(self, 'Swing::Timeline', "Breakout task type not found")
             return False
         
         task_status_todo = gazu.task.get_task_status_by_name("Todo")       
         if not task_status_todo:
-            QtWidgets.QMessageBox.information("Todo task status not found")
+            QtWidgets.QMessageBox.information(self, 'Swing::Timeline', "Todo task status not found")
             return False             
+        
+        task_status_final = gazu.task.get_task_status_by_name("Final (Client Approved)")       
+        if not task_status_final:
+            # check alternative name
+            task_status_final = gazu.task.get_task_status_by_name("Final")       
+            if not task_status_final:
+                QtWidgets.QMessageBox.information(self, 'Swing::Timeline', "Final task status not found")
+                return False             
+
+        task_status_retake = gazu.task.get_task_status_by_name("Review")       
+        if not task_status_retake:
+            # check alternative name
+            task_status_retake = gazu.task.get_task_status_by_name("Retake")       
+
+            if not task_status_retake:
+                QtWidgets.QMessageBox.information(self, 'Swing::Timeline', "Retake task status not found")
+                return False                             
 
         person = gazu.person.get_person_by_email("showadmin@wildchildanimation.com")            
         if not person:
-            QtWidgets.QMessageBox.information("Show Admin user not found")
-            return False            
+            QtWidgets.QMessageBox.information(self, 'Swing::Timeline', "Show Admin user not found")
+            return False    
+
+        wip_output_type = gazu.files.get_output_type_by_name("wip")
+        self.threadpool.setMaxThreadCount(self.spinBoxThreadCount.value())
 
         for x in range(self.tableView.model().rowCount()):
             rowIndex = self.tableView.model().index(x, 0)
@@ -792,14 +862,14 @@ class SwingTimelineDialog(QtWidgets.QDialog, Ui_SwingTimelineDialog):
                 item_name = "{}_{}".format(item["sequence_name"], item["name"])
                 self.textEditLog.append("Checking shot: {}".format(item_name))  
 
-                print("Checking Kitsu: {} {} {}".format(self.project["name"], self.episode["name"], item_name))
+                print("swing::timeline: checking kitsu: {} {} {}".format(self.project["name"], self.episode["name"], item_name))
 
                 if "new_shot" in item and item["new_shot"]:
-                    print("Creating new shot: {} {} {}".format(self.project["name"], self.episode["name"], item_name))
+                    print("swing::timeline: creating new shot: {} {} {}".format(self.project["name"], self.episode["name"], item_name))
 
                 sequence = gazu.shot.get_sequence_by_name(self.project, item["sequence_name"].lower(), self.episode)               
                 if not sequence:
-                    print("Creating new sequence: {} {}".format(self.episode["name"], item["sequence_name"]))
+                    print("swing::timeline: creating new sequence: {} {}".format(self.episode["name"], item["sequence_name"]))
                     sequence = gazu.shot.new_sequence(self.project, item["sequence_name"].lower(), self.episode)
 
                 shot = gazu.shot.get_shot_by_name(sequence, item["name"].lower())
@@ -822,15 +892,31 @@ class SwingTimelineDialog(QtWidgets.QDialog, Ui_SwingTimelineDialog):
 
                     shot = gazu.shot.new_shot(self.project, sequence, item["name"].lower(), nb_frames=nb_frames, frame_in=frame_in, frame_out=frame_out)
 
-                task = self.get_shot_task(shot, layout_task_type["name"])
+                audio_breakout_files = []
+                video_breakout_files = []
+
+                task = self.get_shot_task(shot, breakout_task_type["name"])
                 if not task:
-                    task = gazu.task.new_task(shot, layout_task_type, task_status = task_status_todo, assigner = None, assignees = None)
+                    task = gazu.task.new_task(shot, breakout_task_type, task_status = task_status_todo, assigner = None, assignees = None)
+                    task_status = task_status_final ## We'll set Task Status to Final if this is a new Uplaod
+                else:
+                    task_status = task_status_retake ## if task exists, and we are updating it, then set it to review
+
+                    audio_breakout_files = gazu.files.get_working_files_for_task(task)
+                    audio_breakout_files = sorted(audio_breakout_files, key=lambda x: x["updated_at"], reverse=True)            
+
+                    video_breakout_files = gazu.files.all_output_files_for_entity(task["entity_id"], wip_output_type, task["task_type_id"])
+                    video_breakout_files = sorted(video_breakout_files, key=lambda x: x["updated_at"], reverse=True)            
 
                 if item["edl_status"] == ShotListModel.SHOT_CUT:
                     # gazu.task.add_comment(task, layout_task_type, "Shot cut from edit")
-                    gazu.shot.remove_shot(shot)
-                    print("Removed Shot from Kitsu: {} {} {}".format(self.project["name"], self.episode["name"], item_name))
+                    try:
+                        gazu.task.add_comment(task, task_status, "Shot cut from edit")                    
+                    except:
+                        pass
 
+                    gazu.shot.remove_shot(shot)
+                    print("swing::timeline: archived shot in kitsu: {} {} {}".format(self.project["name"], self.episode["name"], item_name))
                     continue
 
                 if not shot["nb_frames"] or shot["nb_frames"] != item["nb_frames"]:
@@ -850,23 +936,134 @@ class SwingTimelineDialog(QtWidgets.QDialog, Ui_SwingTimelineDialog):
 
                 if update_shot:                    
                     shot = gazu.shot.update_shot_data(shot, shot_data)
-                    print("Updated Shot Data: {} {} {}".format(self.project["name"], self.episode["name"], item_name))                    
+                    try:
+                        ## mark breakout task as retake / review
+                        gazu.task.add_comment(task, task_status, "Frame range changed")                    
+                    except:
+                        pass
+                    print("swing::timeline: updated shot frame data: {} {} {}".format(self.project["name"], self.episode["name"], item_name))                    
 
-                if self.checkBoxUploadMedia.isChecked():
-                    video_preview = "{}/{}_{}/video/{}_{}.mp4".format(target_dir, prefix, item_name, prefix, item_name)  
-                    audio_file = "{}/{}_{}/audio/{}_{}.wav".format(target_dir, prefix, item_name, prefix, item_name)  
+                video_uploaded = False
+                audio_uploaded = False
+                images_uploaded = False
+
+                if self.checkBoxUploadVideo.isChecked():
+                    video_preview = "{}/{}_{}/video/{}_{}.mp4".format(target_dir, prefix, item_name, self.episode["name"], item_name)  
 
                     if os.path.exists(video_preview):
-                        print("Uploading preview {}".format(video_preview))
+                        print("swing::timeline: checking video_preview {}".format(video_preview))
 
-                        worker = WorkingFileUploader(self, edit_api, task, video_preview, item_name, "Video", "Breakout file", mode = "preview")
-                        worker.run()                        
+                        should_upload = True
+                        if len(video_breakout_files) > 0:
+                            existing_file = self.build_file_name(video_breakout_files[0]["path"])
+
+                            if self.checkBoxForceUpload.isChecked():
+                                should_upload = True
+                            else:
+                                try:
+                                    ## add to exception block in case file comment was deleted 
+
+                                    print(F"swing::timeline: comparing {existing_file}")
+                                    if filecmp.cmp(existing_file, video_preview, False):
+                                        should_upload = False
+                                        print("swing::timeline: files match, skipping")
+                                    else:
+                                        should_upload = True
+                                except:
+                                    should_upload = True
+
+                        if should_upload:
+                            self.textEditLog.append(F"Uploading new preview {video_preview}")
+
+                            worker = WorkingFileUploader(self, edit_api, task, video_preview, item_name, "Video", "Breakout file", mode = "preview")
+                            worker.callback.done.connect(self.media_uploaded_callback)
+                            worker.run()         
+
+                            # self.busy_count  += 1     
+                            # self.threadpool.start(worker)     
+                            self.textEditLog.append("Uploaded Preview: {}".format(video_preview))          
+                            video_uploaded = True
+
+                if self.checkBoxUploadAudio.isChecked():                        
+                    audio_file = "{}/{}_{}/audio/{}_{}.wav".format(target_dir, prefix, item_name, self.episode["name"], item_name)  
 
                     if os.path.exists(audio_file):
-                        print("Uploading audio: {}".format(audio_file))
+                        print("swing::timeline: checking audio_file {}".format(audio_file))
 
-                        worker = WorkingFileUploader(self, edit_api, task, audio_file, item_name, "Audio", "Breakout file", mode = "working")
-                        worker.run()  
+                        should_upload = True
+                        if len(audio_breakout_files) > 0:
+                            existing_file = os.path.join(self.build_file_name(audio_breakout_files[0]["path"]), audio_breakout_files[0]["name"])
+
+                            if self.checkBoxForceUpload.isChecked():
+                                should_upload = True
+                            else:                            
+                                # cmp returns true if f1 == f2
+                                print(F"swing::timeline: Comparing {existing_file} to {audio_file}")
+                                try:
+                                    ## add to exception block in case file comment was deleted 
+
+                                    if filecmp.cmp(existing_file, audio_file, False):
+                                        should_upload = False
+                                        print("swing::timeline: files match, skipping")
+                                    else:
+                                        should_upload = True
+                                except:
+                                    should_upload = True
+
+                        if should_upload:
+                            self.textEditLog.append(F"Uploading new audio {audio_file}")
+
+                            worker = WorkingFileUploader(self, edit_api, task, audio_file, item_name, "Audio", "Breakout file", mode = "working")
+                            worker.callback.done.connect(self.media_uploaded_callback)
+                            worker.run()  
+                            
+                            # self.busy_count  += 1     
+                            # self.threadpool.start(worker)
+                            self.textEditLog.append("Uploaded Audio: {}".format(audio_file))    
+                            audio_uploaded = True
+
+                if self.checkBoxUploadImages.isChecked():  
+                    images_dir = "{}/{}_{}/images/".format(target_dir, prefix, item_name, self.episode["name"], item_name)  
+
+                    if os.path.exists(images_dir):
+                        print("swing::timeline: checking images_dir {}".format(images_dir))   
+
+                        zip_name = F"{self.episode['name']}_{item_name}_img.7z"
+                        self.zip_images(SwingSettings.get_instance().bin_7z(), zip_name, images_dir)
+
+                        archive = os.path.join(images_dir, zip_name)
+                       
+                        if os.path.exists(archive):
+                            self.textEditLog.append(F"Uploading image breakout {archive}")
+
+                            worker = WorkingFileUploader(self, edit_api, task, archive, item_name, "Imageplane", "Breakout file", mode = "working")
+                            worker.callback.done.connect(self.media_uploaded_callback)
+                            worker.run()         
+
+                            # self.busy_count  += 1     
+                            # self.threadpool.start(worker)     
+                            self.textEditLog.append("Uploaded Images: {}".format(archive))          
+                            images_uploaded = True                                                              
+                    
+                ## Mark Breakout Task as Retake if Audio or Video changed
+                if video_uploaded and audio_uploaded:
+                    try:
+                        ## mark breakout task as retake / review
+                        gazu.task.add_comment(task, task_status, "Video and Audio updated")                    
+                    except:
+                        pass
+                elif video_uploaded:
+                    try:
+                        ## mark breakout task as retake / review
+                        gazu.task.add_comment(task, task_status, "Video updated")                    
+                    except:
+                        pass
+                elif audio_uploaded:
+                    try:
+                        ## mark breakout task as retake / review
+                        gazu.task.add_comment(task, task_status, "Audio updated")                    
+                    except:
+                        pass
 
         self.textEditLog.append("Update shot completed")
         return True
@@ -908,7 +1105,7 @@ class SwingTimelineDialog(QtWidgets.QDialog, Ui_SwingTimelineDialog):
                 "Frame Count", 
                 "Status", 
                 'Updated: {}'.format(datetime.now().strftime("%Y/%m/%d %H:%M:%S.%f")), 
-                "Source: {}".format(os.path.basename(self.lineEditSource.text())) ] 
+                "Source: {}".format(os.path.basename(self.lineEditEDLFile.text())) ] 
             ]
         }
         batch_update.append(batch)
@@ -958,15 +1155,15 @@ class SwingTimelineDialog(QtWidgets.QDialog, Ui_SwingTimelineDialog):
         pass
         # return os.path.join(self.lineEditFolder.text(), PlaylistDialog.PLAYLIST_FILE)
 
-    def select_edl_file(self):
+    def select_xml_file(self):
         file_name = self.lineEditEDLFile.text()
-        q = QtWidgets.QFileDialog.getOpenFileName(self, "Select EDL File", file_name, "EDL (*.edl);; XML (*.xml);; All Files (*.*)")
+        q = QtWidgets.QFileDialog.getOpenFileName(self, "Select XML File", file_name, "XML (*.xml);; EDL (*.edl);; All Files (*.*)")
         if q:
             self.lineEditEDLFile.setText(q[0])
 
     def select_source(self):
         file_name = self.lineEditSource.text()
-        q = QtWidgets.QFileDialog.getOpenFileName(self, "Select Video File", file_name, "Video (*.mov);(*.mp4); All Files (*.*)")
+        q = QtWidgets.QFileDialog.getOpenFileName(self, "Select Video File", file_name, "Video (*.mov);; (*.mp4);; All Files (*.*)")
         if q:
             self.lineEditSource.setText(q[0])
 
@@ -1173,16 +1370,14 @@ if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     if darkStyle:
         # setup stylesheet
-        app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
-        # or in new API
-        app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))      
+        if qtMode == 0:
+            app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyside2'))
+        elif qtMode == 1:
+            app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))        
+        else:
+            app.setStyleSheet(qdarkstyle.load_stylesheet())
 
-    test = SwingTimelineDialog(None)
-    #test = FileSelectDialog(None, "E:/productions/Tom_Gates_Sky_S02/tg_2d_main/tg_2d_build/tg_2d_ep206/shots/sc100/sh010/anim_block/sc100_sh010_anim_block/")
+    timeline = SwingTimelineDialog(None)
+    timeline.show()
 
-    #test.pushButtonWorkingFiles.setVisible(True)
-    #test.pushButtonOutputFiles.setVisible(True)
-    #test.pushButtonZip.setVisible(True)
-
-    test.show()
     sys.exit(app.exec_())
