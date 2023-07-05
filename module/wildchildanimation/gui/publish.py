@@ -102,13 +102,9 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
 
     def set_wf_exclude(self, excluded):
         self.wf_excluded = excluded
-
-        print("publish::set_wf_exclude {}".format(self.wf_excluded))
     
     def set_of_include(self, included):
         self.of_included = included
-
-        print("publish::of_included {}".format(self.of_included))
 
     def set_enabled(self, enabled):
         self.lineEditProject.setEnabled(enabled)
@@ -195,7 +191,7 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         title += " / {}".format(entity_name)        
         task_name = "{}".format(entity_name)        
 
-        if "final" in task_type.lower():
+        if task_type.lower() in [ "final", "render", "renders" ]:
             self.output_mode = "render"
             self.groupBoxOutputFiles.setTitle("Final Output")
         else:
@@ -300,8 +296,6 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
                 return True
 
     def set_working_file(self, selected_file):
-        print("publish::set_working_file {}".format(selected_file))
-
         self.radioButtonWorkingFile.setChecked(True)
         self.radioButtonWorkingDir.setChecked(False)
 
@@ -314,8 +308,6 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
             self.working_files.append(selected_file)
 
     def set_working_dir(self, selected_dir):
-        print("publish::selected_dir {}".format(selected_dir))
-
         self.radioButtonWorkingFile.setChecked(False)
         self.radioButtonWorkingDir.setChecked(True)
 
@@ -352,33 +344,11 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         self.working_filter.set_root(directory)
         self.working_filter.scan_working_files()
 
-        #self.media_files = []
-
-        #self.media_files += filter(os.path.isfile, glob.glob(directory + '/*.mp4'))
-        #self.media_files += filter(os.path.isfile, glob.glob(directory + '/*.mov'))
-
-        #self.media_files = sorted(self.media_files, key = os.path.getmtime)
-
-        #if len(self.media_files) > 0:
-        #    self.labelReviewFile.setText("Found review media to upload")
-        #    self.set_output_file(self.media_files[len(self.media_files)-1])
-
         self.labelWorkingFilesMessage.setText("Compress and upload directory: {}".format(directory))
 
     def scan_output_dir(self, directory):
         self.output_filter.set_root(directory)
         self.output_filter.scan_output_files(self.of_included)
-
-        #self.media_files = []
-
-        #self.media_files += filter(os.path.isfile, glob.glob(directory + '/*.mp4'))
-        #self.media_files += filter(os.path.isfile, glob.glob(directory + '/*.mov'))
-
-        #self.media_files = sorted(self.media_files, key = os.path.getmtime)
-
-        #if len(self.media_files) > 0:
-        #    self.labelReviewFile.setText("Found review media to upload")
-        #    self.set_output_file(self.media_files[len(self.media_files)-1])
 
         self.labelOutputFilesMessage.setText("Compress and upload directory: {}".format(directory))
 
@@ -478,15 +448,12 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
                 self.set_output_file("[Multiple files selected]")        
 
     def reset_queue(self):
-        print("Clearing queue")
         self.working_files = []
         self.output_files = []
 
 
     # ToDo: Desktop Only, Move to Swing Studio Handler
     def process(self):
-        print("publish::process")
-
         self.monitor = UploadMonitorDialog(self)
 
         self.setMinimumWidth(720)
@@ -501,20 +468,15 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         task_comments = self.commentEdit.toPlainText().strip()
 
         if self.groupBoxWorkingFiles.isChecked():        
-            print("publish::check working files")
-
             #
             # working files
             #
             if len(self.working_files) > 0:
-                print("publish::working files found")
 
                 for source in self.working_files:
                     #source = self.workingFileEdit.text()
 
                     if os.path.exists(source):
-                        print("publish::adding working file {}".format(source))
-
                         file_base = os.path.basename(source)
                         file_name, file_ext = os.path.splitext(file_base)                
 
@@ -534,7 +496,6 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
             # working dir
             #
             elif len(self.workingDirEdit.text()) > 0:
-                print("publish::working directory found")
                 source = self.workingDirEdit.text()
 
                 if os.path.exists(source):
@@ -558,20 +519,15 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         ### Working files        
 
         if self.groupBoxOutputFiles.isChecked():
-            print("publish::check output files")
-
             #
             # output files
             #
 
             if len(self.output_files) > 0:
-                print("publish::output files found")
 
                 for source in self.output_files:
                     ##source = self.outputFileEdit.text()
                     if os.path.exists(source):
-                        print("publish::adding output file {}".format(source))
-
                         file_base = os.path.basename(source)
                         file_name, file_ext = os.path.splitext(file_base)
 
@@ -588,8 +544,6 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
                 
             # output dir
             elif len(self.outputDirEdit.text()) > 0:
-                print("publish::output directory found")
-
                 source = self.outputDirEdit.text()
                 if os.path.exists(source):
                     file_base = os.path.basename(source)
@@ -634,8 +588,6 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
                 self.queue.append(worker)                     
 
         if len(self.queue) > 0:
-            print("publish::processing queue of {}".format(len(self.queue)))
-
             self.monitor.set_queue(self.queue)
             self.monitor.set_task(self.task)
             self.monitor.show()
@@ -643,12 +595,10 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
 
             index = 0
             for item in self.queue:
-                print("publish::starting upload: {}".format(index))
                 self.threadpool.start(item)
                 index += 1
 
             # clear queue
-            print("publish::clearing upload queue")
             self.queue.clear()
                 #self.threadpool.waitForDone()
 
@@ -787,7 +737,6 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
             self.output_files = q[0]
             self.last_output_dir = q[0]
 
-            print("publish::loaded {} output files".format(len(self.output_files)))
             if len(self.output_files) == 1:
                 self.set_output_file(q[0][0])
             else:

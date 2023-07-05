@@ -410,7 +410,7 @@ def external_extract(program, archive, directory, extract_mode = "x", cpu_thread
         # extract all items in 64bit
     # open zip file in read binary
 
-def external_compress(program, archive, directory, compress_level = "-mx0" ):
+def external_compress(program, archive, directory, file_filter = "*.*", compress_level = "-mx0" ):
     try:
         ## 7za a -t7z files.7z *.txt
         #drive_name = directory[:1]
@@ -419,7 +419,7 @@ def external_compress(program, archive, directory, compress_level = "-mx0" ):
         try:
             os.chdir(directory)
             # proc = subprocess.Popen(cmd, shell = True, stderr=subprocess.PIPE)
-            proc = subprocess.Popen([program, "a", archive, "{}/*.exr".format(directory), compress_level], shell = True, stderr=subprocess.PIPE)
+            proc = subprocess.Popen([program, "a", archive, "{}/{}".format(directory, file_filter), compress_level], shell = True, stderr=subprocess.PIPE)
 
             while True:
                 output = proc.stderr.read(1)

@@ -58,20 +58,26 @@ class FileIncludeWalker(QtCore.QRunnable):
     def run(self):
         results = []
         for root, dirs, files in os.walk(self.root, topdown=False):
-            for name in files:
-                if any(name.endswith(ext) for ext in self.include):
-                    results.append({'path': os.path.normpath(os.path.join(root, name)), 'selected': QtCore.Qt.Checked, 'timestamp': os.path.getmtime(os.path.join(root, name))})
+            upload_dir = False            
 
-                elif any(name in item for item in self.include):
-                    results.append({'path': os.path.normpath(os.path.join(root, name)), 'selected': QtCore.Qt.Checked, 'timestamp': os.path.getmtime(os.path.join(root, name))})
-                else:
-                    results.append({'path': os.path.normpath(os.path.join(root, name)), 'selected': QtCore.Qt.Unchecked, 'timestamp': os.path.getmtime(os.path.join(root, name))})
-                    
             for name in dirs:
                 if any(name.endswith(ext) for ext in self.include):
                     results.append({'path': os.path.normpath(os.path.join(root, name)), 'selected': QtCore.Qt.Checked, 'timestamp': os.path.getmtime(os.path.join(root, name))})
+                    upload_dir = True
                 else:
                     results.append({'path': os.path.normpath(os.path.join(root, name)), 'selected': QtCore.Qt.Unchecked, 'timestamp': os.path.getmtime(os.path.join(root, name))})
+
+            if not upload_dir:
+                for name in files:
+                    if any(name.endswith(ext) for ext in self.include):
+                        results.append({'path': os.path.normpath(os.path.join(root, name)), 'selected': QtCore.Qt.Checked, 'timestamp': os.path.getmtime(os.path.join(root, name))})
+
+                    elif any(name in item for item in self.include):
+                        results.append({'path': os.path.normpath(os.path.join(root, name)), 'selected': QtCore.Qt.Checked, 'timestamp': os.path.getmtime(os.path.join(root, name))})
+                    else:
+                        results.append({'path': os.path.normpath(os.path.join(root, name)), 'selected': QtCore.Qt.Unchecked, 'timestamp': os.path.getmtime(os.path.join(root, name))})
+                    
+
 
         self.callback.walked.emit(results)                        
         return results             
@@ -171,7 +177,6 @@ class CheckableFileSystemModel(QtWidgets.QFileSystemModel):
             walker.callback.walked.connect(callback)
 
         self.threadpool.start(walker)
-        #self.threadpool.waitForDone()
         #walker.run()
 
 
@@ -183,8 +188,6 @@ class CheckableFileSystemModel(QtWidgets.QFileSystemModel):
             walker.callback.walked.connect(callback)
 
         self.threadpool.start(walker)        
-        #self.threadpool.waitForDone()
-
         #walker.run()
 
 
@@ -312,7 +315,6 @@ class FileSelectDialog(QtWidgets.QDialog, Ui_FileSelectWidget):
 
         model.setData(index, QtCore.Qt.Checked, QtCore.Qt.CheckStateRole, checkParent = True, emitStateChange = True)
         for item in data:
-            print("Working files: Scanning item: {}".format(item))
             if not item["selected"]:
                 # print("Unselecting {}".format(item["path"]))
                 if os.path.isdir(item["path"]):
@@ -361,7 +363,9 @@ class FileSelectDialog(QtWidgets.QDialog, Ui_FileSelectWidget):
                 model.setCheckState(model.index(selected[x]['path']), QtCore.Qt.Unchecked, False)
         else:
             # otherwise select everything from of_include
-            for x in range(0, self.include_count):
+            ## ToDo: check and confirm
+            #for x in range(0, self.include_count):
+            for x in range(0, len(selected)):
                 model.setCheckState(model.index(selected[x]['path']), QtCore.Qt.Checked, False)
 
         self.set_enabled(True)

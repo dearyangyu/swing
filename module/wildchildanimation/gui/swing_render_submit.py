@@ -15,7 +15,6 @@ from wildchildanimation.gui.swing_utils import friendly_string, external_compres
 try:
     from wildchildanimation.studio.openexr.swing_convert import SwingConvert
 except:
-    traceback.print_exc(file=sys.stdout)
     print("Error: OpenEXR not configured correctly, check env")
 
 # ==== auto Qt load ====
@@ -49,6 +48,9 @@ class SwingRenderSubmitDialog(QtWidgets.QDialog, Ui_RenderSubmitDialog):
         self.updateUI()
         self.clear_warnings()
 
+        if not self.radioButtonExr.isChecked() or self.radioButtonPng.isChecked():
+            self.radioButtonPng.setChecked(True)
+
     def clear_warnings(self):
         self.warningMessage = ""
         self.labelWarningMessage.setVisible(False)
@@ -63,39 +65,42 @@ class SwingRenderSubmitDialog(QtWidgets.QDialog, Ui_RenderSubmitDialog):
 
     # save main dialog state
     def write_settings(self):
-        self.settings = QtCore.QSettings()
-
+        self.settings = QtCore.QSettings("WCA", self.__class__.__name__)
         self.settings.beginGroup(self.__class__.__name__)
+
         self.settings.setValue("pos", self.pos())
         self.settings.setValue("working_dir", self.lineEditRenderPath.text())
 
         self.settings.setValue("handles_in", self.spinBoxHandlesIn.value())
         self.settings.setValue("handles_out", self.spinBoxHandlesOut.value())
 
-        if self.radioButtonHq.isChecked():
-            self.settings.setValue("render_quality", "HQ")
-        else:
-            self.settings.setValue("render_quality", "LQ")
+        if self.radioButtonExr.isChecked():
+            self.settings.setValue("image_type", "exr")
+        elif self.radioButtonPng.isChecked():
+            self.settings.setValue("image_type", "png")            
         
         self.settings.endGroup()
+        self.settings.sync()
 
     # load main dialog state
     def read_settings(self):
-        self.settings = QtCore.QSettings()
+        self.settings = QtCore.QSettings("WCA", self.__class__.__name__)
         self.settings.beginGroup(self.__class__.__name__)
-        
+
         self.resize(self.settings.value("size", QtCore.QSize(480, 520)))
         self.working_dir = self.settings.value("working_dir", "~")
 
         self.spinBoxHandlesIn.setValue(self.settings.value("handles_in", 0))
         self.spinBoxHandlesOut.setValue(self.settings.value("handles_out", 0))
         
-        if "HQ" == self.settings.value("render_quality", "HQ"):
-            self.radioButtonHq.setChecked(True)
-            self.radioButtonLq.setChecked(False)
-        else:
-            self.radioButtonHq.setChecked(False)
-            self.radioButtonLq.setChecked(True)
+        image_type = self.settings.value("image_type", "exr") 
+
+        if "exr" in image_type:
+            self.radioButtonExr.setChecked(True)
+            self.radioButtonPng.setChecked(False)
+        elif "png" in image_type:
+            self.radioButtonExr.setChecked(False)
+            self.radioButtonPng.setChecked(True)
 
 
     # The following three methods set up dragging and dropping for the app
@@ -144,8 +149,17 @@ class SwingRenderSubmitDialog(QtWidgets.QDialog, Ui_RenderSubmitDialog):
         self.working_dir = selected_dir
 
         self.lineEditRenderPath.setText(selected_dir)
-        self.lineEditArchiveName.setText("{}/{}.7z".format(selected_dir, self.prefix))        
 
+        version = 1
+        version_string = "{}".format(version).zfill(3)
+        arc_name = os.path.normpath("{}/../{}_v{}.7z".format(selected_dir, self.prefix, version_string))
+
+        while os.path.exists(arc_name):
+            version += 1
+            version_string = "{}".format(version).zfill(3)
+            arc_name = os.path.normpath("{}/../{}_v{}.7z".format(selected_dir, self.prefix, version_string))
+                                    
+        self.lineEditArchiveName.setText(arc_name)
         self.scan_working_dir()
 
     def updateUI(self):
@@ -164,12 +178,19 @@ class SwingRenderSubmitDialog(QtWidgets.QDialog, Ui_RenderSubmitDialog):
             if "frame_out" in self.task["entity"]["data"]:
                 self.lineEditFrameOut.setText(str(self.task["entity"]["data"]["frame_out"]))
 
-        self.prefix = friendly_string("{}_{}_{}_{}".format(
-            self.task["project"]["code"], 
-            self.task["episode"]["name"],
-            self.task["sequence"]["name"],
-            self.task["entity"]["name"]
-        ).lower())
+        if not self.task["project"]["code"] in self.task["episode"]["name"]:
+            self.prefix = friendly_string("{}_{}_{}_{}".format(
+                self.task["project"]["code"],
+                self.task["episode"]["name"],
+                self.task["sequence"]["name"],
+                self.task["entity"]["name"]
+            ).lower())
+        else:
+            self.prefix = friendly_string("{}_{}_{}".format(
+                self.task["episode"]["name"],
+                self.task["sequence"]["name"],
+                self.task["entity"]["name"]
+            ).lower())
 
         self.wfa = gazu.task.get_task_status_by_name("Waiting For Approval")
         self.render = gazu.task.get_task_status_by_name("Render")
@@ -179,25 +200,15 @@ class SwingRenderSubmitDialog(QtWidgets.QDialog, Ui_RenderSubmitDialog):
         self.hide()
 
     def select_render_directory(self):
-        q = QtWidgets.QFileDialog.getExistingDirectory(self, caption="Select Render Directory", directory=self.working_dir)
+        q = QtWidgets.QFileDialog.getExistingDirectory(self, caption="Select Render Directory", dir=self.lineEditRenderPath.text())
         if q:
             self.set_working_dir(q)        
 
     def is_done(self, status):
-        shot = gazu.shot.get_shot(self.task["entity"]["id"])        
-        data = shot["data"]
-
-        if not data:
-            data = {}
-
-        if self.radioButtonHq.isChecked():
-            data["Render_Status"] = "HQ"
-        else:
-            data["Render_Status"] = "LQ"
-
+        #shot = gazu.shot.get_shot(self.task["entity"]["id"])        
+        #data = shot["data"]
         # gazu.shot.update_shot_data(shot, data)
         # update shot render quality
-
         self.labelStatus.setText("Completed")
 
     def process(self):
@@ -223,7 +234,18 @@ class SwingRenderSubmitDialog(QtWidgets.QDialog, Ui_RenderSubmitDialog):
 
             self.labelStatus.setText("Creating archive")
 
-            if external_compress(prog, arc_name, render_dir):
+            file_filter = "*.*"
+            if self.radioButtonExr.isChecked():
+                file_filter = "*.exr"
+            elif self.radioButtonPng.isChecked():
+                file_filter = "*.png"
+
+            if "tg" == self.task["project"]["code"].lower():
+                task_status = self.wfa
+            else:
+                task_status = self.render
+
+            if external_compress(prog, arc_name, render_dir, file_filter=file_filter):
                 self.labelStatus.setText("Uploading archive")
 
                 print("Uploading archive: {}".format(self.lineEditArchiveName.text()))
@@ -231,7 +253,7 @@ class SwingRenderSubmitDialog(QtWidgets.QDialog, Ui_RenderSubmitDialog):
                 file_base = os.path.basename(arc_name)
                 file_name, file_ext = os.path.splitext(file_base)
 
-                worker = WorkingFileUploader(self, edit_api, self.task, arc_name, file_name, "Maya",  comment=task_comments, mode = self.output_mode, task_status = self.render["id"])
+                worker = WorkingFileUploader(self, edit_api, self.task, arc_name, file_name, "Maya",  comment=task_comments, mode = self.output_mode, task_status = task_status["id"])
 
                 worker.callback.progress.connect(self.monitor.file_loading)
                 worker.callback.done.connect(self.monitor.file_loaded)
@@ -263,11 +285,15 @@ class SwingRenderSubmitDialog(QtWidgets.QDialog, Ui_RenderSubmitDialog):
                         self.show_warning()
                         return False
 
-
                     if extension.lower() in [ ".exr", ".png", ".jpg" ]:
-                        validEp = shot_parts[0] in self.task["episode"]["name"]
-                        validSeq  = self.task["sequence"]["name"] in shot_parts[1]
-                        validShot = self.task["entity"]["name"] in shot_parts[2]
+                        if len(shot_parts) == 5:
+                            validEp = shot_parts[1] in self.task["episode"]["name"]
+                            validSeq  = shot_parts[2] in self.task["sequence"]["name"]
+                            validShot = shot_parts[3] in self.task["entity"]["name"]
+                        else:
+                            validEp = shot_parts[0] in self.task["episode"]["name"]
+                            validSeq  = self.task["sequence"]["name"] in shot_parts[1]
+                            validShot = self.task["entity"]["name"] in shot_parts[2]
 
                         if validEp and validSeq and validShot:
                             frame_count += 1

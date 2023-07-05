@@ -12,7 +12,6 @@ from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
-
 from wildchildanimation.gui.swing_utils import fakestr
 
 class Ui_RenderSubmitDialog(object):
@@ -21,7 +20,7 @@ class Ui_RenderSubmitDialog(object):
             RenderSubmitDialog.setObjectName(u"RenderSubmitDialog")
         RenderSubmitDialog.setWindowModality(Qt.ApplicationModal)
         RenderSubmitDialog.setEnabled(True)
-        RenderSubmitDialog.resize(505, 461)
+        RenderSubmitDialog.resize(711, 461)
         RenderSubmitDialog.setModal(True)
         self.verticalLayout = QVBoxLayout(RenderSubmitDialog)
         self.verticalLayout.setObjectName(u"verticalLayout")
@@ -191,22 +190,21 @@ class Ui_RenderSubmitDialog(object):
 
         self.horizontalLayout_10 = QHBoxLayout()
         self.horizontalLayout_10.setObjectName(u"horizontalLayout_10")
-        self.labelRenderQuality = QLabel(RenderSubmitDialog)
-        self.labelRenderQuality.setObjectName(u"labelRenderQuality")
-        self.labelRenderQuality.setMinimumSize(QSize(100, 0))
-        self.labelRenderQuality.setMaximumSize(QSize(100, 16777215))
+        self.label = QLabel(RenderSubmitDialog)
+        self.label.setObjectName(u"label")
+        self.label.setMinimumSize(QSize(100, 0))
 
-        self.horizontalLayout_10.addWidget(self.labelRenderQuality)
+        self.horizontalLayout_10.addWidget(self.label)
 
-        self.radioButtonHq = QRadioButton(RenderSubmitDialog)
-        self.radioButtonHq.setObjectName(u"radioButtonHq")
+        self.radioButtonExr = QRadioButton(RenderSubmitDialog)
+        self.radioButtonExr.setObjectName(u"radioButtonExr")
 
-        self.horizontalLayout_10.addWidget(self.radioButtonHq)
+        self.horizontalLayout_10.addWidget(self.radioButtonExr)
 
-        self.radioButtonLq = QRadioButton(RenderSubmitDialog)
-        self.radioButtonLq.setObjectName(u"radioButtonLq")
+        self.radioButtonPng = QRadioButton(RenderSubmitDialog)
+        self.radioButtonPng.setObjectName(u"radioButtonPng")
 
-        self.horizontalLayout_10.addWidget(self.radioButtonLq)
+        self.horizontalLayout_10.addWidget(self.radioButtonPng)
 
         self.horizontalSpacer_6 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
@@ -351,9 +349,9 @@ class Ui_RenderSubmitDialog(object):
         self.labelRenderPath.setText(fakestr(u"Render Path", None))
         self.toolButtonSelectPath.setText(fakestr(u"...", None))
         self.labelArchiveName.setText(fakestr(u"Archive Name", None))
-        self.labelRenderQuality.setText(fakestr(u"Render Quality", None))
-        self.radioButtonHq.setText(fakestr(u"HQ", None))
-        self.radioButtonLq.setText(fakestr(u"LQ", None))
+        self.label.setText(fakestr(u"Image Type:", None))
+        self.radioButtonExr.setText(fakestr(u"exr", None))
+        self.radioButtonPng.setText(fakestr(u"png", None))
         self.labelHandles.setText(fakestr(u"Handles", None))
         self.labelHandlesIn.setText(fakestr(u"In", None))
         self.labelHandlesOut.setText(fakestr(u"Out", None))

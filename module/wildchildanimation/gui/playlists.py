@@ -536,21 +536,22 @@ class PlaylistModel(QtCore.QAbstractTableModel):
         _task_types = {}
 
         for item in playlists:
+
+            ## ignore 'FOR MGFX' in file:
+            if "for mgfx" in item["output_file_name"].lower():
+                print("swing::playlists skipping {}".format(item["output_file_name"]))
+                continue                
+
             ## if viewing sequences
             if self.sequences:
                 # only show shot 00's
                 if not item["sh"].lower() == "sh000":
                     continue
 
-                ## only show zipped playblasts
-                if not "playblasts" in item["output_file_name"].lower():
-                    continue                
-
             else:
                 # otherwise always skip shot 00's
                 if item["sh"].lower() == "sh000":
                     continue
-
 
             shot_name = "{} {} {}".format(item["ep"], item["sq"], item["sh"]).lower()
 

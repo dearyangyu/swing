@@ -105,6 +105,12 @@ class SwingStudioHandler(StudioInterface):
         task = kwargs["task"] 
         project_dir = kwargs["project_dir"]
 
+        ## look for renders in toonboom anim-animation
+        if not os.path.exists(project_dir):
+            test_dir = project_dir.replace("renders", "anim_animation")
+            if os.path.exists(test_dir):
+                project_dir = test_dir
+
         self.renderPubDialog = SwingRenderSubmitDialog(parent = parent, task = task)
         self.renderPubDialog.set_working_dir(project_dir)
         self.renderPubDialog.show()
