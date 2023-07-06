@@ -821,8 +821,7 @@ class SwingMaya(QtCore.QObject):
         cmds.setKeyframe()
         self.log_output("Keyed start {} and end {}".format(start, end))
         
-        #shift Keys to frame 0
-
+        # shift Keys to frame 0
         keys = cmds.ls(sl = True)
         for key in keys:
             cmds.select(key, r = True)
@@ -834,21 +833,22 @@ class SwingMaya(QtCore.QObject):
             else:
                 try:
                     cmds.keyframe(edit=True, iub=False, an = 'objects', o = 'move', fc = 0, relative=True, timeChange=-(start),time=((-500),(5000000)))
+                    # self.log_output("Moved key {} {}".format(key, start))
                 except:
                     print('I didn not move :{}'.format(key))
 
         #cmds.keyframe(edit=True, iub=False, an = 'objects', o = 'move', fc = 0, relative=True, timeChange=-(start),time=((-500),(5000000)))
         cmds.playbackOptions(animationStartTime=0, minTime=0, animationEndTime=(end - start), maxTime=(end - start))
-        self.log_output("Shifted keys to origin")
-        
-        #delete keys outside shot range
+        self.log_output("Shifted keys to origin: animationStartTime={} minTime={} animationEndTime={} maxtime={}".format(0, 0, (end - start), (end - start)))
 
+        #delete keys outside shot range
         cmds.select(keys,r = True)
         
         frontcut_start = -5000
         frontcut_end = -2
         backcut_start = end - start + 2
         backcut_end = 10000000
+
         cmds.cutKey(time=(frontcut_start,frontcut_end), clear = True)
         cmds.cutKey(time=(backcut_start,backcut_end), clear = True)
         self.log_output("Removed keys out of bounds")

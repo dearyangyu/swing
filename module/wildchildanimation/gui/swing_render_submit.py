@@ -280,20 +280,20 @@ class SwingRenderSubmitDialog(QtWidgets.QDialog, Ui_RenderSubmitDialog):
                     shot_name, extension = os.path.splitext(filename.name)
                     shot_parts = shot_name.split("_")
 
-                    if len(shot_parts) < 3:
-                        self.warningMessage = "Error: Unexpected name format. Expecting epXXX_scXXX_shXXX.xxxx, found: {}".format(filename.name)
-                        self.show_warning()
-                        return False
 
                     if extension.lower() in [ ".exr", ".png", ".jpg" ]:
                         if len(shot_parts) == 5:
                             validEp = shot_parts[1] in self.task["episode"]["name"]
                             validSeq  = shot_parts[2] in self.task["sequence"]["name"]
                             validShot = shot_parts[3] in self.task["entity"]["name"]
-                        else:
+                        elif len(shot_parts) >= 3:
                             validEp = shot_parts[0] in self.task["episode"]["name"]
                             validSeq  = self.task["sequence"]["name"] in shot_parts[1]
                             validShot = self.task["entity"]["name"] in shot_parts[2]
+                        else:
+                            self.warningMessage = "Error: Unexpected name format. Expecting epXXX_scXXX_shXXX.xxxx, found: {}".format(filename.name)
+                            self.show_warning()
+                            return False                                                        
 
                         if validEp and validSeq and validShot:
                             frame_count += 1
