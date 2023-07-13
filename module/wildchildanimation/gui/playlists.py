@@ -629,9 +629,9 @@ class PlaylistModel(QtCore.QAbstractTableModel):
                 if item["sh"].lower() == "sh000":
                     continue
 
-            if self.ignore_zips:
-                if ".zip" in item["output_file_name"].lower() or ".7z" in item["output_file_name"].lower():
-                    continue
+            #if self.ignore_zips:
+            #    if ".zip" in item["output_file_name"].lower() or ".7z" in item["output_file_name"].lower():
+            #        continue
 
             shot_name = "{} {} {}".format(item["ep"], item["sq"], item["sh"]).lower()
 

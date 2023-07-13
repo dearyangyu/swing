@@ -81,7 +81,6 @@ class UploadMonitorDialog(QtWidgets.QDialog, Ui_UploadMonitorDialog):
             index += 1
 
         self.reset_progressbar()            
-        print("set_queue {}".format(len(self.queue)))
 
     def reset(self):
         self.queue = []
@@ -116,8 +115,6 @@ class UploadMonitorDialog(QtWidgets.QDialog, Ui_UploadMonitorDialog):
         self.model.set_item_text(source, message)        
 
         if "upload complete" in message:
-            print("file_loaded completed {0} files".format(upload_index))
-
             if upload_index == len(self.queue) - 1:
                 self.pushButtonCancel.setText("Close")
                 # QtWidgets.QMessageBox.question(self, 'Publishing complete', 'All files uploaded, thank you', QtWidgets.QMessageBox.Ok)
@@ -138,7 +135,6 @@ class UploadMonitorDialog(QtWidgets.QDialog, Ui_UploadMonitorDialog):
     def reset_progressbar(self):
         self.progressBar.setRange(0, len(self.queue))      
         self.progressBar.setValue(0)
-        print("Upload monitor created for {0} items".format(len(self.queue)))    
 
     def open_url(self, url):
         link = QtCore.QUrl(url)

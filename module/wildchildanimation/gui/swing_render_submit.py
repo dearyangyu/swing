@@ -13,11 +13,6 @@ from wildchildanimation.gui.settings import SwingSettings
 from wildchildanimation.gui.swing_render_submit_dialog import Ui_RenderSubmitDialog
 from wildchildanimation.gui.swing_utils import friendly_string, external_compress
 
-try:
-    from wildchildanimation.studio.openexr.swing_convert import SwingConvert
-except:
-    print("Error: OpenEXR not configured correctly, check env")
-
 # ==== auto Qt load ====
 try:
     from PySide2 import QtCore
@@ -256,34 +251,26 @@ class SwingRenderSubmitDialog(QtWidgets.QDialog, Ui_RenderSubmitDialog):
         else:
             task_status = self.render
 
+        self.labelStatus.setText(F"Compressing {render_dir}")            
         if not prog or prog == '':
             ## if we don't have 7zip available, try Python Zipfile
-            file_count = 0
-            with zipfile.ZipFile(arc_name, 'w', zipfile.ZIP_DEFLATED) as archive:  
-                for item in os.listdir(render_dir):
-                    item_path = os.path.join(render_dir, item)
-                    
-                    fn, ext = os.path.splitext(item)
-                    if ext.lower() in [ ".png", ".exr" ]:
-                        archive.write(item_path, item)                                  
-                        file_count += 1
+            file_count = self.compress_folder(arc_name, render_dir)
 
             if file_count == 0:
                 print(F"swing::render pub - no .png or .exr found in {render_dir}")
 
                 QtWidgets.QMessageBox.warning(self, 'Render Pub Error:', 'No images found, please check directory')
                 return False
-
-        else: external_compress(prog, arc_name, render_dir, file_filter=file_filter)
+        else: 
+            external_compress(prog, arc_name, render_dir, file_filter=file_filter)
 
         if not os.path.exists(arc_name):
             print(F"swing::render pub - error creating archive {arc_name}")
 
             QtWidgets.QMessageBox.warning(self, 'Render Pub Error:', 'Error creating archive, please check directory and settings')
             return False
-
     
-        self.labelStatus.setText("Uploading archive")
+        self.labelStatus.setText(F"Uploading {self.lineEditArchiveName.text()}")
         print("Uploading archive: {}".format(self.lineEditArchiveName.text()))
 
         file_base = os.path.basename(arc_name)
@@ -292,12 +279,34 @@ class SwingRenderSubmitDialog(QtWidgets.QDialog, Ui_RenderSubmitDialog):
         worker = WorkingFileUploader(self, edit_api, self.task, arc_name, file_name, "Maya",  comment=task_comments, mode = self.output_mode, task_status = task_status["id"])
 
         worker.callback.progress.connect(self.monitor.file_loading)
+        worker.callback.progress.connect(self.file_loading)
+        
         worker.callback.done.connect(self.monitor.file_loaded)
         worker.callback.done.connect(self.is_done)
         ## dialog.add_item(source, "Pending")    
 
         self.threadpool.start(worker)                   
         self.monitor.show()
+
+    def file_loading(self, results):
+        ## print("file loading: {}".format(results))
+
+        message = results["message"]
+        source = results["source"]     
+
+        self.labelStatus.setText(F"Uploading {message} {source}")            
+
+    def compress_folder(self, arc_name, render_dir):
+        file_count = 0
+        with zipfile.ZipFile(arc_name, 'w', zipfile.ZIP_DEFLATED) as archive:  
+            for item in os.listdir(render_dir):
+                item_path = os.path.join(render_dir, item)
+                    
+                fn, ext = os.path.splitext(item)
+                if ext.lower() in [ ".png", ".exr" ]:
+                    archive.write(item_path, item)                                  
+                    file_count += 1
+        return file_count
 
         #convert = SwingConvert("{}/encode".format(self.working_dir), self.working_dir, "{}/png".format(self.working_dir))
         #convert.convert(self.progressBar)
@@ -307,6 +316,14 @@ class SwingRenderSubmitDialog(QtWidgets.QDialog, Ui_RenderSubmitDialog):
         handles = (int)(self.spinBoxHandlesIn.value() + self.spinBoxHandlesOut.value())
         try:
             render_dir = self.lineEditRenderPath.text()    
+
+            if not os.path.exists(render_dir):
+                return False 
+            
+            nb_frames = 0
+            if self.task["entity"] and self.task["entity"]["nb_frames"]:
+                nb_frames = int(self.task["entity"]["nb_frames"])
+            
             frame_count = 0
 
             # 104_sc110_sh010.0073
@@ -330,18 +347,22 @@ class SwingRenderSubmitDialog(QtWidgets.QDialog, Ui_RenderSubmitDialog):
                             self.show_warning()
                             return False                                                        
 
-                        if validEp and validSeq and validShot:
-                            frame_count += 1
-                        else:
-                            self.warningMessage = "Error: Found invalid shots in directory"
-                            print("Naming error: {}".format(shot_name))
-                            self.show_warning()
-                            return False                            
+                        #if validEp and validSeq and validShot:
+                        #    frame_count += 1
+                        #else:
+                        #    self.warningMessage = "Error: Found invalid shots in directory"
+                        #    print("Naming error: {}".format(shot_name))
+                        #    self.show_warning()
+                        #    return False                            
+                        
+                        frame_count += 1
 
-            if not frame_count == int((self.task["entity"]["nb_frames"] + handles)):
-                self.warningMessage = "Error: Expected {} frames, found {}".format(int(self.task["entity"]["nb_frames"]), frame_count)
+            if nb_frames > 0 and not (frame_count == nb_frames + handles):
+                self.warningMessage = "Error: Expected {} frames, found {}".format(nb_frames, frame_count)
                 self.show_warning()
                 return False
+            else:
+                self.labelNamingConvention.setText(F"Found {frame_count} frames to upload")
 
             return True
 

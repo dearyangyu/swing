@@ -1019,6 +1019,12 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
         self.setupCamera(seqShots, shot_image_planes)
         self.setScene()
 
+    def sequencer_copy_shot(self, shot_name):
+        # Copy a Shot in Maya Sequencer
+        # Append the new shot at the end of the timeline
+        self.log_output(F"swing::studio handler: copy shot {shot_name}")
+
+        source = cmds.ls(type="shot", name=shot_name)
 
 '''
         # exports current selected
