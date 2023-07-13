@@ -1019,12 +1019,36 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
         self.setupCamera(seqShots, shot_image_planes)
         self.setScene()
 
-    def sequencer_copy_shot(self, shot_name):
+    def get_sequence_end_frame(self):
+        shots = cmds.listConnections("sequencer1", type="shot") 
+        end_frame = 0
+        for sh in shots:
+            shot_end_frame = cmds.getAttr("{}.endFrame".format(sh))
+            if shot_end_frame > end_frame:
+                end_frame = shot_end_frame
+        return end_frame        
+
+    def sequencer_copy_shot(self, shot_name, buffer = 100):
         # Copy a Shot in Maya Sequencer
         # Append the new shot at the end of the timeline
         self.log_output(F"swing::studio handler: copy shot {shot_name}")
+        
+        source = self.get_shot_from_sequencer(shot_name)
+        
+        start_frame = cmds.getAttr("{}.startFrame".format(source))  # Query shot's start frame.
+        end_frame = end_frame = cmds.getAttr("{}.endFrame".format(source))  # Query shot's end frame.
+        
+        last_frame_end = self.get_sequence_end_frame()
+        
+        shot_start = last_frame_end + buffer
+        shot_end = last_frame_end + buffer + (end_frame - start_frame)
+        
+        shot_copy = cmds.duplicate(source, name=shot_name + "_copy", rc=True, un=True)[0]
+        cmds.shot(shot_copy, e=True, trk=0, st=shot_start, et=shot_end, sst=shot_start, set=shot_end)
 
-        source = cmds.ls(type="shot", name=shot_name)
+        self.log_output(F"swing::studio handler: copied shot {shot_name} to {start_frame}:{end_frame}")            
+
+
 
 '''
         # exports current selected

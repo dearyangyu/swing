@@ -1163,7 +1163,7 @@ class SwingTimelineDialog(QtWidgets.QDialog, Ui_SwingTimelineDialog):
 
     def select_source(self):
         file_name = self.lineEditSource.text()
-        q = QtWidgets.QFileDialog.getOpenFileName(self, "Select Video File", file_name, "Video (*.mov);; (*.mp4);; All Files (*.*)")
+        q = QtWidgets.QFileDialog.getOpenFileName(self, "Select Video File", file_name, "Video (*.mp4 *.mov);; All Files (*.*)")
         if q:
             self.lineEditSource.setText(q[0])
 
