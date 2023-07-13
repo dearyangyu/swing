@@ -3,6 +3,7 @@ import os
 import sys
 import traceback
 import gazu
+import zipfile
 
 from wildchildanimation.gui.background_workers import WorkingFileUploader
 
@@ -150,14 +151,20 @@ class SwingRenderSubmitDialog(QtWidgets.QDialog, Ui_RenderSubmitDialog):
 
         self.lineEditRenderPath.setText(selected_dir)
 
+        prog = SwingSettings.get_instance().bin_7z()
+        if prog and len(prog) > 0:
+            extension = ".7z"
+        else:
+            extension = ".zip"
+
         version = 1
         version_string = "{}".format(version).zfill(3)
-        arc_name = os.path.normpath("{}/../{}_v{}.7z".format(selected_dir, self.prefix, version_string))
+        arc_name = os.path.normpath("{}/../{}_v{}{}".format(selected_dir, self.prefix, version_string, extension))
 
         while os.path.exists(arc_name):
             version += 1
             version_string = "{}".format(version).zfill(3)
-            arc_name = os.path.normpath("{}/../{}_v{}.7z".format(selected_dir, self.prefix, version_string))
+            arc_name = os.path.normpath("{}/../{}_v{}{}".format(selected_dir, self.prefix, version_string, extension))
                                     
         self.lineEditArchiveName.setText(arc_name)
         self.scan_working_dir()
@@ -211,6 +218,11 @@ class SwingRenderSubmitDialog(QtWidgets.QDialog, Ui_RenderSubmitDialog):
         # update shot render quality
         self.labelStatus.setText("Completed")
 
+    def zip_dir(self, path, zipfile):
+        for root, dirs, files in os.walk(path):
+            for file in files:
+                zipfile.write(os.path.join(root, file), os.path.relpath(os.path.join(root, file), os.path.join(path, '..')))               
+
     def process(self):
         if not self.scan_working_dir():
             if not self.checkBoxOverride.isChecked():
@@ -226,42 +238,66 @@ class SwingRenderSubmitDialog(QtWidgets.QDialog, Ui_RenderSubmitDialog):
         self.monitor.set_task(self.task)
         self.output_mode = "render"
 
-        if SwingSettings.get_instance().bin_7z():
-            prog = SwingSettings.get_instance().bin_7z()
-            arc_name = self.lineEditArchiveName.text()
-            render_dir = self.lineEditRenderPath.text()
-            task_comments = self.textEditNotes.toPlainText()
+        prog = SwingSettings.get_instance().bin_7z()
+        arc_name = self.lineEditArchiveName.text()
+        render_dir = self.lineEditRenderPath.text()
+        task_comments = self.textEditNotes.toPlainText()
 
-            self.labelStatus.setText("Creating archive")
+        self.labelStatus.setText("Creating archive")
 
-            file_filter = "*.*"
-            if self.radioButtonExr.isChecked():
-                file_filter = "*.exr"
-            elif self.radioButtonPng.isChecked():
-                file_filter = "*.png"
+        file_filter = "*.*"
+        if self.radioButtonExr.isChecked():
+            file_filter = "*.exr"
+        elif self.radioButtonPng.isChecked():
+            file_filter = "*.png"
 
-            if "tg" == self.task["project"]["code"].lower():
-                task_status = self.wfa
-            else:
-                task_status = self.render
+        if "tg" == self.task["project"]["code"].lower():
+            task_status = self.wfa
+        else:
+            task_status = self.render
 
-            if external_compress(prog, arc_name, render_dir, file_filter=file_filter):
-                self.labelStatus.setText("Uploading archive")
+        if not prog or prog == '':
+            ## if we don't have 7zip available, try Python Zipfile
+            file_count = 0
+            with zipfile.ZipFile(arc_name, 'w', zipfile.ZIP_DEFLATED) as archive:  
+                for item in os.listdir(render_dir):
+                    item_path = os.path.join(render_dir, item)
+                    
+                    fn, ext = os.path.splitext(item)
+                    if ext.lower() in [ ".png", ".exr" ]:
+                        archive.write(item_path, item)                                  
+                        file_count += 1
 
-                print("Uploading archive: {}".format(self.lineEditArchiveName.text()))
+            if file_count == 0:
+                print(F"swing::render pub - no .png or .exr found in {render_dir}")
 
-                file_base = os.path.basename(arc_name)
-                file_name, file_ext = os.path.splitext(file_base)
+                QtWidgets.QMessageBox.warning(self, 'Render Pub Error:', 'No images found, please check directory')
+                return False
 
-                worker = WorkingFileUploader(self, edit_api, self.task, arc_name, file_name, "Maya",  comment=task_comments, mode = self.output_mode, task_status = task_status["id"])
+        else: external_compress(prog, arc_name, render_dir, file_filter=file_filter)
 
-                worker.callback.progress.connect(self.monitor.file_loading)
-                worker.callback.done.connect(self.monitor.file_loaded)
-                worker.callback.done.connect(self.is_done)
-                ## dialog.add_item(source, "Pending")    
+        if not os.path.exists(arc_name):
+            print(F"swing::render pub - error creating archive {arc_name}")
 
-                self.threadpool.start(worker)                   
-                self.monitor.show()
+            QtWidgets.QMessageBox.warning(self, 'Render Pub Error:', 'Error creating archive, please check directory and settings')
+            return False
+
+    
+        self.labelStatus.setText("Uploading archive")
+        print("Uploading archive: {}".format(self.lineEditArchiveName.text()))
+
+        file_base = os.path.basename(arc_name)
+        file_name, file_ext = os.path.splitext(file_base)
+
+        worker = WorkingFileUploader(self, edit_api, self.task, arc_name, file_name, "Maya",  comment=task_comments, mode = self.output_mode, task_status = task_status["id"])
+
+        worker.callback.progress.connect(self.monitor.file_loading)
+        worker.callback.done.connect(self.monitor.file_loaded)
+        worker.callback.done.connect(self.is_done)
+        ## dialog.add_item(source, "Pending")    
+
+        self.threadpool.start(worker)                   
+        self.monitor.show()
 
         #convert = SwingConvert("{}/encode".format(self.working_dir), self.working_dir, "{}/png".format(self.working_dir))
         #convert.convert(self.progressBar)
@@ -279,7 +315,6 @@ class SwingRenderSubmitDialog(QtWidgets.QDialog, Ui_RenderSubmitDialog):
 
                     shot_name, extension = os.path.splitext(filename.name)
                     shot_parts = shot_name.split("_")
-
 
                     if extension.lower() in [ ".exr", ".png", ".jpg" ]:
                         if len(shot_parts) == 5:

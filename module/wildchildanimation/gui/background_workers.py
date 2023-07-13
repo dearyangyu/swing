@@ -380,7 +380,7 @@ class TaskLoaderThread(QtCore.QRunnable):
 
     ALL_TASKS = False
 
-    def __init__(self, parent, project_id, episode_id, parent_id, task_types = [], status_types = []):
+    def __init__(self, parent, project_id, episode_id, parent_id, task_types = [], status_types = [], is_done = False):
         super(TaskLoaderThread, self).__init__(self, parent)
         self.parent = parent
 
@@ -389,6 +389,7 @@ class TaskLoaderThread(QtCore.QRunnable):
         self.parent_id = parent_id
         self.task_types = task_types
         self.status_types = status_types
+        self.is_done = is_done
 
         self.settings = SwingSettings.get_instance()
         self.callback = LoadedSignal()        
@@ -408,7 +409,7 @@ class TaskLoaderThread(QtCore.QRunnable):
         results = {}
         tasks = []
 
-        task_list = ToDoLoader(self.project_id, self.episode_id).run()    
+        task_list = ToDoLoader(self.project_id, self.episode_id, self.is_done).run()    
         
         task_types = {}
         if self.task_types:
@@ -954,8 +955,8 @@ class ShotCreator(QtCore.QRunnable):
         ## task_type = gazu.task.get_task_type("821d35d1-819f-475c-90ee-47bce5839a28")
 
         # get layout task type
-        task_type = gazu.task.get_task_type("34401781-750a-4afb-a31f-8e11f263b066")
-        # task_type = gazu.task.get_task_type_by_name("Anim-Block")
+        ## task_type = gazu.task.get_task_type("34401781-750a-4afb-a31f-8e11f263b066")
+        task_type = gazu.task.get_task_type_by_name("La")
         if not task_type:
             results = {
                 "status": "Error",
@@ -1000,24 +1001,24 @@ class ShotCreator(QtCore.QRunnable):
                 "status": "OK", 
                 "message": "Checking shot {0}".format(shot_name),
             }        
-            self.callback.results.emit(results)                
+            self.callback.results.emit(results)    
+
+            if "nb_frames" in item and item["nb_frames"]:
+                nb_frames = int(item["nb_frames"])
+            else:
+                nb_frames = None
+
+            if "in" in item and item["in"]:
+                frame_in = int(item["in"])
+            else:
+                frame_in = None
+
+            if "out" in item and item["out"]:
+                frame_out = int(item["out"])
+            else:
+                frame_out = None                               
 
             if not shot:
-                if "nb_frames" in item and item["nb_frames"]:
-                    nb_frames = item["nb_frames"]
-                else:
-                    nb_frames = None
-
-                if "in" in item and item["in"]:
-                    frame_in = item["in"]
-                else:
-                    frame_in = None
-
-                if "out" in item and item["out"]:
-                    frame_out = item["out"] 
-                else:
-                    frame_out = None        
-
                 shot = gazu.shot.new_shot(project, sequence, shot_name, nb_frames=nb_frames, frame_in=frame_in, frame_out=frame_out)
 
                 results = {
@@ -1025,6 +1026,24 @@ class ShotCreator(QtCore.QRunnable):
                     "message": "Created new shot {0}".format(shot_name),
                 }        
                 self.callback.results.emit(results)     
+
+            if not shot["nb_frames"] or shot["nb_frames"] != nb_frames:
+                shot["nb_frames"] = nb_frames
+                shot = gazu.shot.update_shot(shot)
+
+            update_shot = False
+
+            shot_data = shot["data"]
+            if not "frame_in" in shot_data or not shot_data["frame_in"] == frame_in:
+                shot_data["frame_in"] = frame_in
+                update_shot = True                    
+
+            if not "frame_out" in shot_data or not shot_data["frame_out"] == frame_out:
+                shot_data["frame_out"] = frame_out
+                update_shot = True
+
+            if update_shot:                    
+                shot = gazu.shot.update_shot_data(shot, shot_data)                
 
             if "project_file_name" in item:
                 file_name = item["project_file_name"]

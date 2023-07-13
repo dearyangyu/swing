@@ -140,11 +140,11 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.toolButtonLayout.clicked.connect(self.breakout_dialog)
         self.toolButtonLayout.setEnabled(False)
 
-        self.toolButtonEpisodes.clicked.connect(self.on_playlist_episodes)
-        self.toolButtonEpisodes.setEnabled(False)
+        self.toolButtonEpisodePlaylist.clicked.connect(self.on_playlist_episodes)
+        self.toolButtonEpisodePlaylist.setEnabled(False)
 
-        self.toolButtonPlaylists.clicked.connect(self.on_playlists)
-        self.toolButtonPlaylists.setEnabled(False)
+        self.toolButtonShotPlaylist.clicked.connect(self.on_playlists)
+        self.toolButtonShotPlaylist.setEnabled(False)
 
         self.toolButtonSearchFiles.clicked.connect(self.on_search)
 
@@ -167,6 +167,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.checkBoxAllVersions.clicked.connect(self.reload_file_data)
         self.checkBoxOutputFiles.clicked.connect(self.reload_file_data)
         self.checkBoxProjectFiles.clicked.connect(self.reload_file_data)
+        self.checkBoxShowDoneTasks.clicked.connect(self.tasks_changed)
 
         self.toolButtonShotInfo.clicked.connect(self.load_shot_info)
         set_button_icon(self.toolButtonShotInfo, "../resources/fa-free/solid/video.svg")        
@@ -464,6 +465,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.settings.setValue("checkBoxAllVersions", self.checkBoxAllVersions.isChecked())
         self.settings.setValue("checkBoxProjectFiles", self.checkBoxProjectFiles.isChecked())
         self.settings.setValue("checkBoxOutputFiles", self.checkBoxOutputFiles.isChecked())     
+        self.settings.setValue("checkBoxShowDone", self.checkBoxShowDoneTasks.isChecked())     
 
         self.settings.endGroup()              
 
@@ -494,6 +496,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.checkBoxAllVersions.setChecked(self.is_setting_selected(self.settings, "checkBoxAllVersions"))
         self.checkBoxProjectFiles.setChecked(self.is_setting_selected(self.settings, "checkBoxProjectFiles"))
         self.checkBoxOutputFiles.setChecked(self.is_setting_selected(self.settings, "checkBoxOutputFiles"))
+        self.checkBoxShowDoneTasks.setChecked(self.is_setting_selected(self.settings, "checkBoxShowDone"))
         self.settings.endGroup()    
 
     def is_setting_selected(self, settings, value):
@@ -550,7 +553,10 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
         if reply == QtWidgets.QMessageBox.Yes:
             # save settings
+            self.nav.on_close(event)            
             self.write_settings()      
+            
+
             event.accept()
         else:
             event.ignore()        
@@ -649,7 +655,7 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
                     parent_id = parent["id"]            
             ##print("Parent {}".format(parent_id))
 
-            task_loader = TaskLoaderThread(self, project_id = self.currentProject["project_id"], episode_id = episode_id, parent_id = parent_id, task_types=task_types, status_types=status_types)
+            task_loader = TaskLoaderThread(self, project_id = self.currentProject["project_id"], episode_id = episode_id, parent_id = parent_id, task_types=task_types, status_types=status_types, is_done = self.checkBoxShowDoneTasks.isChecked())
             #print("Project {} Ep {} Parent {} TT {} ST {} ".format(self.currentProject["project_id"], episode_id, parent_id, task_types, status_types))
             task_loader.callback.loaded.connect(self.load_tasks)
 
@@ -689,8 +695,8 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             if self.currentEpisode:
                 is_main_pack = self.currentEpisode["episode"] == "all"
                 self.toolButtonLayout.setEnabled(not is_main_pack)
-                self.toolButtonPlaylists.setEnabled(not is_main_pack)
-                self.toolButtonEpisodes.setEnabled(not is_main_pack)
+                self.toolButtonShotPlaylist.setEnabled(not is_main_pack)
+                self.toolButtonEpisodePlaylist.setEnabled(not is_main_pack)
 
             self.tasks_changed()
         except:
@@ -961,13 +967,18 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
         self.progressBarTaskTable.setMaximum(1)
         if len(self.tasks) > 0:
-            self.labelTaskTableSelection.setText("Tasks: {} {}".format(self.currentProject["project"], data["episode"]["name"]))
+            self.labelTaskTableSelection.setText("Tasks: {} Episode: {}".format(self.currentProject["project"], data["episode"]["name"]))
+            
             self.tableViewTasks.setEnabled(True)
             self.toolButtonNew.setEnabled(True)
             self.toolButtonPublish.setEnabled(True)   
             self.toolButtonRenderPub.setEnabled(True)     
         else:
-            self.labelTaskTableSelection.setText("No tasks found for {} {}".format(self.currentProject["project"], data["episode"]["name"]))
+            if self.checkBoxShowDoneTasks.isChecked():
+                message = F"No completed tasks found for {self.currentProject['project']} Episode: {data['episode']['name']}"
+            else:
+                message = F"No pending tasks found for {self.currentProject['project']} Episode: {data['episode']['name']}"
+            self.labelTaskTableSelection.setText(message)
 
     def task_table_selection_changed(self):
         if not (self.tableViewTasks.selectedIndexes()):

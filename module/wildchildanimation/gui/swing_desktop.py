@@ -18,7 +18,7 @@ class Ui_SwingMain(object):
     def setupUi(self, SwingMain):
         if not SwingMain.objectName():
             SwingMain.setObjectName(u"SwingMain")
-        SwingMain.resize(700, 491)
+        SwingMain.resize(854, 491)
         SwingMain.setSizeGripEnabled(True)
         self.verticalLayout = QVBoxLayout(SwingMain)
         self.verticalLayout.setObjectName(u"verticalLayout")
@@ -48,15 +48,15 @@ class Ui_SwingMain(object):
 
         self.connectionLayout.addWidget(self.toolButtonPlayblast)
 
-        self.toolButtonEpisodes = QToolButton(SwingMain)
-        self.toolButtonEpisodes.setObjectName(u"toolButtonEpisodes")
+        self.toolButtonEpisodePlaylist = QToolButton(SwingMain)
+        self.toolButtonEpisodePlaylist.setObjectName(u"toolButtonEpisodePlaylist")
 
-        self.connectionLayout.addWidget(self.toolButtonEpisodes)          
+        self.connectionLayout.addWidget(self.toolButtonEpisodePlaylist)
 
-        self.toolButtonPlaylists = QToolButton(SwingMain)
-        self.toolButtonPlaylists.setObjectName(u"toolButtonPlaylists")
+        self.toolButtonShotPlaylist = QToolButton(SwingMain)
+        self.toolButtonShotPlaylist.setObjectName(u"toolButtonShotPlaylist")
 
-        self.connectionLayout.addWidget(self.toolButtonPlaylists)
+        self.connectionLayout.addWidget(self.toolButtonShotPlaylist)
 
         self.toolButtonExport = QToolButton(SwingMain)
         self.toolButtonExport.setObjectName(u"toolButtonExport")
@@ -257,6 +257,11 @@ class Ui_SwingMain(object):
 
         self.horizontalLayout_4.addItem(self.horizontalSpacer_2)
 
+        self.checkBoxShowDoneTasks = QCheckBox(self.tabTasks)
+        self.checkBoxShowDoneTasks.setObjectName(u"checkBoxShowDoneTasks")
+
+        self.horizontalLayout_4.addWidget(self.checkBoxShowDoneTasks)
+
 
         self.verticalLayout_3.addLayout(self.horizontalLayout_4)
 
@@ -433,9 +438,8 @@ class Ui_SwingMain(object):
         self.toolButtonPlayblast.setToolTip(fakestr(u"Open DCC Playblast", None))
 #endif // QT_CONFIG(tooltip)
         self.toolButtonPlayblast.setText(fakestr(u"Playblast", None))
-        self.toolButtonPlaylists.setText(fakestr(u"Shot-Playlists", None))
-        self.toolButtonEpisodes.setText(fakestr(u"Ep-Playlists", None))        
-        
+        self.toolButtonEpisodePlaylist.setText(fakestr(u"Ep-Playlists", None))
+        self.toolButtonShotPlaylist.setText(fakestr(u"Shot-Playlists", None))
 #if QT_CONFIG(tooltip)
         self.toolButtonExport.setToolTip(fakestr(u"Open DCC Export", None))
 #endif // QT_CONFIG(tooltip)
@@ -491,6 +495,7 @@ class Ui_SwingMain(object):
         self.toolButtonPublish.setShortcut(fakestr(u"Alt+P", None))
 #endif // QT_CONFIG(shortcut)
         self.toolButtonRenderPub.setText(fakestr(u"Render Pub", None))
+        self.checkBoxShowDoneTasks.setText(fakestr(u"Show Done Tasks", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabTasks), fakestr(u"Tasks", None))
         self.labelFileTableSelection.setText(fakestr(u"Files for selection", None))
 #if QT_CONFIG(tooltip)

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>700</width>
+    <width>854</width>
     <height>491</height>
    </rect>
   </property>
@@ -87,9 +87,16 @@
       </widget>
      </item>
      <item>
-      <widget class="QToolButton" name="toolButtonPlaylists">
+      <widget class="QToolButton" name="toolButtonEpisodePlaylist">
        <property name="text">
-        <string>Playlists</string>
+        <string>Ep-Playlists</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="toolButtonShotPlaylist">
+       <property name="text">
+        <string>Shot-Playlists</string>
        </property>
       </widget>
      </item>
@@ -510,6 +517,13 @@
                 </size>
                </property>
               </spacer>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="checkBoxShowDoneTasks">
+               <property name="text">
+                <string>Show Done Tasks</string>
+               </property>
+              </widget>
              </item>
             </layout>
            </item>

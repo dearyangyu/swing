@@ -39,6 +39,7 @@ import json
 class PlaylistDialog(QtWidgets.QDialog, Ui_PlaylistDialog):
 
     PLAYLIST_FILE = "swing-playlist.json"
+    INVALID_FILE_TYPES = [".elementTable", ".versionTable", ".aux", ".aux~", ".xstage", ".xstage~", ".ma", ".mb", ".zip", ".7z" ]
 
     working_dir = None
     
@@ -318,8 +319,7 @@ class PlaylistDialog(QtWidgets.QDialog, Ui_PlaylistDialog):
                     self.threadpool.waitForDone()
 
                     self.update()
-                    
-                    ###worker.run()
+                    ##worker.run()
 
                     playlist_item["version"] = item["version"]
                     playlist_item["updated_at"] = item["updated_at"]
@@ -332,6 +332,8 @@ class PlaylistDialog(QtWidgets.QDialog, Ui_PlaylistDialog):
             self.save_playlist_file(self.get_playlist_file_name())    
             if self.count > 0:        
                 self.progressBar.setMaximum(self.count)
+
+            self.validate_folder()
 
         finally:
             self.threadpool.setMaxThreadCount(old_max)
@@ -482,6 +484,7 @@ class PlaylistDialog(QtWidgets.QDialog, Ui_PlaylistDialog):
         self.tableView.setColumnWidth(PlaylistModel.COL_VERSION, 40)
         self.tableView.setColumnWidth(PlaylistModel.COL_UPDATED, 160)
         self.tableView.setColumnWidth(PlaylistModel.COL_STATUS, 120)
+        self.tableView.setColumnWidth(PlaylistModel.COL_VALIDATION, 200)
 
         checkboxDelegate = CheckBoxDelegate()
         self.tableView.setItemDelegateForColumn(0, checkboxDelegate)  
@@ -490,10 +493,78 @@ class PlaylistDialog(QtWidgets.QDialog, Ui_PlaylistDialog):
             self.tableView.resizeRowToContents(i)
 
         return True
+    
+    def validate_folder(self):
+        target_folder = self.lineEditFolder.text()
+        validation_messages = []
+        model = self.tableView.model()
+        
+        ## model = self.proxy
+        self.count = 0 
+        for x in range(model.rowCount()):
+            item = model.data(model.index(x, 0), QtCore.Qt.UserRole)
+            item_name = os.path.normcase("{}_{}_{}".format(item["ep"], item["sq"], item["sh"]))
+
+            message = {
+                "shot": item_name,
+                "exists": True,
+                "file_count": 0,
+                "dir_count": 0,
+                "message": None,
+                "invalid_files": 0
+            }            
+            try:
+                #fn, ext = os.path.splitext(item["output_file_name"])
+                #output_name = os.path.normcase("{}/{}{}".format(item_name, item_name, ext))  
+
+                shot_directory = os.path.join(target_folder, item_name)          
+                if not os.path.exists(shot_directory):
+                    message["exists"] = False
+                    continue
+
+                file_list = os.listdir(shot_directory)
+                if len(file_list) == 0:
+                    message["message"] = "No files found"
+                    continue
+                else:
+                    message["file_count"] = len(file_list)
+
+                dir_count = 0
+                invalid_files = 0
+                for file_name in file_list:
+                    test = os.path.join(shot_directory, file_name)
+
+                    if os.path.isdir(test):
+                        dir_count += 1
+
+                    fn, ext = os.path.splitext(test)    
+
+                    if any(ext in invalid for invalid in PlaylistDialog.INVALID_FILE_TYPES):  
+                        invalid_files += 1
+
+                message["dir_count"] = dir_count
+                message["invalid_files"] = invalid_files                
+                # check for 
+            finally:
+                validation_result = ""
+                if message["invalid_files"] > 0:
+                    validation_result += "Error: Invalid files found"
+
+                if message["dir_count"] > 0:
+                    if len(validation_result) > 0:
+                        validation_result += ", "
+                    validation_result += "Error: Sub directories found"
+
+                message["message"] = validation_result
+                validation_messages.append(message)     
+
+                if len(validation_result) > 0:
+                    item = model.setData(model.index(x, PlaylistModel.COL_VALIDATION), validation_result, QtCore.Qt.EditRole)                    
+
 
 class PlaylistModel(QtCore.QAbstractTableModel):
 
-    COLUMNS = ["", "Shot", "Task", "v", "Frames", "In", "Out", "File Name", "Updated", "Status" ]
+    COLUMNS = ["", "Shot", "Task", "v", "Frames", "In", "Out", "File Name", "Updated", "Status", "Messages" ]
     items = []
 
     COL_SELECT = 0
@@ -509,14 +580,19 @@ class PlaylistModel(QtCore.QAbstractTableModel):
     COL_UPDATED = 8
     COL_STATUS = 9
 
+    COL_VALIDATION = 10
+
     def __init__(self, data, task_types, parent = None, mode = "show_all", sequences = False):
         super(PlaylistModel, self).__init__(parent)
 
         self.task_type_dict = {}
         self.sequences = sequences
+        self.ignore_zips = True
 
         for item in task_types:
             self.task_type_dict[item["name"]] = item
+            if "render" in item["name"].lower():
+                self.ignore_zips = False
 
         self.loadModelData(data, mode)
 
@@ -551,6 +627,10 @@ class PlaylistModel(QtCore.QAbstractTableModel):
             else:
                 # otherwise always skip shot 00's
                 if item["sh"].lower() == "sh000":
+                    continue
+
+            if self.ignore_zips:
+                if ".zip" in item["output_file_name"].lower() or ".7z" in item["output_file_name"].lower():
                     continue
 
             shot_name = "{} {} {}".format(item["ep"], item["sq"], item["sh"]).lower()
@@ -616,6 +696,7 @@ class PlaylistModel(QtCore.QAbstractTableModel):
                         sh["shot_name"] = shot_name
                         sh["selected"] = True
                         sh["status"] = ""
+                        sh["message"] = None
                         sh["version"] = revision
                         revision -= 1                        
 
@@ -689,13 +770,19 @@ class PlaylistModel(QtCore.QAbstractTableModel):
                     return QtGui.QColor("#0000cd") # green
                 elif "skipped" in status:
                     return QtGui.QColor("#ffa500") # orange
+                
+            elif col_index == PlaylistModel.COL_VALIDATION:
+                if item["message"] and len(item["message"]) > 0:
+                    message = item["message"]
+                    if "error" in message.lower():
+                        return QtGui.QColor.red
                 #else:
                 #    return QtGui.QColor("#FF0000")
             return None
 
         elif role != QtCore.Qt.DisplayRole and role != QtCore.Qt.EditRole:
             return None
-
+        
         if PlaylistModel.COL_SELECT == col_index:
             return item["selected"] 
 
@@ -727,9 +814,12 @@ class PlaylistModel(QtCore.QAbstractTableModel):
 
         elif PlaylistModel.COL_STATUS == col_index:
             return item["status"]
+        
+        elif PlaylistModel.COL_VALIDATION == col_index:
+            return item["message"]
 
         return None
-
+    
     def flags(self, index):
         if not index.isValid():
             return 0
@@ -762,11 +852,11 @@ class PlaylistModel(QtCore.QAbstractTableModel):
             self.dataChanged.emit(index, index)
             return True
 
-        elif PlaylistModel.COL_STATUS == col_index:
-            item["status"] = str(value)
+        elif PlaylistModel.COL_VALIDATION == col_index:
+            item["message"] = str(value)
             self.dataChanged.emit(index, index)
             return True
-
+        
         return False
 
     def setHeaderData(self, section, orientation, value, role=QtCore.Qt.EditRole):
@@ -779,17 +869,20 @@ class PlaylistModel(QtCore.QAbstractTableModel):
 
         return result
 
-
 if __name__ == '__main__':
     import sys
     app = QtWidgets.QApplication(sys.argv)
-    test = PlaylistDialog(None)
-    #test = FileSelectDialog(None, "E:/productions/Tom_Gates_Sky_S02/tg_2d_main/tg_2d_build/tg_2d_ep206/shots/sc100/sh010/anim_block/sc100_sh010_anim_block/")
+    playlist_dialog = PlaylistDialog(None)
 
-    #test.pushButtonWorkingFiles.setVisible(True)
-    #test.pushButtonOutputFiles.setVisible(True)
-    #test.pushButtonZip.setVisible(True)
+    settings = SwingSettings.get_instance()
+    connect_to_server(settings.swing_user(), settings.swing_password())
 
+    project = gazu.project.get_project_by_name("Tom Gates S3")
+    episode = gazu.shot.get_episode_by_name(project, "tg_2d_ep301")
+    task_type = gazu.task.get_task_type_by_name('Anim-Final')
 
-    test.show()
+    playlist_dialog.set_project_episode(project["id"], episode["id"], [ task_type ])
+   
+    playlist_dialog.show()
+    playlist_dialog.validate_folder()    
     sys.exit(app.exec_())

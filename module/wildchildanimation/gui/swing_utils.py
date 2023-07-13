@@ -446,3 +446,4 @@ def external_compress(program, archive, directory, file_filter = "*.*", compress
         return False    
 
 ## zip_directory("C:/Work/testdir")
+

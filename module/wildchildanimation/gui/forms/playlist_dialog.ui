@@ -213,6 +213,13 @@
              </property>
             </widget>
            </item>
+           <item>
+            <widget class="QPushButton" name="pushButtonFilter">
+             <property name="text">
+              <string>Filter</string>
+             </property>
+            </widget>
+           </item>
           </layout>
          </item>
         </layout>
@@ -258,6 +265,13 @@
       <widget class="QPushButton" name="pushButtonProcess">
        <property name="text">
         <string>Sync</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButtonValidate">
+       <property name="text">
+        <string>Validate</string>
        </property>
       </widget>
      </item>

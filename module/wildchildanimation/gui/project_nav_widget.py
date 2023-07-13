@@ -13,6 +13,7 @@ from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
 from wildchildanimation.gui.swing_utils import fakestr
+
 class Ui_ProjectNavWidget(object):
     def setupUi(self, ProjectNavWidget):
         if not ProjectNavWidget.objectName():
@@ -143,10 +144,25 @@ class Ui_ProjectNavWidget(object):
     def retranslateUi(self, ProjectNavWidget):
         ProjectNavWidget.setWindowTitle(fakestr(u"Form", None))
         self.labelProject.setText(fakestr(u"Project", None))
+#if QT_CONFIG(tooltip)
+        self.toolButtonRefresh.setToolTip(fakestr(u"Refresh", None))
+#endif // QT_CONFIG(tooltip)
         self.toolButtonRefresh.setText(fakestr(u"...", None))
         self.labelShotEpisode.setText(fakestr(u"Episode", None))
         self.labelShotSequence.setText(fakestr(u"Sequence", None))
+#if QT_CONFIG(tooltip)
+        self.toolButtonTaskTypes.setToolTip(fakestr(u"Filter by Task Type", None))
+#endif // QT_CONFIG(tooltip)
+#if QT_CONFIG(statustip)
+        self.toolButtonTaskTypes.setStatusTip("")
+#endif // QT_CONFIG(statustip)
         self.toolButtonTaskTypes.setText("")
+#if QT_CONFIG(tooltip)
+        self.toolButtonStatusTypes.setToolTip(fakestr(u"Filter by Task Status", None))
+#endif // QT_CONFIG(tooltip)
+#if QT_CONFIG(statustip)
+        self.toolButtonStatusTypes.setStatusTip("")
+#endif // QT_CONFIG(statustip)
         self.toolButtonStatusTypes.setText("")
     # retranslateUi
 

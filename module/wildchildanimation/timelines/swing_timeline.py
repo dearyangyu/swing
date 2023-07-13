@@ -919,8 +919,8 @@ class SwingTimelineDialog(QtWidgets.QDialog, Ui_SwingTimelineDialog):
                     print("swing::timeline: archived shot in kitsu: {} {} {}".format(self.project["name"], self.episode["name"], item_name))
                     continue
 
-                if not shot["nb_frames"] or shot["nb_frames"] != item["nb_frames"]:
-                    shot["nb_frames"] = item["nb_frames"]
+                if not shot["nb_frames"] or shot["nb_frames"] != int(item["nb_frames"]):
+                    shot["nb_frames"] = int(item["nb_frames"])
                     shot = gazu.shot.update_shot(shot)
 
                 update_shot = False
@@ -930,8 +930,8 @@ class SwingTimelineDialog(QtWidgets.QDialog, Ui_SwingTimelineDialog):
                     shot_data["frame_in"] = 0
                     update_shot = True                    
 
-                if not "frame_out" in shot_data or not shot_data["frame_out"] == item["data"]["frame_out"]:
-                    shot_data["frame_out"] = item["data"]["frame_out"]
+                if not "frame_out" in shot_data or not shot_data["frame_out"] == int(item["data"]["frame_out"]):
+                    shot_data["frame_out"] = int(item["data"]["frame_out"])
                     update_shot = True
 
                 if update_shot:                    

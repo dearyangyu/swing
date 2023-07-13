@@ -89,7 +89,6 @@ class SwingMayaUI(DockableBase, QtWidgets.QDialog, Ui_SwingControlWidget):
 
     @classmethod
     def display(cls):
-        print("SwingMayaUI::display")
         try:
             if not cls.ui_instance:
                 cls.ui_instance = SwingMayaUI()
@@ -350,8 +349,6 @@ class SwingMayaUI(DockableBase, QtWidgets.QDialog, Ui_SwingControlWidget):
         self.comboBoxTask.blockSignals(True)
         self.comboBoxTask.setEnabled(False)
         self.comboBoxTask.clear()
-
-        self.log_output("refresh_tasks: project {} ep {} type {} is_done {}".format(project, episode_id, task_type, is_done))
         self.tasks = []
         
         items = self.handler.load_todo_tasks(project_id, episode_id, is_done)   

@@ -82,17 +82,25 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
     # load main dialog state
     def read_settings(self):
         self.settings = QtCore.QSettings()
-        self.settings.beginGroup(ProjectNavWidget.__class__.__name__)
-        
+        self.settings.beginGroup(self.__class__.__name__)
         self._user_task_types = self.settings.value("task_types", [])
         self._user_task_status = self.settings.value("status_codes", [])
+        self.last_project_id = self.settings.value("last_project", -1)
         self.settings.endGroup()            
 
-        #self.settings.beginGroup("Selection")
-        #self.last_project = self.settings.value("last_project")
-        #self.last_sequences = self.settings.value("last_project")
-        #self.last_shot = self.settings.value("last_project")
-        #self.settings.endGroup()   
+    # save main dialog state
+    def write_settings(self):
+        self.settings = QtCore.QSettings()
+        self.settings.beginGroup(self.__class__.__name__)
+
+        project = self.get_project()
+        if project:
+            self.settings.setValue("last_project", project["project_id"])
+        else:
+            self.settings.setValue("last_project", "")
+
+        self.settings.endGroup()  #  
+        self.settings.sync()
 
     def is_task_types_filtered(self):
         return len(self._user_task_types) > 0 and len(self._user_task_types) != len(self._task_types)
@@ -237,14 +245,24 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
             self.comboBoxProject.blockSignals(True)
             self.comboBoxProject.clear()
 
+            found = None
+            index = 0
             for item in self._projects:
                 self.comboBoxProject.addItem(item["project"], userData = item)
+                if item["project_id"] == self.last_project_id:
+                    found = index
+                index += 1
+
             self.comboBoxProject.blockSignals(False)
 
             self.comboBoxEpisode.clear()
             self.comboBoxSequence.clear()
 
-            self.project_changed(self.comboBoxProject.currentIndex())
+            if found:
+                self.set_project(found)
+            else:
+                self.set_project(self.comboBoxProject.currentIndex())
+            
         except:
             print("Error loading project properties: Please check connection settings")
             
@@ -341,6 +359,9 @@ class ProjectNavWidget(QWidget, Ui_ProjectNavWidget):
                 "sequence": sequence, 
                 "name": sequence["sequence"]
             })
+
+    def on_close(self, event):
+        self.write_settings()
 
 
 if __name__ == "__main__":
