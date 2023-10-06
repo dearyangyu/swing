@@ -40,27 +40,54 @@ class SwingUE:
         r"LogConfig: Setting CVar",
         r"LogD3D12RHI",
         r"LogTargetPlatformManager",
+        r"LogDisplayClusterMedia",
+        r"LogShaderCompilers",
+        r"LogCsvProfiler",
+        r"LogPluginManager",
+        r"LogPackageName: Display: FPackageName: Mount point added",
+        r"LogCoreRedirects",
+        r"LogDeviceProfileManager",
+        r"LogUsd: Updated LibraryPaths for USD plugInfo.json",
+        r"LogDisplayClusterProjection",
+        r"LogDisplayClusterRender",
+        r"LogRHI",
+        r"LogTextureFormatManager",
+        r"LogTextureFormatOodle",
+        r"LogTexture",
+        r"LogMaterial",
+        r"LogMeshReduction",
+        r"LogUdpMessaging",
+        r"LogHttpServerModule",
+        r"LogGeoCaStreamingCodecV1",
+        r"LogActorComponent: UnregisterComponent: (None.None) Not registered. Aborting",
+        r"SortedLinks"
+
+
+
     ]    
+
+    # Log everything by clearing SUPPRESS_LINES
+    ## SUPPRESS_LINES = []
 
     def __init__(self):
         self.log = []    
 
     def server_log(self, text):
-        log = "{} swing: ".format(datetime.now().strftime("%Y/%m/%d %H:%M:%S.%f"))
-        log += " {}".format(text)
+        ## log = "{} swing: ".format(datetime.now().strftime("%Y/%m/%d %H:%M:%S.%f"))
+        ## log += " {}".format(text)
 
-        self.log.append(log.strip())          
-        print(log)   
+        self.log.append(text.strip())          
+        print(text.strip())   
 
-    def swing_ue_import(self, ue_editor = UE_EDITOR, project_path = UE_LEVEL, python_script = BATCH_IMPORT_SCRIPT, episode = None, dir = None, log_dir = None):
+    def swing_ue_import(self, ue_editor = UE_EDITOR, project_path = UE_LEVEL, python_script = BATCH_IMPORT_SCRIPT, episode = None, frame_in = None, frame_out = None, dir = None, log_dir = None):
         self.log = []            
         time_start = datetime.now()
         suppress_count = 0        
 
-        # run shot cache on the project file                                          
+        # Calls UE and process batch import
         LOG_STDOUT = "-stdout"
         LOG_OUTPUT = "-FullStdOutLogOutput"
-        SCRIPT = '-ExecutePythonScript={} --episode={} --dir={}'.format(python_script, episode, dir)
+        SCRIPT = Fr'-ExecutePythonScript={python_script} --episode={episode} --dir={dir} --frame_in={frame_in} --frame_out={frame_out}'
 
         self.server_log("*** Popen({} {} {} {} {}".format(ue_editor, project_path, LOG_STDOUT, LOG_OUTPUT, SCRIPT))
 

@@ -362,8 +362,8 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
 
         self.settings.setValue("last_work_dir", self.last_work_dir)
         self.settings.setValue("last_output_dir", self.last_output_dir)
+        
         #self.settings.setValue("software", self.comboBoxSoftware.currentText())
-
         #self.settings.setValue("output_dir_path_le", self.output_dir_path_le.text())
         #self.settings.setValue("output_filename_le", self.output_filename_le.text())
         
@@ -701,7 +701,11 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         elif len(self.workingFileEdit.text()) > 0:
             directory = os.path.dirname(self.workingFileEdit.text())                                
         else:
-            directory = self.last_output_dir
+            if len(self.last_output_dir) > 1:
+                directory = self.last_output_dir[0]
+            else:
+                directory = self.last_output_dir
+
 
         return directory
 

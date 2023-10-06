@@ -100,6 +100,7 @@ def movie_queue_render(u_level_file, u_level_seq_file, u_preset_file):
         # continue
 
 if __name__ == "__main__":
+    print("Swing.MRQ.cli::main")
 
     parser = argparse.ArgumentParser(
         description="Swing UE Command Line Render"
@@ -109,8 +110,15 @@ if __name__ == "__main__":
     parser.add_argument("-s", "--sequence", help="Unreal Sequence", action="store")
     parser.add_argument("-p", "--preset", help="Render Preset", action="store")
     parser.add_argument("-o", "--output_dir", help="Output Directory", action="store")
+
     parser.add_argument("-x", "--resx", help="X Resolution", action="store", default=1920)
     parser.add_argument("-y", "--resy", help="Y Resolution", action="store", default=1080)
+
+    parser.add_argument("-e", "--episode", help="Episode", action="store", default=None)
+
+    parser.add_argument("--frame_in", help="Frame In", action="store", default=None)
+    parser.add_argument("--frame_out", help="Frame Out", action="store", default=None)
+
     parser.add_argument("-c", "--cmdline", help="Execute from Command Line", action="store_true")
 
     args = parser.parse_args()

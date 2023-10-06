@@ -56,6 +56,9 @@ class PlaylistDialog(QtWidgets.QDialog, Ui_PlaylistDialog):
         self.toolButtonSelectFolder.clicked.connect(self.select_output_dir)
         self.toolButtonRefresh.clicked.connect(self.refresh_playlists)
 
+        self.pushButtonValidate.clicked.connect(self.validate_folder)
+        self.pushButtonRenameShots.clicked.connect(self.rename_shots)
+
         self.model = None
         self.project = None
         self.episode = None
@@ -80,6 +83,15 @@ class PlaylistDialog(QtWidgets.QDialog, Ui_PlaylistDialog):
 
         self.lineEditSearch.textChanged.connect(self.search)
         self._createContextMenu()
+
+    def set_enabled(self, enabled):
+        self.pushButtonProcess.setEnabled(enabled)
+        self.pushButtonCancel.setEnabled(enabled)
+        self.toolButtonSelectFolder.setEnabled(enabled)
+        self.toolButtonRefresh.setEnabled(enabled)
+        self.pushButtonValidate.setEnabled(enabled)
+        self.pushButtonRenameShots.setEnabled(enabled)
+
 
     # save main dialog state
     def write_settings(self):
@@ -261,82 +273,82 @@ class PlaylistDialog(QtWidgets.QDialog, Ui_PlaylistDialog):
                 return None                                  
 
     def process(self):   
-        playlist_filename = self.get_playlist_file_name()
-
-        if os.path.exists(playlist_filename):
-            self.load_playlist_file(playlist_filename)
-        else:
-            self.playlist_file = json.loads("{}")
-
-        old_max = QtCore.QThread.idealThreadCount()
-        self.threadpool.setMaxThreadCount(3)
+        self.set_enabled(False)
         try:
-            model = self.tableView.model()
-            
-            ## model = self.proxy
-            self.count = 0 
-            for x in range(model.rowCount()):
-                item = model.data(model.index(x, 0), QtCore.Qt.UserRole)
-                item_date = datetime.strptime(item["updated_at"], '%Y-%m-%dT%H:%M:%S.%f') #'2022-04-07T11:31:11.419272'
-                item["model_index"] = x
+            playlist_filename = self.get_playlist_file_name()
 
-                if not item["selected"]:
-                    continue
+            if os.path.exists(playlist_filename):
+                self.load_playlist_file(playlist_filename)
+            else:
+                self.playlist_file = json.loads("{}")
 
-                shot_name = item["shot_name"]
+            old_max = QtCore.QThread.idealThreadCount()
+            self.threadpool.setMaxThreadCount(3)
+            try:
+                model = self.tableView.model()
+                
+                ## model = self.proxy
+                self.count = 0 
+                for x in range(model.rowCount()):
+                    item = model.data(model.index(x, 0), QtCore.Qt.UserRole)
+                    item_date = datetime.strptime(item["updated_at"], '%Y-%m-%dT%H:%M:%S.%f') #'2022-04-07T11:31:11.419272'
+                    item["model_index"] = x
 
-                if not shot_name in self.playlist_file:
-                    self.playlist_file[shot_name] = { "version": 1, "updated_at": None }
+                    if not item["selected"]:
+                        continue
 
-                playlist_item = self.playlist_file[shot_name]
+                    shot_name = item["shot_name"]
 
-                should_process = False
-                if item["version"] > playlist_item["version"]:
-                    should_process = True
+                    if not shot_name in self.playlist_file:
+                        self.playlist_file[shot_name] = { "version": 1, "updated_at": None }
 
-                if not playlist_item["updated_at"]:
-                    should_process = True
-                else:
-                    # updated_at = datetime.strptime(updated_at, '%Y-%m-%dT%H:%M:%S.%f')
+                    playlist_item = self.playlist_file[shot_name]
 
-                    export_date = datetime.strptime(playlist_item["updated_at"], '%Y-%m-%dT%H:%M:%S.%f')
-
-                    if export_date < item_date:
+                    should_process = False
+                    if item["version"] > playlist_item["version"]:
                         should_process = True
 
-                    #item_date = time.str
-                    # or playlist_item["updated_at"] < 
+                    if not playlist_item["updated_at"]:
+                        should_process = True
+                    else:
+                        # updated_at = datetime.strptime(updated_at, '%Y-%m-%dT%H:%M:%S.%f')
+                        export_date = datetime.strptime(playlist_item["updated_at"], '%Y-%m-%dT%H:%M:%S.%f')
 
-                if should_process:
-                    print("swing::playlist: processing: {}:{} --> {}".format(item["output_file_name"], item_date, item["shot_name"]))
+                        if export_date < item_date:
+                            should_process = True
 
-                    worker = PlaylistWorker(self, item, target = self.lineEditFolder.text(), extract_zips = self.checkBoxExtractZip.isChecked())
-                    worker.callback.progress.connect(self.update_progress)
-                    worker.callback.done.connect(self.update_done)
-                    
-                    self.count += 1
-                    self.threadpool.start(worker)
-                    self.threadpool.waitForDone()
+                    if should_process:
+                        print("swing::playlist: processing: {}:{} --> {}".format(item["output_file_name"], item_date, item["shot_name"]))
 
-                    self.update()
-                    ##worker.run()
+                        worker = PlaylistWorker(self, item, target = self.lineEditFolder.text(), extract_zips = self.checkBoxExtractZip.isChecked())
+                        worker.callback.progress.connect(self.update_progress)
+                        worker.callback.done.connect(self.update_done)
+                        
+                        self.count += 1
+                        self.threadpool.start(worker)
+                        self.threadpool.waitForDone()
 
-                    playlist_item["version"] = item["version"]
-                    playlist_item["updated_at"] = item["updated_at"]
+                        self.update()
+                        ##worker.run()
 
-                    self.playlist_file[shot_name] = playlist_item                
-                else:
-                    model.setData(model.index(x, PlaylistModel.COL_STATUS), "Skipped", QtCore.Qt.EditRole)
-                    #worker.run()
+                        playlist_item["version"] = item["version"]
+                        playlist_item["updated_at"] = item["updated_at"]
 
-            self.save_playlist_file(self.get_playlist_file_name())    
-            if self.count > 0:        
-                self.progressBar.setMaximum(self.count)
+                        self.playlist_file[shot_name] = playlist_item                
+                    else:
+                        model.setData(model.index(x, PlaylistModel.COL_STATUS), "Skipped", QtCore.Qt.EditRole)
+                        #worker.run()
 
-            self.validate_folder()
+                self.save_playlist_file(self.get_playlist_file_name())    
+                if self.count > 0:        
+                    self.progressBar.setMaximum(self.count)
 
+                self.validate_folder()
+
+            finally:
+                self.threadpool.setMaxThreadCount(old_max)
         finally:
-            self.threadpool.setMaxThreadCount(old_max)
+            self.set_enabled(True)
 
     def update_progress(self, status):
         for row in range(self.tableView.model().rowCount()):
@@ -495,25 +507,100 @@ class PlaylistDialog(QtWidgets.QDialog, Ui_PlaylistDialog):
         return True
     
     def validate_folder(self):
-        target_folder = self.lineEditFolder.text()
-        validation_messages = []
-        model = self.tableView.model()
-        
-        ## model = self.proxy
-        self.count = 0 
-        for x in range(model.rowCount()):
-            item = model.data(model.index(x, 0), QtCore.Qt.UserRole)
-            item_name = os.path.normcase("{}_{}_{}".format(item["ep"], item["sq"], item["sh"]))
+        self.set_enabled(False)
+        try:
+            target_folder = self.lineEditFolder.text()
+            validation_messages = []
+            model = self.tableView.model()
+            
+            ## model = self.proxy
+            self.count = 0 
+            for x in range(model.rowCount()):
+                item = model.data(model.index(x, 0), QtCore.Qt.UserRole)
+                item_name = os.path.normcase("{}_{}_{}".format(item["ep"], item["sq"], item["sh"]))
 
-            message = {
-                "shot": item_name,
-                "exists": True,
-                "file_count": 0,
-                "dir_count": 0,
-                "message": None,
-                "invalid_files": 0
-            }            
-            try:
+                message = {
+                    "shot": item_name,
+                    "exists": True,
+                    "file_count": 0,
+                    "dir_count": 0,
+                    "message": None,
+                    "invalid_files": 0
+                }            
+                try:
+                    #fn, ext = os.path.splitext(item["output_file_name"])
+                    #output_name = os.path.normcase("{}/{}{}".format(item_name, item_name, ext))  
+
+                    shot_directory = os.path.join(target_folder, item_name)          
+                    if not os.path.exists(shot_directory):
+                        message["exists"] = False
+                        continue
+
+                    file_list = os.listdir(shot_directory)
+                    if len(file_list) == 0:
+                        message["message"] = "No files found"
+                        continue
+                    else:
+                        message["file_count"] = len(file_list)
+
+                    dir_count = 0
+                    invalid_files = 0
+                    for file_name in file_list:
+                        test = os.path.join(shot_directory, file_name)
+
+                        if os.path.isdir(test):
+                            dir_count += 1
+
+                        fn, ext = os.path.splitext(test)    
+
+                        if any(ext in invalid for invalid in PlaylistDialog.INVALID_FILE_TYPES):  
+                            invalid_files += 1
+
+                    message["dir_count"] = dir_count
+                    message["invalid_files"] = invalid_files                
+                    # check for 
+                finally:
+                    validation_result = ""
+                    if message["invalid_files"] > 0:
+                        validation_result += "Error: Invalid files found"
+
+                    if message["dir_count"] > 0:
+                        if len(validation_result) > 0:
+                            validation_result += ", "
+                        validation_result += "Error: Sub directories found"
+
+                    message["message"] = validation_result
+                    validation_messages.append(message)     
+
+                    if len(validation_result) > 0:
+                        item = model.setData(model.index(x, PlaylistModel.COL_VALIDATION), validation_result, QtCore.Qt.EditRole) 
+        finally:
+            self.set_enabled(True)
+
+    def rename_shots(self):
+        self.set_enabled(False)
+        try:
+            target_folder = self.lineEditFolder.text()
+            model = self.tableView.model()
+            
+            ## model = self.proxy
+            self.count = 0 
+            for x in range(model.rowCount()):
+                item = model.data(model.index(x, 0), QtCore.Qt.UserRole)
+
+                if not item["selected"]:
+                    continue
+
+                item_name = os.path.normcase("{}_{}_{}".format(item["ep"], item["sq"], item["sh"]))
+
+                message = {
+                    "shot": item_name,
+                    "exists": True,
+                    "file_count": 0,
+                    "dir_count": 0,
+                    "message": None,
+                    "invalid_files": 0
+                }            
                 #fn, ext = os.path.splitext(item["output_file_name"])
                 #output_name = os.path.normcase("{}/{}{}".format(item_name, item_name, ext))  
 
@@ -529,37 +616,41 @@ class PlaylistDialog(QtWidgets.QDialog, Ui_PlaylistDialog):
                 else:
                     message["file_count"] = len(file_list)
 
-                dir_count = 0
-                invalid_files = 0
+                rename_count = 0
+                conform_name = os.path.normcase("{}_{}_{}_".format(item["ep"], item["sq"], item["sh"]))
+
                 for file_name in file_list:
-                    test = os.path.join(shot_directory, file_name)
+                    source = os.path.join(shot_directory, file_name)
+                    fn, ext = os.path.splitext(file_name)    
 
-                    if os.path.isdir(test):
-                        dir_count += 1
+                    if not ext in [ ".png", ".exr", ".jpg"]:
+                        continue
 
-                    fn, ext = os.path.splitext(test)    
+                    # print(F"Checking file {fn}")
+                    file_paths = fn.split("_")
 
-                    if any(ext in invalid for invalid in PlaylistDialog.INVALID_FILE_TYPES):  
-                        invalid_files += 1
+                    image_number = file_paths[-1]
 
-                message["dir_count"] = dir_count
-                message["invalid_files"] = invalid_files                
+                    if "mgfx" in image_number.lower():
+                        image_number = image_number.replace("mgfx", "")
+                        
+                    if not image_number.isdigit():
+                        model.setData(model.index(x, PlaylistModel.COL_STATUS), "Error in image sequence", QtCore.Qt.EditRole)                                                                  
+                        break
+
+                    shot_conform_name = "{}{}".format(conform_name, image_number.zfill(4))
+
+                    if not fn == shot_conform_name:
+                        print(F"Renaming {source} to {shot_conform_name}{ext}")
+                        os.rename(source, os.path.join(shot_directory, "{}{}".format(shot_conform_name, ext)))
+                        rename_count += 1
+
+                if rename_count > 0:
+                    model.setData(model.index(x, PlaylistModel.COL_STATUS), F"Renamed {rename_count} shots", QtCore.Qt.EditRole)                                                                  
+
                 # check for 
-            finally:
-                validation_result = ""
-                if message["invalid_files"] > 0:
-                    validation_result += "Error: Invalid files found"
-
-                if message["dir_count"] > 0:
-                    if len(validation_result) > 0:
-                        validation_result += ", "
-                    validation_result += "Error: Sub directories found"
-
-                message["message"] = validation_result
-                validation_messages.append(message)     
-
-                if len(validation_result) > 0:
-                    item = model.setData(model.index(x, PlaylistModel.COL_VALIDATION), validation_result, QtCore.Qt.EditRole)                    
+        finally:
+            self.set_enabled(True)
 
 
 class PlaylistModel(QtCore.QAbstractTableModel):
@@ -851,6 +942,11 @@ class PlaylistModel(QtCore.QAbstractTableModel):
             item["selected"] = bool(value)
             self.dataChanged.emit(index, index)
             return True
+        
+        if PlaylistModel.COL_STATUS == col_index:
+            item["status"] = str(value)
+            self.dataChanged.emit(index, index)
+            return True        
 
         elif PlaylistModel.COL_VALIDATION == col_index:
             item["message"] = str(value)
@@ -879,7 +975,7 @@ if __name__ == '__main__':
 
     project = gazu.project.get_project_by_name("Tom Gates S3")
     episode = gazu.shot.get_episode_by_name(project, "tg_2d_ep301")
-    task_type = gazu.task.get_task_type_by_name('Anim-Final')
+    task_type = gazu.task.get_task_type_by_name('Renders')
 
     playlist_dialog.set_project_episode(project["id"], episode["id"], [ task_type ])
    

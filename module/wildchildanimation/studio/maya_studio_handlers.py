@@ -1019,6 +1019,12 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
         self.setupCamera(seqShots, shot_image_planes)
         self.setScene()
 
+    def get_shot_from_sequencer(self, shot_name):
+        shots = cmds.listConnections("sequencer1", type="shot") 
+        for sh in shots:
+            if sh == shot_name:
+                return sh        
+
     def get_sequence_end_frame(self):
         shots = cmds.listConnections("sequencer1", type="shot") 
         end_frame = 0
@@ -1044,9 +1050,9 @@ class MayaStudioHandler(SwingMaya, StudioInterface):
         shot_end = last_frame_end + buffer + (end_frame - start_frame)
         
         shot_copy = cmds.duplicate(source, name=shot_name + "_copy", rc=True, un=True)[0]
-        cmds.shot(shot_copy, e=True, trk=0, st=shot_start, et=shot_end, sst=shot_start, set=shot_end)
+        # cmds.shot(shot_copy, e=True, trk=0, st=shot_start, et=shot_end, sst=shot_start, set=shot_end)
 
-        self.log_output(F"swing::studio handler: copied shot {shot_name} to {start_frame}:{end_frame}")            
+        self.log_output(F"swing::studio handler: copied shot {shot_name} to {shot_copy} {start_frame}:{end_frame}")            
 
 
 

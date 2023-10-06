@@ -89,6 +89,72 @@ def executor_failed_callback(executor, pipeline, is_fatal, error):
 
     unreal.SystemLibrary.quit_editor()
 
+def search_assets(class_names = ["World"], package_paths=["/Game/"], recursive_paths=True):
+    asset_registry = unreal.AssetRegistryHelpers.get_asset_registry()
+
+    filter = unreal.ARFilter(
+        class_names=class_names,
+        package_paths=package_paths,
+        recursive_paths=recursive_paths)
+    
+    return asset_registry.get_assets(filter)    
+
+
+def get_asset_data(asset_path, asset_class):
+    """
+    Get the asset data for the asset name or path based on its class.
+    :param name_or_path: asset name or package name
+    :param asset_class: Asset class filter to use when looking for assets in registry
+    :raises RuntimeError
+    :return: Asset package if it exists
+    """
+    # Get all the specified asset class assets in the project. This is the only mechanism
+    # we can think of at the moment to allow shorter path names in the
+    # commandline interface. This will allow users to only provide the
+    # asset name or the package path in the commandline interface
+    assets = search_assets(class_names = [asset_class], package_paths=[asset_path], recursive_paths=False)
+    
+    if len(assets) == 0:
+        raise RuntimeError(F"Error: class: {asset_class} path: {asset_path} could not be found!")    
+    
+    return assets[0]
+    #asset_registry = unreal.AssetRegistryHelpers.get_asset_registry()
+    #assets = asset_registry.get_assets_by_class(asset_class, True)
+
+    # This lookup could potentially be very slow
+    #for asset in assets:
+    #    # If a package name is provided lookup the package path
+    #    if name_or_path.startswith("/Game"):
+    #        if asset.package_name == name_or_path:
+    #            return asset
+    #    else:
+    #        if asset.asset_name == name_or_path:
+    #            return asset
+    #else:
+    #    raise RuntimeError(f"`{name_or_path}` could not be found!")    
+
+
+def process_render2(args):
+    unreal.log("MRQ::process_render")
+
+    render_map = args.map    
+    render_seq = args.sequence
+    render_preset = args.preset
+    render_target = args.output_dir
+    render_x = args.resx
+    render_y = args.resy
+    render_cmdline = args.cmdline
+
+    unreal.log_warning(f"MRQ::process_render: render_map = {render_map}")
+    unreal.log_warning(f"MRQ::process_render: render_seq = {render_seq}")
+    unreal.log_warning(f"MRQ::process_render: render_preset = {render_preset}")
+    unreal.log_warning(f"MRQ::process_render: render_target = {render_target}")
+    unreal.log_warning(f"MRQ::process_render: render_x = {render_x}")
+    unreal.log_warning(f"MRQ::process_render: render_y = {render_y}")
+    unreal.log_warning(f"MRQ::process_render: render_cmdline = {render_cmdline}")
+
+    process_render(render_map, render_seq, render_preset)
+
 def process_render(args):
     unreal.log("MRQ::process_render")
 
@@ -136,21 +202,7 @@ def process_render(args):
     # Set the author on the job
     render_job.author = getuser()
 
-    # get level sequence
-    sequence_asset = unreal.load_asset(render_seq)
-    sequence_data_asset = unreal.AssetRegistryHelpers.create_asset_data(sequence_asset)
-
-    # get map
-    map_asset = unreal.load_asset(render_map)
-    map_data_asset = unreal.AssetRegistryHelpers.create_asset_data(map_asset)
-
-    # get render settings
-    mrq_preset_asset = unreal.load_asset(render_preset)
-    mrq_preset_data_asset = unreal.AssetRegistryHelpers.create_asset_data(mrq_preset_asset)
-
-    # Create a job in the queue
-    unreal.log(f"Setting the job map to `{map_data_asset.asset_name}`")
-    render_job.map = map_data_asset.to_soft_object_path()
+    sequence_data_asset = get_asset_data(args.sequence, "LevelSequence")
 
     # Create a job in the queue
     unreal.log(f"Creating render job for `{sequence_data_asset.asset_name}`")
@@ -159,16 +211,18 @@ def process_render(args):
     unreal.log(f"Setting the job sequence to `{sequence_data_asset.asset_name}`")
     render_job.sequence = sequence_data_asset.to_soft_object_path()
 
+    map_data_asset = get_asset_data(args.map, "World")
     unreal.log(f"Setting the job map to `{map_data_asset.asset_name}`")
     render_job.map = map_data_asset.to_soft_object_path()
 
+    mrq_preset_data_asset = get_asset_data(args.mrq_preset, "MoviePipelineMasterConfig")
     unreal.log(f"Setting the movie pipeline preset to `{mrq_preset_data_asset.asset_name}`")
     render_job.set_configuration(mrq_preset_data_asset.get_asset())
 
     # output settings
     outputSetting = render_job.get_configuration().find_or_add_setting_by_class(unreal.MoviePipelineOutputSetting)
-    outputSetting.output_directory.set_editor_property("path", F"{render_target}/")
-    unreal.Paths.combine([outputSetting.output_directory.path, render_target, outputSetting.file_name_format])
+    outputSetting.output_directory.set_editor_property("path", "W:/Renders/SDMP/"+ "{}".format(args.render_out_dir))
+    unreal.Paths.combine([outputSetting.output_directory.path, args.render_out_dir, outputSetting.file_name_format])
 
     unreal.log_warning("These are the project settings {}".format(outputSetting.output_directory.path))
 
@@ -183,7 +237,7 @@ def process_render(args):
 
     try:
         # Execute the render. This will execute the render based on whether its remote or local
-        execute_render(is_cmdline=args.cmdline)
+        execute_render( is_cmdline=args.cmdline)
 
     except Exception as err:
         unreal.log_error(f"An error occurred executing the render.\n\tError: {err}")

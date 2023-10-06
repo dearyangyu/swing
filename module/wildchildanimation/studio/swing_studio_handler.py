@@ -11,7 +11,6 @@ from wildchildanimation.gui.breakout import BreakoutUploadDialog
 from wildchildanimation.gui.downloads import DownloadDialogGUI
 from wildchildanimation.gui.loader import LoaderDialogGUI
 from wildchildanimation.gui.publish import PublishDialogGUI
-from wildchildanimation.gui.settings import SwingSettings
 
 from wildchildanimation.gui.swing_create import SwingCreateDialog
 from wildchildanimation.studio.studio_interface import StudioInterface
@@ -34,7 +33,7 @@ except ImportError:
 class SwingStudioHandler(StudioInterface):
 
     NAME = "SwingStudioHandler"
-    VERSION = "0.0.8"      
+    VERSION = "0.0.9"      
 
     def __init__(self):
         super(SwingStudioHandler, self).__init__()

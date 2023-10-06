@@ -203,6 +203,8 @@ class FileSelectDialog(QtWidgets.QDialog, Ui_FileSelectWidget):
     def __init__(self, parent = None, root_path = ""):
         super(FileSelectDialog, self).__init__(parent) # Call the inherited classes __init__ method
         self.setupUi(self)
+
+        self.parent = parent
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
 
         self.pushButtonOK.clicked.connect(self.close_dialog)
@@ -280,7 +282,7 @@ class FileSelectDialog(QtWidgets.QDialog, Ui_FileSelectWidget):
         self.close() 
 
     def scan_working_files(self):
-        print("scan_working_files::")
+        ##print("scan_working_files::")
         self.set_enabled(False)
 
         excluded = StudioInterface.WF_DEFAULT_EXCLUDE
@@ -299,7 +301,7 @@ class FileSelectDialog(QtWidgets.QDialog, Ui_FileSelectWidget):
 
         self.include_count = len(included)
 
-        print("FileSelectDialog::Selecting up to {} files".format(self.include_count))
+        ##print("FileSelectDialog::Selecting up to {} files".format(self.include_count))
         self.output_files = []
         self.set_enabled(False)
         self.labelMessage.setText("Scanning output files...")
@@ -307,7 +309,7 @@ class FileSelectDialog(QtWidgets.QDialog, Ui_FileSelectWidget):
         self.treeView.model().scan_output_files(self.select_output_files, included)
 
     def select_working_files(self, data):
-        print("select_working_files::")
+        ##print("select_working_files::")
 
         self.labelMessage.setText("Selecting files...")
         model = self.treeView.model()
@@ -325,8 +327,12 @@ class FileSelectDialog(QtWidgets.QDialog, Ui_FileSelectWidget):
         self.set_enabled(True)
         self.labelMessage.setText("")
 
+        if len(data) == 0:
+            QtWidgets.QMessageBox.warning(self.parent, 'Publish: Working Files', 'Warning: No working files found!')                  
+
+
     def select_output_files(self, data):
-        print("file_selector::file list {} select length {}".format(str(self.output_files), self.include_count))
+        ##print("file_selector::file list {} select length {}".format(str(self.output_files), self.include_count))
 
         self.labelMessage.setText("Selecting files...")
         self.output_files = []
@@ -369,7 +375,11 @@ class FileSelectDialog(QtWidgets.QDialog, Ui_FileSelectWidget):
                 model.setCheckState(model.index(selected[x]['path']), QtCore.Qt.Checked, False)
 
         self.set_enabled(True)
-        self.labelMessage.setText("")        
+        self.labelMessage.setText("")   
+
+        if len(data) == 0:
+            QtWidgets.QMessageBox.warning(self.parent, 'Publish: Output Files', 'Warning: No output files found!')                  
+
 
     def zip_callback(self, data):    
         self.labelMessage.setText("{}".format(data))

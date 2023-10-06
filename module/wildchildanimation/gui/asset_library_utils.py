@@ -276,6 +276,20 @@ def check_asset_casting(asset_name, project_name, episode_name):
 if __name__ == '__main__':
     # sync_asset_index("Tom Gates S3", "TG | Frame Ranges")
 
-    cast_episode(spreadsheet_name="TG3_Bid&Estimate_Doc", worksheet_name="311_Assets", project_name="Tom Gates S3", episode_name="tg_2d_ep311")
+    #for i in range(307, 321):
+    #    worksheet_name = F"{i}_Assets"
+    #    episode_name = F"tg_2d_ep{i}"
+
+    #    print(F"Processing {worksheet_name} for {episode_name}")
+    #    cast_episode(spreadsheet_name="TG3_Bid&Estimate_Doc", worksheet_name=worksheet_name, project_name="Tom Gates S3", episode_name=episode_name)
+
     ## check_asset_casting(asset_name = "tg_char_tom_apron", project_name="Tom Gates S3", episode_name="tg_2d_ep307")
+
+    i = 315
+    worksheet_name = F"{i}_Assets"
+    episode_name = F"tg_2d_ep{i}"
+
+    print(F"Processing {worksheet_name} for {episode_name}")
+    cast_episode(spreadsheet_name="TG3_Bid&Estimate_Doc", worksheet_name=worksheet_name, project_name="Tom Gates S3", episode_name=episode_name)
+
 

@@ -26,7 +26,6 @@ import sys
 import traceback
 import time
 import gazu
-import subprocess
 
 from datetime import datetime
 

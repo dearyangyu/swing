@@ -327,6 +327,8 @@ class TaskFileInfoThread(QtCore.QRunnable):
 
         if task["entity_type"]["name"] == "Shot":
             entity = gazu.shot.get_shot(task["entity_id"])
+        elif task["entity_type"]["name"] == "Edit":
+            entity = gazu.entity.get_entity(task["entity_id"])
         else:
             entity = gazu.asset.get_asset(task["entity_id"])
         

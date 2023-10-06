@@ -276,6 +276,13 @@
       </widget>
      </item>
      <item>
+      <widget class="QPushButton" name="pushButtonRenameShots">
+       <property name="text">
+        <string>Rename Shots</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QProgressBar" name="progressBar">
        <property name="maximum">
         <number>1</number>

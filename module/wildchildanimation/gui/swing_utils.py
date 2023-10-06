@@ -16,6 +16,7 @@ import os
 import re
 import zipfile, traceback
 import subprocess
+from glob import glob
 
 from datetime import datetime
 
@@ -264,6 +265,7 @@ def retrieve_file_paths(dirName):
     return filePaths
 
 def zip_directory(dir_name):
+    # recursive zip directory
 
     # Call the function to retrieve all files and folders of the assigned directory
     filePaths = retrieve_file_paths(dir_name)
@@ -281,6 +283,16 @@ def zip_directory(dir_name):
 
     write_log("Created {0}.zip".format(dir_name))
     return 
+
+#
+# Zip contents of path into ZipFile
+def zip_dir_contents(path, zipfile):
+    # zip folder contents only
+    count = 0
+    for item in glob("{}/*".format(path)):
+        zipfile.write(item, arcname=os.path.basename(item))
+        count = count + 1
+    return count
 
 def extract_archive(prog_name, archive, directory, extract_mode = "x"):
 
@@ -377,7 +389,7 @@ def external_extract(program, archive, directory, extract_mode = "x", cpu_thread
             output_dir = F'-o{os.path.dirname(directory)}'
             output_contents = "*\*"
 
-            print(F"Swing::Extracting -> {program} {extract_mode} {cpu_thread_count} -y {archive} {output_dir} {output_contents}")
+            print(F"Swing::Extracting -> {program} {extract_mode} {cpu_thread_count} -y {archive} {output_dir} {output_contents} ==> {directory}")
 
             proc = subprocess.Popen([program, extract_mode, cpu_thread_count, "-y", archive, output_dir, output_contents], shell = False, stdout=subprocess.PIPE)
         else:
@@ -398,7 +410,7 @@ def external_extract(program, archive, directory, extract_mode = "x", cpu_thread
 
         time_end = datetime.now()
         try:
-            print(r"swing: extracting {} completed in {}".format(directory, (time_end - time_start)))
+            print(r"swing: extracting to {} completed in {}".format(directory, (time_end - time_start)))
             print(r"")
         except:
             print(traceback.format_exc())

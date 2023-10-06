@@ -194,15 +194,11 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         if self.connect_to_server():
             self.labelConnection.setText("Connected")
             self.nav.load_open_projects()
-            # disble version check for now
-            # self.version_check()
+
+            self.version_check()
             self.set_enabled(True)
 
-        ## Don't do playlists yet
-        ##self.toolButtonPlaylists.setVisible(False)
-
     def reload_file_data(self):
-
         self.load_files(self.file_data)
         self.write_settings()
 
@@ -298,7 +294,6 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.createTaskFolderAction.setStatusTip("Create task folders for all selected tasks")
         self.createTaskFolderAction.triggered.connect(self.create_task_folder)   
 
-
     def _createContextMenu(self):
         self.tableViewFiles.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
         self.tableViewFiles.addAction(self.filesSelectAllAction)
@@ -386,7 +381,6 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
 
     def keyPressEvent(self, event):
         super(SwingGUI, self).keyPressEvent(event)
-
         event.accept()
 
     def selected_asset(self):
@@ -475,7 +469,6 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.settings.beginGroup(self.__class__.__name__)
 
         self.resize(self.settings.value("size", QtCore.QSize(400, 400)))
-
         try:
             tab = self.settings.value("tab", 0)
             self.tabWidget.setCurrentIndex(tab)
@@ -483,7 +476,6 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             pass
 
         #self.move(self.settings.value("pos", QtCore.QPoint(200, 200)))
-
         self.last_project = self.settings.value("last_project")
         self.last_sequences = self.settings.value("last_project")
         self.last_shot = self.settings.value("last_project")
@@ -555,7 +547,6 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             # save settings
             self.nav.on_close(event)            
             self.write_settings()      
-            
 
             event.accept()
         else:
@@ -672,7 +663,6 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             write_log("tasks_changed: {}".format("Exception"))
             traceback.print_exc(file=sys.stdout)                
 
-
     def episode_changed(self, index):
         try:
             self.currentEpisode = self.nav.get_episode()
@@ -686,7 +676,6 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
                     self.load_shot_files(self.comboBoxShot.currentIndex())
 
             ## self.tasks_changed()
-
             if self.nav.get_project():
                 asset_loader = AssetTypeLoaderThread(self, self.nav.get_project()["project_id"])
                 asset_loader.callback.loaded.connect(self.asset_types_loaded)
@@ -702,7 +691,6 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         except:
             write_log("episode_changed: {}".format("Exception"))
             traceback.print_exc(file=sys.stdout)                
-
 
     def asset_types_loaded(self, data): 
         self.asset_types = data
@@ -761,8 +749,6 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         if not self.nav.is_loaded():
             return 
 
-        ## write_log("[selection_changed]", source)
-
         sequence = self.nav.get_sequence()
         if sequence and "shots" in sequence:
             shots = sequence["shots"]
@@ -787,8 +773,6 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.tasks_changed()
 
     def asset_loaded(self, data): 
-        #write_log("[asset_loaded]")
-
         self.comboBoxAsset.blockSignals(True)
 
         self.assets = data
@@ -813,9 +797,6 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         if not asset:
             return
 
-        ## write_log("[selection_changed]", source)
-
-        #write_log("load asset files {}".format(index))
         loader = EntityFileLoader(self, asset["id"], working_dir = self.swing_settings.swing_root(), task_types = self.nav.get_task_types(), status_types = self.nav.get_task_status())
         loader.callback.loaded.connect(self.load_files)
 
@@ -828,7 +809,6 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.toolButtonDownload.setEnabled(False)
 
         self.threadpool.start(loader)       
-        ## loader.run()
 
     def load_files(self, data):
         self.file_data = data
@@ -903,11 +883,8 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
         self.tableViewFiles.model().layoutChanged.emit()
 
         self.selected_file = self.tableViewFiles.model().data(index, QtCore.Qt.UserRole)        
-        # self.tableViewFiles.update()
-        # print("current row is %d", index.row())
 
     def file_table_double_click(self, index):
-        #row_index = index.row()
         self.selected_file = self.tableViewFiles.model().data(index, QtCore.Qt.UserRole)
         if self.selected_file:
             working_dir = self.swing_settings.swing_root()
@@ -917,7 +894,6 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
                 reply = QtWidgets.QMessageBox.question(self, 'File found:', 'Would you like to open the existing folder?', QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
                 if reply == QtWidgets.QMessageBox.Yes:
                     open_folder(os.path.dirname(self.selected_file["target_path"]))
-                    #open_folder(os.path.dirname(self.selected_file["target_path"]))
                     return True
 
             self.on_load()
@@ -1071,8 +1047,6 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
     def on_create(self):
         if self.selected_task:
             self.handler.on_create(parent = self, handler = self.handler, task = self.selected_task)
-            #dialog = SwingCreateDialog(self, self.handler, self.selected_task)
-            #dialog.show()         
 
     def on_search(self):
         if self.nav.is_task_types_filtered():
@@ -1117,7 +1091,6 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
             self.handler.on_export(parent = self, task_id = task_id)
 
     def on_playblast(self):
-
         self.handler.on_playblast()
 
     def on_publish(self):
@@ -1136,6 +1109,4 @@ class SwingGUI(QtWidgets.QDialog, Ui_SwingMain):
     def task_info(self):
         if self.selected_task:
             entity_id = self.selected_task["entity_id"]
-
             self.handler.on_entity_info(parent = self, entity_id = entity_id, task_types = self.nav.get_task_types())
-

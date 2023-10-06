@@ -176,7 +176,9 @@ class ResourceLoaderDialogGUI(QtWidgets.QDialog, Ui_MayaResourceLoaderDialog):
             if not self.project_name in self.entity["name"]:
                 self.sections.append(self.project_name) 
 
-            self.sections.append(self.entity_type_name)
+            if not self.entity_type_name in self.entity["name"]:
+                self.sections.append(self.entity_type_name)
+                
             self.sections.append(friendly_string(self.entity["name"]))
 
             self.lineEditNamespace.setText(friendly_string("_".join(self.sections).lower()))

@@ -250,7 +250,7 @@ class SwingConvert(QtCore.QObject):
         if len(text_graph) > 0:
             ffmpeg_cmd += r' -vf "{}"'.format(text_graph)
 
-        ffmpeg_cmd += r' -c:v libx265 '
+        ffmpeg_cmd += r' -c:v libx264 '
 
         if self.audio_path:
             ffmpeg_cmd += r' -filter_complex "[1:0] apad" -shortest'      

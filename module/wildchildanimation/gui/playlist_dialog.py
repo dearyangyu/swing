@@ -146,6 +146,11 @@ class Ui_PlaylistDialog(object):
 
         self.horizontalLayout_2.addWidget(self.lineEditSearch)
 
+        self.pushButtonFilter = QPushButton(PlaylistDialog)
+        self.pushButtonFilter.setObjectName(u"pushButtonFilter")
+
+        self.horizontalLayout_2.addWidget(self.pushButtonFilter)
+
 
         self.gridLayout_2.addLayout(self.horizontalLayout_2, 0, 0, 1, 1)
 
@@ -186,6 +191,16 @@ class Ui_PlaylistDialog(object):
 
         self.horizontalLayout_4.addWidget(self.pushButtonProcess)
 
+        self.pushButtonValidate = QPushButton(PlaylistDialog)
+        self.pushButtonValidate.setObjectName(u"pushButtonValidate")
+
+        self.horizontalLayout_4.addWidget(self.pushButtonValidate)
+
+        self.pushButtonRenameShots = QPushButton(PlaylistDialog)
+        self.pushButtonRenameShots.setObjectName(u"pushButtonRenameShots")
+
+        self.horizontalLayout_4.addWidget(self.pushButtonRenameShots)
+
         self.progressBar = QProgressBar(PlaylistDialog)
         self.progressBar.setObjectName(u"progressBar")
         self.progressBar.setMaximum(1)
@@ -225,7 +240,10 @@ class Ui_PlaylistDialog(object):
         self.checkBoxExtractZip.setText(fakestr(u"Extract Zip Files", None))
         self.checkBoxSequences.setText(fakestr(u"Sequences (Sh 00's)", None))
         self.label_2.setText(fakestr(u"Search:", None))
+        self.pushButtonFilter.setText(fakestr(u"Filter", None))
         self.pushButtonProcess.setText(fakestr(u"Sync", None))
+        self.pushButtonValidate.setText(fakestr(u"Validate", None))
+        self.pushButtonRenameShots.setText(fakestr(u"Rename Shots", None))
         self.pushButtonCancel.setText(fakestr(u"Close", None))
     # retranslateUi
 

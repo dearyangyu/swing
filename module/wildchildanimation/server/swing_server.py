@@ -1,17 +1,13 @@
 # -*- coding: utf-8 -*-
 import os
 import shutil
+import argparse
+import json
 
-from _thread import *
 import zipfile
-
-from wildchildanimation.gui.swing_utils import friendly_string
 
 from wildchildanimation.gui.background_workers import WorkingFileUploader
 from wildchildanimation.gui.settings import SwingSettings
-from wildchildanimation.studio.openexr.swing_convert import SwingConvert
-from wildchildanimation.gui.swing_utils import extract_archive
-
 from wildchildanimation.gui.swing_utils import write_log
 
 # ==== auto Qt load ====
@@ -66,9 +62,14 @@ class SwingServer(QtCore.QObject):
         r"translateXtranslateYtranslateZrotateXrotateYrotateZparentConstraint"
     ]
 
-    def __init__(self, project_name):
+    def __init__(self, server, project, user, password):
         self.swing_settings = SwingSettings.get_instance()
-        self.project_name = project_name
+
+        self.server = server
+        self.project_name = project
+        self.user = user
+        self.password = password
+
         self.connected = False
         self.gazu_client = None
         self.running = False    
@@ -79,15 +80,11 @@ class SwingServer(QtCore.QObject):
             self.gazu_client = None
             self.connected = False
 
-        password = self.swing_settings.swing_password()
-        server = self.swing_settings.swing_server()
-        email = self.swing_settings.swing_user()
-
-        gazu.set_host("{}/api".format(server))
+        gazu.set_host("{}/api".format(self.server))
         try:
-            self.gazu_client = gazu.log_in(email, password)
+            self.gazu_client = gazu.log_in(self.user, password)
             self.connected = True
-            self.user_email = email
+            self.user_email = self.user
             self.project = gazu.project.get_project_by_name(self.project_name)
             self.swing_root = self.swing_settings.swing_root()
 
@@ -96,48 +93,42 @@ class SwingServer(QtCore.QObject):
                 return False            
 
             # check shot cache
-            self.shot_cache = gazu.task.get_task_type_by_name("Shot_Cache")
-            if not self.shot_cache:
-                write_log("error: Task Type {} not found".format("Anim-Block"))
+            self.cache = gazu.task.get_task_type_by_name("Cache")
+            if not self.cache:
+                write_log("error: Task Type {} not found".format("Cache"))
                 return False   
 
-            # check shot cache
-            self.render = gazu.task.get_task_type_by_name("Renders")
-            if not self.render:
-                write_log("error: Task Type {} not found".format("Renders"))
-                return False                   
-
-            # check anim_final 
-            self.anim_final = gazu.task.get_task_type_by_name("Anim-Final")
-            if not self.anim_final:
-                write_log("error: Task Type {} not found".format("Anim-Block"))
+            # check a3 
+            self.a3 = gazu.task.get_task_type_by_name("A3")
+            if not self.a3:
+                write_log("error: Task Type {} not found".format("A3"))
                 return False  
 
-            # check anim_anim 
-            self.anim_anim = gazu.task.get_task_type_by_name("Anim-Animation")
-            if not self.anim_anim:
-                write_log("error: Task Type {} not found".format("Anim-Block"))
+            # check a2 
+            self.a2 = gazu.task.get_task_type_by_name("A2")
+            if not self.a2:
+                write_log("error: Task Type {} not found".format("A2"))
                 return False  
 
-            # check anim_block 
-            self.anim_block = gazu.task.get_task_type_by_name("Anim-Block")
-            if not self.anim_block:
-                write_log("error: Task Type {} not found".format("Anim-Block"))
+            # check a1 
+            self.a1 = gazu.task.get_task_type_by_name("A1")
+            if not self.a1:
+                write_log("error: Task Type {} not found".format("A1"))
                 return False 
 
-            self.final = gazu.task.get_task_status_by_name("Final (Client Approved)") 
+            self.final = gazu.task.get_task_status_by_name("Final") 
             if not self.final:
-                write_log("error: Task Status 'Final (Client Approved)' not found")
+                write_log("error: Task Status 'Final' not found")
                 return False   
 
-            self.wip = gazu.task.get_task_status_by_name("Work in Progress") 
+            self.wip = gazu.task.get_task_status_by_name("Work In Progress") 
             if not self.wip:
                 write_log("error: Task Status 'WIP' not found")
                 return False                   
 
             self.wfa = gazu.task.get_task_status_by_name("Waiting for Approval") 
             if not self.wfa:
-                write_log("error: Task Status 'WIP' not found")
+                write_log("error: Task Status 'WFA' not found")
                 return False                                                                                      
 
             self.export = gazu.task.get_task_status_by_name("Export") 
@@ -145,9 +136,9 @@ class SwingServer(QtCore.QObject):
                 write_log("error: Task Status 'Export' not found")
                 return False  
 
-            self.review = gazu.task.get_task_status_by_name("Review") 
+            self.review = gazu.task.get_task_status_by_name("Retake") 
             if not self.review:
-                write_log("error: Task Status 'Review' not found")
+                write_log("error: Task Status 'Retake' not found")
                 return False                                               
 
             self.render_status = gazu.task.get_task_status_by_name("Render") 
@@ -155,7 +146,7 @@ class SwingServer(QtCore.QObject):
                 write_log("error: Task Status 'Render' not found")
                 return False                   
 
-            write_log("connected to {} as {}".format(self.project_name, email))
+            write_log("connected to {} as {}".format(self.project_name, self.user))
         except:
             return False
 
@@ -179,7 +170,7 @@ class SwingServer(QtCore.QObject):
             time.sleep(5 * 60)
 
     def zip_dir(self, path, zipfile):
-        for root, dirs, files in os.walk(path):
+        for root, _, files in os.walk(path):
             for file in files:
                 zipfile.write(os.path.join(root, file), os.path.relpath(os.path.join(root, file), os.path.join(path, '..')))        
 
@@ -194,12 +185,12 @@ class SwingServer(QtCore.QObject):
         self.log.append(log.strip())          
         print(log)       
 
-     # scan through project working files, if task type found, call anim-export on it
+    # scan through project working files, if task type found, call anim-export on it
     # will first download project file to local working dir
     # will then run anim_update on the project
     # will run anim_export passing in the project_name to strip from file name
     # lastly will zip and upload cache to kitsu
-    def shot_cache_working_files(self, episode_name, working_files, shot_cache_task, completed_status, task_type):
+    def cache_working_files(self, episode_name, working_files, cache_task, completed_status, task_type):
         SUPPRESS_LINES = True
 
         files = []
@@ -235,7 +226,13 @@ class SwingServer(QtCore.QObject):
                     continue
                 #
 
-                working_path = os.path.normpath(project_path.replace("Z:\\productions", self.swing_root))
+                if project_path.startswith("Z:\\"):
+                    working_path = os.path.normpath(project_path.replace("Z:\\productions", self.swing_root))
+                elif project_path.startswith("V:\\"):
+                    working_path = os.path.normpath(project_path.replace("V:\\productions", self.swing_root))
+                elif project_path.startswith("T:\\"):
+                    working_path = os.path.normpath(project_path.replace("T:\\productions", self.swing_root))
+
                 if not os.path.exists(os.path.dirname(working_path)):
                     os.makedirs(os.path.dirname(working_path))
 
@@ -260,8 +257,8 @@ class SwingServer(QtCore.QObject):
                 shutil.copy2(project_path, working_path)
                 try:
                     # run anim update on the project file
-                    command_line = 'Z:\\env\\wca\\swing\\swing-main\\bin\\anim_update.bat'
-                    self.server_log("running: {} {} {} {} {} {}".format(shot_cache_task["project"]["name"], shot_cache_task["episode"]["name"], shot_cache_task["sequence"]["name"], shot_cache_task["entity"]["name"], command_line, item))
+                    command_line = 'Z:\\env\\wca\\swing\\swing-main\\bin\\anim_update_maya_2023.bat'
+                    self.server_log("running: {} {} {} {} {} {}".format(cache_task["project"]["name"], cache_task["episode"]["name"], cache_task["sequence"]["name"], cache_task["entity"]["name"], command_line, item))
 
                     time_start = datetime.now()
                     suppress_count = 0
@@ -274,6 +271,9 @@ class SwingServer(QtCore.QObject):
                         try:
                             log = output.decode('utf-8')
                             if log == '' and proc.poll() != None:
+                                break
+                            elif "#done#" in log:
+                                self.server_log("Script is #done#")    
                                 break
                             else:
                                 if SUPPRESS_LINES: 
@@ -302,7 +302,7 @@ class SwingServer(QtCore.QObject):
                         print(traceback.format_exc())
 
                     # run shot cache on the project file                                          
-                    command_line = 'Z:\\env\\wca\\swing\\swing-main\\bin\\shot_cache.bat'
+                    command_line = 'Z:\\env\\wca\\swing\\swing-main\\bin\\shot_cache_maya_2023.bat'
                     self.server_log("running: {} {} {} {}".format(command_line, working_path, episode_name, task_name))
 
                     time_start = datetime.now()     
@@ -316,6 +316,9 @@ class SwingServer(QtCore.QObject):
                         try:
                             log = output.decode('utf-8')
                             if log == '' and proc.poll() != None:
+                                break
+                            elif "#done#" in log:
+                                self.server_log("Script is #done#")    
                                 break
                             else:
                                 if SUPPRESS_LINES: 
@@ -335,6 +338,7 @@ class SwingServer(QtCore.QObject):
                             self.server_log("Byte Code Error: Ignoring")
                             print(traceback.format_exc())
                         # continue
+
 
                     time_end = datetime.now()
                     try:
@@ -370,12 +374,11 @@ class SwingServer(QtCore.QObject):
                             traceback.print_exc(file=sys.stdout)
                             return False 
                         self.flush_output()
-   
-                        server = SwingSettings.get_instance().swing_server()
-                        edit_api = "{}/edit".format(server)  
+
+                        edit_api = "{}/edit".format(self.server)  
 
                         self.server_log("uploading: {}".format(target))
-                        worker = WorkingFileUploader(self, edit_api, shot_cache_task, target, "cache", "Maya", comment="Generated Shot Cache" , mode = "wip", file_model = None, task_status = completed_status["id"], archive_name = "shot_cache.zip")                            
+                        worker = WorkingFileUploader(self, edit_api, cache_task, target, "cache", "Maya", comment="Generated Shot Cache" , mode = "wip", file_model = None, task_status = completed_status["id"], archive_name = "shot_cache.zip")                            
                         worker.run()
 
                         time_end = datetime.now()
@@ -385,10 +388,10 @@ class SwingServer(QtCore.QObject):
                     else:
                         # set task to error
                         comment_text = "Error generating shot_cache for task"
-                        gazu.task.add_comment(shot_cache_task, self.review, comment_text)
+                        gazu.task.add_comment(cache_task, self.review, comment_text)
 
 
-                    self.server_log("finished: {} {} {} {} {} {}".format(shot_cache_task["project"]["name"], shot_cache_task["episode"]["name"], shot_cache_task["sequence"]["name"], shot_cache_task["entity"]["name"], command_line, item))
+                    self.server_log("finished: {} {} {} {} {} {}".format(cache_task["project"]["name"], cache_task["episode"]["name"], cache_task["sequence"]["name"], cache_task["entity"]["name"], command_line, item))
                     self.server_log("******************************************************************************************")
                    
                     return True
@@ -409,11 +412,14 @@ class SwingServer(QtCore.QObject):
     def process(self):
         write_log("process::start")
 
-        tasks = gazu.task.all_tasks_for_task_status(self.project, self.shot_cache, self.export)
+        gazu.set_host("{}/api".format(self.server))
+        gazu.log_in(self.user, password)        
+
+        tasks = gazu.task.all_tasks_for_task_status(self.project, self.cache, self.export)
         #
         # check for any shot cache tasks
         if len(tasks) > 0:
-            write_log("process::checking {} for {} shots".format(self.shot_cache["name"].lower(), len(tasks)))
+            write_log("process::checking {} for {} shots".format(self.cache["name"].lower(), len(tasks)))
             write_log(r"**************************************************")
 
             # sort tasks by shot priority
@@ -422,8 +428,11 @@ class SwingServer(QtCore.QObject):
 
                 shot = gazu.shot.get_shot(t["entity_id"])
                 if "data" in shot:
-                    if "priority" in shot["data"]:
-                        t["priority"] = shot["data"]["priority"]
+                    try:
+                        if "priority" in shot["data"]:
+                            t["priority"] = shot["data"]["priority"]
+                    except:
+                        write_log("process::priority: No priority to set")
 
             tasks = sorted(tasks, key=lambda d: d['priority'], reverse=True) 
 
@@ -444,33 +453,39 @@ class SwingServer(QtCore.QObject):
                 else:
                     episode_name = "{}_".format("".join(episode_details).lower())
 
-                task_type = self.anim_final
+                if not episode_name.startswith(self.project["code"]):
+                    episode_name = "{}_{}".format(self.project["code"], episode_name)
+
+                task_type = self.a3
                 shot_task = gazu.task.get_task_by_entity(shot, task_type)
 
                 project_files = gazu.files.get_last_working_files(shot_task)
                 if len(project_files) > 0:
-                    gazu.task.start_task(shot_cache_task)
-                    if self.shot_cache_working_files(episode_name, project_files, shot_cache_task, self.final, task_type):
+                    # fix start task - gazu.task.start_task(shot_cache_task)
+                    gazu.task.add_comment(shot_cache_task, self.wip)
+                    if self.cache_working_files(episode_name, project_files, shot_cache_task, self.final, task_type):
                         continue
                         # return True
 
-                task_type = self.anim_anim
+                task_type = self.a2
                 shot_task = gazu.task.get_task_by_entity(shot, task_type)
 
                 project_files = gazu.files.get_last_working_files(shot_task)
                 if len(project_files) > 0:
-                    gazu.task.start_task(shot_cache_task)
-                    if self.shot_cache_working_files(episode_name, project_files, shot_cache_task, self.wip, task_type):
+                    # fix start task - gazu.task.start_task(shot_cache_task)
+                    gazu.task.add_comment(shot_cache_task, self.wip)
+                    if self.cache_working_files(episode_name, project_files, shot_cache_task, self.wip, task_type):
                         continue
                         #return True
 
-                task_type = self.anim_block
+                task_type = self.a1
                 shot_task = gazu.task.get_task_by_entity(shot, task_type)
 
                 project_files = gazu.files.get_last_working_files(shot_task)
                 if len(project_files) > 0:
-                    gazu.task.start_task(shot_cache_task)                    
-                    if self.shot_cache_working_files(episode_name, project_files, shot_cache_task, self.wip, task_type):
+                    # fix start task - gazu.task.start_task(shot_cache_task)
+                    gazu.task.add_comment(shot_cache_task, self.wip)
+                    if self.cache_working_files(episode_name, project_files, shot_cache_task, self.wip, task_type):
                         continue
                         #return True
 
@@ -483,11 +498,34 @@ class SwingServer(QtCore.QObject):
         self.running = False
 
 if __name__ == "__main__":
-    write_log("SwingServer::start")
-    #server = SwingServer(project_name = "Wind in the Willows")
 
-    ##server = SwingServer(project_name = "Attack of the Killer Bunny S1")
+    parser = argparse.ArgumentParser(
+        description="Swing::Cache Service - Settings"
+    )
 
-    server = SwingServer(project_name = "Wind in the Willows")
-    server.start()
-    write_log("SwingServer::done")
+    parser.add_argument("-c", "--config", help="Config File", action="store")
+    args = parser.parse_args()
+    config_file = args.config
+
+    if not os.path.exists(config_file):
+        print("Config file not found: {}".format(config_file))
+        sys.exit(1)
+
+    config_json = json.load(open(config_file))
+
+    server = config_json["server"]
+    project = config_json["project"]
+    user = config_json["user"]
+    password = config_json["password"]
+
+    # Add arguments for the sequence parser
+    try:
+        write_log("SwingServer::start")
+
+        server = SwingServer(server = server, project = project, user = user, password = password)
+        server.start()
+        write_log("SwingServer::done")
+    except:
+        traceback.print_exc()
+    # Process the args using the argument execution functions        
+    sys.exit(0)

@@ -456,6 +456,7 @@ class SwingTimelineDialog(QtWidgets.QDialog, Ui_SwingTimelineDialog):
         self.episode = self.comboBoxEpisode.currentData(QtCore.Qt.UserRole)
         
         self.shots = gazu.shot.all_shots_for_episode(self.episode)
+
         self.shot_map = {}
 
         for shot_id in self.shots:
@@ -786,10 +787,10 @@ class SwingTimelineDialog(QtWidgets.QDialog, Ui_SwingTimelineDialog):
         for t in tasks:
             if task_status:
                 if t["task_type_name"] == task_type_name and t["task_status_name"] == task_status["name"]:
-                        return t
+                    return t
             else:
                 if t["task_type_name"] == task_type_name:
-                        return t
+                    return t
 
         return False        
 
@@ -798,11 +799,12 @@ class SwingTimelineDialog(QtWidgets.QDialog, Ui_SwingTimelineDialog):
 
     def update_kitsu(self): 
         name, _ = os.path.splitext(self.lineEditEDLFile.text())  
+        revision = os.path.basename(self.lineEditEDLFile.text())
         target_dir = os.path.join(os.path.dirname(name), name)
         prefix = os.path.basename(name).lower().split("_")[0]
 
         if not self.model:
-            QtWidgets.QMessageBox.information("Please load and scan an EDL first")
+            QtWidgets.QMessageBox.information("Please load and scan an XML first")
             return False
         
         self.project = self.comboBoxProject.currentData(QtCore.Qt.UserRole)
@@ -906,7 +908,10 @@ class SwingTimelineDialog(QtWidgets.QDialog, Ui_SwingTimelineDialog):
                     audio_breakout_files = sorted(audio_breakout_files, key=lambda x: x["updated_at"], reverse=True)            
 
                     video_breakout_files = gazu.files.all_output_files_for_entity(task["entity_id"], wip_output_type, task["task_type_id"])
-                    video_breakout_files = sorted(video_breakout_files, key=lambda x: x["updated_at"], reverse=True)            
+                    video_breakout_files = sorted(video_breakout_files, key=lambda x: x["updated_at"], reverse=True)  
+
+                audio_revision = len(audio_breakout_files) + 1
+                video_revision = len(video_breakout_files) + 1
 
                 if item["edl_status"] == ShotListModel.SHOT_CUT:
                     # gazu.task.add_comment(task, layout_task_type, "Shot cut from edit")
@@ -975,7 +980,12 @@ class SwingTimelineDialog(QtWidgets.QDialog, Ui_SwingTimelineDialog):
                         if should_upload:
                             self.textEditLog.append(F"Uploading new preview {video_preview}")
 
-                            worker = WorkingFileUploader(self, edit_api, task, video_preview, item_name, "Video", "Breakout file", mode = "preview")
+                            ## Rename Preview to include revision number
+                            fn, fext = os.path.splitext(video_preview)
+                            video_revision_file = "{}_v{}{}".format(fn, video_revision, fext)
+                            os.rename(video_preview, video_revision_file)
+
+                            worker = WorkingFileUploader(self, edit_api, task, video_revision_file, os.path.basename(video_revision_file), "Video", "Breakout file: v{}: {}".format(video_revision, revision), mode = "preview")
                             worker.callback.done.connect(self.media_uploaded_callback)
                             worker.run()         
 
@@ -1013,7 +1023,12 @@ class SwingTimelineDialog(QtWidgets.QDialog, Ui_SwingTimelineDialog):
                         if should_upload:
                             self.textEditLog.append(F"Uploading new audio {audio_file}")
 
-                            worker = WorkingFileUploader(self, edit_api, task, audio_file, item_name, "Audio", "Breakout file", mode = "working")
+                            ## Rename Preview to include revision number
+                            fn, fext = os.path.splitext(audio_file)
+                            audio_revision_file = "{}_v{}{}".format(fn, audio_revision, fext)
+                            os.rename(audio_file, audio_revision_file)                            
+
+                            worker = WorkingFileUploader(self, edit_api, task, audio_revision_file, os.path.basename(audio_revision_file), "Audio", "Breakout file: v{}: {}".format(audio_revision, revision), mode = "working")
                             worker.callback.done.connect(self.media_uploaded_callback)
                             worker.run()  
                             
@@ -1075,7 +1090,7 @@ class SwingTimelineDialog(QtWidgets.QDialog, Ui_SwingTimelineDialog):
         ## sort table by name
         self.tableView.sortByColumn(ShotListModel.COL_NAME, QtCore.Qt.AscendingOrder)             
 
-        gc = gspread.service_account(filename='./treehouse-gsuite-dcad9a674b8c.json')     
+        gc = gspread.service_account(filename=r'Z:/env/wca/swing/swing-main/treehouse-gsuite-dcad9a674b8c.json')     
         spreadsheet_name = self.project["code"].upper() + " | Frame Ranges"
 
         sh = gc.open(spreadsheet_name)
@@ -1318,7 +1333,7 @@ class ShotListModel(QtCore.QAbstractTableModel):
         elif ShotListModel.COL_CANCELLED == col_index:
             if item["canceled"]:
                 return "Cancelled"
-
+            
         return None
 
     def flags(self, index):
