@@ -17,7 +17,7 @@ except ImportError:
     qtMode = 1
 
 from wildchildanimation.gui.background_workers import SoftwareLoader, TaskFileInfoThread, WorkingFileUploader, ProjectTaskTypeLoader, ProjectStatusTypeLoader
-from wildchildanimation.gui.swing_utils import set_button_icon
+from wildchildanimation.gui.swing_utils import set_button_icon, fcount
 from wildchildanimation.gui.image_loader import PreviewImageLoader
 from wildchildanimation.gui.publish_dialog import Ui_PublishDialog
 from wildchildanimation.gui.file_selector import FileSelectDialog
@@ -304,8 +304,8 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
 
         self.labelWorkingFilesMessage.setText("")
 
-        if not selected_file in self.working_files:
-            self.working_files.append(selected_file)
+        self.working_files.clear()
+        self.working_files.append(selected_file)
 
     def set_working_dir(self, selected_dir):
         self.radioButtonWorkingFile.setChecked(False)
@@ -316,8 +316,8 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         self.workingFileEdit.setText("")
 
     def set_output_file(self, selected_file):
-        if not selected_file in self.output_files:
-            self.output_files.append(selected_file)
+        self.output_files.clear()
+        self.output_files.append(selected_file)
             
         self.radioButtonOutputFile.setChecked(True)
         self.radioButtonOutputDir.setChecked(False)
@@ -396,7 +396,7 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         if self.process_count == 0:
             self.threadpool.waitForDone()
             QtWidgets.QMessageBox.question(self, 'Swing: Publisher', 'Task {} succesfully published\r\nAll files uploaded, thank you'.format(self.lineEditSelection.text()), QtWidgets.QMessageBox.Ok)
-            self.pushButtonCancel.setEnabled(True)
+##            self.pushButtonCancel.setEnabled(True)
 
     def get_software(self):
         return self.comboBoxSoftware.currentData(QtCore.Qt.UserRole)        
@@ -457,7 +457,7 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         self.monitor = UploadMonitorDialog(self)
 
         self.setMinimumWidth(720)
-        self.pushButtonCancel.setEnabled(False)
+        ## self.pushButtonCancel.setEnabled(False)
 
         self.process_count = 0
         self.queue = []
@@ -500,8 +500,12 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
 
                 if os.path.exists(source):
                     file_base = os.path.basename(source)
-                    file_path = os.path.dirname(source)
-                    file_name, file_ext = os.path.splitext(file_base)                
+                    file_name, _ = os.path.splitext(file_base)   
+
+                    if fcount(source) == 0:
+                        QtWidgets.QMessageBox.warning(self, 'Publish: Working Directory', 'Warning: No project files found!')                            
+                        return False
+
 
                     worker = WorkingFileUploader(self, edit_api, self.task, source, file_name, software_name = self.get_software()["name"], 
                         comment = task_comments, mode = "working", file_model = self.working_filter.treeView.model(), task_status = self.comboBoxTaskStatus.currentData(QtCore.Qt.UserRole)["id"])
@@ -509,7 +513,7 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
                     worker.callback.progress.connect(self.monitor.file_loading)
                     worker.callback.done.connect(self.monitor.file_loaded)
 
-                    target = "{}/{}.zip".format(os.path.dirname(source), file_base)
+                    ##target = "{}/{}.zip".format(os.path.dirname(source), file_base)
                     ## dialog.add_item(target, "Pending")
 
                     self.process_count += 1                
@@ -548,6 +552,10 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
                 if os.path.exists(source):
                     file_base = os.path.basename(source)
                     file_name, file_ext = os.path.splitext(file_base)
+
+                    if fcount(source) == 0:
+                        QtWidgets.QMessageBox.warning(self, 'Publish: Output Directory', 'Warning: No output files found!')                            
+                        return False
 
                     if "playblasts" in source.lower():
                         archive_name = "playblasts"
@@ -701,12 +709,7 @@ class PublishDialogGUI(QtWidgets.QDialog, Ui_PublishDialog):
         elif len(self.workingFileEdit.text()) > 0:
             directory = os.path.dirname(self.workingFileEdit.text())                                
         else:
-            if len(self.last_output_dir) > 1:
-                directory = self.last_output_dir[0]
-            else:
-                directory = self.last_output_dir
-
-
+            directory = None
         return directory
 
     def select_working_file(self):

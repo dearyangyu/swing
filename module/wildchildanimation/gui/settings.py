@@ -34,7 +34,7 @@ class SwingSettings(QtCore.QObject):
 
     _APP_NAME = "treehouse: swing"
     _APP_SHORTNAME = "swing"
-    _APP_VERSION = "0.0.0.40"
+    _APP_VERSION = "0.0.0.41"
     _APP_DESCRIPTION = "treehouse: swing"    
     _CONNECTIONS_FILE = "Z:/env/wca/swing/swing-main/swing_connections.json" 
 

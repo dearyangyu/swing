@@ -327,8 +327,8 @@ class FileSelectDialog(QtWidgets.QDialog, Ui_FileSelectWidget):
         self.set_enabled(True)
         self.labelMessage.setText("")
 
-        if len(data) == 0:
-            QtWidgets.QMessageBox.warning(self.parent, 'Publish: Working Files', 'Warning: No working files found!')                  
+        ##if len(data) == 0:
+        ##    QtWidgets.QMessageBox.warning(self.parent, 'Publish: Working Files', 'Warning: No working files found!')                  
 
 
     def select_output_files(self, data):
@@ -377,8 +377,8 @@ class FileSelectDialog(QtWidgets.QDialog, Ui_FileSelectWidget):
         self.set_enabled(True)
         self.labelMessage.setText("")   
 
-        if len(data) == 0:
-            QtWidgets.QMessageBox.warning(self.parent, 'Publish: Output Files', 'Warning: No output files found!')                  
+        ##if len(data) == 0:
+        ##    QtWidgets.QMessageBox.warning(self.parent, 'Publish: Output Files', 'Warning: No output files found!')                  
 
 
     def zip_callback(self, data):    
